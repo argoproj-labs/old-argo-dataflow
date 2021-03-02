@@ -79,6 +79,13 @@ spec:
   - parDo: some-logger-image
 ```
 
+`ParDo` has an input stream of data and outputs another. What does this look like in container world? 
+
+* stdin/stdout - performance can be poor on these
+* named pipes - not commonly used, but core Linux capability for IPC
+* files - not very "streamy"
+* socket - fast, but the low level programming is hard to get right
+* HTTP endpoints - slower, but easier to get right
 
 ## Further Reading
 
