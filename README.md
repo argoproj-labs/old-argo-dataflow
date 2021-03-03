@@ -26,6 +26,7 @@ To discus:
 * Intuit
 * RedHat
 * Argo Community
+* CNCF Serverless Workflows
 * Google TektonCD team
 * Kubeflow Pipelines team
 
