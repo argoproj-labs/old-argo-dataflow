@@ -33,6 +33,12 @@ To discus:
 * Google TektonCD team
 * Kubeflow Pipelines team
 
+## Proving the Solution
+
+1. The "Hello World" of stream processing. Word count.
+1. In anomaly detection, there’s a sub system named on demand training. It uses Argo Events connecting to a Kafka, and then create workflows. Right now the data pushed to Kafka is pre-precessed, to avoid too many workflows being created to crash everything. Process this data as a stream. @whynowy
+1. @vigith to provide
+
 ## Proposal
 
 * Cloud-native
