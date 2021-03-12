@@ -37,7 +37,8 @@ To discus:
 
 1. The "Hello World" of stream processing. Word count.
 1. In anomaly detection, there’s a sub system named on demand training. It uses Argo Events connecting to a Kafka, and then create workflows. Right now the data pushed to Kafka is pre-precessed, to avoid too many workflows being created to crash everything. Process this data as a stream. @whynowy
-1. @vigith to provide
+1. Release Velocity Project collects all the releases events from Kafka and does Filtering (drop events which are malformed or if critical fields are missing), Transformation (fix non-standard values of the fields to standard values) and Enrichment (add new fields and metadata to make the event normalized and more meaningful)
+1. Git Events are also streamed realtime to ODL. Here we use Stream Processing Platform exactly like Release Velocity project except that we do a lot of JSON flattening (may be call it Transformation) as Git data is heavily nested.
 
 ## Proposal
 
