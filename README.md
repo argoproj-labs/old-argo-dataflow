@@ -20,7 +20,7 @@ Argo Dataflow is intended as a cloud-native and language-agnostic platform for e
 * Fraud detection
 * Operational (including IoT) analytics
 
-## Cloud Provider Solutions
+## Related Software
 
 * [Google Cloud Dataflow](https://cloud.google.com/dataflow)
 * [Amazon Kenisis](https://aws.amazon.com/kinesis/) - including Data Streams, Data Firehose, and Data Analytics
