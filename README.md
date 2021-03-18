@@ -1,5 +1,9 @@
 # Argo Dataflow
 
+## Summary
+
+Argo Dataflow is intended as a cloud-native and language-agnostic platform for executing large parallel data-processing pipelines composed of many tasks is typcially small and homogenic. 
+
 ## Primer Reading
 
 * [Streaming 101: The world beyond batch](https://www.oreilly.com/radar/the-world-beyond-batch-streaming-101) O'Reilly
