@@ -39,7 +39,7 @@ To discus:
 
 ## Proving the Solution
 
-1. The "Hello World" of stream processing. Word count.
+1. The "Hello World" of data processing. Word count.
 1. Release Velocity Project collects all the releases events from Kafka and does Filtering (drop events which are malformed or if critical fields are missing), Transformation (fix non-standard values of the fields to standard values) and Enrichment (add new fields and metadata to make the event normalized and more meaningful)
 1. Git Events are also streamed realtime to ODL. Here we use Stream Processing Platform exactly like Release Velocity project except that we do a lot of JSON flattening (may be call it Transformation) as Git data is heavily nested.
 1. ~In anomaly detection, there’s a sub system named on demand training. It uses Argo Events connecting to a Kafka, and then create workflows. Right now the data pushed to Kafka is pre-precessed, to avoid too many workflows being created to crash everything. Process this data as a stream.~
@@ -102,26 +102,25 @@ Starting and stopping pods is expensive. In MVP, I believe we should support pod
 
 * stdin/stdout - performance can be poor on these
 * named pipes - not commonly used, but core Linux capability for IPC
-* files - not very "streamy" - but great for grouping by key
+* files - chunky - but great for grouping by key
 * socket - fast, but the low level programming is hard to get right
 * HTTP endpoints - slower, but easier to get right
 
 We may well want several options.
 
-### Windowing
+### Data Chunking
 
-After discussing with @vigith, we need to support this. We need to provide a way for a user to decide when a window
+After discussing with @vigith, we need to support this. We need to provide a way for a user to decide when a chunk
 starts and end, this maybe a function itself. A pod will receive a sequence of messages as a series of frames, e.g.
 
-1. `type=WindowStart`
+1. `type=ChunkStart`
 1. `type=Data, payload=...`
 1. `type=Data, payload=...`
 1. ...
-1. `type=WindowEnd`
+1. `type=ChunkEnd`
 
-Messages could also be window-less and the `Window*` control messages are never sent.
+Messages could also be chunk-less and the `Chunk*` control messages are never sent.
 
 ## Further Reading
 
-* [Beam Capability Matrix
-  ](https://beam.apache.org/documentation/runners/capability-matrix/)
+* [Beam Capability Matrix](https://beam.apache.org/documentation/runners/capability-matrix/)
