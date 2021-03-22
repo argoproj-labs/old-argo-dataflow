@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: my-pipeline
+  annotations:
+    kubernetes.io/finalizer: delete-intermediary-kafka-topics
+spec:
+  - processor:
+      ingress:
+        source:
+          kafka:
+            topic: my-input
+        via:
+          # oneOf
+          http: { url: "http://localhost:8080" }
+          stdin: { }
+      image: my-image
+      replicas:
+        # oneOf
+        value: 2
+        valueFrom:
+          kafkaPartitions: { }
+      egress:
+        via:
+          # oneOf
+          http: { }
+          stdout: { }
+        sink:
+          bus:
+            name: connector
+
+  - processor:
+      ingress:
+        source:
+          bus:
+            name: connector
+        via:
+          # oneOf
+          http: { }
+          stdin: { }
+      image: my-image
+      replicas:
+        # oneOf
+        value: 2
+        valueFrom:
+          kafkaPartitions: { }
+      egress:
+        via:
+          # oneOf
+          http: { }
+          stdout: { }
+        sink:
+          kafka:
+            topic: my-output
+
+status:
+  processorStatues:
+    phase: Running
+    message: "all looks great!"
