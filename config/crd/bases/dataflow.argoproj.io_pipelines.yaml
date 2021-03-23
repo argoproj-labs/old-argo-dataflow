@@ -36,10 +36,12 @@ spec:
           spec:
             description: PipelineSpec defines the desired state of Pipeline
             properties:
-              foo:
+              processors:
                 description: Foo is an example field of Pipeline. Edit Pipeline_types.go
                   to remove/update
-                type: string
+                items:
+                  type: object
+                type: array
             type: object
           status:
             description: PipelineStatus defines the observed state of Pipeline
