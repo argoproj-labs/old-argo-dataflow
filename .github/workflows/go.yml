@@ -21,4 +21,8 @@ jobs:
       - run: make kubebuilder name=linux
       - run: make test
       - run: bash <(curl -s https://codecov.io/bash)
+      - run: go mod tidy
+      - uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.36.0
       - run: git diff --exit-code

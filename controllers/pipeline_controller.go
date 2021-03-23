@@ -57,6 +57,10 @@ func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	for _, p := range x.Spec.Processors {
 
+		labels := map[string]string{
+			"dataflow.argoproj.io/pipeline-name":  x.Name,
+			"dataflow.argoproj.io/processor-name": p.Name,
+		}
 		if err := r.Client.Create(ctx, &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      x.Name + "-" + p.Name,
@@ -66,25 +70,12 @@ func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 				},
 			},
 			Spec: appsv1.DeploymentSpec{
-				Selector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						"dataflow.argoproj.io/pipeline-name":  x.Name,
-						"dataflow.argoproj.io/processor-name": p.Name,
-					},
-				},
+				Selector: &metav1.LabelSelector{MatchLabels: labels},
 				Template: corev1.PodTemplateSpec{
-					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{
-							"dataflow.argoproj.io/pipeline-name":  x.Name,
-							"dataflow.argoproj.io/processor-name": p.Name,
-						},
-					},
+					ObjectMeta: metav1.ObjectMeta{Labels: labels},
 					Spec: corev1.PodSpec{
 						Containers: []corev1.Container{
-							{
-								Name:  "main",
-								Image: "docker/whalesay:latest",
-							},
+							{Name: "main", Image: p.Image},
 						},
 					},
 				},

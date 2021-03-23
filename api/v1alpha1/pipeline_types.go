@@ -24,7 +24,8 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type Processor struct {
-	Name string `json:"name"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
 }
 
 // PipelineSpec defines the desired state of Pipeline
