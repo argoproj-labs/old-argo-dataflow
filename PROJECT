@@ -1,3 +1,7 @@
 domain: argoproj.io
 repo: github.com/argoproj-labs/argo-dataflow
+resources:
+- group: dataflow
+  kind: Pipeline
+  version: v1alpha1
 version: "2"

@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/controllers"
 	// +kubebuilder:scaffold:imports
 )
@@ -40,6 +41,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = argoprojiov1alpha1.AddToScheme(scheme)
+	_ = dataflowv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
