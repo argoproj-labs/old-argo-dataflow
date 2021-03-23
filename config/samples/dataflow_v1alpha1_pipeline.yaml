@@ -1,0 +1,7 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: pipeline-sample
+spec:
+  # Add fields here
+  foo: bar
