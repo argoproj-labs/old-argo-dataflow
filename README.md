@@ -29,10 +29,11 @@ pipelines composed of many tasks is typcially small and homogenic.
 * [Google Cloud Dataflow](https://cloud.google.com/dataflow)
 * [Amazon Kenisis](https://aws.amazon.com/kinesis/) - including Data Streams, Data Firehose, and Data Analytics
 * [Azure Stream Analytics](https://azure.microsoft.com/en-us/services/stream-analytics/)
-* [StreamSet](https://github.com/streamsets) - [github](https://github.com/streamsets), Java based, Kubernetes, Managed
-  platform
+* [StreamSet](https://github.com/streamsets) Java based, Kubernetes, Managed platform
 * [Spring Dataflow](https://dataflow.spring.io/docs/concepts/architecture), Java based, micro service orchestration (jar
-  or docker image), Kubernets
+  or docker image), Kubernetes
+* [Apache Beam](https://beam.apache.org/) see also [Beam Capability Matrix](https://beam.apache.org/documentation/runners/capability-matrix/)
+
 
 ## Collaborators and Consulted
 
@@ -94,7 +95,7 @@ So:
 * `Window` We need to figure out how to window data.
 
 ```yaml
-apiVersion: argoproj.io/v1alpha1
+apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   name: my-pipeline
@@ -191,6 +192,3 @@ starts and end, this maybe a function itself. A pod will receive a sequence of m
 
 Messages could also be chunk-less and the `Chunk*` control messages are never sent.
 
-## Further Reading
-
-* [Beam Capability Matrix](https://beam.apache.org/documentation/runners/capability-matrix/)
