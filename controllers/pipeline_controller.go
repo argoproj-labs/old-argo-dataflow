@@ -55,38 +55,43 @@ func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if err := r.Client.Create(ctx, &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: x.Name + "-",
-			Namespace:    x.Namespace,
-			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(x.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
-			},
-		},
-		Spec: appsv1.DeploymentSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"dataflow.argoproj.io/pipeline-name": x.Name,
+	for _, p := range x.Spec.Processors {
+
+		if err := r.Client.Create(ctx, &appsv1.Deployment{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      x.Name + "-" + p.Name,
+				Namespace: x.Namespace,
+				OwnerReferences: []metav1.OwnerReference{
+					*metav1.NewControllerRef(x.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
 				},
 			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"dataflow.argoproj.io/pipeline-name": x.Name,
+			Spec: appsv1.DeploymentSpec{
+				Selector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"dataflow.argoproj.io/pipeline-name":  x.Name,
+						"dataflow.argoproj.io/processor-name": p.Name,
 					},
 				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "main",
-							Image: "docker/whalesay:latest",
+				Template: corev1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{
+							"dataflow.argoproj.io/pipeline-name":  x.Name,
+							"dataflow.argoproj.io/processor-name": p.Name,
+						},
+					},
+					Spec: corev1.PodSpec{
+						Containers: []corev1.Container{
+							{
+								Name:  "main",
+								Image: "docker/whalesay:latest",
+							},
 						},
 					},
 				},
 			},
-		},
-	}); err != nil {
-		return ctrl.Result{}, err
+		}); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	return ctrl.Result{}, nil

@@ -33,6 +33,11 @@ var _ = Describe("Pipeline controller", func() {
 					Name:      Name,
 					Namespace: Namespace,
 				},
+				Spec: v1alpha1.PipelineSpec{
+					Processors: []v1alpha1.Processor{
+						{Name: "main"},
+					},
+				},
 			}
 			Expect(k8sClient.Create(ctx, p)).Should(Succeed())
 
