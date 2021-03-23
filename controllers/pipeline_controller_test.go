@@ -35,7 +35,7 @@ var _ = Describe("Pipeline controller", func() {
 				},
 				Spec: v1alpha1.PipelineSpec{
 					Processors: []v1alpha1.Processor{
-						{Name: "main"},
+						{Name: "main", Image: "docker/whalesay:latest"},
 					},
 				},
 			}
