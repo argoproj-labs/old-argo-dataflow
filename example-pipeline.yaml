@@ -5,9 +5,10 @@ metadata:
   annotations:
     kubernetes.io/finalizer: delete-intermediary-kafka-topics
 spec:
-  - processor:
-      ingress:
-        source:
+  processors:
+    - name: a
+      input:
+        from:
           kafka:
             topic: my-input
         via:
@@ -20,18 +21,18 @@ spec:
         value: 2
         valueFrom:
           kafkaPartitions: { }
-      egress:
+      output:
         via:
           # oneOf
           http: { }
           stdout: { }
-        sink:
+        to:
           bus:
             name: connector
 
-  - processor:
-      ingress:
-        source:
+    - name: b
+      input:
+        from:
           bus:
             name: connector
         via:
@@ -44,12 +45,12 @@ spec:
         value: 2
         valueFrom:
           kafkaPartitions: { }
-      egress:
+      ouput:
         via:
           # oneOf
           http: { }
           stdout: { }
-        sink:
+        to:
           kafka:
             topic: my-output
 

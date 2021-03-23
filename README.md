@@ -28,7 +28,7 @@ Argo Dataflow is intended as a cloud-native and language-agnostic platform for e
 * [StreamSet](https://github.com/streamsets) - [github](https://github.com/streamsets), Java based, Kubernetes, Managed platform
 * [Spring Dataflow](https://dataflow.spring.io/docs/concepts/architecture), Java based, micro service orchestration (jar or docker image), Kubernets
 
-## Collabarators and Consulted
+## Collaborators and Consulted
 
 To discus:
 
@@ -86,27 +86,84 @@ So:
 apiVersion: argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: work-time
+  name: my-pipeline
+  annotations:
+    kubernetes.io/finalizer: delete-intermediary-kafka-topics
 spec:
-  - kafka:
-      topic: taxirides
-  - groupByKey:
-      key: .licenseId
-  - parDo: some-combiner-image
-  - parDo: some-logger-image
+  processors:
+    - name: a
+      input:
+        from:
+          kafka:
+            topic: my-input
+        via:
+          # oneOf
+          http: { url: "http://localhost:8080" }
+          stdin: { }
+      image: my-image
+      replicas:
+        # oneOf
+        value: 2
+        valueFrom:
+          kafkaPartitions: { }
+      output:
+        via:
+          # oneOf
+          http: { }
+          stdout: { }
+        to:
+          bus:
+            name: connector
+
+    - name: b
+      input:
+        from:
+          bus:
+            name: connector
+        via:
+          # oneOf
+          http: { }
+          stdin: { }
+      image: my-image
+      replicas:
+        # oneOf
+        value: 2
+        valueFrom:
+          kafkaPartitions: { }
+      ouput:
+        via:
+          # oneOf
+          http: { }
+          stdout: { }
+        to:
+          kafka:
+            topic: my-output
+
+status:
+  processorStatues:
+    phase: Running
+    message: "all looks great!"
 ```
+
+### Architecture Diagram
+
+[![Architecture](architecture.png)](https://docs.google.com/drawings/d/1Dk7mgZ3jKpBg_DQ3c8og04ULoKpGTGUt52pBE-Vet2o/edit)
 
 ### Long Running Pods
 
 Starting and stopping pods is expensive. In MVP, I believe we should support pod-reuse.
 
-### Data Ingress/Egress Options
+### Data Format
 
+[CloudEvents](example-cloudevent.json). Enable easy interop with other compliant tools.
+
+### Data Input/Output Options
+
+* HTTP endpoints - slower, but easier to get right
 * stdin/stdout - performance can be poor on these
 * named pipes - not commonly used, but core Linux capability for IPC
 * files - chunky - but great for grouping by key
 * socket - fast, but the low level programming is hard to get right
-* HTTP endpoints - slower, but easier to get right
 
 We may well want several options.
 
