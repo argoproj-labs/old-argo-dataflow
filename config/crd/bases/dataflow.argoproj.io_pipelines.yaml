@@ -41,9 +41,12 @@ spec:
                   to remove/update
                 items:
                   properties:
+                    image:
+                      type: string
                     name:
                       type: string
                   required:
+                  - image
                   - name
                   type: object
                 type: array
