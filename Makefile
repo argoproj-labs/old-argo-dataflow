@@ -78,3 +78,15 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+version:=2.3.2
+name:=darwin
+arch:=amd64
+
+kubebuilder:
+	# download the release
+	curl -L -O "https://github.com/kubernetes-sigs/kubebuilder/releases/download/v$(version)/kubebuilder_$(version)_$(name)_$(arch).tar.gz"
+
+	# extract the archive
+	tar -zxvf kubebuilder_$(version)_$(name)_$(arch).tar.gz
+	mv kubebuilder_$(version)_$(name)_$(arch) kubebuilder && sudo mv kubebuilder /usr/local/
