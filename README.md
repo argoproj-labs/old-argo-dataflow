@@ -32,8 +32,8 @@ pipelines composed of many tasks is typcially small and homogenic.
 * [StreamSet](https://github.com/streamsets) Java based, Kubernetes, Managed platform
 * [Spring Dataflow](https://dataflow.spring.io/docs/concepts/architecture), Java based, micro service orchestration (jar
   or docker image), Kubernetes
-* [Apache Beam](https://beam.apache.org/) see also [Beam Capability Matrix](https://beam.apache.org/documentation/runners/capability-matrix/)
-
+* [Apache Beam](https://beam.apache.org/) see
+  also [Beam Capability Matrix](https://beam.apache.org/documentation/runners/capability-matrix/)
 
 ## Collaborators and Consulted
 
