@@ -1,0 +1,3 @@
+domain: my.domain
+repo: github.com/argoproj-labs/argo-dataflow
+version: "2"
