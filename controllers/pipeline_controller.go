@@ -20,11 +20,14 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 // PipelineReconciler reconciles a Pipeline object
@@ -38,16 +41,59 @@ type PipelineReconciler struct {
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines/status,verbs=get;update;patch
 
 func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("pipeline", req.NamespacedName)
+	ctx := context.Background()
+	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
 	// your logic here
+
+	var x v1alpha1.Pipeline
+	if err := r.Get(ctx, req.NamespacedName, &x); err != nil {
+		log.Error(err, "unable to fetch Pipeline")
+		// we'll ignore not-found errors, since they can't be fixed by an immediate
+		// requeue (we'll need to wait for a new notification), and we can get them
+		// on deleted requests.
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if err := r.Client.Create(ctx, &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: x.Name + "-",
+			Namespace:    x.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(x.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"dataflow.argoproj.io/pipeline-name": x.Name,
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"dataflow.argoproj.io/pipeline-name": x.Name,
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "main",
+							Image: "docker/whalesay:latest",
+						},
+					},
+				},
+			},
+		},
+	}); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
 
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&dataflowv1alpha1.Pipeline{}).
+		For(&v1alpha1.Pipeline{}).
 		Complete(r)
 }

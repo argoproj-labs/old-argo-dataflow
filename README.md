@@ -1,8 +1,11 @@
 # Argo Dataflow
 
+[![Go](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml)
+
 ## Summary
 
-Argo Dataflow is intended as a cloud-native and language-agnostic platform for executing large parallel data-processing pipelines composed of many tasks is typcially small and homogenic. 
+Argo Dataflow is intended as a cloud-native and language-agnostic platform for executing large parallel data-processing
+pipelines composed of many tasks is typcially small and homogenic.
 
 ## Primer Reading
 
@@ -25,8 +28,10 @@ Argo Dataflow is intended as a cloud-native and language-agnostic platform for e
 * [Google Cloud Dataflow](https://cloud.google.com/dataflow)
 * [Amazon Kenisis](https://aws.amazon.com/kinesis/) - including Data Streams, Data Firehose, and Data Analytics
 * [Azure Stream Analytics](https://azure.microsoft.com/en-us/services/stream-analytics/)
-* [StreamSet](https://github.com/streamsets) - [github](https://github.com/streamsets), Java based, Kubernetes, Managed platform
-* [Spring Dataflow](https://dataflow.spring.io/docs/concepts/architecture), Java based, micro service orchestration (jar or docker image), Kubernets
+* [StreamSet](https://github.com/streamsets) - [github](https://github.com/streamsets), Java based, Kubernetes, Managed
+  platform
+* [Spring Dataflow](https://dataflow.spring.io/docs/concepts/architecture), Java based, micro service orchestration (jar
+  or docker image), Kubernets
 
 ## Collaborators and Consulted
 
@@ -42,9 +47,14 @@ To discus:
 ## Proving the Solution
 
 1. The "Hello World" of data processing. Word count.
-1. Release Velocity Project collects all the releases events from Kafka and does Filtering (drop events which are malformed or if critical fields are missing), Transformation (fix non-standard values of the fields to standard values) and Enrichment (add new fields and metadata to make the event normalized and more meaningful)
-1. Git Events are also streamed realtime to ODL. Here we use Stream Processing Platform exactly like Release Velocity project except that we do a lot of JSON flattening (may be call it Transformation) as Git data is heavily nested.
-1. ~In anomaly detection, there’s a sub system named on demand training. It uses Argo Events connecting to a Kafka, and then create workflows. Right now the data pushed to Kafka is pre-precessed, to avoid too many workflows being created to crash everything. Process this data as a stream.~
+1. Release Velocity Project collects all the releases events from Kafka and does Filtering (drop events which are
+   malformed or if critical fields are missing), Transformation (fix non-standard values of the fields to standard
+   values) and Enrichment (add new fields and metadata to make the event normalized and more meaningful)
+1. Git Events are also streamed realtime to ODL. Here we use Stream Processing Platform exactly like Release Velocity
+   project except that we do a lot of JSON flattening (may be call it Transformation) as Git data is heavily nested.
+1. ~In anomaly detection, there’s a sub system named on demand training. It uses Argo Events connecting to a Kafka, and
+   then create workflows. Right now the data pushed to Kafka is pre-precessed, to avoid too many workflows being created
+   to crash everything. Process this data as a stream.~
 
 ## Proposal
 

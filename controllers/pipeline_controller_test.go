@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	// +kubebuilder:scaffold:imports
 
@@ -19,9 +20,9 @@ var _ = Describe("Pipeline controller", func() {
 		Namespace = "test"
 	)
 
-	Context("When TODO", func() {
-		It("Should TODO", func() {
-			By("By creating a new CronJob")
+	Context("When creating pipeline", func() {
+		It("Should create a new deployment", func() {
+			By("By creating a new Pipeline")
 			ctx := context.Background()
 			p := &v1alpha1.Pipeline{
 				TypeMeta: metav1.TypeMeta{
@@ -34,6 +35,12 @@ var _ = Describe("Pipeline controller", func() {
 				},
 			}
 			Expect(k8sClient.Create(ctx, p)).Should(Succeed())
+
+			Eventually(func() []v1.Deployment {
+				list := &v1.DeploymentList{}
+				Expect(k8sClient.List(ctx, list)).Should(Succeed())
+				return list.Items
+			}).Should(HaveLen(1))
 		})
 	})
 })
