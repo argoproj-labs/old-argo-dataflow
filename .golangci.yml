@@ -1,0 +1,7 @@
+# https://golangci-lint.run/usage/quick-start/
+run:
+  concurrency: 4
+  timeout: 5m
+linters-settings:
+  goimports:
+    local-prefixes: github.com/argoproj-labs/argo-dataflow/

@@ -1,60 +1,11 @@
-apiVersion: argoproj.io/v1alpha1
+apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: my-pipeline
-  annotations:
-    kubernetes.io/finalizer: delete-intermediary-kafka-topics
+  name: example
 spec:
   processors:
     - name: a
-      input:
-        from:
-          kafka:
-            topic: my-input
-        via:
-          # oneOf
-          http: { url: "http://localhost:8080" }
-          stdin: { }
-      image: my-image
-      replicas:
-        # oneOf
-        value: 2
-        valueFrom:
-          kafkaPartitions: { }
-      output:
-        via:
-          # oneOf
-          http: { }
-          stdout: { }
-        to:
-          bus:
-            name: connector
+      image: docker/whalesay:latest
 
     - name: b
-      input:
-        from:
-          bus:
-            name: connector
-        via:
-          # oneOf
-          http: { }
-          stdin: { }
-      image: my-image
-      replicas:
-        # oneOf
-        value: 2
-        valueFrom:
-          kafkaPartitions: { }
-      ouput:
-        via:
-          # oneOf
-          http: { }
-          stdout: { }
-        to:
-          kafka:
-            topic: my-output
-
-status:
-  processorStatues:
-    phase: Running
-    message: "all looks great!"
+      image: docker/whalesay:latest
