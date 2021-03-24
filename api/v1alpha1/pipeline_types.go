@@ -27,10 +27,19 @@ type Replicas struct {
 	Value *int32 `json:"value"`
 }
 
+type HTTP struct {
+}
+
+type Connector struct {
+	HTTP HTTP `json:"http"`
+}
+
 type Processor struct {
 	Name     string    `json:"name"`
 	Image    string    `json:"image"`
 	Replicas *Replicas `json:"replicas,omitempty"`
+	Input    Connector `json:"input"`
+	Output   Connector `json:"output"`
 }
 
 type Kafka struct {
