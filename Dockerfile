@@ -9,19 +9,25 @@ COPY go.sum go.sum
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-# Copy the go source
+FROM builder AS manager-builder
 COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
-
-# Build
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/static:nonroot AS manager
 WORKDIR /
-COPY --from=builder /workspace/manager .
+COPY --from=manager-builder /workspace/manager .
 USER nonroot:nonroot
-
 ENTRYPOINT ["/manager"]
+
+FROM builder AS sidecar-builder
+COPY sidecar/main.go main.go
+COPY api/ api/
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -tags sidecar -o sidecar main.go
+
+FROM gcr.io/distroless/static:nonroot AS sidecar
+WORKDIR /
+COPY --from=sidecar-builder /workspace/sidecar .
+USER nonroot:nonroot
+ENTRYPOINT ["/sidecar"]

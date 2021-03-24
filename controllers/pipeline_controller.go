@@ -77,6 +77,7 @@ func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 					ObjectMeta: metav1.ObjectMeta{Labels: labels},
 					Spec: corev1.PodSpec{
 						Containers: []corev1.Container{
+							{Name: "dataflow-sidecar", Image: "argoproj/dataflow-sidecar:latest"},
 							{Name: "main", Image: p.Image},
 						},
 					},
