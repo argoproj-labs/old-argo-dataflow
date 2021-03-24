@@ -85,6 +85,7 @@ func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 									Image:           "argoproj/dataflow-sidecar:latest",
 									ImagePullPolicy: corev1.PullIfNotPresent,
 									Env: []corev1.EnvVar{
+										{Name: "DEPLOYMENT_NAME", Value: deploymentName},
 										{Name: "INPUT_KAFKA_URL", Value: x.Spec.Input.Kafka.URL},
 										{Name: "INPUT_KAFKA_TOPIC", Value: x.Spec.Input.Kafka.Topic},
 										{Name: "OUTPUT_KAFKA_URL", Value: x.Spec.Output.Kafka.URL},

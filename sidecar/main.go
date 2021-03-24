@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -24,7 +25,40 @@ func main() {
 		log.Error(err, "failed to run main")
 	}
 }
+
+type handler struct{}
+
+func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	for m := range claim.Messages() {
+		id, err := func() (types.UID, error) {
+			m := v1alpha1.Message{ID: uuid.NewUUID(), Data: m.Value}
+			data, err := json.Marshal(m)
+			if err != nil {
+				return "", fmt.Errorf("failed to marshal message: %w", err)
+			}
+			resp, err := http.Post("http://localhost:8080", "application/json", bytes.NewBuffer(data))
+			if err != nil {
+				return "", fmt.Errorf("failed to post event: %w", err)
+			}
+			if resp.StatusCode != 200 {
+				return "", fmt.Errorf("non-200 status code: %d", resp.StatusCode)
+			}
+			return m.ID, nil
+		}()
+		if err != nil {
+			log.Error(err, "failed to process message")
+		} else {
+			log.WithValues("id", id).Info("message sent")
+			sess.MarkMessage(m, "")
+		}
+	}
+	return nil
+}
+
 func mainE() error {
+	ctx := context.Background()
 	stopCh := signals.SetupSignalHandler()
 
 	input := v1alpha1.Input{
@@ -41,9 +75,13 @@ func mainE() error {
 		},
 	}
 
-	log.WithValues("input", input, "output", output).Info("config")
+	deploymentName := os.Getenv("DEPLOYMENT_NAME")
 
-	producer, err := sarama.NewAsyncProducer([]string{output.Kafka.URL}, sarama.NewConfig())
+	log.WithValues("input", input, "output", output, "deploymentName", deploymentName).Info("config")
+
+	config := sarama.NewConfig()
+	config.ClientID = "dataflow-sidecar"
+	producer, err := sarama.NewAsyncProducer([]string{output.Kafka.URL}, config)
 	if err != nil {
 		return fmt.Errorf("failed to create producer: %w", err)
 	}
@@ -73,43 +111,22 @@ func mainE() error {
 		}
 	}()
 
-	consumer, err := sarama.NewConsumer([]string{input.Kafka.URL}, sarama.NewConfig())
+	group, err := sarama.NewConsumerGroup([]string{input.Kafka.URL}, deploymentName, config)
 	if err != nil {
+		return fmt.Errorf("failed to create group: %w", err)
+	}
+	defer func() { _ = group.Close() }()
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	if err := group.Consume(ctx, []string{input.Kafka.Topic}, handler{}); err != nil {
 		return fmt.Errorf("failed to create consumer: %w", err)
 	}
-	partition, err := consumer.ConsumePartition(input.Kafka.Topic, 0, sarama.OffsetNewest)
-	if err != nil {
-		return fmt.Errorf("failed to create consume partition: %w", err)
-	}
-	defer func() { _ = partition.Close() }()
 
 	log.Info("listening for messages")
 
-	for {
-		select {
-		case <-stopCh:
-			return nil
-		case m := <-partition.Messages():
-			id, err := func() (types.UID, error) {
-				m := v1alpha1.Message{ID: uuid.NewUUID(), Data: m.Value}
-				data, err := json.Marshal(m)
-				if err != nil {
-					return "", fmt.Errorf("failed to marshal message: %w", err)
-				}
-				resp, err := http.Post("http://localhost:8080", "application/json", bytes.NewBuffer(data))
-				if err != nil {
-					return "", fmt.Errorf("failed to post event: %w", err)
-				}
-				if resp.StatusCode != 200 {
-					return "", fmt.Errorf("non-200 status code: %d", resp.StatusCode)
-				}
-				return m.ID, nil
-			}()
-			if err != nil {
-				log.Error(err, "failed to process message")
-			} else {
-				log.WithValues("id", id).Info("message sent")
-			}
-		}
-	}
+	<-stopCh
+
+	return group.Close()
 }
