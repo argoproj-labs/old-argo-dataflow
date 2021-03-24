@@ -9,6 +9,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/klog/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -63,6 +64,7 @@ func mainE() error {
 	})
 
 	go func() {
+		runtime.HandleCrash(runtime.PanicHandlers...)
 		log.Info("starting HTTP server")
 		err := http.ListenAndServe(":3569", nil)
 		if err != nil {
@@ -75,7 +77,7 @@ func mainE() error {
 	if err != nil {
 		return fmt.Errorf("failed to create consumer: %w", err)
 	}
-	partition, err := consumer.ConsumePartition(input.Kafka.Topic, 0, sarama.OffsetNewest) // TODO - which offset do we really need?
+	partition, err := consumer.ConsumePartition(input.Kafka.Topic, 0, sarama.OffsetNewest)
 	if err != nil {
 		return fmt.Errorf("failed to create consume partition: %w", err)
 	}
