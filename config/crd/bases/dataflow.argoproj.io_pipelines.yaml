@@ -71,6 +71,9 @@ spec:
                       type: string
                     name:
                       type: string
+                    replicas:
+                      format: int32
+                      type: integer
                   required:
                   - image
                   - name

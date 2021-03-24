@@ -5,8 +5,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	// +kubebuilder:scaffold:imports
 
 	"github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -16,14 +19,15 @@ var _ = Describe("Pipeline controller", func() {
 
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
-		Name      = "test"
-		Namespace = "test"
+		Name      = "my-pipeline"
+		Namespace = "my-ns"
 	)
 
 	Context("When creating pipeline", func() {
 		It("Should create a new deployment", func() {
 			By("By creating a new Pipeline")
 			ctx := context.Background()
+			replicas := pointer.Int32Ptr(2)
 			p := &v1alpha1.Pipeline{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "dataflow.argoproj.io/v1alpha1",
@@ -35,17 +39,19 @@ var _ = Describe("Pipeline controller", func() {
 				},
 				Spec: v1alpha1.PipelineSpec{
 					Processors: []v1alpha1.Processor{
-						{Name: "main", Image: "docker/whalesay:latest"},
+						{Name: "my-proc", Image: "docker/whalesay:latest", Replicas: replicas},
 					},
 				},
 			}
 			Expect(k8sClient.Create(ctx, p)).Should(Succeed())
 
-			Eventually(func() []v1.Deployment {
-				list := &v1.DeploymentList{}
-				Expect(k8sClient.List(ctx, list)).Should(Succeed())
-				return list.Items
-			}).Should(HaveLen(1))
+			d := &appsv1.Deployment{}
+			Eventually(func() error {
+				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "my-pipeline-my-proc"}, d)
+			}).
+				Should(Succeed())
+
+			Expect(d.Spec.Replicas).Should(Equal(replicas))
 		})
 	})
 })

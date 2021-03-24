@@ -56,14 +56,15 @@ func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	for _, p := range x.Spec.Processors {
-
+		deploymentName := x.Name + "-" + p.Name
+		log.WithValues("processorName", p.Name, "deploymentName", deploymentName).Info("creating delpoyment")
 		labels := map[string]string{
 			"dataflow.argoproj.io/pipeline-name":  x.Name,
 			"dataflow.argoproj.io/processor-name": p.Name,
 		}
 		if err := r.Client.Create(ctx, &appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      x.Name + "-" + p.Name,
+				Name:      deploymentName,
 				Namespace: x.Namespace,
 				OwnerReferences: []metav1.OwnerReference{
 					*metav1.NewControllerRef(x.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
@@ -71,6 +72,7 @@ func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			},
 			Spec: appsv1.DeploymentSpec{
 				Selector: &metav1.LabelSelector{MatchLabels: labels},
+				Replicas: p.Replicas,
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{Labels: labels},
 					Spec: corev1.PodSpec{

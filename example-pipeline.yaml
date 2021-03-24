@@ -3,9 +3,20 @@ kind: Pipeline
 metadata:
   name: example
 spec:
+  input:
+    kafka:
+      topic: my-in-topic
+      url: kafka:2128
+
   processors:
     - name: a
       image: docker/whalesay:latest
 
     - name: b
       image: docker/whalesay:latest
+      replicas: 2
+
+  output:
+    kafka:
+      topic: my-out-topic
+      url: kafka:2128
