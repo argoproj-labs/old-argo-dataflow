@@ -69,8 +69,22 @@ spec:
                   properties:
                     image:
                       type: string
+                    input:
+                      properties:
+                        http:
+                          type: object
+                      required:
+                      - http
+                      type: object
                     name:
                       type: string
+                    output:
+                      properties:
+                        http:
+                          type: object
+                      required:
+                      - http
+                      type: object
                     replicas:
                       properties:
                         value:
@@ -81,7 +95,9 @@ spec:
                       type: object
                   required:
                   - image
+                  - input
                   - name
+                  - output
                   type: object
                 type: array
             required:
