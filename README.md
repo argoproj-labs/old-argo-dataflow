@@ -102,16 +102,23 @@ metadata:
   annotations:
     kubernetes.io/finalizer: delete-intermediary-kafka-topics
 spec:
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: my-pipeline
+  annotations:
+    kubernetes.io/finalizer: delete-intermediary-kafka-topics
+spec:
+  input:
+    from:
+      kafka:
+        topic: my-input
   processors:
     - name: a
       input:
-        from:
-          kafka:
-            topic: my-input
-        via:
-          # oneOf
-          http: { url: "http://localhost:8080" }
-          stdin: { }
+        # oneOf
+        http: { url: "http://localhost:8080" }
+        stdin: { }
       image: my-image
       replicas:
         # oneOf
@@ -119,23 +126,14 @@ spec:
         valueFrom:
           kafkaPartitions: { }
       output:
-        via:
-          # oneOf
-          http: { }
-          stdout: { }
-        to:
-          bus:
-            name: connector
+        # oneOf
+        http: { }
+        stdout: { }
 
     - name: b
-      input:
-        from:
-          bus:
-            name: connector
-        via:
-          # oneOf
-          http: { }
-          stdin: { }
+        # oneOf
+        http: { }
+        stdin: { }
       image: my-image
       replicas:
         # oneOf
@@ -143,13 +141,12 @@ spec:
         valueFrom:
           kafkaPartitions: { }
       ouput:
-        via:
-          # oneOf
-          http: { }
-          stdout: { }
-        to:
-          kafka:
-            topic: my-output
+        # oneOf
+        http: { }
+        stdout: { }
+  output:
+    kafka:
+      topic: my-output
 
 status:
   processorStatues:
