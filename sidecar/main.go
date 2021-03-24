@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -58,8 +57,7 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 }
 
 func mainE() error {
-	ctx := context.Background()
-	stopCh := signals.SetupSignalHandler()
+	ctx := signals.SetupSignalHandler()
 
 	input := v1alpha1.Input{
 		Kafka: v1alpha1.Kafka{
@@ -117,16 +115,13 @@ func mainE() error {
 	}
 	defer func() { _ = group.Close() }()
 
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	if err := group.Consume(ctx, []string{input.Kafka.Topic}, handler{}); err != nil {
 		return fmt.Errorf("failed to create consumer: %w", err)
 	}
 
 	log.Info("listening for messages")
 
-	<-stopCh
+	<-ctx.Done()
 
 	return group.Close()
 }

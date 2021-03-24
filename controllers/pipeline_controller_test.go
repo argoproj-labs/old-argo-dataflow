@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -27,6 +28,13 @@ var _ = Describe("Pipeline controller", func() {
 		It("Should create a new deployment", func() {
 			By("By creating a new Pipeline")
 			ctx := context.Background()
+
+			Eventually(func() error {
+				return k8sClient.Create(ctx, &v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{Name: Namespace},
+				})
+			}).Should(Succeed())
+
 			replicas := pointer.Int32Ptr(2)
 			p := &v1alpha1.Pipeline{
 				TypeMeta: metav1.TypeMeta{
