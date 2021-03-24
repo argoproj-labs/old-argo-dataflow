@@ -19,7 +19,6 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Pipeline is the Schema for the pipelines API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,11 +33,38 @@ spec:
           metadata:
             type: object
           spec:
-            description: PipelineSpec defines the desired state of Pipeline
             properties:
+              input:
+                properties:
+                  kafka:
+                    properties:
+                      topic:
+                        type: string
+                      url:
+                        type: string
+                    required:
+                    - topic
+                    - url
+                    type: object
+                required:
+                - kafka
+                type: object
+              output:
+                properties:
+                  kafka:
+                    properties:
+                      topic:
+                        type: string
+                      url:
+                        type: string
+                    required:
+                    - topic
+                    - url
+                    type: object
+                required:
+                - kafka
+                type: object
               processors:
-                description: Foo is an example field of Pipeline. Edit Pipeline_types.go
-                  to remove/update
                 items:
                   properties:
                     image:
@@ -50,9 +76,11 @@ spec:
                   - name
                   type: object
                 type: array
+            required:
+            - input
+            - output
             type: object
           status:
-            description: PipelineStatus defines the observed state of Pipeline
             type: object
         type: object
     served: true

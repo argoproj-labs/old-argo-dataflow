@@ -28,26 +28,32 @@ type Processor struct {
 	Image string `json:"image"`
 }
 
-// PipelineSpec defines the desired state of Pipeline
-type PipelineSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+type Kafka struct {
+	URL   string `json:"url"`
+	Topic string `json:"topic"`
+}
 
-	// Foo is an example field of Pipeline. Edit Pipeline_types.go to remove/update
+type Input struct {
+	Kafka Kafka `json:"kafka"`
+}
+
+type Output struct {
+	Kafka Kafka `json:"kafka"`
+}
+
+type PipelineSpec struct {
+	Input Input `json:"input"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	Processors []Processor `json:"processors,omitempty"`
+	Output     Output      `json:"output"`
 }
 
-// PipelineStatus defines the observed state of Pipeline
 type PipelineStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
 // +kubebuilder:object:root=true
 
-// Pipeline is the Schema for the pipelines API
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -58,7 +64,6 @@ type Pipeline struct {
 
 // +kubebuilder:object:root=true
 
-// PipelineList contains a list of Pipeline
 type PipelineList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
