@@ -102,17 +102,10 @@ metadata:
   annotations:
     kubernetes.io/finalizer: delete-intermediary-kafka-topics
 spec:
-apiVersion: dataflow.argoproj.io/v1alpha1
-kind: Pipeline
-metadata:
-  name: my-pipeline
-  annotations:
-    kubernetes.io/finalizer: delete-intermediary-kafka-topics
-spec:
   input:
-    from:
-      kafka:
-        topic: my-input
+    kafka:
+      url: kafka-0.broker.kafka.svc.cluster.local:9092
+      topic: my-input
   processors:
     - name: a
       input:
@@ -131,6 +124,7 @@ spec:
         stdout: { }
 
     - name: b
+      input:
         # oneOf
         http: { }
         stdin: { }
@@ -146,6 +140,7 @@ spec:
         stdout: { }
   output:
     kafka:
+      url: kafka-0.broker.kafka.svc.cluster.local:9092
       topic: my-output
 
 status:

@@ -72,8 +72,13 @@ spec:
                     name:
                       type: string
                     replicas:
-                      format: int32
-                      type: integer
+                      properties:
+                        value:
+                          format: int32
+                          type: integer
+                      required:
+                      - value
+                      type: object
                   required:
                   - image
                   - name
