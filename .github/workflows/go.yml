@@ -21,8 +21,6 @@ jobs:
       - run: make kubebuilder name=linux
       - run: make test
       - run: bash <(curl -s https://codecov.io/bash)
-        with:
-          version: v1.36.0
       - run: git diff --exit-code
 
   lint:
