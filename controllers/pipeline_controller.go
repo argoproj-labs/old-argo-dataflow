@@ -106,10 +106,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 									ImagePullPolicy: corev1.PullIfNotPresent,
 									Env: []corev1.EnvVar{
 										{Name: "DEPLOYMENT_NAME", Value: deploymentName},
-										{Name: "INPUT_KAFKA_URL", Value: pl.Spec.Input.Kafka.URL},
-										{Name: "INPUT_KAFKA_TOPIC", Value: pl.Spec.Input.Kafka.Topic},
-										{Name: "OUTPUT_KAFKA_URL", Value: pl.Spec.Output.Kafka.URL},
-										{Name: "OUTPUT_KAFKA_TOPIC", Value: pl.Spec.Output.Kafka.Topic},
+										{Name: "SOURCE_KAFKA_URL", Value: pr.Source.Kafka.URL},
+										{Name: "SOURCE_KAFKA_TOPIC", Value: pr.Source.Kafka.Topic},
+										{Name: "SINK_KAFKA_URL", Value: pr.Sink.Kafka.URL},
+										{Name: "SINK_KAFKA_TOPIC", Value: pr.Sink.Kafka.Topic},
 									},
 								},
 								{

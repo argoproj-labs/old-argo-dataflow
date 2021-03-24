@@ -59,27 +59,27 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 func mainE() error {
 	ctx := signals.SetupSignalHandler()
 
-	input := v1alpha1.Input{
+	source := v1alpha1.Source{
 		Kafka: v1alpha1.Kafka{
-			URL:   os.Getenv("INPUT_KAFKA_URL"), // spec.input.kafka.url
-			Topic: os.Getenv("INPUT_KAFKA_TOPIC"),
+			URL:   os.Getenv("SOURCE_KAFKA_URL"),
+			Topic: os.Getenv("SOURCE_KAFKA_TOPIC"),
 		},
 	}
 
-	output := v1alpha1.Input{
+	sink := v1alpha1.Source{
 		Kafka: v1alpha1.Kafka{
-			URL:   os.Getenv("OUTPUT_KAFKA_URL"),
-			Topic: os.Getenv("OUTPUT_KAFKA_TOPIC"),
+			URL:   os.Getenv("SINK_KAFKA_URL"),
+			Topic: os.Getenv("SINK_KAFKA_TOPIC"),
 		},
 	}
 
 	deploymentName := os.Getenv("DEPLOYMENT_NAME")
 
-	log.WithValues("input", input, "output", output, "deploymentName", deploymentName).Info("config")
+	log.WithValues("source", source, "sink", sink, "deploymentName", deploymentName).Info("config")
 
 	config := sarama.NewConfig()
 	config.ClientID = "dataflow-sidecar"
-	producer, err := sarama.NewAsyncProducer([]string{output.Kafka.URL}, config)
+	producer, err := sarama.NewAsyncProducer([]string{sink.Kafka.URL}, config)
 	if err != nil {
 		return fmt.Errorf("failed to create producer: %w", err)
 	}
@@ -93,7 +93,7 @@ func mainE() error {
 		}
 		log.WithValues("id", m.ID).Info("message recv")
 		producer.Input() <- &sarama.ProducerMessage{
-			Topic: output.Kafka.Topic,
+			Topic: sink.Kafka.Topic,
 			Value: sarama.StringEncoder(m.Data),
 		}
 		w.WriteHeader(200)
@@ -109,13 +109,13 @@ func mainE() error {
 		}
 	}()
 
-	group, err := sarama.NewConsumerGroup([]string{input.Kafka.URL}, deploymentName, config)
+	group, err := sarama.NewConsumerGroup([]string{source.Kafka.URL}, deploymentName, config)
 	if err != nil {
 		return fmt.Errorf("failed to create group: %w", err)
 	}
 	defer func() { _ = group.Close() }()
 
-	if err := group.Consume(ctx, []string{input.Kafka.Topic}, handler{}); err != nil {
+	if err := group.Consume(ctx, []string{source.Kafka.Topic}, handler{}); err != nil {
 		return fmt.Errorf("failed to create consumer: %w", err)
 	}
 

@@ -3,20 +3,18 @@ kind: Pipeline
 metadata:
   name: example
 spec:
-  input:
-    kafka:
-      url: kafka-0.broker.kafka.svc.cluster.local:9092
-      topic: my-topic
-
   processors:
     - name: a
-      input:
+      source:
+        kafka:
+          url: kafka-0.broker.kafka.svc.cluster.local:9092
+          topic: my-topic
+      from:
         http: { }
       image: argoproj/dataflow-cat:latest
-      output:
+      to:
         http: { }
-
-  output:
-    kafka:
-      url: kafka-0.broker.kafka.svc.cluster.local:9092
-      topic: your-topic
+      sink:
+        kafka:
+          url: kafka-0.broker.kafka.svc.cluster.local:9092
+          topic: your-topic

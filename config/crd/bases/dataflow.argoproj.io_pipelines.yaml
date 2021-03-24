@@ -34,57 +34,20 @@ spec:
             type: object
           spec:
             properties:
-              input:
-                properties:
-                  kafka:
-                    properties:
-                      topic:
-                        type: string
-                      url:
-                        type: string
-                    required:
-                    - topic
-                    - url
-                    type: object
-                required:
-                - kafka
-                type: object
-              output:
-                properties:
-                  kafka:
-                    properties:
-                      topic:
-                        type: string
-                      url:
-                        type: string
-                    required:
-                    - topic
-                    - url
-                    type: object
-                required:
-                - kafka
-                type: object
               processors:
                 items:
                   properties:
+                    from:
+                      properties:
+                        http:
+                          type: object
+                      required:
+                      - http
+                      type: object
                     image:
                       type: string
-                    input:
-                      properties:
-                        http:
-                          type: object
-                      required:
-                      - http
-                      type: object
                     name:
                       type: string
-                    output:
-                      properties:
-                        http:
-                          type: object
-                      required:
-                      - http
-                      type: object
                     replicas:
                       properties:
                         value:
@@ -93,16 +56,52 @@ spec:
                       required:
                       - value
                       type: object
+                    sink:
+                      properties:
+                        kafka:
+                          properties:
+                            topic:
+                              type: string
+                            url:
+                              type: string
+                          required:
+                          - topic
+                          - url
+                          type: object
+                      required:
+                      - kafka
+                      type: object
+                    source:
+                      properties:
+                        kafka:
+                          properties:
+                            topic:
+                              type: string
+                            url:
+                              type: string
+                          required:
+                          - topic
+                          - url
+                          type: object
+                      required:
+                      - kafka
+                      type: object
+                    to:
+                      properties:
+                        http:
+                          type: object
+                      required:
+                      - http
+                      type: object
                   required:
+                  - from
                   - image
-                  - input
                   - name
-                  - output
+                  - sink
+                  - source
+                  - to
                   type: object
                 type: array
-            required:
-            - input
-            - output
             type: object
           status:
             type: object

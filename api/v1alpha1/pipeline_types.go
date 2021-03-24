@@ -30,7 +30,7 @@ type Replicas struct {
 type HTTP struct {
 }
 
-type Connector struct {
+type Interface struct {
 	HTTP HTTP `json:"http"`
 }
 
@@ -38,8 +38,10 @@ type Processor struct {
 	Name     string    `json:"name"`
 	Image    string    `json:"image"`
 	Replicas *Replicas `json:"replicas,omitempty"`
-	Input    Connector `json:"input"`
-	Output   Connector `json:"output"`
+	From     Interface `json:"from"`
+	To       Interface `json:"to"`
+	Source   Source    `json:"source"`
+	Sink     Sink      `json:"sink"`
 }
 
 func (in *Processor) GetReplicas() Replicas {
@@ -54,20 +56,18 @@ type Kafka struct {
 	Topic string `json:"topic"`
 }
 
-type Input struct {
+type Source struct {
 	Kafka Kafka `json:"kafka"`
 }
 
-type Output struct {
+type Sink struct {
 	Kafka Kafka `json:"kafka"`
 }
 
 type PipelineSpec struct {
-	Input Input `json:"input"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	Processors []Processor `json:"processors,omitempty"`
-	Output     Output      `json:"output"`
 }
 
 type PipelineStatus struct {

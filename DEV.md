@@ -18,20 +18,18 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/master/m
 go install github.com/Shopify/sarama/tools/kafka-console-consumer
 go install github.com/Shopify/sarama/tools/kafka-console-producer
 
-export KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092 ;# used by tools
-
-go run ./topic-creator -topic my-topic
-go run ./topic-creator -topic your-topic
+go run ./topic-creator -brokers kafka-0.broker.kafka.svc.cluster.local:9092 -topic my-topic
+go run ./topic-creator -brokers kafka-0.broker.kafka.svc.cluster.local:9092 -topic your-topic
 ```
 
 Start pumping messages in and out of Kafka:
 
 ```
-kafka-console-consumer -topic your-topic
+kafka-console-consumer -brokers kafka-0.broker.kafka.svc.cluster.local:9092 -topic your-topic
 ```
 
 ```
-while true ; do kafka-console-producer -topic my-topic -value my-val ; sleep 1; done 
+while true ; do kafka-console-producer -brokers kafka-0.broker.kafka.svc.cluster.local:9092 -topic my-topic -value my-val ; sleep 1; done 
 ```
 
 Deploy dataflow:
