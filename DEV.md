@@ -7,32 +7,48 @@ Add to `/etc/hosts`:
 Install the basics:
 
 ```
-make kafka
-make docker-build
-make deploy
-kubens argo-dataflow-system
+make kafka ;# start Kafka in cluster
+```
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/master/manifests/base/crds/argoproj.io_eventbus.yaml
+```
+
+```
 go install github.com/Shopify/sarama/tools/kafka-console-consumer
 go install github.com/Shopify/sarama/tools/kafka-console-producer
-export KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092
-go run ./create-topic -topic my-topic
-go run ./create-topic -topic your-topic
+
+export KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092 ;# used by tools
+
+go run ./topic-creator -topic my-topic
+go run ./topic-creator -topic your-topic
+```
+
+Start pumping messages in and out of Kafka:
+
+```
+kafka-console-consumer -topic your-topic
+```
+
+```
+while true ; do kafka-console-producer -topic my-topic -value my-val ; sleep 1; done 
+```
+
+Deploy dataflow:
+
+```
+make deploy 
+```
+
+Create a pipeline:
+
+```
+kubectl -n argo-dataflow-system delete pipeline --all
+kubectl -n argo-dataflow-system apply -f example-pipeline.yaml
 ```
 
 Made a change?
 
 ```
-kubectl rollout restart deploy controller-manager
-```
-
-```
-kubectl delete pipeline --all
-kubectl apply -f example-pipeline.yaml
-stern . -l dataflow.argoproj.io/pipeline-name
-```
-
-Send some data though the system:
-
-```
-kafka-console-consumer -topic your-topic
-while true ; do kafka-console-producer -topic my-topic -value my-val ; sleep 1; done
+make redeploy logs
 ```

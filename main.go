@@ -20,13 +20,13 @@ import (
 	"flag"
 	"os"
 
+	ev1 "github.com/argoproj/argo-events/pkg/apis/eventbus/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/controllers"
 	// +kubebuilder:scaffold:imports
@@ -40,8 +40,8 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
-	_ = argoprojiov1alpha1.AddToScheme(scheme)
 	_ = dataflowv1alpha1.AddToScheme(scheme)
+	_ = ev1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

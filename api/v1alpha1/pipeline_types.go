@@ -42,6 +42,13 @@ type Processor struct {
 	Output   Connector `json:"output"`
 }
 
+func (in *Processor) GetReplicas() Replicas {
+	if in.Replicas != nil {
+		return *in.Replicas
+	}
+	return Replicas{}
+}
+
 type Kafka struct {
 	URL   string `json:"url"`
 	Topic string `json:"topic"`

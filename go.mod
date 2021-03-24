@@ -4,12 +4,11 @@ go 1.15
 
 require (
 	github.com/Shopify/sarama v1.28.0
-	github.com/argoproj/argo-events v1.2.3 // indirect
+	github.com/argoproj/argo-events v1.2.3
 	github.com/go-logr/logr v0.3.0
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
-	github.com/pkg/errors v0.9.1 // indirect
-	gopkg.in/yaml.v2 v2.3.0 // indirect
+	go.uber.org/zap v1.15.0
 	k8s.io/api v0.19.6
 	k8s.io/apimachinery v0.19.6
 	k8s.io/client-go v0.19.6

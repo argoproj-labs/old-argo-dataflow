@@ -13,7 +13,7 @@ FROM builder AS controller-builder
 COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o manager main.go
 
 FROM gcr.io/distroless/static:nonroot AS controller
 WORKDIR /
@@ -24,7 +24,7 @@ ENTRYPOINT ["/manager"]
 FROM builder AS sidecar-builder
 COPY sidecar/main.go main.go
 COPY api/ api/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o sidecar main.go
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o sidecar main.go
 
 FROM gcr.io/distroless/static:nonroot AS sidecar
 WORKDIR /
@@ -35,7 +35,7 @@ ENTRYPOINT ["/sidecar"]
 FROM builder AS cat-builder
 COPY cat/main.go main.go
 COPY api/ api/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o cat main.go
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o cat main.go
 
 FROM gcr.io/distroless/static:nonroot AS cat
 WORKDIR /

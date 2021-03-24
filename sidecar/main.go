@@ -61,7 +61,7 @@ func mainE() error {
 
 	input := v1alpha1.Input{
 		Kafka: v1alpha1.Kafka{
-			URL:   os.Getenv("INPUT_KAFKA_URL"),
+			URL:   os.Getenv("INPUT_KAFKA_URL"), // spec.input.kafka.url
 			Topic: os.Getenv("INPUT_KAFKA_TOPIC"),
 		},
 	}

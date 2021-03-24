@@ -34,9 +34,15 @@ uninstall: manifests
 	kustomize build config/crd | kubectl delete -f -
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests
+deploy: manifests docker-build
 	cd config/manager && kustomize edit set image argoproj/dataflow-controller=argoproj/dataflow-controller:$(TAG)
 	kustomize build config/default | kubectl apply -f -
+
+redeploy: deploy
+	kubectl -n argo-dataflow-system rollout restart deploy/controller-manager
+
+logs:
+	stern -n argo-dataflow-system .
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen

@@ -18,8 +18,13 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/argoproj/argo-events/common"
+	"github.com/argoproj/argo-events/controllers/eventbus/installer"
+	ev1 "github.com/argoproj/argo-events/pkg/apis/eventbus/v1alpha1"
 	"github.com/go-logr/logr"
+	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -44,10 +49,8 @@ type PipelineReconciler struct {
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
-	// your logic here
-
-	var x v1alpha1.Pipeline
-	if err := r.Get(ctx, req.NamespacedName, &x); err != nil {
+	var pl v1alpha1.Pipeline
+	if err := r.Get(ctx, req.NamespacedName, &pl); err != nil {
 		log.Error(err, "unable to fetch Pipeline")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
@@ -55,26 +58,44 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	for _, p := range x.Spec.Processors {
-		deploymentName := x.Name + "-" + p.Name
-		log.WithValues("processorName", p.Name, "deploymentName", deploymentName).Info("creating delpoyment")
+	bus := &ev1.EventBus{
+		ObjectMeta: metav1.ObjectMeta{Name: "default", Namespace: pl.Namespace},
+		Spec:       ev1.EventBusSpec{NATS: &ev1.NATSBus{Native: &ev1.NativeStrategy{Replicas: 3, Auth: &ev1.AuthStrategyToken}}},
+	}
+	if err := r.Client.Create(ctx, bus); IgnoreAlreadyExists(err) != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to create EventBus: %w", err)
+	}
+	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(bus), bus); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to get EventBus: %w", err)
+	}
+	if _, err := installer.NewNATSInstaller(r.Client, bus, "nats-streaming:0.17.0", "synadia/prometheus-nats-exporter:0.6.2", map[string]string{
+		"controller":          "pipeline-controller",
+		"eventbus-name":       bus.Name,
+		common.LabelOwnerName: bus.Name,
+	}, zap.L().Sugar()).Install(); IgnoreAlreadyExists(err) != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to install NATS: %w", err)
+	}
+
+	for _, pr := range pl.Spec.Processors {
+		deploymentName := pl.Name + "-" + pr.Name
+		log.WithValues("processorName", pr.Name, "deploymentName", deploymentName).Info("creating deployment")
 		labels := map[string]string{
-			"dataflow.argoproj.io/pipeline-name":  x.Name,
-			"dataflow.argoproj.io/processor-name": p.Name,
+			"dataflow.argoproj.io/pipeline-name":  pl.Name,
+			"dataflow.argoproj.io/processor-name": pr.Name,
 		}
 		if err := r.Client.Create(
 			ctx,
 			&appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      deploymentName,
-					Namespace: x.Namespace,
+					Namespace: pl.Namespace,
 					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(x.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
+						*metav1.NewControllerRef(pl.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
 					},
 				},
 				Spec: appsv1.DeploymentSpec{
 					Selector: &metav1.LabelSelector{MatchLabels: labels},
-					Replicas: p.Replicas.Value,
+					Replicas: pr.GetReplicas().Value,
 					Template: corev1.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{Labels: labels},
 						Spec: corev1.PodSpec{
@@ -85,15 +106,15 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 									ImagePullPolicy: corev1.PullIfNotPresent,
 									Env: []corev1.EnvVar{
 										{Name: "DEPLOYMENT_NAME", Value: deploymentName},
-										{Name: "INPUT_KAFKA_URL", Value: x.Spec.Input.Kafka.URL},
-										{Name: "INPUT_KAFKA_TOPIC", Value: x.Spec.Input.Kafka.Topic},
-										{Name: "OUTPUT_KAFKA_URL", Value: x.Spec.Output.Kafka.URL},
-										{Name: "OUTPUT_KAFKA_TOPIC", Value: x.Spec.Output.Kafka.Topic},
+										{Name: "INPUT_KAFKA_URL", Value: pl.Spec.Input.Kafka.URL},
+										{Name: "INPUT_KAFKA_TOPIC", Value: pl.Spec.Input.Kafka.Topic},
+										{Name: "OUTPUT_KAFKA_URL", Value: pl.Spec.Output.Kafka.URL},
+										{Name: "OUTPUT_KAFKA_TOPIC", Value: pl.Spec.Output.Kafka.Topic},
 									},
 								},
 								{
 									Name:            "main",
-									Image:           p.Image,
+									Image:           pr.Image,
 									ImagePullPolicy: corev1.PullIfNotPresent,
 								},
 							},
@@ -101,8 +122,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					},
 				},
 			},
-		); err != nil {
-			return ctrl.Result{}, IgnoreAlreadyExists(err)
+		); IgnoreAlreadyExists(err) != nil {
+			return ctrl.Result{}, err
 		}
 	}
 
