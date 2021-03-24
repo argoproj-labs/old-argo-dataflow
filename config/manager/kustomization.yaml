@@ -3,6 +3,6 @@ resources:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-- name: controller
-  newName: controller
+- name: argoproj/dataflow-controller
+  newName: argoproj/dataflow-controller
   newTag: latest

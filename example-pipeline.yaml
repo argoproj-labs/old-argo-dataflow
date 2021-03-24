@@ -5,18 +5,14 @@ metadata:
 spec:
   input:
     kafka:
-      topic: my-in-topic
-      url: kafka:2128
+      url: kafka-0.broker.kafka.svc.cluster.local:9092
+      topic: my-topic
 
   processors:
     - name: a
-      image: docker/whalesay:latest
-
-    - name: b
-      image: docker/whalesay:latest
-      replicas: 2
+      image: argoproj/dataflow-cat:latest
 
   output:
     kafka:
-      topic: my-out-topic
-      url: kafka:2128
+      url: kafka-0.broker.kafka.svc.cluster.local:9092
+      topic: your-topic

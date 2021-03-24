@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+TAG ?= latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -35,7 +35,7 @@ uninstall: manifests
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests
-	cd config/manager && kustomize edit set image controller=${IMG}
+	cd config/manager && kustomize edit set image argoproj/dataflow-controller=argoproj/dataflow-controller:$(TAG)
 	kustomize build config/default | kubectl apply -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
@@ -55,12 +55,17 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
-docker-build: test
-	docker build . -t ${IMG}
+docker-build:
+	docker build .
+	docker build . --target controller --tag argoproj/dataflow-controller:$(TAG)
+	docker build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
+	docker build . --target cat        --tag argoproj/dataflow-cat:$(TAG)
 
 # Push the docker image
 docker-push:
-	docker push ${IMG}
+	docker push argoproj/dataflow-controller:$(TAG)
+	docker push argoproj/dataflow-sidecar:$(TAG)
+	docker push argoproj/dataflow-cat:$(TAG)
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -90,3 +95,8 @@ kubebuilder:
 	# extract the archive
 	tar -zxvf kubebuilder_$(version)_$(name)_$(arch).tar.gz
 	mv kubebuilder_$(version)_$(name)_$(arch) kubebuilder && sudo mv kubebuilder /usr/local/
+
+kafka:
+	kubectl get ns kafka || kubectl create ns kafka
+	kubectl apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
+	kubectl port-forward -n kafka svc/broker 9092:9092

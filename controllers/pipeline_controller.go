@@ -22,6 +22,7 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -62,33 +63,57 @@ func (r *PipelineReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			"dataflow.argoproj.io/pipeline-name":  x.Name,
 			"dataflow.argoproj.io/processor-name": p.Name,
 		}
-		if err := r.Client.Create(ctx, &appsv1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      deploymentName,
-				Namespace: x.Namespace,
-				OwnerReferences: []metav1.OwnerReference{
-					*metav1.NewControllerRef(x.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
+		if err := r.Client.Create(
+			ctx,
+			&appsv1.Deployment{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      deploymentName,
+					Namespace: x.Namespace,
+					OwnerReferences: []metav1.OwnerReference{
+						*metav1.NewControllerRef(x.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
+					},
 				},
-			},
-			Spec: appsv1.DeploymentSpec{
-				Selector: &metav1.LabelSelector{MatchLabels: labels},
-				Replicas: p.Replicas,
-				Template: corev1.PodTemplateSpec{
-					ObjectMeta: metav1.ObjectMeta{Labels: labels},
-					Spec: corev1.PodSpec{
-						Containers: []corev1.Container{
-							{Name: "dataflow-sidecar", Image: "argoproj/dataflow-sidecar:latest"},
-							{Name: "main", Image: p.Image},
+				Spec: appsv1.DeploymentSpec{
+					Selector: &metav1.LabelSelector{MatchLabels: labels},
+					Replicas: p.Replicas,
+					Template: corev1.PodTemplateSpec{
+						ObjectMeta: metav1.ObjectMeta{Labels: labels},
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{
+									Name:            "dataflow-sidecar",
+									Image:           "argoproj/dataflow-sidecar:latest",
+									ImagePullPolicy: corev1.PullIfNotPresent,
+									Env: []corev1.EnvVar{
+										{Name: "INPUT_KAFKA_URL", Value: x.Spec.Input.Kafka.URL},
+										{Name: "INPUT_KAFKA_TOPIC", Value: x.Spec.Input.Kafka.Topic},
+										{Name: "OUTPUT_KAFKA_URL", Value: x.Spec.Output.Kafka.URL},
+										{Name: "OUTPUT_KAFKA_TOPIC", Value: x.Spec.Output.Kafka.Topic},
+									},
+								},
+								{
+									Name:            "main",
+									Image:           p.Image,
+									ImagePullPolicy: corev1.PullIfNotPresent,
+								},
+							},
 						},
 					},
 				},
 			},
-		}); err != nil {
-			return ctrl.Result{}, err
+		); err != nil {
+			return ctrl.Result{}, IgnoreAlreadyExists(err)
 		}
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func IgnoreAlreadyExists(err error) error {
+	if apierr.IsAlreadyExists(err) {
+		return nil
+	}
+	return err
 }
 
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
