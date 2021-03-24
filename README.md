@@ -102,13 +102,13 @@ metadata:
   annotations:
     kubernetes.io/finalizer: delete-intermediary-kafka-topics
 spec:
-  input:
-    kafka:
-      url: kafka-0.broker.kafka.svc.cluster.local:9092
-      topic: my-input
   processors:
     - name: a
-      input:
+      source:
+        kafka:
+          url: kafka-0.broker.kafka.svc.cluster.local:9092
+          topic: my-input
+      from:
         # oneOf
         http: { url: "http://localhost:8080" }
         stdin: { }
@@ -118,30 +118,15 @@ spec:
         value: 2
         valueFrom:
           kafkaPartitions: { }
-      output:
+      to:
         # oneOf
         http: { }
         stdout: { }
+      sink:
+        kafka:
+          url: kafka-0.broker.kafka.svc.cluster.local:9092
+          topic: my-output
 
-    - name: b
-      input:
-        # oneOf
-        http: { }
-        stdin: { }
-      image: my-image
-      replicas:
-        # oneOf
-        value: 2
-        valueFrom:
-          kafkaPartitions: { }
-      ouput:
-        # oneOf
-        http: { }
-        stdout: { }
-  output:
-    kafka:
-      url: kafka-0.broker.kafka.svc.cluster.local:9092
-      topic: my-output
 
 status:
   processorStatues:
