@@ -1,7 +1,7 @@
-# ![Logo](logo.png) Argo Dataflow
+# ![Logo](docs/assets/logo.png) Argo Dataflow
 
 [![Go](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml)
-![Alpha](alpha.svg)
+![Alpha](docs/assets/alpha.svg)
 
 ## Summary
 
@@ -133,7 +133,7 @@ spec:
 
 ### Architecture Diagram
 
-[![Architecture](architecture.png)](https://docs.google.com/drawings/d/1Dk7mgZ3jKpBg_DQ3c8og04ULoKpGTGUt52pBE-Vet2o/edit)
+[![Architecture](docs/assets/architecture.png)](https://docs.google.com/drawings/d/1Dk7mgZ3jKpBg_DQ3c8og04ULoKpGTGUt52pBE-Vet2o/edit)
 
 ### Long Running Pods
 
@@ -141,7 +141,7 @@ Starting and stopping pods is expensive. In MVP, I believe we should support pod
 
 ### Data Format
 
-[CloudEvents](example-cloudevent.json). Enable easy interop with other compliant tools.
+Similar to CloudEvents. Enable easy interop with other compliant tools.
 
 ### Data Input/Output Options
 
