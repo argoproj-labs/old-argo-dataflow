@@ -60,10 +60,10 @@ spec:
                       properties:
                         bus:
                           properties:
-                            topic:
+                            subject:
                               type: string
                           required:
-                          - topic
+                          - subject
                           type: object
                         kafka:
                           properties:
@@ -80,10 +80,10 @@ spec:
                       properties:
                         bus:
                           properties:
-                            topic:
+                            subject:
                               type: string
                           required:
-                          - topic
+                          - subject
                           type: object
                         kafka:
                           properties:

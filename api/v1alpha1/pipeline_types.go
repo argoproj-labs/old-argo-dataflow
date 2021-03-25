@@ -59,7 +59,7 @@ type Kafka struct {
 }
 
 type Bus struct {
-	Topic string `json:"topic"`
+	Subject string `json:"subject"`
 }
 
 type Source struct {

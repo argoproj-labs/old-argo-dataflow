@@ -16,12 +16,12 @@ spec:
         http: { }
       sink:
         bus:
-          topic: x
+          subject: a-b
 
     - name: b
       source:
         bus:
-          topic: x
+          subject: a-b
       from:
         http: { }
       image: argoproj/dataflow-cat:latest

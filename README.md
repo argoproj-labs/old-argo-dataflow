@@ -53,7 +53,7 @@ To discus:
    malformed or if critical fields are missing), Transformation (fix non-standard values of the fields to standard
    values) and Enrichment (add new fields and metadata to make the event normalized and more meaningful)
 1. Git Events are also streamed realtime to ODL. Here we use Stream Processing Platform exactly like Release Velocity
-   project except that we do a lot of JSON flattening (may be call it Transformation) as Git data is heavily nested.
+   project except that we do a lot of JSON flattening (maybe call it Transformation) as Git data is heavily nested.
 1. ~In anomaly detection, there’s a sub system named on demand training. It uses Argo Events connecting to a Kafka, and
    then create workflows. Right now the data pushed to Kafka is pre-precessed, to avoid too many workflows being created
    to crash everything. Process this data as a stream.~
@@ -98,40 +98,37 @@ So:
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: my-pipeline
-  annotations:
-    kubernetes.io/finalizer: delete-intermediary-kafka-topics
+  name: example
 spec:
   nodes:
     - name: a
       source:
         kafka:
           url: kafka-0.broker.kafka.svc.cluster.local:9092
-          topic: my-input
+          topic: my-topic
       from:
-        # oneOf
-        http: { url: "http://localhost:8080" }
-        stdin: { }
-      image: my-image
-      replicas:
-        # oneOf
-        value: 2
-        valueFrom:
-          kafkaPartitions: { }
-      to:
-        # oneOf
         http: { }
-        stdout: { }
+      image: argoproj/dataflow-cat:latest
+      to:
+        http: { }
+      sink:
+        bus:
+          subject: a-b
+
+    - name: b
+      source:
+        bus:
+          subject: a-b
+      from:
+        http: { }
+      image: argoproj/dataflow-cat:latest
+      to:
+        http: { }
       sink:
         kafka:
           url: kafka-0.broker.kafka.svc.cluster.local:9092
-          topic: my-output
+          topic: your-topic
 
-
-status:
-  processorStatues:
-    phase: Running
-    message: "all looks great!"
 ```
 
 ### Architecture Diagram

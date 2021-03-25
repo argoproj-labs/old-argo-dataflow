@@ -79,7 +79,7 @@ func mainE() error {
 
 	if sink.Bus != nil {
 		publish = func(m *dfv1.Message) error {
-			return nc.Publish(sink.Bus.Topic, []byte(m.Json()))
+			return nc.Publish(sink.Bus.Subject, []byte(m.Json()))
 		}
 	} else if sink.Kafka != nil {
 		producer, err := sarama.NewAsyncProducer([]string{sink.Kafka.URL}, config)
@@ -123,7 +123,7 @@ func mainE() error {
 	}()
 
 	if source.Bus != nil {
-		if _, err := nc.Subscribe(source.Bus.Topic, func(m *nats.Msg) {
+		if _, err := nc.Subscribe(source.Bus.Subject, func(m *nats.Msg) {
 			if id, err := send(dfv1.NewMessage(m.Data)); err != nil {
 				log.WithValues("id", id).Error(err, "failed to send message to bus")
 			} else {
