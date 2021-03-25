@@ -62,16 +62,15 @@ generate: controller-gen
 
 # Build the docker image
 docker-build:
-	docker buildx build .
-	docker buildx build . --target controller --tag argoproj/dataflow-controller:$(TAG)
-	docker buildx build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
-	docker buildx build . --target cat        --tag argoproj/dataflow-cat:$(TAG)
+	docker build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
+	docker build . --target cat        --tag argoproj/dataflow-cat:$(TAG)
+	docker build . --target controller --tag argoproj/dataflow-controller:$(TAG)
 
 # Push the docker image
 docker-push:
-	docker push argoproj/dataflow-controller:$(TAG)
 	docker push argoproj/dataflow-sidecar:$(TAG)
 	docker push argoproj/dataflow-cat:$(TAG)
+	docker push argoproj/dataflow-controller:$(TAG)
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -111,4 +110,4 @@ example:
 	kubectl -n argo-dataflow-system delete pipeline --all
 	sleep 5s
 	kubectl -n argo-dataflow-system apply -f example-pipeline.yaml
-	kubectl get -n argo-dataflow-system deploy -w
+	kubectl get -n argo-dataflow-system pipeline -w

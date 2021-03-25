@@ -26,17 +26,17 @@ func main() {
 	}
 }
 
-func send(m dfv1.Message) (types.UID, error) {
+func sourceToMain(m dfv1.Message) (types.UID, error) {
 	data, err := json.Marshal(m)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal message: %w", err)
+		return "", fmt.Errorf("failed to marshal message to send from source to main container: %w", err)
 	}
 	resp, err := http.Post("http://localhost:8080", "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		return "", fmt.Errorf("failed to post event: %w", err)
+		return "", fmt.Errorf("failed to sent message from source to main container: %w", err)
 	}
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("non-200 status code: %d", resp.StatusCode)
+		return "", fmt.Errorf("main container returned non-200 status code: %d", resp.StatusCode)
 	}
 	return m.ID, nil
 }
@@ -47,10 +47,10 @@ func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
-		if id, err := send(dfv1.Message{ID: uuid.NewUUID(), Data: m.Value}); err != nil {
-			log.Error(err, "failed to process message")
+		if id, err := sourceToMain(dfv1.Message{ID: uuid.NewUUID(), Data: m.Value}); err != nil {
+			log.Error(err, "failed to send message from kafka to main container")
 		} else {
-			log.WithValues("id", id).Info("message sent")
+			log.WithValues("id", id).Info("message sent from kafka to main container")
 			sess.MarkMessage(m, "")
 		}
 	}
@@ -69,16 +69,19 @@ func mainE() error {
 	config := sarama.NewConfig()
 	config.ClientID = "dataflow-sidecar"
 
-	var publish func(m *dfv1.Message) error
+	var mainToSink func(m *dfv1.Message) error
 
-	nc, err := nats.Connect("nats://eventbus-dataflow-stan-svc.argo-dataflow-system.svc.cluster.local:4222")
+	nc, err := nats.Connect(
+		"eventbus-dataflow-stan-svc",
+		nats.Name("Argo Dataflow Sidecar for deployment/"+deploymentName),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to connect to bus: %w", err)
 	}
 	defer nc.Close()
 
 	if sink.Bus != nil {
-		publish = func(m *dfv1.Message) error {
+		mainToSink = func(m *dfv1.Message) error {
 			return nc.Publish(sink.Bus.Subject, []byte(m.Json()))
 		}
 	} else if sink.Kafka != nil {
@@ -86,7 +89,7 @@ func mainE() error {
 		if err != nil {
 			return fmt.Errorf("failed to create kafka producer: %w", err)
 		}
-		publish = func(m *dfv1.Message) error {
+		mainToSink = func(m *dfv1.Message) error {
 			producer.Input() <- &sarama.ProducerMessage{
 				Topic: sink.Kafka.Topic,
 				Value: sarama.StringEncoder(m.Data),
@@ -100,16 +103,16 @@ func mainE() error {
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		m := &dfv1.Message{}
 		if err := json.NewDecoder(r.Body).Decode(m); err != nil {
-			log.Error(err, "failed to decode message")
+			log.Error(err, "failed to decode message from main container ")
 			w.WriteHeader(400)
 			return
 		}
-		log.WithValues("id", m.ID).Info("message recv")
-		if err := publish(m); err != nil {
-			log.Error(err, "failed to publish message")
+		if err := mainToSink(m); err != nil {
+			log.Error(err, "failed to send message from main container to sink")
 			w.WriteHeader(500)
 			return
 		}
+		log.WithValues("id", m.ID).Info("message sent from main container to sink")
 		w.WriteHeader(200)
 	})
 	go func() {
@@ -123,11 +126,11 @@ func mainE() error {
 	}()
 
 	if source.Bus != nil {
-		if _, err := nc.Subscribe(source.Bus.Subject, func(m *nats.Msg) {
-			if id, err := send(dfv1.NewMessage(m.Data)); err != nil {
-				log.WithValues("id", id).Error(err, "failed to send message to bus")
+		if _, err := nc.QueueSubscribe(source.Bus.Subject, deploymentName, func(m *nats.Msg) {
+			if id, err := sourceToMain(dfv1.NewMessage(m.Data)); err != nil {
+				log.WithValues("id", id).Error(err, "failed to send message from main container to bus")
 			} else {
-				log.WithValues("id", id).Info("message sent to bus")
+				log.WithValues("id", id).Info("message sent from main container to bus")
 			}
 		}); err != nil {
 			return fmt.Errorf("failed to subscribe: %w", err)

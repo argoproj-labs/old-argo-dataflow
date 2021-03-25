@@ -2,6 +2,8 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   name: example
+  annotations:
+    dataflow.argoproj.io/description: "Example pipeline"
 spec:
   nodes:
     - name: a
@@ -25,6 +27,8 @@ spec:
       from:
         http: { }
       image: argoproj/dataflow-cat:latest
+      replicas:
+        value: 2
       to:
         http: { }
       sink:

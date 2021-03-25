@@ -13,10 +13,19 @@ spec:
     kind: Pipeline
     listKind: PipelineList
     plural: pipelines
+    shortNames:
+    - pl
     singular: pipeline
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .status.message
+      name: Message
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         properties:
@@ -114,10 +123,21 @@ spec:
                 type: array
             type: object
           status:
+            properties:
+              message:
+                type: string
+              phase:
+                enum:
+                - Pending
+                - Running
+                - Error
+                type: string
             type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

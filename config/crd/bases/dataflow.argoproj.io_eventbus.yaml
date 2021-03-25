@@ -13,13 +13,14 @@ spec:
     kind: EventBus
     listKind: EventBusList
     plural: eventbus
+    shortNames:
+    - eb
     singular: eventbus
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: EventBus is the Schema for the eventbus API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation

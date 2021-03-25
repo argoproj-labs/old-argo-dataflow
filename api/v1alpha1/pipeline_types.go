@@ -22,9 +22,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 type Replicas struct {
 	Value *int32 `json:"value"`
 }
@@ -99,11 +96,25 @@ type PipelineSpec struct {
 	Nodes []Node `json:"nodes,omitempty"`
 }
 
+// +kubebuilder:validation:Enum=Pending;Running;Error
+type Phase string
+
+const (
+	PipelinePending Phase = "Pending"
+	PipelineRunning Phase = "Running"
+	PipelineError   Phase = "Error"
+)
+
 type PipelineStatus struct {
+	Phase   Phase  `json:"phase,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
 // +kubebuilder:object:root=true
-
+// +kubebuilder:resource:shortName=pl
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

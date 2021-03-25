@@ -20,9 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 type EventBusSpec struct {
 }
 
@@ -30,8 +27,7 @@ type EventBusStatus struct {
 }
 
 // +kubebuilder:object:root=true
-
-// EventBus is the Schema for the eventbus API
+// +kubebuilder:resource:shortName=eb
 type EventBus struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -42,7 +38,6 @@ type EventBus struct {
 
 // +kubebuilder:object:root=true
 
-// EventBusList contains a list of EventBus
 type EventBusList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
