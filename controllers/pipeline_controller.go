@@ -118,6 +118,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	phase := dfv1.PipelinePending
 	message := ""
+OUTER:
 	for _, pod := range pods.Items {
 		switch pod.Status.Phase {
 		case corev1.PodRunning:
@@ -125,7 +126,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		case corev1.PodFailed:
 			phase = dfv1.PipelineError
 			message = pod.Name + ": " + pod.Status.Message
-			break
+			break OUTER
 		default:
 			phase = dfv1.PipelinePending
 		}

@@ -111,3 +111,6 @@ example:
 	sleep 5s
 	kubectl -n argo-dataflow-system apply -f example-pipeline.yaml
 	kubectl get -n argo-dataflow-system pipeline -w
+
+lint:
+	golangci-lint run --fix
