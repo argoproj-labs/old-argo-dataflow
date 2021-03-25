@@ -34,7 +34,7 @@ type Interface struct {
 	HTTP HTTP `json:"http"`
 }
 
-type Processor struct {
+type Node struct {
 	Name     string    `json:"name"`
 	Image    string    `json:"image"`
 	Replicas *Replicas `json:"replicas,omitempty"`
@@ -44,7 +44,7 @@ type Processor struct {
 	Sink     Sink      `json:"sink"`
 }
 
-func (in *Processor) GetReplicas() Replicas {
+func (in *Node) GetReplicas() Replicas {
 	if in.Replicas != nil {
 		return *in.Replicas
 	}
@@ -67,7 +67,7 @@ type Sink struct {
 type PipelineSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Processors []Processor `json:"processors,omitempty"`
+	Processors []Node `json:"nodes,omitempty"`
 }
 
 type PipelineStatus struct {

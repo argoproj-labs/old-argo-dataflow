@@ -102,7 +102,7 @@ metadata:
   annotations:
     kubernetes.io/finalizer: delete-intermediary-kafka-topics
 spec:
-  processors:
+  nodes:
     - name: a
       source:
         kafka:

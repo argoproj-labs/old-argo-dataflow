@@ -3,7 +3,7 @@ kind: Pipeline
 metadata:
   name: example
 spec:
-  processors:
+  nodes:
     - name: a
       source:
         kafka:

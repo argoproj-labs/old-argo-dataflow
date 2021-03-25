@@ -34,7 +34,7 @@ spec:
             type: object
           spec:
             properties:
-              processors:
+              nodes:
                 items:
                   properties:
                     from:
