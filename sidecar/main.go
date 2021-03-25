@@ -71,7 +71,7 @@ func mainE() error {
 
 	var publish func(m *dfv1.Message) error
 
-	nc, err := nats.Connect("nats://eventbus-default-stan-svc.argo-dataflow-system.svc.cluster.local:4222")
+	nc, err := nats.Connect("nats://eventbus-dataflow-stan-svc.argo-dataflow-system.svc.cluster.local:4222")
 	if err != nil {
 		return fmt.Errorf("failed to connect to bus: %w", err)
 	}

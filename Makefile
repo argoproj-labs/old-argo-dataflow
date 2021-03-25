@@ -111,3 +111,4 @@ example:
 	kubectl -n argo-dataflow-system delete pipeline --all
 	sleep 5s
 	kubectl -n argo-dataflow-system apply -f example-pipeline.yaml
+	kubectl get -n argo-dataflow-system deploy -w

@@ -54,7 +54,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if err := r.Client.Create(ctx, &dfv1.EventBus{
-		ObjectMeta: metav1.ObjectMeta{Name: "default", Namespace: pl.Namespace},
+		ObjectMeta: metav1.ObjectMeta{Name: "dataflow", Namespace: pl.Namespace},
 	}); IgnoreAlreadyExists(err) != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to create EventBus: %w", err)
 	}
