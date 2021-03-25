@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -87,7 +88,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 							Containers: []corev1.Container{
 								{
 									Name:            "dataflow-sidecar",
-									Image:           "argoproj/dataflow-sidecar:latest",
+									Image:           os.Getenv("SIDECAR_IMAGE"),
 									ImagePullPolicy: corev1.PullIfNotPresent,
 									Env: []corev1.EnvVar{
 										{Name: "DEPLOYMENT_NAME", Value: deploymentName},

@@ -30,6 +30,9 @@ spec:
         image: argoproj/dataflow-controller:latest
         imagePullPolicy: IfNotPresent
         name: manager
+        env:
+          - name: SIDECAR_IMAGE
+            value: argoproj/dataflow-sidecar:latest
         resources:
           limits:
             cpu: 100m

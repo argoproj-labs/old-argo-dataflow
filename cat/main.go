@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	ce "github.com/cloudevents/sdk-go/v2"
 	"k8s.io/klog/klogr"
-
-	"github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var log = klogr.New()
@@ -19,8 +18,8 @@ func main() {
 }
 func mainE() error {
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		m := &v1alpha1.Message{}
-		if err := json.NewDecoder(r.Body).Decode(m); err != nil {
+		m := ce.NewEvent()
+		if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
 			log.Error(err, "failed to decode message")
 			w.WriteHeader(400)
 			return

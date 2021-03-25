@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/Shopify/sarama"
+	ce "github.com/cloudevents/sdk-go/v2"
 	"github.com/nats-io/nats.go"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/klog/klogr"
@@ -26,7 +26,7 @@ func main() {
 	}
 }
 
-func sourceToMain(m dfv1.Message) (types.UID, error) {
+func sourceToMain(m ce.Event) (string, error) {
 	data, err := json.Marshal(m)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal message to send from source to main container: %w", err)
@@ -38,7 +38,7 @@ func sourceToMain(m dfv1.Message) (types.UID, error) {
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("main container returned non-200 status code: %d", resp.StatusCode)
 	}
-	return m.ID, nil
+	return m.ID(), nil
 }
 
 type handler struct{}
@@ -47,7 +47,12 @@ func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
-		if id, err := sourceToMain(dfv1.Message{ID: uuid.NewUUID(), Data: m.Value}); err != nil {
+		e := ce.NewEvent()
+		e.SetID(string(uuid.NewUUID()))
+		e.SetType("message.dataflow.argoproj.io")
+		e.SetSource("dataflow.argoproj.io")
+		_ = e.SetData("application/octet-stream", m.Value)
+		if id, err := sourceToMain(e); err != nil {
 			log.Error(err, "failed to send message from kafka to main container")
 		} else {
 			log.WithValues("id", id).Info("message sent from kafka to main container")
@@ -78,21 +83,23 @@ func mainE() error {
 	}
 	defer nc.Close()
 
-	var mainToSink func(m *dfv1.Message) error
+	var mainToSink func(m *ce.Event) error
 
 	if sink.Bus != nil {
-		mainToSink = func(m *dfv1.Message) error {
-			return nc.Publish(sink.Bus.Subject, []byte(m.Json()))
+		mainToSink = func(m *ce.Event) error {
+			data, _ := m.MarshalJSON()
+			return nc.Publish(sink.Bus.Subject, data)
 		}
 	} else if sink.Kafka != nil {
 		producer, err := sarama.NewAsyncProducer([]string{sink.Kafka.URL}, config)
 		if err != nil {
 			return fmt.Errorf("failed to create kafka producer: %w", err)
 		}
-		mainToSink = func(m *dfv1.Message) error {
+		mainToSink = func(m *ce.Event) error {
+			data, _ := m.MarshalJSON()
 			producer.Input() <- &sarama.ProducerMessage{
 				Topic: sink.Kafka.Topic,
-				Value: sarama.StringEncoder(m.Data),
+				Value: sarama.StringEncoder(data),
 			}
 			return nil
 		}
@@ -101,7 +108,7 @@ func mainE() error {
 	}
 
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		m := &dfv1.Message{}
+		m := &ce.Event{}
 		if err := json.NewDecoder(r.Body).Decode(m); err != nil {
 			log.Error(err, "failed to decode message from main container ")
 			w.WriteHeader(400)
@@ -127,7 +134,12 @@ func mainE() error {
 
 	if source.Bus != nil {
 		if _, err := nc.QueueSubscribe(source.Bus.Subject, deploymentName, func(m *nats.Msg) {
-			if id, err := sourceToMain(dfv1.NewMessage(m.Data)); err != nil {
+			e := ce.NewEvent()
+			e.SetID(string(uuid.NewUUID()))
+			e.SetType("message.dataflow.argoproj.io")
+			e.SetSource("dataflow.argoproj.io")
+			_ = e.SetData("application/octet-stream", m.Data)
+			if id, err := sourceToMain(e); err != nil {
 				log.WithValues("id", id).Error(err, "failed to send message from main container to bus")
 			} else {
 				log.WithValues("id", id).Info("message sent from main container to bus")
