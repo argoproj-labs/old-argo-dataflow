@@ -18,7 +18,7 @@ func main() {
 	}
 }
 func mainE() error {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		m := &v1alpha1.Message{}
 		if err := json.NewDecoder(r.Body).Decode(m); err != nil {
 			log.Error(err, "failed to decode message")

@@ -31,7 +31,7 @@ func sourceToMain(m dfv1.Message) (types.UID, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal message to send from source to main container: %w", err)
 	}
-	resp, err := http.Post("http://localhost:8080", "application/json", bytes.NewBuffer(data))
+	resp, err := http.Post("http://localhost:8080/messages", "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return "", fmt.Errorf("failed to sent message from source to main container: %w", err)
 	}
@@ -69,8 +69,6 @@ func mainE() error {
 	config := sarama.NewConfig()
 	config.ClientID = "dataflow-sidecar"
 
-	var mainToSink func(m *dfv1.Message) error
-
 	nc, err := nats.Connect(
 		"eventbus-dataflow-stan-svc",
 		nats.Name("Argo Dataflow Sidecar for deployment/"+deploymentName),
@@ -79,6 +77,8 @@ func mainE() error {
 		return fmt.Errorf("failed to connect to bus: %w", err)
 	}
 	defer nc.Close()
+
+	var mainToSink func(m *dfv1.Message) error
 
 	if sink.Bus != nil {
 		mainToSink = func(m *dfv1.Message) error {
