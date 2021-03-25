@@ -39,8 +39,8 @@ type Node struct {
 	Replicas *Replicas `json:"replicas,omitempty"`
 	From     Interface `json:"from"`
 	To       Interface `json:"to"`
-	Sources  []Source  `json:"sources"`
-	Sinks    []Sink    `json:"sinks"`
+	Sources  []Source  `json:"sources,omitempty"`
+	Sinks    []Sink    `json:"sinks,omitempty"`
 }
 
 func (in *Node) GetReplicas() Replicas {

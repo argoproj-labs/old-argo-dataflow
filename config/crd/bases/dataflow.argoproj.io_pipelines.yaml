@@ -124,8 +124,6 @@ spec:
                   - from
                   - image
                   - name
-                  - sinks
-                  - sources
                   - to
                   type: object
                 type: array

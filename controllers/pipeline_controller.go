@@ -28,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/klogr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -35,11 +36,13 @@ import (
 )
 
 var sidecarImage = os.Getenv("SIDECAR_IMAGE")
+var log = klogr.New()
 
 func init() {
 	if sidecarImage == "" {
 		sidecarImage = "argoproj/dataflow-sidecar:latest"
 	}
+	log.WithValues("sidecarImage", sidecarImage).Info("config")
 }
 
 // PipelineReconciler reconciles a Pipeline object
