@@ -22,4 +22,4 @@ jobs:
         with:
           install: true
       - run: docker build . --target ${{matrix.target}} --tag alexcollinsintuit/dataflow-${{matrix.target}}:latest
-      - run: docker push alexecollinsintuit/dataflow-${{matrix.target}}:latest
+      - run: docker push alexcollinsintuit/dataflow-${{matrix.target}}:latest
