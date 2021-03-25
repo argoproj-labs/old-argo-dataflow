@@ -60,7 +60,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, fmt.Errorf("failed to create EventBus: %w", err)
 	}
 
-	for _, pr := range pl.Spec.Processors {
+	for _, pr := range pl.Spec.Nodes {
 		deploymentName := pl.Name + "-" + pr.Name
 		log.WithValues("processorName", pr.Name, "deploymentName", deploymentName).Info("creating deployment")
 		labels := map[string]string{

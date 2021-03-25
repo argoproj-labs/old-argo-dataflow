@@ -46,7 +46,7 @@ var _ = Describe("Pipeline controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: v1alpha1.PipelineSpec{
-					Processors: []v1alpha1.Node{
+					Nodes: []v1alpha1.Node{
 						{
 							Name:     "my-proc",
 							Image:    "docker/whalesay:latest",

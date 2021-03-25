@@ -67,7 +67,7 @@ type Sink struct {
 type PipelineSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Processors []Node `json:"nodes,omitempty"`
+	Nodes []Node `json:"nodes,omitempty"`
 }
 
 type PipelineStatus struct {
