@@ -45,10 +45,9 @@ type EventBusReconciler struct {
 func (r *EventBusReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("eventbus", req.NamespacedName)
 
-	// your logic here
 	var bus v1alpha1.EventBus
 	if err := r.Client.Get(ctx, req.NamespacedName, &bus); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get EventBus: %w", err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	if _, err := installer.NewNATSInstaller(r.Client, &ev1.EventBus{
 		ObjectMeta: bus.ObjectMeta,
@@ -56,7 +55,7 @@ func (r *EventBusReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			NATS: &ev1.NATSBus{
 				Native: &ev1.NativeStrategy{
 					Replicas: 3,
-					Auth:     &ev1.AuthStrategyToken,
+					Auth:     &ev1.AuthStrategyNone,
 				},
 			},
 		},

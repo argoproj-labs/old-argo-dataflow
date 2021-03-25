@@ -62,10 +62,10 @@ generate: controller-gen
 
 # Build the docker image
 docker-build:
-	docker build .
-	docker build . --target controller --tag argoproj/dataflow-controller:$(TAG)
-	docker build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
-	docker build . --target cat        --tag argoproj/dataflow-cat:$(TAG)
+	docker buildx build .
+	docker buildx build . --target controller --tag argoproj/dataflow-controller:$(TAG)
+	docker buildx build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
+	docker buildx build . --target cat        --tag argoproj/dataflow-cat:$(TAG)
 
 # Push the docker image
 docker-push:

@@ -58,8 +58,12 @@ type Kafka struct {
 	Topic string `json:"topic"`
 }
 
+type Bus struct {
+	Topic string `json:"topic"`
+}
+
 type Source struct {
-	Node  string `json:"node,omitempty"`
+	Bus   *Bus   `json:"bus,omitempty"`
 	Kafka *Kafka `json:"kafka,omitempty"`
 }
 
@@ -83,7 +87,7 @@ func NewSink(x string) Sink {
 }
 
 type Sink struct {
-	Node  string `json:"node,omitempty"`
+	Bus   *Bus   `json:"bus,omitempty"`
 	Kafka *Kafka `json:"kafka,omitempty"`
 }
 

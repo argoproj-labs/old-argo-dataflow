@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/Shopify/sarama"
+	"github.com/nats-io/nats.go"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/uuid"
@@ -25,28 +26,28 @@ func main() {
 	}
 }
 
+func send(m dfv1.Message) (types.UID, error) {
+	data, err := json.Marshal(m)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal message: %w", err)
+	}
+	resp, err := http.Post("http://localhost:8080", "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return "", fmt.Errorf("failed to post event: %w", err)
+	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("non-200 status code: %d", resp.StatusCode)
+	}
+	return m.ID, nil
+}
+
 type handler struct{}
 
 func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
-		id, err := func() (types.UID, error) {
-			m := dfv1.Message{ID: uuid.NewUUID(), Data: m.Value}
-			data, err := json.Marshal(m)
-			if err != nil {
-				return "", fmt.Errorf("failed to marshal message: %w", err)
-			}
-			resp, err := http.Post("http://localhost:8080", "application/json", bytes.NewBuffer(data))
-			if err != nil {
-				return "", fmt.Errorf("failed to post event: %w", err)
-			}
-			if resp.StatusCode != 200 {
-				return "", fmt.Errorf("non-200 status code: %d", resp.StatusCode)
-			}
-			return m.ID, nil
-		}()
-		if err != nil {
+		if id, err := send(dfv1.Message{ID: uuid.NewUUID(), Data: m.Value}); err != nil {
 			log.Error(err, "failed to process message")
 		} else {
 			log.WithValues("id", id).Info("message sent")
@@ -67,9 +68,33 @@ func mainE() error {
 
 	config := sarama.NewConfig()
 	config.ClientID = "dataflow-sidecar"
-	producer, err := sarama.NewAsyncProducer([]string{sink.Kafka.URL}, config)
+
+	var publish func(m *dfv1.Message) error
+
+	nc, err := nats.Connect("nats://eventbus-default-stan-svc.argo-dataflow-system.svc.cluster.local:4222")
 	if err != nil {
-		return fmt.Errorf("failed to create producer: %w", err)
+		return fmt.Errorf("failed to connect to bus: %w", err)
+	}
+	defer nc.Close()
+
+	if sink.Bus != nil {
+		publish = func(m *dfv1.Message) error {
+			return nc.Publish(sink.Bus.Topic, []byte(m.Json()))
+		}
+	} else if sink.Kafka != nil {
+		producer, err := sarama.NewAsyncProducer([]string{sink.Kafka.URL}, config)
+		if err != nil {
+			return fmt.Errorf("failed to create kafka producer: %w", err)
+		}
+		publish = func(m *dfv1.Message) error {
+			producer.Input() <- &sarama.ProducerMessage{
+				Topic: sink.Kafka.Topic,
+				Value: sarama.StringEncoder(m.Data),
+			}
+			return nil
+		}
+	} else {
+		return fmt.Errorf("no sink configured")
 	}
 
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
@@ -80,13 +105,13 @@ func mainE() error {
 			return
 		}
 		log.WithValues("id", m.ID).Info("message recv")
-		producer.Input() <- &sarama.ProducerMessage{
-			Topic: sink.Kafka.Topic,
-			Value: sarama.StringEncoder(m.Data),
+		if err := publish(m); err != nil {
+			log.Error(err, "failed to publish message")
+			w.WriteHeader(500)
+			return
 		}
 		w.WriteHeader(200)
 	})
-
 	go func() {
 		runtime.HandleCrash(runtime.PanicHandlers...)
 		log.Info("starting HTTP server")
@@ -97,19 +122,33 @@ func mainE() error {
 		}
 	}()
 
-	group, err := sarama.NewConsumerGroup([]string{source.Kafka.URL}, deploymentName, config)
-	if err != nil {
-		return fmt.Errorf("failed to create group: %w", err)
-	}
-	defer func() { _ = group.Close() }()
+	if source.Bus != nil {
+		if _, err := nc.Subscribe(source.Bus.Topic, func(m *nats.Msg) {
+			if id, err := send(dfv1.NewMessage(m.Data)); err != nil {
+				log.WithValues("id", id).Error(err, "failed to send message to bus")
+			} else {
+				log.WithValues("id", id).Info("message sent to bus")
+			}
+		}); err != nil {
+			return fmt.Errorf("failed to subscribe: %w", err)
+		}
 
-	if err := group.Consume(ctx, []string{source.Kafka.Topic}, handler{}); err != nil {
-		return fmt.Errorf("failed to create consumer: %w", err)
+	} else if source.Kafka != nil {
+		group, err := sarama.NewConsumerGroup([]string{source.Kafka.URL}, deploymentName, config)
+		if err != nil {
+			return fmt.Errorf("failed to create kafka consumer group: %w", err)
+		}
+		defer func() { _ = group.Close() }()
+		if err := group.Consume(ctx, []string{source.Kafka.Topic}, handler{}); err != nil {
+			return fmt.Errorf("failed to create kafka consumer: %w", err)
+		}
+	} else {
+		return fmt.Errorf("no source configured")
 	}
 
-	log.Info("listening for messages")
+	log.Info("ready")
 
 	<-ctx.Done()
 
-	return group.Close()
+	return nil
 }

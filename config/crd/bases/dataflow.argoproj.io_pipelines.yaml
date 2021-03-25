@@ -58,6 +58,13 @@ spec:
                       type: object
                     sink:
                       properties:
+                        bus:
+                          properties:
+                            topic:
+                              type: string
+                          required:
+                          - topic
+                          type: object
                         kafka:
                           properties:
                             topic:
@@ -68,11 +75,16 @@ spec:
                           - topic
                           - url
                           type: object
-                        node:
-                          type: string
                       type: object
                     source:
                       properties:
+                        bus:
+                          properties:
+                            topic:
+                              type: string
+                          required:
+                          - topic
+                          type: object
                         kafka:
                           properties:
                             topic:
@@ -83,8 +95,6 @@ spec:
                           - topic
                           - url
                           type: object
-                        node:
-                          type: string
                       type: object
                     to:
                       properties:

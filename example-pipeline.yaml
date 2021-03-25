@@ -15,6 +15,19 @@ spec:
       to:
         http: { }
       sink:
+        bus:
+          topic: x
+
+    - name: b
+      source:
+        bus:
+          topic: x
+      from:
+        http: { }
+      image: argoproj/dataflow-cat:latest
+      to:
+        http: { }
+      sink:
         kafka:
           url: kafka-0.broker.kafka.svc.cluster.local:9092
           topic: your-topic
