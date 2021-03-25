@@ -42,7 +42,8 @@ type PipelineReconciler struct {
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines/status,verbs=get;update;patch
-
+// +kubebuilder:rbac:groups="",resources=deployments,verbs=get;watch;list;create
+// +kubebuilder:rbac:groups="",resources=pods,verbs=list
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
@@ -151,5 +152,6 @@ func IgnoreAlreadyExists(err error) error {
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dfv1.Pipeline{}).
+		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }
