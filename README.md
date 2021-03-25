@@ -99,36 +99,39 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   name: example
+  annotations:
+    dataflow.argoproj.io/description: "Example pipeline"
 spec:
   nodes:
     - name: a
-      source:
-        kafka:
-          url: kafka-0.broker.kafka.svc.cluster.local:9092
-          topic: input-topic
+      sources:
+        - kafka:
+            url: kafka-0.broker.kafka.svc.cluster.local:9092
+            topic: input-topic
       from:
         http: { }
       image: argoproj/dataflow-cat:latest
       to:
         http: { }
-      sink:
-        bus:
-          subject: a-b
+      sinks:
+        - bus:
+            subject: a-b
 
     - name: b
-      source:
-        bus:
-          subject: a-b
+      sources:
+        - bus:
+            subject: a-b
       from:
         http: { }
       image: argoproj/dataflow-cat:latest
+      replicas:
+        value: 2
       to:
         http: { }
-      sink:
-        kafka:
-          url: kafka-0.broker.kafka.svc.cluster.local:9092
-          topic: output-topic
-
+      sinks:
+        - kafka:
+            url: kafka-0.broker.kafka.svc.cluster.local:9092
+            topic: output-topic
 ```
 
 ### Architecture Diagram

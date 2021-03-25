@@ -92,8 +92,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 									ImagePullPolicy: corev1.PullIfNotPresent,
 									Env: []corev1.EnvVar{
 										{Name: "DEPLOYMENT_NAME", Value: deploymentName},
-										{Name: "SOURCE", Value: node.Source.Json()},
-										{Name: "SINK", Value: node.Sink.Json()},
+										{Name: "SOURCES", Value: dfv1.Json(node.Sources)},
+										{Name: "SINKS", Value: dfv1.Json(node.Sinks)},
 									},
 								},
 								{

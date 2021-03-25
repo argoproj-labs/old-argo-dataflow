@@ -66,10 +66,16 @@ func mainE() error {
 	ctx := signals.SetupSignalHandler()
 
 	deploymentName := os.Getenv("DEPLOYMENT_NAME")
-	source := dfv1.NewSource(os.Getenv("SOURCE"))
-	sink := dfv1.NewSink(os.Getenv("SINK"))
+	sources := []dfv1.Source{}
+	if err := json.Unmarshal([]byte(os.Getenv("SOURCES")), &sources); err != nil {
+		return err
+	}
+	sinks := []dfv1.Sink{}
+	if err := json.Unmarshal([]byte(os.Getenv("SINKS")), &sinks); err != nil {
+		return err
+	}
 
-	log.WithValues("source", source, "sink", sink, "deploymentName", deploymentName).Info("config")
+	log.WithValues("sources", sources, "sinks", sinks, "deploymentName", deploymentName).Info("config")
 
 	config := sarama.NewConfig()
 	config.ClientID = "dataflow-sidecar"
@@ -85,25 +91,27 @@ func mainE() error {
 
 	var mainToSink func(m *ce.Event) error
 
-	if sink.Bus != nil {
-		mainToSink = func(m *ce.Event) error {
-			data, _ := m.MarshalJSON()
-			return nc.Publish(sink.Bus.Subject, data)
-		}
-	} else if sink.Kafka != nil {
-		producer, err := sarama.NewAsyncProducer([]string{sink.Kafka.URL}, config)
-		if err != nil {
-			return fmt.Errorf("failed to create kafka producer: %w", err)
-		}
-		mainToSink = func(m *ce.Event) error {
-			producer.Input() <- &sarama.ProducerMessage{
-				Topic: sink.Kafka.Topic,
-				Value: sarama.StringEncoder(m.Data()),
+	for _, sink := range sinks {
+		if sink.Bus != nil {
+			mainToSink = func(m *ce.Event) error {
+				data, _ := m.MarshalJSON()
+				return nc.Publish(sink.Bus.Subject, data)
 			}
-			return nil
+		} else if sink.Kafka != nil {
+			producer, err := sarama.NewAsyncProducer([]string{sink.Kafka.URL}, config)
+			if err != nil {
+				return fmt.Errorf("failed to create kafka producer: %w", err)
+			}
+			mainToSink = func(m *ce.Event) error {
+				producer.Input() <- &sarama.ProducerMessage{
+					Topic: sink.Kafka.Topic,
+					Value: sarama.StringEncoder(m.Data()),
+				}
+				return nil
+			}
+		} else {
+			return fmt.Errorf("no sink configured")
 		}
-	} else {
-		return fmt.Errorf("no sink configured")
 	}
 
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
@@ -131,30 +139,32 @@ func mainE() error {
 		}
 	}()
 
-	if source.Bus != nil {
-		if _, err := nc.QueueSubscribe(source.Bus.Subject, deploymentName, func(m *nats.Msg) {
-			e := ce.NewEvent()
-			if err := e.UnmarshalJSON(m.Data); err != nil {
-				log.Error(err, "failed to marshall message from main container to bus")
-			} else if id, err := sourceToMain(e); err != nil {
-				log.WithValues("id", id).Error(err, "failed to send message from main container to bus")
-			} else {
-				log.WithValues("id", id).Info("message sent from main container to bus")
+	for _, source := range sources {
+		if source.Bus != nil {
+			if _, err := nc.QueueSubscribe(source.Bus.Subject, deploymentName, func(m *nats.Msg) {
+				e := ce.NewEvent()
+				if err := e.UnmarshalJSON(m.Data); err != nil {
+					log.Error(err, "failed to marshall message from main container to bus")
+				} else if id, err := sourceToMain(e); err != nil {
+					log.WithValues("id", id).Error(err, "failed to send message from main container to bus")
+				} else {
+					log.WithValues("id", id).Info("message sent from main container to bus")
+				}
+			}); err != nil {
+				return fmt.Errorf("failed to subscribe: %w", err)
 			}
-		}); err != nil {
-			return fmt.Errorf("failed to subscribe: %w", err)
+		} else if source.Kafka != nil {
+			group, err := sarama.NewConsumerGroup([]string{source.Kafka.URL}, deploymentName, config)
+			if err != nil {
+				return fmt.Errorf("failed to create kafka consumer group: %w", err)
+			}
+			defer func() { _ = group.Close() }()
+			if err := group.Consume(ctx, []string{source.Kafka.Topic}, handler{}); err != nil {
+				return fmt.Errorf("failed to create kafka consumer: %w", err)
+			}
+		} else {
+			return fmt.Errorf("no source configured")
 		}
-	} else if source.Kafka != nil {
-		group, err := sarama.NewConsumerGroup([]string{source.Kafka.URL}, deploymentName, config)
-		if err != nil {
-			return fmt.Errorf("failed to create kafka consumer group: %w", err)
-		}
-		defer func() { _ = group.Close() }()
-		if err := group.Consume(ctx, []string{source.Kafka.Topic}, handler{}); err != nil {
-			return fmt.Errorf("failed to create kafka consumer: %w", err)
-		}
-	} else {
-		return fmt.Errorf("no source configured")
 	}
 
 	log.Info("ready")

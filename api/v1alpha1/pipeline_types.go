@@ -39,8 +39,8 @@ type Node struct {
 	Replicas *Replicas `json:"replicas,omitempty"`
 	From     Interface `json:"from"`
 	To       Interface `json:"to"`
-	Source   Source    `json:"source"`
-	Sink     Sink      `json:"sink"`
+	Sources  []Source  `json:"sources"`
+	Sinks    []Sink    `json:"sinks"`
 }
 
 func (in *Node) GetReplicas() Replicas {
@@ -60,35 +60,21 @@ type Bus struct {
 }
 
 type Source struct {
+	Name  string `json:"name,omitempty"`
 	Bus   *Bus   `json:"bus,omitempty"`
 	Kafka *Kafka `json:"kafka,omitempty"`
 }
-
-func NewSource(x string) Source {
-	v := Source{}
-	_ = json.Unmarshal([]byte(x), &v)
-	return v
-}
-
-func (in *Source) Json() string { return Json(in) }
 
 func Json(in interface{}) string {
 	data, _ := json.Marshal(in)
 	return string(data)
 }
 
-func NewSink(x string) Sink {
-	v := Sink{}
-	_ = json.Unmarshal([]byte(x), &v)
-	return v
-}
-
 type Sink struct {
+	Name  string `json:"name,omitempty"`
 	Bus   *Bus   `json:"bus,omitempty"`
 	Kafka *Kafka `json:"kafka,omitempty"`
 }
-
-func (in *Sink) Json() string { return Json(in) }
 
 type PipelineSpec struct {
 	// +patchStrategy=merge

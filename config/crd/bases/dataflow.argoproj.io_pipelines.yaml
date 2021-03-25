@@ -65,46 +65,54 @@ spec:
                       required:
                       - value
                       type: object
-                    sink:
-                      properties:
-                        bus:
-                          properties:
-                            subject:
-                              type: string
-                          required:
-                          - subject
-                          type: object
-                        kafka:
-                          properties:
-                            topic:
-                              type: string
-                            url:
-                              type: string
-                          required:
-                          - topic
-                          - url
-                          type: object
-                      type: object
-                    source:
-                      properties:
-                        bus:
-                          properties:
-                            subject:
-                              type: string
-                          required:
-                          - subject
-                          type: object
-                        kafka:
-                          properties:
-                            topic:
-                              type: string
-                            url:
-                              type: string
-                          required:
-                          - topic
-                          - url
-                          type: object
-                      type: object
+                    sinks:
+                      items:
+                        properties:
+                          bus:
+                            properties:
+                              subject:
+                                type: string
+                            required:
+                            - subject
+                            type: object
+                          kafka:
+                            properties:
+                              topic:
+                                type: string
+                              url:
+                                type: string
+                            required:
+                            - topic
+                            - url
+                            type: object
+                          name:
+                            type: string
+                        type: object
+                      type: array
+                    sources:
+                      items:
+                        properties:
+                          bus:
+                            properties:
+                              subject:
+                                type: string
+                            required:
+                            - subject
+                            type: object
+                          kafka:
+                            properties:
+                              topic:
+                                type: string
+                              url:
+                                type: string
+                            required:
+                            - topic
+                            - url
+                            type: object
+                          name:
+                            type: string
+                        type: object
+                      type: array
                     to:
                       properties:
                         http:
@@ -116,8 +124,8 @@ spec:
                   - from
                   - image
                   - name
-                  - sink
-                  - source
+                  - sinks
+                  - sources
                   - to
                   type: object
                 type: array
