@@ -11,19 +11,15 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-all: manager
-
 # Run tests
-test: generate fmt vet manifests
+test: generate
 	go test ./... -coverprofile cover.out
 
-# Build manager binary
-manager: generate fmt vet
-	go build -o bin/manager main.go
-
 # Run against the configured Kubernetes cluster in ~/.kube/config
-run: generate fmt vet manifests
-	go run ./main.go
+run: generate install $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
+	KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092 goreman -set-ports=false -logtime=false start
+logs: $(GOBIN)/stern
+	stern -n argo-dataflow-system .
 
 # Install CRDs into a cluster
 install: manifests
@@ -38,40 +34,25 @@ deploy: manifests docker-build
 	cd config/manager && kustomize edit set image argoproj/dataflow-controller=argoproj/dataflow-controller:$(TAG)
 	kustomize build config/default | kubectl apply -f -
 
-redeploy: deploy
-	kubectl -n argo-dataflow-system rollout restart deploy/controller-manager
-
-logs:
-	stern -n argo-dataflow-system .
+undeploy: manifests
+	kustomize build config/default | kubectl delete -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	kustomize build config/default | sed 's/argoproj\//alexcollinsintuit\//' | sed 's/:latest/:$(TAG)/' > install/default.yaml
+	kustomize build config/default     | sed 's/argoproj\//alexcollinsintuit\//' | sed 's/:latest/:$(TAG)/' > install/default.yaml
 
-# Run go fmt against code
-fmt:
-	go fmt ./...
-
-# Run go vet against code
-vet:
-	go vet ./...
-
-# Generate code
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+lint:
+	golangci-lint run --fix
 
-# Build the docker image
-docker-build:
+sidecar-image:
 	docker build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
+cat-image:
 	docker build . --target cat        --tag argoproj/dataflow-cat:$(TAG)
+controller-image:
 	docker build . --target controller --tag argoproj/dataflow-controller:$(TAG)
-
-# Push the docker image
-docker-push:
-	docker push argoproj/dataflow-sidecar:$(TAG)
-	docker push argoproj/dataflow-cat:$(TAG)
-	docker push argoproj/dataflow-controller:$(TAG)
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -89,6 +70,11 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+$(GOBIN)/kafka-console-consumer:
+	go install github.com/Shopify/sarama/tools/kafka-console-consumer
+$(GOBIN)/kafka-console-producer:
+	go install github.com/Shopify/sarama/tools/kafka-console-producer
 
 version:=2.3.2
 name:=darwin
@@ -108,10 +94,6 @@ kafka:
 	kubectl port-forward -n kafka svc/broker 9092:9092
 
 example:
-	kubectl -n argo-dataflow-system delete pipeline --all
+	kubectl delete pipeline --all
 	sleep 5s
-	kubectl -n argo-dataflow-system apply -f example-pipeline.yaml
-	kubectl get -n argo-dataflow-system pipeline -w
-
-lint:
-	golangci-lint run --fix
+	kubectl apply -f example-pipeline.yaml

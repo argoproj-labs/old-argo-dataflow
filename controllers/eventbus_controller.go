@@ -67,7 +67,7 @@ func (r *EventBusReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, fmt.Errorf("failed to install NATS: %w", err)
 	}
 
-	log.Info("installed event bus")
+	log.Info("installed NATS (if not already installed)")
 
 	return ctrl.Result{}, nil
 }

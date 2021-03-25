@@ -105,7 +105,7 @@ spec:
       source:
         kafka:
           url: kafka-0.broker.kafka.svc.cluster.local:9092
-          topic: my-topic
+          topic: input-topic
       from:
         http: { }
       image: argoproj/dataflow-cat:latest
@@ -127,7 +127,7 @@ spec:
       sink:
         kafka:
           url: kafka-0.broker.kafka.svc.cluster.local:9092
-          topic: your-topic
+          topic: output-topic
 
 ```
 

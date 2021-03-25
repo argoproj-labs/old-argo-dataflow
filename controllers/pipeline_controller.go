@@ -64,7 +64,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	for _, node := range pipeline.Spec.Nodes {
 		deploymentName := pipeline.Name + "-" + node.Name
-		log.WithValues("processorName", node.Name, "deploymentName", deploymentName).Info("creating deployment")
+		log.WithValues("processorName", node.Name, "deploymentName", deploymentName).Info("creating deployment (if not exists)")
 		matchLabels := map[string]string{
 			"dataflow.argoproj.io/pipeline-name":  pipeline.Name,
 			"dataflow.argoproj.io/processor-name": node.Name,
@@ -118,7 +118,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	phase := dfv1.PipelinePending
-	message := ""
+	message := fmt.Sprintf("%d pod(s)", len(pods.Items))
 OUTER:
 	for _, pod := range pods.Items {
 		switch pod.Status.Phase {
@@ -136,7 +136,7 @@ OUTER:
 	if phase != pipeline.Status.Phase || message != pipeline.Status.Message {
 		pipeline.Status.Phase = phase
 		pipeline.Status.Message = message
-		if err := r.Status().Update(ctx, pipeline); client.IgnoreNotFound(err) != nil {
+		if err := r.Status().Update(ctx, pipeline); IgnoreConflict(err) != nil { // conflict is ok, we will reconcille again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}
 	}
@@ -146,6 +146,13 @@ OUTER:
 
 func IgnoreAlreadyExists(err error) error {
 	if apierr.IsAlreadyExists(err) {
+		return nil
+	}
+	return err
+}
+
+func IgnoreConflict(err error) error {
+	if apierr.IsConflict(err) {
 		return nil
 	}
 	return err

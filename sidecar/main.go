@@ -96,10 +96,9 @@ func mainE() error {
 			return fmt.Errorf("failed to create kafka producer: %w", err)
 		}
 		mainToSink = func(m *ce.Event) error {
-			data, _ := m.MarshalJSON()
 			producer.Input() <- &sarama.ProducerMessage{
 				Topic: sink.Kafka.Topic,
-				Value: sarama.StringEncoder(data),
+				Value: sarama.StringEncoder(m.Data()),
 			}
 			return nil
 		}
@@ -135,11 +134,9 @@ func mainE() error {
 	if source.Bus != nil {
 		if _, err := nc.QueueSubscribe(source.Bus.Subject, deploymentName, func(m *nats.Msg) {
 			e := ce.NewEvent()
-			e.SetID(string(uuid.NewUUID()))
-			e.SetType("message.dataflow.argoproj.io")
-			e.SetSource("dataflow.argoproj.io")
-			_ = e.SetData("application/octet-stream", m.Data)
-			if id, err := sourceToMain(e); err != nil {
+			if err := e.UnmarshalJSON(m.Data); err != nil {
+				log.Error(err, "failed to marshall message from main container to bus")
+			} else if id, err := sourceToMain(e); err != nil {
 				log.WithValues("id", id).Error(err, "failed to send message from main container to bus")
 			} else {
 				log.WithValues("id", id).Info("message sent from main container to bus")
@@ -147,7 +144,6 @@ func mainE() error {
 		}); err != nil {
 			return fmt.Errorf("failed to subscribe: %w", err)
 		}
-
 	} else if source.Kafka != nil {
 		group, err := sarama.NewConsumerGroup([]string{source.Kafka.URL}, deploymentName, config)
 		if err != nil {
