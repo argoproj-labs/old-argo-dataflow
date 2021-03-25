@@ -1,4 +1,4 @@
-# Argo Dataflow
+# ![Logo](logo.png) Argo Dataflow
 
 [![Go](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml)
 ![Alpha](alpha.svg)

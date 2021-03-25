@@ -20,11 +20,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/argoproj/argo-events/common"
-	"github.com/argoproj/argo-events/controllers/eventbus/installer"
-	ev1 "github.com/argoproj/argo-events/pkg/apis/eventbus/v1alpha1"
 	"github.com/go-logr/logr"
-	"go.uber.org/zap"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -33,7 +29,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 // PipelineReconciler reconciles a Pipeline object
@@ -49,7 +45,7 @@ type PipelineReconciler struct {
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
-	var pl v1alpha1.Pipeline
+	var pl dfv1.Pipeline
 	if err := r.Get(ctx, req.NamespacedName, &pl); err != nil {
 		log.Error(err, "unable to fetch Pipeline")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -58,22 +54,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	bus := &ev1.EventBus{
+	if err := r.Client.Create(ctx, &dfv1.EventBus{
 		ObjectMeta: metav1.ObjectMeta{Name: "default", Namespace: pl.Namespace},
-		Spec:       ev1.EventBusSpec{NATS: &ev1.NATSBus{Native: &ev1.NativeStrategy{Replicas: 3, Auth: &ev1.AuthStrategyToken}}},
-	}
-	if err := r.Client.Create(ctx, bus); IgnoreAlreadyExists(err) != nil {
+	}); IgnoreAlreadyExists(err) != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to create EventBus: %w", err)
-	}
-	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(bus), bus); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get EventBus: %w", err)
-	}
-	if _, err := installer.NewNATSInstaller(r.Client, bus, "nats-streaming:0.17.0", "synadia/prometheus-nats-exporter:0.6.2", map[string]string{
-		"controller":          "pipeline-controller",
-		"eventbus-name":       bus.Name,
-		common.LabelOwnerName: bus.Name,
-	}, zap.L().Sugar()).Install(); IgnoreAlreadyExists(err) != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to install NATS: %w", err)
 	}
 
 	for _, pr := range pl.Spec.Processors {
@@ -90,7 +74,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Name:      deploymentName,
 					Namespace: pl.Namespace,
 					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(pl.GetObjectMeta(), v1alpha1.GroupVersion.WithKind("Pipeline")),
+						*metav1.NewControllerRef(pl.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
 					},
 				},
 				Spec: appsv1.DeploymentSpec{
@@ -139,6 +123,6 @@ func IgnoreAlreadyExists(err error) error {
 
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.Pipeline{}).
+		For(&dfv1.Pipeline{}).
 		Complete(r)
 }

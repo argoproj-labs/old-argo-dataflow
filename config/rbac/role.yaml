@@ -9,6 +9,26 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
+  - eventbus
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
+  - eventbus/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
   - pipelines
   verbs:
   - create

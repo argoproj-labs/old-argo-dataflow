@@ -4,4 +4,7 @@ resources:
 - group: dataflow
   kind: Pipeline
   version: v1alpha1
+- group: dataflow
+  kind: EventBus
+  version: v1alpha1
 version: "2"

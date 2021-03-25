@@ -11,10 +11,6 @@ make kafka ;# start Kafka in cluster
 ```
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/master/manifests/base/crds/argoproj.io_eventbus.yaml
-```
-
-```
 go install github.com/Shopify/sarama/tools/kafka-console-consumer
 go install github.com/Shopify/sarama/tools/kafka-console-producer
 
