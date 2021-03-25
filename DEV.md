@@ -34,11 +34,10 @@ Deploy dataflow:
 make deploy 
 ```
 
-Create a pipeline:
+Create an example pipeline:
 
 ```
-kubectl -n argo-dataflow-system delete pipeline --all
-kubectl -n argo-dataflow-system apply -f example-pipeline.yaml
+make example
 ```
 
 Made a change?

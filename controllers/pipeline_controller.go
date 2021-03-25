@@ -47,7 +47,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	var pl dfv1.Pipeline
 	if err := r.Get(ctx, req.NamespacedName, &pl); err != nil {
-		log.Error(err, "unable to fetch Pipeline")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
 		// on deleted requests.
@@ -90,10 +89,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 									ImagePullPolicy: corev1.PullIfNotPresent,
 									Env: []corev1.EnvVar{
 										{Name: "DEPLOYMENT_NAME", Value: deploymentName},
-										{Name: "SOURCE_KAFKA_URL", Value: pr.Source.Kafka.URL},
-										{Name: "SOURCE_KAFKA_TOPIC", Value: pr.Source.Kafka.Topic},
-										{Name: "SINK_KAFKA_URL", Value: pr.Sink.Kafka.URL},
-										{Name: "SINK_KAFKA_TOPIC", Value: pr.Sink.Kafka.Topic},
+										{Name: "SOURCE", Value: pr.Source.Json()},
+										{Name: "SINK", Value: pr.Sink.Json()},
 									},
 								},
 								{

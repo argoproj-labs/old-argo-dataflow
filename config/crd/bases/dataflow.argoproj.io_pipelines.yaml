@@ -68,8 +68,8 @@ spec:
                           - topic
                           - url
                           type: object
-                      required:
-                      - kafka
+                        node:
+                          type: string
                       type: object
                     source:
                       properties:
@@ -83,8 +83,8 @@ spec:
                           - topic
                           - url
                           type: object
-                      required:
-                      - kafka
+                        node:
+                          type: string
                       type: object
                     to:
                       properties:

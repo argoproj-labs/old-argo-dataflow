@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"encoding/json"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -57,12 +59,35 @@ type Kafka struct {
 }
 
 type Source struct {
-	Kafka Kafka `json:"kafka"`
+	Node  string `json:"node,omitempty"`
+	Kafka *Kafka `json:"kafka,omitempty"`
+}
+
+func NewSource(x string) Source {
+	v := Source{}
+	_ = json.Unmarshal([]byte(x), &v)
+	return v
+}
+
+func (in *Source) Json() string { return Json(in) }
+
+func Json(in interface{}) string {
+	data, _ := json.Marshal(in)
+	return string(data)
+}
+
+func NewSink(x string) Sink {
+	v := Sink{}
+	_ = json.Unmarshal([]byte(x), &v)
+	return v
 }
 
 type Sink struct {
-	Kafka Kafka `json:"kafka"`
+	Node  string `json:"node,omitempty"`
+	Kafka *Kafka `json:"kafka,omitempty"`
 }
+
+func (in *Sink) Json() string { return Json(in) }
 
 type PipelineSpec struct {
 	// +patchStrategy=merge

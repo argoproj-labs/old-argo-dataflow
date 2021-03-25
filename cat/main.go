@@ -32,7 +32,7 @@ func mainE() error {
 			return
 		}
 		// flow = 3569
-		resp, err := http.Post("http://localhost:3569", "application/json", bytes.NewBuffer(data))
+		resp, err := http.Post("http://localhost:3569/messages", "application/json", bytes.NewBuffer(data))
 		if err != nil {
 			log.Error(err, "failed to post message")
 			w.WriteHeader(500)

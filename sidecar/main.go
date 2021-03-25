@@ -14,7 +14,7 @@ import (
 	"k8s.io/klog/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
-	"github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var log = klogr.New()
@@ -32,7 +32,7 @@ func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
 		id, err := func() (types.UID, error) {
-			m := v1alpha1.Message{ID: uuid.NewUUID(), Data: m.Value}
+			m := dfv1.Message{ID: uuid.NewUUID(), Data: m.Value}
 			data, err := json.Marshal(m)
 			if err != nil {
 				return "", fmt.Errorf("failed to marshal message: %w", err)
@@ -59,21 +59,9 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 func mainE() error {
 	ctx := signals.SetupSignalHandler()
 
-	source := v1alpha1.Source{
-		Kafka: v1alpha1.Kafka{
-			URL:   os.Getenv("SOURCE_KAFKA_URL"),
-			Topic: os.Getenv("SOURCE_KAFKA_TOPIC"),
-		},
-	}
-
-	sink := v1alpha1.Source{
-		Kafka: v1alpha1.Kafka{
-			URL:   os.Getenv("SINK_KAFKA_URL"),
-			Topic: os.Getenv("SINK_KAFKA_TOPIC"),
-		},
-	}
-
 	deploymentName := os.Getenv("DEPLOYMENT_NAME")
+	source := dfv1.NewSource(os.Getenv("SOURCE"))
+	sink := dfv1.NewSink(os.Getenv("SINK"))
 
 	log.WithValues("source", source, "sink", sink, "deploymentName", deploymentName).Info("config")
 
@@ -84,8 +72,8 @@ func mainE() error {
 		return fmt.Errorf("failed to create producer: %w", err)
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		m := &v1alpha1.Message{}
+	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
+		m := &dfv1.Message{}
 		if err := json.NewDecoder(r.Body).Decode(m); err != nil {
 			log.Error(err, "failed to decode message")
 			w.WriteHeader(400)

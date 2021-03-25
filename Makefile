@@ -106,3 +106,8 @@ kafka:
 	kubectl get ns kafka || kubectl create ns kafka
 	kubectl apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
 	kubectl port-forward -n kafka svc/broker 9092:9092
+
+example:
+	kubectl -n argo-dataflow-system delete pipeline --all
+	sleep 5s
+	kubectl -n argo-dataflow-system apply -f example-pipeline.yaml
