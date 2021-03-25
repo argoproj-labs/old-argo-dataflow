@@ -57,7 +57,7 @@ var _ = BeforeSuite(func(done Done) {
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			filepath.Join("..", "config", "crd", "bases"),
-			filepath.Join("..", "..", "..", "argoproj", "argo-events", "manifests", "base", "crds"),
+			filepath.Join("..", "..", "..", "argoproj", "argo-events", "manifests", "base", "crds"), // TODO remove this line
 		},
 	}
 

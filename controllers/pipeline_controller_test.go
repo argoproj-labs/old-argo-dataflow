@@ -13,7 +13,7 @@ import (
 
 	// +kubebuilder:scaffold:imports
 
-	"github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var _ = Describe("Pipeline controller", func() {
@@ -36,21 +36,23 @@ var _ = Describe("Pipeline controller", func() {
 			}).Should(Succeed())
 
 			replicas := pointer.Int32Ptr(2)
-			p := &v1alpha1.Pipeline{
+			p := &dfv1.Pipeline{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "dataflow.argoproj.io/v1alpha1",
+					APIVersion: "dataflow.argoproj.io/dfv1",
 					Kind:       "Pipeline",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      Name,
 					Namespace: Namespace,
 				},
-				Spec: v1alpha1.PipelineSpec{
-					Nodes: []v1alpha1.Node{
+				Spec: dfv1.PipelineSpec{
+					Nodes: []dfv1.Node{
 						{
 							Name:     "my-proc",
 							Image:    "docker/whalesay:latest",
-							Replicas: &v1alpha1.Replicas{Value: replicas},
+							Replicas: &dfv1.Replicas{Value: replicas},
+							Sources:  []dfv1.Source{{}},
+							Sinks:    []dfv1.Sink{{}},
 						},
 					},
 				},

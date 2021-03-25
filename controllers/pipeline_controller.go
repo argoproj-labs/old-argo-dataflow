@@ -34,6 +34,14 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
+var sidecarImage = os.Getenv("SIDECAR_IMAGE")
+
+func init() {
+	if sidecarImage == "" {
+		sidecarImage = "argoproj/dataflow-sidecar:latest"
+	}
+}
+
 // PipelineReconciler reconciles a Pipeline object
 type PipelineReconciler struct {
 	client.Client
@@ -88,7 +96,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 							Containers: []corev1.Container{
 								{
 									Name:            "dataflow-sidecar",
-									Image:           os.Getenv("SIDECAR_IMAGE"),
+									Image:           sidecarImage,
 									ImagePullPolicy: corev1.PullIfNotPresent,
 									Env: []corev1.EnvVar{
 										{Name: "DEPLOYMENT_NAME", Value: deploymentName},

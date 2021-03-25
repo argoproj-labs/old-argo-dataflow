@@ -5,6 +5,6 @@ cat-image: make cat-image
 kafka: make kafka
 input: seq 9999999 | while read i ; do kafka-console-producer -topic input-topic -value my-val-$i ; sleep 1; done
 output: kafka-console-consumer -topic output-topic
-controller: SIDECAR_IMAGE=argoproj/dataflow-sidecar:latest go run ./main.go
+controller: go run ./main.go
 logs: make logs
 watch-pipelines: kubectl get pipeline -w
