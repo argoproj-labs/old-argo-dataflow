@@ -101,10 +101,11 @@ kafka:
 	kubectl apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
 	kubectl port-forward -n kafka svc/broker 9092:9092
 
-example:
+examples/%.yaml: /dev/null
 	kubectl delete pipeline --all
-	sleep 5s
-	kubectl apply -f examples/fifos-pipeline.yaml
+	sleep 4s
+	kubectl apply -f $@
+	kubectl wait pipeline --all --for condition=Available
 
 test-e2e:
 	./hack/test-e2e.sh
