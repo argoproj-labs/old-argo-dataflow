@@ -1,11 +1,15 @@
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: word-count
+  name: word-count-2
   annotations:
     dataflow.argoproj.io/name: Word Count
     dataflow.argoproj.io/description: |
-      This pipeline is the canonical word count example.
+      This pipeline count the number of words in a document, not the number of count of each word as you might expect.
+
+      For that we need `GroupByKey`.
+
+      It also shows an example of a pipelines where nodes run to completion.
 spec:
   nodes:
     - name: a
@@ -71,7 +75,7 @@ spec:
                 echo $i
             fi
             i=$((i+1))
-          done > /var/run/argo-dataflow/out
+          done | tee -a /var/run/argo-dataflow/out
       out:
         fifo: true
       sinks:

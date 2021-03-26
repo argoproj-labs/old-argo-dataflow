@@ -169,6 +169,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	message := fmt.Sprintf("%d/%d nodes available", available, total)
 
 	if phase != pipeline.Status.Phase || message != pipeline.Status.Message {
+		log.Info("updating status", "phase", phase, "message", message)
 		pipeline.Status.Phase = phase
 		pipeline.Status.Message = message
 		if available == total {

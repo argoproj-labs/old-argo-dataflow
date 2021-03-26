@@ -106,9 +106,9 @@ func connectSources(ctx context.Context, nc *nats.Conn, config *sarama.Config, t
 			log.Info("connecting source", "type", "bus", "subject", subject)
 			if _, err := nc.QueueSubscribe(subject, deploymentName, func(m *nats.Msg) {
 				if err := toMain(m.Data); err != nil {
-					log.Error(err, "failed to send message from main to bus")
+					log.Error(err, "failed to send message from bus to main")
 				} else {
-					log.Info("sent message from main to bus", "subject", subject)
+					log.Info("sent message from bus to main", "subject", subject)
 				}
 			}); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
