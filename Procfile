@@ -7,5 +7,5 @@ sidecar-image: make sidecar-image
 controller: go run ./main.go
 logs: make logs
 watch-pipelines: kubectl get pipeline -w
-input: seq 9999999 | while read i ; do kafka-console-producer -topic input-topic -value my-val-$i ; sleep 2; done
+input: seq 9999999 | while read i ; do kafka-console-producer -topic input-topic -value my-val-$i ; done
 output: kafka-console-consumer -topic output-topic

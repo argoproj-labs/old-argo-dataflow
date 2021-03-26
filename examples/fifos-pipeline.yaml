@@ -28,7 +28,9 @@ spec:
         - sh
         - -c
         - |
-          cat /var/run/argo-dataflow/in | tee /var/run/argo-dataflow/out
+          cat /var/run/argo-dataflow/in | while read line ; do
+            echo "hello $line"
+          done > /var/run/argo-dataflow/out
       out:
         fifo: true
       sinks:
