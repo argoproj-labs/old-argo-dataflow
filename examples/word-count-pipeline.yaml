@@ -5,15 +5,88 @@ metadata:
   annotations:
     dataflow.argoproj.io/name: Word Count
     dataflow.argoproj.io/description: |
-
+      This pipeline is the canonical word count example.
 spec:
   nodes:
     - name: a
-      image: argoproj/dataflow-cat:latest
+      volumes:
+        - name: in
+          configMap:
+            name: word-count-input
+      volumeMounts:
+        - mountPath: /in
+          name: in
+      image: debian:10.7-slim
       imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - |
+          cat /in/text | tee /var/run/argo-dataflow/out
+          sleep 999
       out:
-        http: { }
+        fifo: true
+      sinks:
+        - bus:
+            subject: a-b
+
+    - name: b
+      sources:
+        - bus:
+            subject: a-b
+      in:
+        fifo: true
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - |
+          cat /var/run/argo-dataflow/in | while read sentence; do
+            for word in $sentence; do
+                echo $word
+            done
+          done > /var/run/argo-dataflow/out
+      out:
+        fifo: true
+      sinks:
+        - bus:
+            subject: b-c
+
+    - name: c
+      sources:
+        - bus:
+            subject: b-c
+      in:
+        fifo: true
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - |
+          i=0
+          cat /var/run/argo-dataflow/in | while read word; do
+            if [ $word = EOF ]; then
+                echo $i
+            fi
+            i=$((i+1))
+          done > /var/run/argo-dataflow/out
+      out:
+        fifo: true
       sinks:
         - kafka:
             url: kafka-0.broker.kafka.svc.cluster.local:9092
             topic: output-topic
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: word-count-input
+data:
+  text: |
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    EOF
