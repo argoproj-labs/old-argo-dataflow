@@ -83,14 +83,14 @@ func mainE() error {
 	if closer, err := connectOut(toSink); err != nil {
 		return err
 	} else {
-		defer closer()
+		defer func() { _ = closer() }()
 	}
 
 	closer, toMain, err := connectTo()
 	if err != nil {
 		return err
 	}
-	defer closer()
+	defer func() { _ = closer() }()
 
 	if err := connectSources(ctx, nc, config, toMain); err != nil {
 		return err
