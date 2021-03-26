@@ -30,18 +30,18 @@ type EventBusStatus struct {
 // +kubebuilder:resource:shortName=eb
 type EventBus struct {
 	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	Spec   EventBusSpec   `json:"spec,omitempty"`
-	Status EventBusStatus `json:"status,omitempty"`
+	Spec   EventBusSpec   `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status EventBusStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 // +kubebuilder:object:root=true
 
 type EventBusList struct {
 	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []EventBus `json:"items"`
+	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+	Items           []EventBus `json:"items" protobuf:"bytes,2,rep,name=items"`
 }
 
 func init() {

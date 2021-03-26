@@ -48,6 +48,14 @@ manifests: controller-gen
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 	go run ./examples > examples/README.md
+
+proto: api/v1alpha1/generated.pb.go api/v1alpha1/generated.proto
+
+api/v1alpha1/generated.%: api/v1alpha1/eventbus_types.go api/v1alpha1/pipeline_types.go
+	mv api/v1alpha1/groupversion_info.go api/v1alpha1/groupversion_info.go.0
+	go-to-protobuf --go-header-file=./hack/boilerplate.go.txt --packages=github.com/argoproj-labs/argo-dataflow/api/v1alpha1
+	mv api/v1alpha1/groupversion_info.go.0 api/v1alpha1/groupversion_info.go
+
 lint:
 	go mod tidy
 	golangci-lint run --fix

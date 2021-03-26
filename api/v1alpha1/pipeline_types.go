@@ -24,27 +24,27 @@ import (
 )
 
 type Replicas struct {
-	Value *int32 `json:"value"`
+	Value *int32 `json:"value" protobuf:"varint,1,opt,name=value"`
 }
 
 type HTTP struct {
 }
 
 type Interface struct {
-	FIFO bool  `json:"fifo,omitempty"`
-	HTTP *HTTP `json:"http,omitempty"`
+	FIFO bool  `json:"fifo,omitempty" protobuf:"varint,1,opt,name=fifo"`
+	HTTP *HTTP `json:"http,omitempty" protobuf:"bytes,2,opt,name=http"`
 }
 
 type Node struct {
-	corev1.Container `json:",inline"`
+	corev1.Container `json:",inline" protobuf:"bytes,1,opt,name=container"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Volumes  []corev1.Volume `json:"volumes,omitempty"`
-	Replicas *Replicas       `json:"replicas,omitempty"`
-	In       *Interface      `json:"in,omitempty"`
-	Out      *Interface      `json:"out,omitempty"`
-	Sources  []Source        `json:"sources,omitempty"`
-	Sinks    []Sink          `json:"sinks,omitempty"`
+	Volumes  []corev1.Volume `json:"volumes,omitempty" protobuf:"bytes,2,rep,name=volumes"`
+	Replicas *Replicas       `json:"replicas,omitempty" protobuf:"bytes,3,opt,name=replicas"`
+	In       *Interface      `json:"in,omitempty" protobuf:"bytes,4,opt,name=in"`
+	Out      *Interface      `json:"out,omitempty" protobuf:"bytes,5,opt,name=out"`
+	Sources  []Source        `json:"sources,omitempty" protobuf:"bytes,6,rep,name=sources"`
+	Sinks    []Sink          `json:"sinks,omitempty" protobuf:"bytes,7,rep,name=sinks"`
 }
 
 func (in *Node) GetReplicas() Replicas {
@@ -55,18 +55,18 @@ func (in *Node) GetReplicas() Replicas {
 }
 
 type Kafka struct {
-	URL   string `json:"url"`
-	Topic string `json:"topic"`
+	URL   string `json:"url" protobuf:"bytes,1,opt,name=url"`
+	Topic string `json:"topic" protobuf:"bytes,2,opt,name=topic"`
 }
 
 type Bus struct {
-	Subject string `json:"subject"`
+	Subject string `json:"subject" protobuf:"bytes,1,opt,name=subject"`
 }
 
 type Source struct {
-	Name  string `json:"name,omitempty"`
-	Bus   *Bus   `json:"bus,omitempty"`
-	Kafka *Kafka `json:"kafka,omitempty"`
+	Name  string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	Bus   *Bus   `json:"bus,omitempty" protobuf:"bytes,2,opt,name=bus"`
+	Kafka *Kafka `json:"kafka,omitempty" protobuf:"bytes,3,opt,name=kafka"`
 }
 
 func Json(in interface{}) string {
@@ -75,15 +75,15 @@ func Json(in interface{}) string {
 }
 
 type Sink struct {
-	Name  string `json:"name,omitempty"`
-	Bus   *Bus   `json:"bus,omitempty"`
-	Kafka *Kafka `json:"kafka,omitempty"`
+	Name  string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	Bus   *Bus   `json:"bus,omitempty" protobuf:"bytes,2,opt,name=bus"`
+	Kafka *Kafka `json:"kafka,omitempty" protobuf:"bytes,3,opt,name=kafka"`
 }
 
 type PipelineSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Nodes []Node `json:"nodes,omitempty"`
+	Nodes []Node `json:"nodes,omitempty" protobuf:"bytes,1,rep,name=nodes"`
 }
 
 // +kubebuilder:validation:Enum=Pending;Running;Error
@@ -108,9 +108,9 @@ func MinPhase(v ...Phase) Phase {
 }
 
 type PipelineStatus struct {
-	Phase      Phase              `json:"phase,omitempty"`
-	Message    string             `json:"message,omitempty"`
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	Phase      Phase              `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=Phase"`
+	Message    string             `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Conditions []metav1.Condition `json:"conditions,omitempty" protobuf:"bytes,3,rep,name=conditions"`
 }
 
 // +kubebuilder:object:root=true
@@ -120,18 +120,18 @@ type PipelineStatus struct {
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	Spec   PipelineSpec   `json:"spec,omitempty"`
-	Status PipelineStatus `json:"status,omitempty"`
+	Spec   PipelineSpec   `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	Status PipelineStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 // +kubebuilder:object:root=true
 
 type PipelineList struct {
 	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Pipeline `json:"items"`
+	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+	Items           []Pipeline `json:"items" protobuf:"bytes,2,rep,name=items"`
 }
 
 func init() {
