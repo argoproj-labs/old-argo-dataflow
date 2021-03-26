@@ -47,6 +47,7 @@ manifests: controller-gen
 
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	go run ./examples > examples/README.md
 lint:
 	go mod tidy
 	golangci-lint run --fix
