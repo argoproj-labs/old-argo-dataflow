@@ -37,10 +37,6 @@ var _ = Describe("Pipeline controller", func() {
 
 			replicas := pointer.Int32Ptr(2)
 			p := &dfv1.Pipeline{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "dataflow.argoproj.io/dfv1",
-					Kind:       "Pipeline",
-				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      Name,
 					Namespace: Namespace,
@@ -49,7 +45,7 @@ var _ = Describe("Pipeline controller", func() {
 					Nodes: []dfv1.Node{
 						{
 							Container: corev1.Container{
-								Name:     "my-proc",
+								Name:     "my-node",
 								Image:    "docker/whalesay:latest",
 							},
 							Replicas: &dfv1.Replicas{Value: replicas},
@@ -63,7 +59,7 @@ var _ = Describe("Pipeline controller", func() {
 
 			d := &appsv1.Deployment{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "my-pipeline-my-proc"}, d)
+				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-node"}, d)
 			}).
 				Should(Succeed())
 

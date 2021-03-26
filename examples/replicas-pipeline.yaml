@@ -1,20 +1,19 @@
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: http
+  name: replicas
   annotations:
-    dataflow.argoproj.io/name: Using HTTP for input and output
+    dataflow.argoproj.io/name: Using replicas to scale
     dataflow.argoproj.io/description: |
-      This examples using the `dataflow-cat` image to send and recieve messages using HTTP.
+      This example shows a example of having multiple replicas of a single node.
 
-      To recieve a message, you must expose a HTTP endpoint on http://localhost:8080/messages. Each message will
-      be passed as the body of a single HTTP POST request.
+      As each node correspondes to a deployment, this will be the number of replicas (i.e. pods) for the deployment.
 
-      To send a message, send a HTTP post to http://localhost:3569/messages.
+      The same message  will not be send to two different replicas.
 
-      Example implementations:
+      This allows you to scale up to process more messages.
 
-      * Go: ../cat/main.go
+      You can also use `kubectl scale replicas pipeline-${pipelineName}-${nodeName} --replicas 4`.
 spec:
   nodes:
     - name: a
@@ -26,6 +25,8 @@ spec:
         http: { }
       image: argoproj/dataflow-cat:latest
       imagePullPolicy: IfNotPresent
+      replicas:
+        value: 4
       out:
         http: { }
       sinks:

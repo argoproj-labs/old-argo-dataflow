@@ -50,6 +50,7 @@ generate: controller-gen
 lint:
 	go mod tidy
 	golangci-lint run --fix
+	kubectl apply --dry-run=server -f examples
 
 cat-image:
 	docker build . --target cat        --tag argoproj/dataflow-cat:$(TAG)

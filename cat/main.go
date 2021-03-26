@@ -12,12 +12,6 @@ import (
 var log = klogr.New()
 
 func main() {
-	if err := mainE(); err != nil {
-		println(err.Error())
-		os.Exit(1)
-	}
-}
-func mainE() error {
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		msg, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -25,7 +19,6 @@ func mainE() error {
 			w.WriteHeader(500)
 			return
 		}
-		// flow = 3569
 		resp, err := http.Post("http://localhost:3569/messages", "application/json", bytes.NewBuffer(msg))
 		if err != nil {
 			log.Error(err, "failed to post message")
@@ -40,5 +33,9 @@ func mainE() error {
 		log.WithValues("message", string(msg)).Info("cat message")
 		w.WriteHeader(200)
 	})
-	return http.ListenAndServe(":8080", nil)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		println(err.Error())
+		os.Exit(1)
+
+	}
 }

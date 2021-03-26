@@ -3,7 +3,17 @@ kind: Pipeline
 metadata:
   name: two-node
   annotations:
-    dataflow.argoproj.io/description: "Pipeline with two nodes"
+    dataflow.argoproj.io/name: Two nodes pipeline
+    dataflow.argoproj.io/description: |
+      This example shows a example of having two nodes in a pipeline.
+
+      They are connected by a subject.
+
+      By convention, subjects should be the two node names with a hyphen.
+
+      If the first node is named `foo` and the second is named `bar`, then the subject should be `foo-bar`.
+
+      Subjects names only need to be unique within the pipeline.
 spec:
   nodes:
     - name: a
@@ -31,8 +41,6 @@ spec:
       imagePullPolicy: IfNotPresent
       out:
         http: { }
-      replicas:
-        value: 1
       sinks:
         - kafka:
             url: kafka-0.broker.kafka.svc.cluster.local:9092

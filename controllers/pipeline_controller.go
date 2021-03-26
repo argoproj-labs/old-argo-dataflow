@@ -79,7 +79,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	for _, node := range pipeline.Spec.Nodes {
-		deploymentName := pipeline.Name + "-" + node.Name
+		deploymentName := "pipeline-" + pipeline.Name + "-" + node.Name
 		log.WithValues("processorName", node.Name, "deploymentName", deploymentName).Info("creating deployment (if not exists)")
 		matchLabels := map[string]string{
 			"dataflow.argoproj.io/pipeline-name":  pipeline.Name,
