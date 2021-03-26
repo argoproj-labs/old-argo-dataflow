@@ -25,7 +25,6 @@ var (
 	pipelineName   = os.Getenv("PIPELINE_NAME")
 	deploymentName = os.Getenv("DEPLOYMENT_NAME")
 	node           = &dfv1.Node{}
-	noopCloser     = func() error { return nil }
 )
 
 const varRun = "/var/run/argo-dataflow"
@@ -80,17 +79,14 @@ func mainE() error {
 		return err
 	}
 
-	if closer, err := connectOut(toSink); err != nil {
+	if err := connectOut(toSink); err != nil {
 		return err
-	} else {
-		defer func() { _ = closer() }()
 	}
 
-	closer, toMain, err := connectTo()
+	toMain, err := connectTo()
 	if err != nil {
 		return err
 	}
-	defer func() { _ = closer() }()
 
 	if err := connectSources(ctx, nc, config, toMain); err != nil {
 		return err
@@ -133,34 +129,34 @@ func connectSources(ctx context.Context, nc *nats.Conn, config *sarama.Config, t
 	return nil
 }
 
-func connectTo() (func() error, func([]byte) error, error) {
+func connectTo() (func([]byte) error, error) {
 	if node.In == nil {
 		log.Info("no in interface configured")
-		return noopCloser, func(i []byte) error {
+		return func(i []byte) error {
 			return fmt.Errorf("no in interface configured")
 		}, nil
 	} else if node.In.FIFO {
 		log.Info("FIFO in interface configured")
 		path := filepath.Join(varRun, "in")
-		fifo, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, os.ModeNamedPipe)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to open input FIFO: %w", err)
-		}
 		log.WithValues("path", path).Info("opened input FIFO")
-		return fifo.Close, func(data []byte) error {
+		fifo, err := os.OpenFile(path, os.O_WRONLY, os.ModeNamedPipe)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open input FIFO: %w", err)
+		}
+		return func(data []byte) error {
 			log.Info("sending message from source to main via FIFO")
 			if _, err := fifo.Write(data); err != nil {
 				return fmt.Errorf("failed to write message from source to main via FIFO: %w", err)
 			}
 			if _, err := fifo.Write([]byte("\n")); err != nil {
-				return fmt.Errorf("failed to write EOL from source to main via FIFO: %w", err)
+				return fmt.Errorf("failed to write new line from source to main via FIFO: %w", err)
 			}
 			log.Info("sent message from source to main via FIFO")
 			return nil
 		}, nil
 	} else if node.In.HTTP != nil {
 		log.Info("HTTP in interface configured")
-		return noopCloser, func(data []byte) error {
+		return func(data []byte) error {
 			log.Info("sending message from source to main via HTTP")
 			resp, err := http.Post("http://localhost:8080/messages", "application/json", bytes.NewBuffer(data))
 			if err != nil {
@@ -173,25 +169,26 @@ func connectTo() (func() error, func([]byte) error, error) {
 			return nil
 		}, nil
 	} else {
-		return nil, nil, fmt.Errorf("in interface misconfigured")
+		return nil, fmt.Errorf("in interface misconfigured")
 	}
 }
 
-func connectOut(toSink func([]byte) error) (func() error, error) {
+func connectOut(toSink func([]byte) error) error {
 	if node.Out == nil {
 		log.Info("no out interface configured")
-		return noopCloser, nil
+		return nil
 	} else if node.Out.FIFO {
 		log.Info("FIFO out interface configured")
 		path := filepath.Join(varRun, "out")
-		fifo, err := os.OpenFile(path, os.O_RDONLY, os.ModeNamedPipe)
-		if err != nil {
-			return nil, fmt.Errorf("failed to open output FIFO: %w", err)
-		}
-		log.WithValues("path", path).Info("opened output FIFO")
 		go func() {
 			runtime.HandleCrash(runtime.PanicHandlers...)
 			err := func() error {
+				fifo, err := os.OpenFile(path, os.O_RDONLY, os.ModeNamedPipe)
+				if err != nil {
+					return fmt.Errorf("failed to open output FIFO: %w", err)
+				}
+				defer fifo.Close()
+				log.WithValues("path", path).Info("opened output FIFO")
 				scanner := bufio.NewScanner(fifo)
 				for scanner.Scan() {
 					log.Info("received message from main via FIFO")
@@ -209,7 +206,7 @@ func connectOut(toSink func([]byte) error) (func() error, error) {
 				os.Exit(1)
 			}
 		}()
-		return fifo.Close, nil
+		return nil
 	} else if node.Out.HTTP != nil {
 		log.Info("HTTP out interface configured")
 		http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
@@ -237,9 +234,9 @@ func connectOut(toSink func([]byte) error) (func() error, error) {
 				os.Exit(1)
 			}
 		}()
-		return func() error { return nil }, nil
+		return nil
 	} else {
-		return nil, fmt.Errorf("out interface misconfigured")
+		return fmt.Errorf("out interface misconfigured")
 	}
 }
 
