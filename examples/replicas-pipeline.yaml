@@ -16,7 +16,7 @@ metadata:
       You can also use `kubectl scale replicas pipeline-${pipelineName}-${nodeName} --replicas 4`.
 spec:
   nodes:
-    - name: a
+    - name: main
       sources:
         - kafka:
             url: kafka-0.broker.kafka.svc.cluster.local:9092

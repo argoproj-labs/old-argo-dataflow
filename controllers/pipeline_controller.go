@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -36,9 +37,16 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-var initImage = os.Getenv("INIT_IMAGE")
-var sidecarImage = os.Getenv("SIDECAR_IMAGE")
-var imagePullPolicy = corev1.PullIfNotPresent // TODO
+var (
+	initImage       = os.Getenv("INIT_IMAGE")
+	sidecarImage    = os.Getenv("SIDECAR_IMAGE")
+	imagePullPolicy = corev1.PullIfNotPresent // TODO
+)
+
+const (
+	KeyPipelineName = "dataflow.argoproj.io/pipeline-name"
+	KeyNodeName     = "dataflow.argoproj.io/node-name"
+)
 
 var log = klogr.New()
 
@@ -83,8 +91,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		deploymentName := "pipeline-" + pipeline.Name + "-" + node.Name
 		log.WithValues("nodeName", node.Name, "deploymentName", deploymentName).Info("creating deployment (if not exists)")
 		matchLabels := map[string]string{
-			"dataflow.argoproj.io/pipeline-name": pipeline.Name,
-			"dataflow.argoproj.io/node-name":     node.Name,
+			KeyPipelineName: pipeline.Name,
+			KeyNodeName:     node.Name,
 		}
 		volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
 		node.Container.VolumeMounts = append(node.Container.VolumeMounts, volMnt)
@@ -154,27 +162,33 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	phase := dfv1.PipelineUnknown
 	available, total := 0, len(deploys.Items)
-	for _, deploy := range deploys.Items {
+	newStatus := dfv1.PipelineStatus{
+		Phase:        dfv1.PipelineUnknown,
+		NodeStatuses: make([]dfv1.NodeStatus, total),
+	}
+	for i, deploy := range deploys.Items {
+		nodeName := deploy.GetLabels()[KeyNodeName]
 		switch deploy.Status.AvailableReplicas {
 		case 0:
-			phase = dfv1.MinPhase(phase, dfv1.PipelinePending)
+			newStatus.Phase = dfv1.MinPhase(newStatus.Phase, dfv1.PipelinePending)
+			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodePending}
 		default:
-			phase = dfv1.MinPhase(phase, dfv1.PipelineRunning)
+			newStatus.Phase = dfv1.MinPhase(newStatus.Phase, dfv1.PipelineRunning)
+			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeRunning}
 			available++
 		}
 	}
 
-	message := fmt.Sprintf("%d/%d nodes available", available, total)
+	newStatus.Message = fmt.Sprintf("%d/%d nodes available", available, total)
 
-	if phase != pipeline.Status.Phase || message != pipeline.Status.Message {
-		log.Info("updating status", "phase", phase, "message", message)
-		pipeline.Status.Phase = phase
-		pipeline.Status.Message = message
-		if available == total {
-			meta.SetStatusCondition(&pipeline.Status.Conditions, metav1.Condition{Type: "Available", Status: metav1.ConditionTrue, Reason: "NotApplicable"})
-		}
+	if available == total {
+		meta.SetStatusCondition(&pipeline.Status.Conditions, metav1.Condition{Type: "Available", Status: metav1.ConditionTrue, Reason: "NotApplicable"})
+	}
+
+	if !reflect.DeepEqual(pipeline.Status, newStatus){
+		log.Info("updating status", "phase", newStatus.Phase, "message", newStatus.Message)
+		pipeline.Status = newStatus
 		if err := r.Status().Update(ctx, pipeline); IgnoreConflict(err) != nil { // conflict is ok, we will reconcille again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}

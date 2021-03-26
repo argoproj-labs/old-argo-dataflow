@@ -20,7 +20,7 @@ spec:
   versions:
   - additionalPrinterColumns:
     - jsonPath: .status.phase
-      name: Phase
+      name: PipelinePhase
       type: string
     - jsonPath: .status.message
       name: Message
@@ -2793,6 +2793,23 @@ spec:
                 type: array
               message:
                 type: string
+              nodeStatuses:
+                items:
+                  properties:
+                    message:
+                      type: string
+                    name:
+                      type: string
+                    phase:
+                      enum:
+                      - Pending
+                      - Running
+                      - Error
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               phase:
                 enum:
                 - Pending

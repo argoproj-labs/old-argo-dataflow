@@ -15,7 +15,7 @@ metadata:
       You MUST escape new lines.
 spec:
   nodes:
-    - name: a
+    - name: main
       sources:
         - kafka:
             url: kafka-0.broker.kafka.svc.cluster.local:9092

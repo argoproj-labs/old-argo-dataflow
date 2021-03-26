@@ -87,17 +87,17 @@ type PipelineSpec struct {
 }
 
 // +kubebuilder:validation:Enum=Pending;Running;Error
-type Phase string
+type PipelinePhase string
 
 const (
-	PipelineUnknown Phase = ""
-	PipelinePending Phase = "Pending"
-	PipelineRunning Phase = "Running"
-	PipelineError   Phase = "Error"
+	PipelineUnknown PipelinePhase = ""
+	PipelinePending PipelinePhase = "Pending"
+	PipelineRunning PipelinePhase = "Running"
+	PipelineError   PipelinePhase = "Error"
 )
 
-func MinPhase(v ...Phase) Phase {
-	for _, p := range []Phase{PipelineError, PipelinePending, PipelineRunning} {
+func MinPhase(v ...PipelinePhase) PipelinePhase {
+	for _, p := range []PipelinePhase{PipelineError, PipelinePending, PipelineRunning} {
 		for _, x := range v {
 			if x == p {
 				return p
@@ -107,16 +107,33 @@ func MinPhase(v ...Phase) Phase {
 	return PipelineUnknown
 }
 
+// +kubebuilder:validation:Enum=Pending;Running;Error
+type NodePhase string
+
+const (
+	NodeUnknown NodePhase = ""
+	NodePending NodePhase = "Pending"
+	NodeRunning NodePhase = "Running"
+	NodeError   NodePhase = "Error"
+)
+
+type NodeStatus struct {
+	Name    string    `json:"name" protobuf:"bytes,1,opt,name=name"`
+	Phase   NodePhase `json:"phase,omitempty" protobuf:"bytes,2,opt,name=phase,casttype=NodePhase"`
+	Message string    `json:"message,omitempty" protobuf:"bytes,3,opt,name=message"`
+}
+
 type PipelineStatus struct {
-	Phase      Phase              `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=Phase"`
-	Message    string             `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
-	Conditions []metav1.Condition `json:"conditions,omitempty" protobuf:"bytes,3,rep,name=conditions"`
+	Phase        PipelinePhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=PipelinePhase"`
+	Message      string             `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Conditions   []metav1.Condition `json:"conditions,omitempty" protobuf:"bytes,3,rep,name=conditions"`
+	NodeStatuses []NodeStatus       `json:"nodeStatuses,omitempty" protobuf:"bytes,4,rep,name=nodeStatuses"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=pl
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="PipelinePhase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`

@@ -19,7 +19,7 @@ test: generate
 	go test ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-run: generate install $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
+start: generate install $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
 	KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092 goreman -set-ports=false -logtime=false start
 logs: $(GOBIN)/stern
 	stern --tail=3 .
