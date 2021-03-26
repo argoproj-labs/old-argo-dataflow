@@ -25,6 +25,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -168,6 +169,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if phase != pipeline.Status.Phase || message != pipeline.Status.Message {
 		pipeline.Status.Phase = phase
 		pipeline.Status.Message = message
+		if available == total {
+			meta.SetStatusCondition(&pipeline.Status.Conditions, metav1.Condition{Type: "Available", Status: metav1.ConditionTrue, Reason: "NotApplicable"})
+		}
 		if err := r.Status().Update(ctx, pipeline); IgnoreConflict(err) != nil { // conflict is ok, we will reconcille again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}

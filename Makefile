@@ -104,4 +104,7 @@ kafka:
 example:
 	kubectl delete pipeline --all
 	sleep 5s
-	kubectl apply -f examples/fifo-pipeline.yaml
+	kubectl apply -f examples/fifos-pipeline.yaml
+
+test-e2e:
+	./hack/test-e2e.sh

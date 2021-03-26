@@ -1,0 +1,19 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: word-count
+  annotations:
+    dataflow.argoproj.io/name: Word Count
+    dataflow.argoproj.io/description: |
+
+spec:
+  nodes:
+    - name: a
+      image: argoproj/dataflow-cat:latest
+      imagePullPolicy: IfNotPresent
+      out:
+        http: { }
+      sinks:
+        - kafka:
+            url: kafka-0.broker.kafka.svc.cluster.local:9092
+            topic: output-topic

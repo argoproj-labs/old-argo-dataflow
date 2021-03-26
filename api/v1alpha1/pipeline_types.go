@@ -41,8 +41,8 @@ type Node struct {
 	// +patchMergeKey=name
 	Volumes  []corev1.Volume `json:"volumes,omitempty"`
 	Replicas *Replicas       `json:"replicas,omitempty"`
-	In       Interface       `json:"in"`
-	Out      Interface       `json:"out"`
+	In       *Interface      `json:"in,omitempty"`
+	Out      *Interface      `json:"out,omitempty"`
 	Sources  []Source        `json:"sources,omitempty"`
 	Sinks    []Sink          `json:"sinks,omitempty"`
 }
@@ -108,8 +108,9 @@ func MinPhase(v ...Phase) Phase {
 }
 
 type PipelineStatus struct {
-	Phase   Phase  `json:"phase,omitempty"`
-	Message string `json:"message,omitempty"`
+	Phase      Phase              `json:"phase,omitempty"`
+	Message    string             `json:"message,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

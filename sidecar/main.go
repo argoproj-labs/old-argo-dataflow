@@ -58,7 +58,6 @@ func mainE() error {
 	}
 	log.WithValues("node", node, "deploymentName", deploymentName).Info("config")
 
-
 	config := sarama.NewConfig()
 	config.ClientID = "dataflow-sidecar"
 
@@ -96,7 +95,11 @@ func mainE() error {
 		}
 	}
 
-	if node.Out.FIFO {
+	if node.Out == nil {
+		mainToSink = func(i []byte) error {
+			return fmt.Errorf("no out interface configured")
+		}
+	} else if node.Out.FIFO {
 		path := filepath.Join(varRun, "out")
 		fifo, err := os.OpenFile(path, os.O_RDONLY, os.ModeNamedPipe)
 		if err != nil {
@@ -151,12 +154,16 @@ func mainE() error {
 			}
 		}()
 	} else {
-		return fmt.Errorf("out misconfigured")
+		return fmt.Errorf("out interface misconfigured")
 	}
 
 	var sourceToMain func([]byte) error
 
-	if node.In.FIFO {
+	if node.In == nil {
+		sourceToMain = func(i []byte) error {
+			return fmt.Errorf("no in interface configured")
+		}
+	} else if node.In.FIFO {
 		path := filepath.Join(varRun, "in")
 		fifo, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, os.ModeNamedPipe)
 		if err != nil {
@@ -189,7 +196,7 @@ func mainE() error {
 			return nil
 		}
 	} else {
-		return fmt.Errorf("in misconfigured")
+		return fmt.Errorf("in interface misconfigured")
 	}
 
 	for _, source := range node.Sources {

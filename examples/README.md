@@ -68,3 +68,11 @@ Subjects names only need to be unique within the pipeline.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/two-node-pipeline.yaml
 ```
 
+### [Word Count](word-count-pipeline.yaml)
+
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/word-count-pipeline.yaml
+```
+
