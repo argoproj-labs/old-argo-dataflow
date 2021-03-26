@@ -22,7 +22,7 @@ test: generate
 run: generate install $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
 	KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092 goreman -set-ports=false -logtime=false start
 logs: $(GOBIN)/stern
-	stern .
+	stern --tail=3 .
 
 # Install CRDs into a cluster
 install: manifests
