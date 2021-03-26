@@ -81,10 +81,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	for _, node := range pipeline.Spec.Nodes {
 		deploymentName := "pipeline-" + pipeline.Name + "-" + node.Name
-		log.WithValues("processorName", node.Name, "deploymentName", deploymentName).Info("creating deployment (if not exists)")
+		log.WithValues("nodeName", node.Name, "deploymentName", deploymentName).Info("creating deployment (if not exists)")
 		matchLabels := map[string]string{
-			"dataflow.argoproj.io/pipeline-name":  pipeline.Name,
-			"dataflow.argoproj.io/processor-name": node.Name,
+			"dataflow.argoproj.io/pipeline-name": pipeline.Name,
+			"dataflow.argoproj.io/node-name":     node.Name,
 		}
 		volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
 		node.Container.VolumeMounts = append(node.Container.VolumeMounts, volMnt)
@@ -105,12 +105,13 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Template: corev1.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{Labels: matchLabels},
 						Spec: corev1.PodSpec{
-							Volumes: []corev1.Volume{
-								{
+							Volumes: append(
+								node.Volumes,
+								corev1.Volume{
 									Name:         volMnt.Name,
 									VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 								},
-							},
+							),
 							InitContainers: []corev1.Container{
 								{
 									Name:            "dataflow-init",
@@ -125,6 +126,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 									Image:           sidecarImage,
 									ImagePullPolicy: imagePullPolicy,
 									Env: []corev1.EnvVar{
+										{Name: "PIPELINE_NAME", Value: pipeline.Name},
 										{Name: "DEPLOYMENT_NAME", Value: deploymentName},
 										{Name: "NODE", Value: dfv1.Json(&dfv1.Node{
 											In:      node.In,
