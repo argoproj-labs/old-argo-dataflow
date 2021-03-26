@@ -52,8 +52,11 @@ generate: controller-gen
 proto: api/v1alpha1/generated.pb.go api/v1alpha1/generated.proto
 
 api/v1alpha1/generated.%: api/v1alpha1/eventbus_types.go api/v1alpha1/pipeline_types.go
-	mv api/v1alpha1/groupversion_info.go api/v1alpha1/groupversion_info.go.0
-	go-to-protobuf --go-header-file=./hack/boilerplate.go.txt --packages=github.com/argoproj-labs/argo-dataflow/api/v1alpha1
+	[ ! -e api/v1alpha1/groupversion_info.go ] || mv api/v1alpha1/groupversion_info.go api/v1alpha1/groupversion_info.go.0
+	go-to-protobuf \
+		--go-header-file=./hack/boilerplate.go.txt \
+  		--packages=github.com/argoproj-labs/argo-dataflow/api/v1alpha1 \
+		--apimachinery-packages=+k8s.io/apimachinery/pkg/util/intstr,+k8s.io/apimachinery/pkg/api/resource,k8s.io/apimachinery/pkg/runtime/schema,+k8s.io/apimachinery/pkg/runtime,k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/api/core/v1
 	mv api/v1alpha1/groupversion_info.go.0 api/v1alpha1/groupversion_info.go
 
 lint:
