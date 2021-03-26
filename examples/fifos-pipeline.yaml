@@ -28,7 +28,7 @@ spec:
         - sh
         - -c
         - |
-          cat /var/run/argo-dataflow/in | grep '2$' > /var/run/argo-dataflow/out
+          cat /var/run/argo-dataflow/in | tee /var/run/argo-dataflow/out
       out:
         fifo: true
       sinks:
