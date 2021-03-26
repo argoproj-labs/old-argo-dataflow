@@ -5,7 +5,6 @@ go 1.15
 require (
 	github.com/Shopify/sarama v1.28.0
 	github.com/argoproj/argo-events v1.2.3
-	github.com/cloudevents/sdk-go/v2 v2.3.1
 	github.com/go-logr/logr v0.3.0
 	github.com/nats-io/nats.go v1.9.1
 	github.com/onsi/ginkgo v1.14.1

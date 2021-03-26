@@ -11,6 +11,9 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+build: generate manifests
+	go build ./...
+
 # Run tests
 test: generate
 	go test ./... -coverprofile cover.out
@@ -19,7 +22,7 @@ test: generate
 run: generate install $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
 	KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092 goreman -set-ports=false -logtime=false start
 logs: $(GOBIN)/stern
-	stern -n argo-dataflow-system .
+	stern .
 
 # Install CRDs into a cluster
 install: manifests
@@ -45,14 +48,17 @@ manifests: controller-gen
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 lint:
+	go mod tidy
 	golangci-lint run --fix
 
-sidecar-image:
-	docker build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
 cat-image:
 	docker build . --target cat        --tag argoproj/dataflow-cat:$(TAG)
 controller-image:
 	docker build . --target controller --tag argoproj/dataflow-controller:$(TAG)
+init-image:
+	docker build . --target init       --tag argoproj/dataflow-init:$(TAG)
+sidecar-image:
+	docker build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -96,4 +102,4 @@ kafka:
 example:
 	kubectl delete pipeline --all
 	sleep 5s
-	kubectl apply -f example-pipeline.yaml
+	kubectl apply -f examples/fifo-pipeline.yaml

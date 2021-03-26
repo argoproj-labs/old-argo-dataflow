@@ -2,10 +2,10 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	"io/ioutil"
 	"net/http"
+	"os"
 
-	ce "github.com/cloudevents/sdk-go/v2"
 	"k8s.io/klog/klogr"
 )
 
@@ -13,25 +13,20 @@ var log = klogr.New()
 
 func main() {
 	if err := mainE(); err != nil {
-		log.Error(err, "failed to run main")
+		println(err.Error())
+		os.Exit(1)
 	}
 }
 func mainE() error {
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		m := ce.NewEvent()
-		if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
-			log.Error(err, "failed to decode message")
-			w.WriteHeader(400)
-			return
-		}
-		data, err := json.Marshal(m)
+		msg, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Error(err, "failed to marshal message")
 			w.WriteHeader(500)
 			return
 		}
 		// flow = 3569
-		resp, err := http.Post("http://localhost:3569/messages", "application/json", bytes.NewBuffer(data))
+		resp, err := http.Post("http://localhost:3569/messages", "application/json", bytes.NewBuffer(msg))
 		if err != nil {
 			log.Error(err, "failed to post message")
 			w.WriteHeader(500)
@@ -42,7 +37,7 @@ func mainE() error {
 			w.WriteHeader(500)
 			return
 		}
-		log.WithValues("message", m.String()).Info("cat message")
+		log.WithValues("message", string(msg)).Info("cat message")
 		w.WriteHeader(200)
 	})
 	return http.ListenAndServe(":8080", nil)

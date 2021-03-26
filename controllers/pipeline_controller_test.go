@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -30,7 +30,7 @@ var _ = Describe("Pipeline controller", func() {
 			ctx := context.Background()
 
 			Eventually(func() error {
-				return k8sClient.Create(ctx, &v1.Namespace{
+				return k8sClient.Create(ctx, &corev1.Namespace{
 					ObjectMeta: metav1.ObjectMeta{Name: Namespace},
 				})
 			}).Should(Succeed())
@@ -48,8 +48,10 @@ var _ = Describe("Pipeline controller", func() {
 				Spec: dfv1.PipelineSpec{
 					Nodes: []dfv1.Node{
 						{
-							Name:     "my-proc",
-							Image:    "docker/whalesay:latest",
+							Container: corev1.Container{
+								Name:     "my-proc",
+								Image:    "docker/whalesay:latest",
+							},
 							Replicas: &dfv1.Replicas{Value: replicas},
 							Sources:  []dfv1.Source{{}},
 							Sinks:    []dfv1.Sink{{}},

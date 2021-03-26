@@ -35,14 +35,20 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
+var initImage = os.Getenv("INIT_IMAGE")
 var sidecarImage = os.Getenv("SIDECAR_IMAGE")
+var imagePullPolicy = corev1.PullIfNotPresent // TODO
+
 var log = klogr.New()
 
 func init() {
+	if initImage == "" {
+		initImage = "argoproj/dataflow-init:latest"
+	}
 	if sidecarImage == "" {
 		sidecarImage = "argoproj/dataflow-sidecar:latest"
 	}
-	log.WithValues("sidecarImage", sidecarImage).Info("config")
+	log.WithValues("initImage", initImage, "sidecarImage", sidecarImage).Info("config")
 }
 
 // PipelineReconciler reconciles a Pipeline object
@@ -55,7 +61,6 @@ type PipelineReconciler struct {
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=deployments,verbs=get;watch;list;create
-// +kubebuilder:rbac:groups="",resources=pods,verbs=list
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
@@ -80,12 +85,15 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			"dataflow.argoproj.io/pipeline-name":  pipeline.Name,
 			"dataflow.argoproj.io/processor-name": node.Name,
 		}
+		volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
+		node.Container.VolumeMounts = append(node.Container.VolumeMounts, volMnt)
 		if err := r.Client.Create(
 			ctx,
 			&appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      deploymentName,
 					Namespace: pipeline.Namespace,
+					Labels:    matchLabels,
 					OwnerReferences: []metav1.OwnerReference{
 						*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
 					},
@@ -96,22 +104,37 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Template: corev1.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{Labels: matchLabels},
 						Spec: corev1.PodSpec{
+							Volumes: []corev1.Volume{
+								{
+									Name:         volMnt.Name,
+									VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+								},
+							},
+							InitContainers: []corev1.Container{
+								{
+									Name:            "dataflow-init",
+									Image:           initImage,
+									ImagePullPolicy: imagePullPolicy,
+									VolumeMounts:    []corev1.VolumeMount{volMnt},
+								},
+							},
 							Containers: []corev1.Container{
 								{
 									Name:            "dataflow-sidecar",
 									Image:           sidecarImage,
-									ImagePullPolicy: corev1.PullIfNotPresent,
+									ImagePullPolicy: imagePullPolicy,
 									Env: []corev1.EnvVar{
 										{Name: "DEPLOYMENT_NAME", Value: deploymentName},
-										{Name: "SOURCES", Value: dfv1.Json(node.Sources)},
-										{Name: "SINKS", Value: dfv1.Json(node.Sinks)},
+										{Name: "NODE", Value: dfv1.Json(&dfv1.Node{
+											In:      node.In,
+											Out:     node.Out,
+											Sources: node.Sources,
+											Sinks:   node.Sinks,
+										})},
 									},
+									VolumeMounts: []corev1.VolumeMount{volMnt},
 								},
-								{
-									Name:            "main",
-									Image:           node.Image,
-									ImagePullPolicy: corev1.PullIfNotPresent,
-								},
+								node.Container,
 							},
 						},
 					},
@@ -122,27 +145,25 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	pods := &corev1.PodList{}
+	deploys := &appsv1.DeploymentList{}
 	selector, _ := labels.Parse("dataflow.argoproj.io/pipeline-name=" + pipeline.Name)
-	if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
+	if err := r.Client.List(ctx, deploys, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	phase := dfv1.PipelinePending
-	message := fmt.Sprintf("%d pod(s)", len(pods.Items))
-OUTER:
-	for _, pod := range pods.Items {
-		switch pod.Status.Phase {
-		case corev1.PodRunning:
-			phase = dfv1.PipelineRunning
-		case corev1.PodFailed:
-			phase = dfv1.PipelineError
-			message = pod.Name + ": " + pod.Status.Message
-			break OUTER
+	phase := dfv1.PipelineUnknown
+	available, total := 0, len(deploys.Items)
+	for _, deploy := range deploys.Items {
+		switch deploy.Status.AvailableReplicas {
+		case 0:
+			phase = dfv1.MinPhase(phase, dfv1.PipelinePending)
 		default:
-			phase = dfv1.PipelinePending
+			phase = dfv1.MinPhase(phase, dfv1.PipelineRunning)
+			available++
 		}
 	}
+
+	message := fmt.Sprintf("%d/%d nodes available", available, total)
 
 	if phase != pipeline.Status.Phase || message != pipeline.Status.Message {
 		pipeline.Status.Phase = phase

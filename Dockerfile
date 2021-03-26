@@ -32,6 +32,17 @@ COPY --from=sidecar-builder /workspace/sidecar .
 USER nonroot:nonroot
 ENTRYPOINT ["/sidecar"]
 
+FROM builder AS init-builder
+COPY init/main.go main.go
+COPY api/ api/
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o init main.go
+
+FROM gcr.io/distroless/static:nonroot AS init
+WORKDIR /
+COPY --from=init-builder /workspace/init .
+USER nonroot:nonroot
+ENTRYPOINT ["/init"]
+
 FROM builder AS cat-builder
 COPY cat/main.go main.go
 COPY api/ api/

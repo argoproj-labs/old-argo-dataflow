@@ -23,21 +23,23 @@ spec:
         control-plane: controller-manager
     spec:
       containers:
-      - command:
-        - /manager
-        args:
-        - --enable-leader-election
-        image: argoproj/dataflow-controller:latest
-        imagePullPolicy: IfNotPresent
-        name: manager
-        env:
-          - name: SIDECAR_IMAGE
-            value: argoproj/dataflow-sidecar:latest
-        resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
+        - command:
+            - /manager
+          args:
+            - --enable-leader-election
+          image: argoproj/dataflow-controller:latest
+          imagePullPolicy: IfNotPresent
+          name: manager
+          env:
+            - name: INIT_IMAGE
+              value: argoproj/dataflow-init:latest
+            - name: SIDECAR_IMAGE
+              value: argoproj/dataflow-sidecar:latest
+          resources:
+            limits:
+              cpu: 100m
+              memory: 30Mi
+            requests:
+              cpu: 100m
+              memory: 20Mi
       terminationGracePeriodSeconds: 10

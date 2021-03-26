@@ -108,10 +108,10 @@ spec:
         - kafka:
             url: kafka-0.broker.kafka.svc.cluster.local:9092
             topic: input-topic
-      from:
+      in:
         http: { }
       image: argoproj/dataflow-cat:latest
-      to:
+      out:
         http: { }
       sinks:
         - bus:
@@ -121,12 +121,12 @@ spec:
       sources:
         - bus:
             subject: a-b
-      from:
+      in:
         http: { }
       image: argoproj/dataflow-cat:latest
       replicas:
         value: 2
-      to:
+      out:
         http: { }
       sinks:
         - kafka:
@@ -148,11 +148,11 @@ Similar to CloudEvents. Enable easy interop with other compliant tools.
 
 ### Data Input/Output Options
 
-* HTTP endpoints - slower, but easier to get right
-* stdin/stdout - performance can be poor on these
+* HTTP endpoint - slower, but easier to get right
 * named pipes - not commonly used, but core Linux capability for IPC
 * files - chunky - but great for grouping by key
 * socket - fast, but the low level programming is hard to get right
+* stdin/stdout - performance can be poor on these - can be achived more easily and flexible using FIFO
 
 We may well want several options.
 

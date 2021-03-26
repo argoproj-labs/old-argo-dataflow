@@ -1,0 +1,39 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: two-node
+  annotations:
+    dataflow.argoproj.io/description: "Pipeline with two nodes"
+spec:
+  nodes:
+    - name: a
+      sources:
+        - kafka:
+            url: kafka-0.broker.kafka.svc.cluster.local:9092
+            topic: input-topic
+      in:
+        http: { }
+      image: argoproj/dataflow-cat:latest
+      imagePullPolicy: IfNotPresent
+      out:
+        http: { }
+      sinks:
+        - bus:
+            subject: a-b
+
+    - name: b
+      sources:
+        - bus:
+            subject: a-b
+      in:
+        http: { }
+      image: argoproj/dataflow-cat:latest
+      imagePullPolicy: IfNotPresent
+      out:
+        http: { }
+      replicas:
+        value: 1
+      sinks:
+        - kafka:
+            url: kafka-0.broker.kafka.svc.cluster.local:9092
+            topic: output-topic

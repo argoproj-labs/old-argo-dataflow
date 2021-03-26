@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	"encoding/json"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,17 +31,20 @@ type HTTP struct {
 }
 
 type Interface struct {
-	HTTP HTTP `json:"http"`
+	FIFO bool  `json:"fifo,omitempty"`
+	HTTP *HTTP `json:"http,omitempty"`
 }
 
 type Node struct {
-	Name     string    `json:"name"`
-	Image    string    `json:"image"`
-	Replicas *Replicas `json:"replicas,omitempty"`
-	From     Interface `json:"from"`
-	To       Interface `json:"to"`
-	Sources  []Source  `json:"sources,omitempty"`
-	Sinks    []Sink    `json:"sinks,omitempty"`
+	corev1.Container `json:",inline"`
+	// +patchStrategy=merge
+	// +patchMergeKey=name
+	Volumes  []corev1.Volume `json:"volumes,omitempty"`
+	Replicas *Replicas       `json:"replicas,omitempty"`
+	In       Interface       `json:"in"`
+	Out      Interface       `json:"out"`
+	Sources  []Source        `json:"sources,omitempty"`
+	Sinks    []Sink          `json:"sinks,omitempty"`
 }
 
 func (in *Node) GetReplicas() Replicas {
@@ -86,10 +90,22 @@ type PipelineSpec struct {
 type Phase string
 
 const (
+	PipelineUnknown Phase = ""
 	PipelinePending Phase = "Pending"
 	PipelineRunning Phase = "Running"
 	PipelineError   Phase = "Error"
 )
+
+func MinPhase(v ...Phase) Phase {
+	for _, p := range []Phase{PipelineError, PipelinePending, PipelineRunning} {
+		for _, x := range v {
+			if x == p {
+				return p
+			}
+		}
+	}
+	return PipelineUnknown
+}
 
 type PipelineStatus struct {
 	Phase   Phase  `json:"phase,omitempty"`
