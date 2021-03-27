@@ -42,6 +42,8 @@ spec:
         fifo: true
       image: debian:10.7-slim
       imagePullPolicy: IfNotPresent
+      replicas:
+        value: 3
       args:
         - sh
         - -c

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bus-ui
+spec:
+  selector:
+    matchLabels:
+      app: nats-streaming-ui
+  template:
+    metadata:
+      labels:
+        app: nats-streaming-ui
+    spec:
+      containers:
+        - name: main
+          image: piotrpersona/nats-streaming-ui:latest
+          env:
+            - name: STAN_URL
+              value: http://eventbus-dataflow-stan-svc:4222
+            - name: STAN_MONITOR_URL
+              value: http://eventbus-dataflow-stan-svc:8222
+          ports:
+            - containerPort: 8282

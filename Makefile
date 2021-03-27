@@ -111,7 +111,9 @@ kafka:
 	kubectl get ns kafka || kubectl create ns kafka
 	kubectl apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
 	kubectl port-forward -n kafka svc/broker 9092:9092
-
+bus-ui:
+	kubectl apply -k config/bus-ui
+	kubectl port-forward svc/bus-ui 8282:8282
 examples/%.yaml: /dev/null
 	kubectl delete pipeline --all
 	sleep 4s

@@ -1,0 +1,3 @@
+resources:
+  - bus-ui-deploy.yaml
+  - bus-ui-svc.yaml
