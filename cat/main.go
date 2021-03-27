@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
-	"os"
 
 	"k8s.io/klog/klogr"
 )
@@ -34,8 +33,9 @@ func main() {
 		w.WriteHeader(200)
 	})
 	if err := http.ListenAndServe(":8080", nil); err != nil {
-		println(err.Error())
-		os.Exit(1)
-
+		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 066); err != nil {
+			panic(err)
+		}
+		panic(err)
 	}
 }

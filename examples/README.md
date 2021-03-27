@@ -70,7 +70,7 @@ kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/
 
 ### [Vetinary](vet-pipeline.yaml)
 
-This pipeline process pets (cats and dogs).
+This pipeline processes pets (cats and dogs).
 
 
 ```

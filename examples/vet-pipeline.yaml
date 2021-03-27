@@ -3,7 +3,7 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This pipeline process pets (cats and dogs).
+      This pipeline processes pets (cats and dogs).
     dataflow.argoproj.io/name: Vetinary
   creationTimestamp: null
   name: vet
@@ -48,7 +48,8 @@ spec:
     - nats:
         subject: cats
     sources:
-    - {}
+    - nats:
+        subject: animals
   - args:
     - sh
     - -c
@@ -66,7 +67,8 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - {}
+    - nats:
+        subject: cats
   - args:
     - sh
     - -c
@@ -84,7 +86,8 @@ spec:
     - nats:
         subject: dogs
     sources:
-    - {}
+    - nats:
+        subject: animals
   - args:
     - sh
     - -c
@@ -102,4 +105,5 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - {}
+    - nats:
+        subject: dogs

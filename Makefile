@@ -111,12 +111,20 @@ kubebuilder:
 
 kafka:
 	kubectl get ns kafka || kubectl create ns kafka
-	kubectl apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
-	kubectl port-forward -n kafka svc/broker 9092:9092
+	kubectl -n kafka apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
+	kubectl -n kafka port-forward svc/broker 9092:9092
+unkafka:
+	kubectl delete ns kafka
+
 nats:
+	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
 	kubectl apply -k config/nats
 	kubectl port-forward svc/nats-ui 8282:8282
+unnats:
+	kubectl delete -k config/nats
+	kubectl -n $(NS) delete -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
+	kubectl -n $(NS) delete -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 
 examples/%.yaml: /dev/null
 	kubectl delete pipeline --all

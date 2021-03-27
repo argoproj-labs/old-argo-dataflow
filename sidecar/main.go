@@ -34,8 +34,10 @@ const varRun = "/var/run/argo-dataflow"
 
 func main() {
 	if err := mainE(); err != nil {
-		println(err.Error())
-		os.Exit(1)
+		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 066); err != nil {
+			panic(err)
+		}
+		panic(err)
 	}
 }
 

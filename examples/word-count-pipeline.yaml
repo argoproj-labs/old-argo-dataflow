@@ -58,7 +58,8 @@ spec:
     - nats:
         subject: b-c
     sources:
-    - {}
+    - nats:
+        subject: a-b
   - args:
     - sh
     - -c
@@ -81,5 +82,7 @@ spec:
     sinks:
     - kafka:
         topic: output-topic
+        url: kafka-0.broker.kafka.svc.cluster.local:9092
     sources:
-    - {}
+    - nats:
+        subject: b-c
