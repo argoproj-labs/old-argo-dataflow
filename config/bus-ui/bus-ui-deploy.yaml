@@ -13,11 +13,13 @@ spec:
     spec:
       containers:
         - name: main
-          image: piotrpersona/nats-streaming-ui:latest
+          image: kuali/nats-streaming-console:latest
           env:
             - name: STAN_URL
               value: http://eventbus-dataflow-stan-svc:4222
             - name: STAN_MONITOR_URL
               value: http://eventbus-dataflow-stan-svc:8222
+            - name: STAN_CLUSTER
+              value: eventbus-dataflow
           ports:
             - containerPort: 8282
