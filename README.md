@@ -114,12 +114,12 @@ spec:
       out:
         http: { }
       sinks:
-        - bus:
+        - nats:
             subject: a-b
 
     - name: b
       sources:
-        - bus:
+        - nats:
             subject: a-b
       in:
         http: { }

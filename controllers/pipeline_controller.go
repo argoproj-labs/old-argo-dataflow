@@ -81,12 +81,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if err := r.Client.Create(ctx, &dfv1.EventBus{
-		ObjectMeta: metav1.ObjectMeta{Name: "dataflow", Namespace: pipeline.Namespace},
-	}); IgnoreAlreadyExists(err) != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to create EventBus: %w", err)
-	}
-
 	for _, node := range pipeline.Spec.Nodes {
 		deploymentName := "pipeline-" + pipeline.Name + "-" + node.Name
 		log.WithValues("nodeName", node.Name, "deploymentName", deploymentName).Info("creating deployment (if not exists)")
@@ -163,9 +157,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	available, total := 0, len(deploys.Items)
-	newStatus := dfv1.PipelineStatus{
+	newStatus := &dfv1.PipelineStatus{
 		Phase:        dfv1.PipelineUnknown,
 		NodeStatuses: make([]dfv1.NodeStatus, total),
+		Conditions:   []metav1.Condition{},
 	}
 	for i, deploy := range deploys.Items {
 		nodeName := deploy.GetLabels()[KeyNodeName]
@@ -183,13 +178,13 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	newStatus.Message = fmt.Sprintf("%d/%d nodes available", available, total)
 
 	if available == total {
-		meta.SetStatusCondition(&pipeline.Status.Conditions, metav1.Condition{Type: "Available", Status: metav1.ConditionTrue, Reason: "NotApplicable"})
+		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Available", Status: metav1.ConditionTrue, Reason: "DeploysAvailable"})
 	}
 
-	if !reflect.DeepEqual(pipeline.Status, newStatus){
+	if !reflect.DeepEqual(pipeline.Status, newStatus) {
 		log.Info("updating status", "phase", newStatus.Phase, "message", newStatus.Message)
 		pipeline.Status = newStatus
-		if err := r.Status().Update(ctx, pipeline); IgnoreConflict(err) != nil { // conflict is ok, we will reconcille again soon
+		if err := r.Status().Update(ctx, pipeline); IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}
 	}

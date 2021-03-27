@@ -3,7 +3,6 @@
 # It should be run by config/default
 resources:
 - bases/dataflow.argoproj.io_pipelines.yaml
-- bases/dataflow.argoproj.io_eventbus.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

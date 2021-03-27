@@ -21,7 +21,8 @@ func main() {
 		if !strings.HasSuffix(fn, ".yaml") {
 			continue
 		}
-		data, err := ioutil.ReadFile("examples/" + fn)
+		const path = "examples/"
+		data, err := ioutil.ReadFile(path + fn)
 		if err != nil {
 			panic(err)
 		}
@@ -31,9 +32,16 @@ func main() {
 		if err := yaml.Unmarshal([]byte(text), pipeline); err != nil {
 			panic(err)
 		}
+		if data, err := yaml.Marshal(pipeline); err != nil {
+			panic(err)
+		} else {
+			if err := ioutil.WriteFile(path+fn, data, 0600); err != nil {
+				panic(err)
+			}
+		}
 		annotations := pipeline.GetAnnotations()
 		_, _ = fmt.Printf("### [%s](%s)\n\n", annotations["dataflow.argoproj.io/name"], fn)
 		_, _ = fmt.Printf("%s\n\n", annotations["dataflow.argoproj.io/description"])
-		_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", fn)
+		_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", fn)
 	}
 }

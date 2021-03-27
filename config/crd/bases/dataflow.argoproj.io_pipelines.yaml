@@ -917,49 +917,59 @@ spec:
                     sinks:
                       items:
                         properties:
-                          bus:
-                            properties:
-                              subject:
-                                type: string
-                            required:
-                            - subject
-                            type: object
                           kafka:
                             properties:
+                              name:
+                                type: string
                               topic:
                                 type: string
                               url:
                                 type: string
                             required:
                             - topic
-                            - url
                             type: object
                           name:
                             type: string
+                          nats:
+                            properties:
+                              name:
+                                type: string
+                              subject:
+                                type: string
+                              url:
+                                type: string
+                            required:
+                            - subject
+                            type: object
                         type: object
                       type: array
                     sources:
                       items:
                         properties:
-                          bus:
-                            properties:
-                              subject:
-                                type: string
-                            required:
-                            - subject
-                            type: object
                           kafka:
                             properties:
+                              name:
+                                type: string
                               topic:
                                 type: string
                               url:
                                 type: string
                             required:
                             - topic
-                            - url
                             type: object
                           name:
                             type: string
+                          nats:
+                            properties:
+                              name:
+                                type: string
+                              subject:
+                                type: string
+                              url:
+                                type: string
+                            required:
+                            - subject
+                            type: object
                         type: object
                       type: array
                     startupProbe:
@@ -2817,6 +2827,8 @@ spec:
                 - Error
                 type: string
             type: object
+        required:
+        - spec
         type: object
     served: true
     storage: true

@@ -3,14 +3,22 @@ module github.com/argoproj-labs/argo-dataflow
 go 1.15
 
 require (
+	cloud.google.com/go v0.52.0 // indirect
 	github.com/Shopify/sarama v1.28.0
-	github.com/argoproj/argo-events v1.2.3
 	github.com/go-logr/logr v0.3.0
 	github.com/gogo/protobuf v1.3.1
+	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
+	github.com/google/uuid v1.1.2 // indirect
+	github.com/nats-io/nats-server/v2 v2.1.4 // indirect
 	github.com/nats-io/nats.go v1.9.1
+	github.com/nats-io/nkeys v0.1.4 // indirect
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
-	go.uber.org/zap v1.15.0
+	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449 // indirect
+	golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6 // indirect
+	google.golang.org/protobuf v1.25.0 // indirect
+	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	k8s.io/api v0.19.6
 	k8s.io/apimachinery v0.19.6
 	k8s.io/client-go v0.19.6

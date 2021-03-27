@@ -25,32 +25,6 @@ import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 // Package-wide variables from generator "generated".
 option go_package = "v1alpha1";
 
-message Bus {
-  optional string subject = 1;
-}
-
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:shortName=eb
-message EventBus {
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
-
-  optional EventBusSpec spec = 2;
-
-  optional EventBusStatus status = 3;
-}
-
-message EventBusList {
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
-
-  repeated EventBus items = 2;
-}
-
-message EventBusSpec {
-}
-
-message EventBusStatus {
-}
-
 message HTTP {
 }
 
@@ -61,9 +35,19 @@ message Interface {
 }
 
 message Kafka {
-  optional string url = 1;
+  optional string name = 1;
 
-  optional string topic = 2;
+  optional string url = 2;
+
+  optional string topic = 3;
+}
+
+message NATS {
+  optional string name = 1;
+
+  optional string url = 2;
+
+  optional string subject = 3;
 }
 
 message Node {
@@ -134,7 +118,7 @@ message Replicas {
 message Sink {
   optional string name = 1;
 
-  optional Bus bus = 2;
+  optional NATS nats = 2;
 
   optional Kafka kafka = 3;
 }
@@ -142,7 +126,7 @@ message Sink {
 message Source {
   optional string name = 1;
 
-  optional Bus bus = 2;
+  optional NATS nats = 2;
 
   optional Kafka kafka = 3;
 }

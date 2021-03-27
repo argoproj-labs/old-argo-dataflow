@@ -1,25 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bus-ui
+  name: nats-ui
 spec:
+  replicas: 0
   selector:
     matchLabels:
-      app: nats-streaming-ui
+      app: nats-ui
   template:
     metadata:
       labels:
-        app: nats-streaming-ui
+        app: nats-ui
     spec:
       containers:
         - name: main
           image: kuali/nats-streaming-console:latest
           env:
             - name: STAN_URL
-              value: http://eventbus-dataflow-stan-svc:4222
+              value: http://default-nats:4222
             - name: STAN_MONITOR_URL
-              value: http://eventbus-dataflow-stan-svc:8222
+              value: http://default-nats:8222
             - name: STAN_CLUSTER
-              value: eventbus-dataflow
+              value: default
           ports:
             - containerPort: 8282

@@ -1,9 +1,7 @@
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: http
   annotations:
-    dataflow.argoproj.io/name: Using HTTP for input and output
     dataflow.argoproj.io/description: |
       This examples using the `dataflow-cat` image to send and recieve messages using HTTP.
 
@@ -15,20 +13,22 @@ metadata:
       Example implementations:
 
       * Go: ../cat/main.go
+    dataflow.argoproj.io/name: Using HTTP for input and output
+  creationTimestamp: null
+  name: http
 spec:
   nodes:
-    - name: main
-      sources:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: input-topic
-      in:
-        http: { }
-      image: argoproj/dataflow-cat:latest
-      imagePullPolicy: IfNotPresent
-      out:
-        http: { }
-      sinks:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: output-topic
+  - image: argoproj/dataflow-cat:latest
+    imagePullPolicy: IfNotPresent
+    in:
+      http: {}
+    name: main
+    out:
+      http: {}
+    resources: {}
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

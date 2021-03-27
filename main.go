@@ -20,7 +20,6 @@ import (
 	"flag"
 	"os"
 
-	eventbusv1alpha1 "github.com/argoproj/argo-events/pkg/apis/eventbus/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -41,7 +40,6 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = dataflowv1alpha1.AddToScheme(scheme)
-	_ = eventbusv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -74,15 +72,6 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
-		os.Exit(1)
-	}
-
-	if err = (&controllers.EventBusReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("EventBus"),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "EventBus")
 		os.Exit(1)
 	}
 

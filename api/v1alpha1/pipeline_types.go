@@ -55,17 +55,20 @@ func (in *Node) GetReplicas() Replicas {
 }
 
 type Kafka struct {
-	URL   string `json:"url" protobuf:"bytes,1,opt,name=url"`
-	Topic string `json:"topic" protobuf:"bytes,2,opt,name=topic"`
+	Name  string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	URL   string `json:"url,omitempty" protobuf:"bytes,2,opt,name=url"`
+	Topic string `json:"topic" protobuf:"bytes,3,opt,name=topic"`
 }
 
-type Bus struct {
-	Subject string `json:"subject" protobuf:"bytes,1,opt,name=subject"`
+type NATS struct {
+	Name    string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	URL     string `json:"url,omitempty" protobuf:"bytes,2,opt,name=url"`
+	Subject string `json:"subject" protobuf:"bytes,3,opt,name=subject"`
 }
 
 type Source struct {
 	Name  string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	Bus   *Bus   `json:"bus,omitempty" protobuf:"bytes,2,opt,name=bus"`
+	NATS  *NATS  `json:"nats,omitempty" protobuf:"bytes,2,opt,name=nats"`
 	Kafka *Kafka `json:"kafka,omitempty" protobuf:"bytes,3,opt,name=kafka"`
 }
 
@@ -76,7 +79,7 @@ func Json(in interface{}) string {
 
 type Sink struct {
 	Name  string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	Bus   *Bus   `json:"bus,omitempty" protobuf:"bytes,2,opt,name=bus"`
+	NATS  *NATS  `json:"nats,omitempty" protobuf:"bytes,2,opt,name=nats"`
 	Kafka *Kafka `json:"kafka,omitempty" protobuf:"bytes,3,opt,name=kafka"`
 }
 
@@ -137,8 +140,8 @@ type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	Spec   PipelineSpec   `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
-	Status PipelineStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec   PipelineSpec    `json:"spec" protobuf:"bytes,2,opt,name=spec"`
+	Status *PipelineStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 // +kubebuilder:object:root=true

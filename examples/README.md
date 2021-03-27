@@ -13,7 +13,7 @@ You MUST escape new lines.
 
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/fifos-pipeline.yaml
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/fifos-pipeline.yaml
 ```
 
 ### [Using HTTP for input and output](http-pipeline.yaml)
@@ -31,7 +31,7 @@ Example implementations:
 
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/http-pipeline.yaml
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/http-pipeline.yaml
 ```
 
 ### [Using replicas to scale](replicas-pipeline.yaml)
@@ -48,7 +48,7 @@ You can also use `kubectl scale replicas pipeline-${pipelineName}-${nodeName} --
 
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/replicas-pipeline.yaml
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/replicas-pipeline.yaml
 ```
 
 ### [Two nodes pipeline](two-node-pipeline.yaml)
@@ -65,7 +65,16 @@ Subjects names only need to be unique within the pipeline.
 
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/two-node-pipeline.yaml
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/two-node-pipeline.yaml
+```
+
+### [Vetinary](vet-pipeline.yaml)
+
+This pipeline process pets (cats and dogs).
+
+
+```
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/vet-pipeline.yaml
 ```
 
 ### [Word Count](word-count-pipeline.yaml)
@@ -78,6 +87,6 @@ It also shows an example of a pipelines where nodes run to completion.
 
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/word-count-pipeline.yaml
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/word-count-pipeline.yaml
 ```
 

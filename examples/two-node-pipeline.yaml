@@ -1,9 +1,7 @@
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: two-node
   annotations:
-    dataflow.argoproj.io/name: Two nodes pipeline
     dataflow.argoproj.io/description: |
       This example shows a example of having two nodes in a pipeline.
 
@@ -14,34 +12,36 @@ metadata:
       If the first node is named `foo` and the second is named `bar`, then the subject should be `foo-bar`.
 
       Subjects names only need to be unique within the pipeline.
+    dataflow.argoproj.io/name: Two nodes pipeline
+  creationTimestamp: null
+  name: two-node
 spec:
   nodes:
-    - name: a
-      sources:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: input-topic
-      in:
-        http: { }
-      image: argoproj/dataflow-cat:latest
-      imagePullPolicy: IfNotPresent
-      out:
-        http: { }
-      sinks:
-        - bus:
-            subject: a-b
-
-    - name: b
-      sources:
-        - bus:
-            subject: a-b
-      in:
-        http: { }
-      image: argoproj/dataflow-cat:latest
-      imagePullPolicy: IfNotPresent
-      out:
-        http: { }
-      sinks:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: output-topic
+  - image: argoproj/dataflow-cat:latest
+    imagePullPolicy: IfNotPresent
+    in:
+      http: {}
+    name: a
+    out:
+      http: {}
+    resources: {}
+    sinks:
+    - nats:
+        subject: a-b
+    sources:
+    - kafka:
+        topic: input-topic
+  - image: argoproj/dataflow-cat:latest
+    imagePullPolicy: IfNotPresent
+    in:
+      http: {}
+    name: b
+    out:
+      http: {}
+    resources: {}
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - nats:
+        subject: a-b

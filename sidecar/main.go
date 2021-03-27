@@ -21,10 +21,13 @@ import (
 )
 
 var (
-	log            = klogr.New()
-	pipelineName   = os.Getenv("PIPELINE_NAME")
-	deploymentName = os.Getenv("DEPLOYMENT_NAME")
-	node           = &dfv1.Node{}
+	log             = klogr.New()
+	pipelineName    = os.Getenv("PIPELINE_NAME")
+	deploymentName  = os.Getenv("DEPLOYMENT_NAME")
+	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
+	defaultNATSURL  = "default-nats"
+	node            = &dfv1.Node{}
+	config          = sarama.NewConfig()
 )
 
 const varRun = "/var/run/argo-dataflow"
@@ -62,19 +65,9 @@ func mainE() error {
 	}
 	log.WithValues("node", node, "deploymentName", deploymentName, "pipelineName", pipelineName).Info("config")
 
-	config := sarama.NewConfig()
 	config.ClientID = "dataflow-sidecar"
 
-	nc, err := nats.Connect(
-		"eventbus-dataflow-stan-svc",
-		nats.Name("Argo Dataflow Sidecar for deployment/"+deploymentName),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to connect to bus: %w", err)
-	}
-	defer nc.Close()
-
-	toSink, err := connnectSink(nc, config)
+	toSink, err := connnectSink()
 	if err != nil {
 		return err
 	}
@@ -88,7 +81,7 @@ func mainE() error {
 		return err
 	}
 
-	if err := connectSources(ctx, nc, config, toMain); err != nil {
+	if err := connectSources(ctx, toMain); err != nil {
 		return err
 	}
 
@@ -99,27 +92,34 @@ func mainE() error {
 	return nil
 }
 
-func connectSources(ctx context.Context, nc *nats.Conn, config *sarama.Config, toMain func([]byte) error) error {
+func connectSources(ctx context.Context, toMain func([]byte) error) error {
 	for _, source := range node.Sources {
-		if source.Bus != nil {
-			subject := "pipeline." + pipelineName + "." + source.Bus.Subject
-			log.Info("connecting source", "type", "bus", "subject", subject)
+		if source.NATS != nil {
+			url := defaultNATSURL
+			subject := "pipeline." + pipelineName + "." + source.NATS.Subject
+			log.Info("connecting source", "type", "nats", "url", url, "subject", subject)
+			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for deployment/"+deploymentName))
+			if err != nil {
+				return fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
+			}
 			if _, err := nc.QueueSubscribe(subject, deploymentName, func(m *nats.Msg) {
 				if err := toMain(m.Data); err != nil {
-					log.Error(err, "failed to send message from bus to main")
+					log.Error(err, "failed to send message from nats to main")
 				} else {
-					log.Info("sent message from bus to main", "subject", subject)
+					log.Info("sent message from nats to main", "subject", subject)
 				}
 			}); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			}
 		} else if source.Kafka != nil {
-			log.Info("connecting source", "type", "kafka", "subject", source.Kafka.Topic)
-			group, err := sarama.NewConsumerGroup([]string{source.Kafka.URL}, deploymentName, config)
+			url := defaultKafkaURL
+			topic := source.Kafka.Topic
+			log.Info("connecting source", "type", "kafka", "url", url, "topic", topic)
+			group, err := sarama.NewConsumerGroup([]string{url}, deploymentName, config)
 			if err != nil {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
-			if err := group.Consume(ctx, []string{source.Kafka.Topic}, handler{toMain}); err != nil {
+			if err := group.Consume(ctx, []string{topic}, handler{toMain}); err != nil {
 				return fmt.Errorf("failed to create kafka consumer: %w", err)
 			}
 		} else {
@@ -240,26 +240,33 @@ func connectOut(toSink func([]byte) error) error {
 	}
 }
 
-func connnectSink(nc *nats.Conn, config *sarama.Config) (func([]byte) error, error) {
+func connnectSink() (func([]byte) error, error) {
 	var toSink func([]byte) error
 	for _, sink := range node.Sinks {
-		if sink.Bus != nil {
-			subject := "pipeline." + pipelineName + "." + sink.Bus.Subject
-			log.Info("connecting sink", "type", "bus", "subject", subject)
+		if sink.NATS != nil {
+			url := defaultNATSURL
+			subject := "pipeline." + pipelineName + "." + sink.NATS.Subject
+			log.Info("connecting sink", "type", "nats", "url", url, "subject", subject)
+			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for deployment/"+deploymentName))
+			if err != nil {
+				return nil, fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
+			}
 			toSink = func(data []byte) error {
-				log.Info("sending message from main to bus", "subject", subject)
+				log.Info("sending message from main to nats", "subject", subject)
 				return nc.Publish(subject, data)
 			}
 		} else if sink.Kafka != nil {
-			log.Info("connecting sink", "type", "kafka", "subject", sink.Kafka.Topic)
-			producer, err := sarama.NewAsyncProducer([]string{sink.Kafka.URL}, config)
+			url := defaultKafkaURL
+			topic := sink.Kafka.Topic
+			log.Info("connecting sink", "type", "kafka", "url", url, "topic", topic)
+			producer, err := sarama.NewAsyncProducer([]string{url}, config)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 			}
 			toSink = func(data []byte) error {
-				log.Info("sending message from main to kafka", "topic", sink.Kafka.Topic)
+				log.Info("sending message from main to kafka", "topic", topic)
 				producer.Input() <- &sarama.ProducerMessage{
-					Topic: sink.Kafka.Topic,
+					Topic: topic,
 					Value: sarama.StringEncoder(data),
 				}
 				return nil

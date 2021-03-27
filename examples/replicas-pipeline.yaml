@@ -1,9 +1,7 @@
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: replicas
   annotations:
-    dataflow.argoproj.io/name: Using replicas to scale
     dataflow.argoproj.io/description: |
       This example shows a example of having multiple replicas of a single node.
 
@@ -14,22 +12,24 @@ metadata:
       This allows you to scale up to process more messages.
 
       You can also use `kubectl scale replicas pipeline-${pipelineName}-${nodeName} --replicas 4`.
+    dataflow.argoproj.io/name: Using replicas to scale
+  creationTimestamp: null
+  name: replicas
 spec:
   nodes:
-    - name: main
-      sources:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: input-topic
-      in:
-        http: { }
-      image: argoproj/dataflow-cat:latest
-      imagePullPolicy: IfNotPresent
-      replicas:
-        value: 4
-      out:
-        http: { }
-      sinks:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: output-topic
+  - image: argoproj/dataflow-cat:latest
+    imagePullPolicy: IfNotPresent
+    in:
+      http: {}
+    name: main
+    out:
+      http: {}
+    replicas:
+      value: 4
+    resources: {}
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

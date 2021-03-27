@@ -1,98 +1,85 @@
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: word-count
   annotations:
-    dataflow.argoproj.io/name: Word Count
     dataflow.argoproj.io/description: |
       This pipeline count the number of words in a document, not the number of count of each word as you might expect.
 
       For that we need `GroupByKey`.
 
       It also shows an example of a pipelines where nodes run to completion.
+    dataflow.argoproj.io/name: Word Count
+  creationTimestamp: null
+  name: word-count
 spec:
   nodes:
-    - name: read-text
-      volumes:
-        - name: in
-          configMap:
-            name: word-count-input
-      volumeMounts:
-        - mountPath: /in
-          name: in
-      image: debian:10.7-slim
-      imagePullPolicy: IfNotPresent
-      args:
-        - sh
-        - -c
-        - |
-          cat /in/text | tee /var/run/argo-dataflow/out
-          sleep 999
-      out:
-        fifo: true
-      sinks:
-        - bus:
-            subject: a-b
-
-    - name: split-lines
-      sources:
-        - bus:
-            subject: a-b
-      in:
-        fifo: true
-      image: debian:10.7-slim
-      imagePullPolicy: IfNotPresent
-      replicas:
-        value: 3
-      args:
-        - sh
-        - -c
-        - |
-          cat /var/run/argo-dataflow/in | while read sentence; do
-            for word in $sentence; do
-                echo $word
-            done
-          done > /var/run/argo-dataflow/out
-      out:
-        fifo: true
-      sinks:
-        - bus:
-            subject: b-c
-
-    - name: count-words
-      sources:
-        - bus:
-            subject: b-c
-      in:
-        fifo: true
-      image: debian:10.7-slim
-      imagePullPolicy: IfNotPresent
-      args:
-        - sh
-        - -c
-        - |
-          i=0
-          cat /var/run/argo-dataflow/in | while read word; do
-            if [ $word = EOF ]; then
-                echo $i
-            fi
-            i=$((i+1))
-          done | tee -a /var/run/argo-dataflow/out
-      out:
-        fifo: true
-      sinks:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: output-topic
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: word-count-input
-data:
-  text: |
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    EOF
+  - args:
+    - sh
+    - -c
+    - |
+      cat /in/text | tee /var/run/argo-dataflow/out
+      sleep 999
+    image: debian:10.7-slim
+    imagePullPolicy: IfNotPresent
+    name: read-text
+    out:
+      fifo: true
+    resources: {}
+    sinks:
+    - nats:
+        subject: a-b
+    volumeMounts:
+    - mountPath: /in
+      name: in
+    volumes:
+    - configMap:
+        name: word-count-input
+      name: in
+  - args:
+    - sh
+    - -c
+    - |
+      cat /var/run/argo-dataflow/in | while read sentence; do
+        for word in $sentence; do
+            echo $word
+        done
+      done > /var/run/argo-dataflow/out
+    image: debian:10.7-slim
+    imagePullPolicy: IfNotPresent
+    in:
+      fifo: true
+    name: split-lines
+    out:
+      fifo: true
+    replicas:
+      value: 3
+    resources: {}
+    sinks:
+    - nats:
+        subject: b-c
+    sources:
+    - {}
+  - args:
+    - sh
+    - -c
+    - |
+      i=0
+      cat /var/run/argo-dataflow/in | while read word; do
+        if [ $word = EOF ]; then
+            echo $i
+        fi
+        i=$((i+1))
+      done | tee -a /var/run/argo-dataflow/out
+    image: debian:10.7-slim
+    imagePullPolicy: IfNotPresent
+    in:
+      fifo: true
+    name: count-words
+    out:
+      fifo: true
+    resources: {}
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - {}

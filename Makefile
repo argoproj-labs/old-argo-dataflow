@@ -1,6 +1,7 @@
 
 # Image URL to use all building/pushing image targets
 TAG ?= latest
+NS ?= $(shell kubectl config view --minify --output 'jsonpath={..namespace}')
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -43,7 +44,7 @@ undeploy: manifests
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	kustomize build config/default     | sed 's/argoproj\//alexcollinsintuit\//' | sed 's/:latest/:$(TAG)/' > install/default.yaml
+	kustomize build config/default s| sed 's/argoproj\//alexcollinsintuit\//' | sed 's/:latest/:$(TAG)/' > install/default.yaml
 
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
@@ -51,13 +52,14 @@ generate: controller-gen
 
 proto: api/v1alpha1/generated.pb.go api/v1alpha1/generated.proto
 
-api/v1alpha1/generated.%: api/v1alpha1/eventbus_types.go api/v1alpha1/pipeline_types.go
+api/v1alpha1/generated.%: api/v1alpha1/pipeline_types.go
 	[ ! -e api/v1alpha1/groupversion_info.go ] || mv api/v1alpha1/groupversion_info.go api/v1alpha1/groupversion_info.go.0
 	go-to-protobuf \
 		--go-header-file=./hack/boilerplate.go.txt \
   		--packages=github.com/argoproj-labs/argo-dataflow/api/v1alpha1 \
 		--apimachinery-packages=+k8s.io/apimachinery/pkg/util/intstr,+k8s.io/apimachinery/pkg/api/resource,k8s.io/apimachinery/pkg/runtime/schema,+k8s.io/apimachinery/pkg/runtime,k8s.io/apimachinery/pkg/apis/meta/v1,k8s.io/api/core/v1
 	mv api/v1alpha1/groupversion_info.go.0 api/v1alpha1/groupversion_info.go
+	go mod tidy
 
 lint:
 	go mod tidy
@@ -111,14 +113,15 @@ kafka:
 	kubectl get ns kafka || kubectl create ns kafka
 	kubectl apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
 	kubectl port-forward -n kafka svc/broker 9092:9092
-bus-ui:
-	kubectl apply -k config/bus-ui
-	kubectl port-forward svc/bus-ui 8282:8282
+nats:
+	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
+	kubectl apply -k config/nats
+	kubectl port-forward svc/nats-ui 8282:8282
+
 examples/%.yaml: /dev/null
 	kubectl delete pipeline --all
 	sleep 4s
 	kubectl apply -f $@
 	kubectl wait pipeline --all --for condition=Available
-
 test-e2e:
 	./hack/test-e2e.sh

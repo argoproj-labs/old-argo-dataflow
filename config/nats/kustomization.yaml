@@ -1,0 +1,4 @@
+resources:
+  - default-nats-service.yaml
+  - nats-ui-deploy.yaml
+  - nats-ui-svc.yaml

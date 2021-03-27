@@ -1,9 +1,7 @@
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: fifos
   annotations:
-    dataflow.argoproj.io/name: Using FIFOs for input and outputs
     dataflow.argoproj.io/description: |
       This example use named pipe to send and receive messages.
 
@@ -13,27 +11,29 @@ metadata:
 
       The contain can write to `/var/run/argo-dataflow/out`. Each line MUST be a single message.
       You MUST escape new lines.
+    dataflow.argoproj.io/name: Using FIFOs for input and outputs
+  creationTimestamp: null
+  name: fifos
 spec:
   nodes:
-    - name: main
-      sources:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: input-topic
-      in:
-        fifo: true
-      image: debian:10.7-slim
-      imagePullPolicy: IfNotPresent
-      args:
-        - sh
-        - -c
-        - |
-          cat /var/run/argo-dataflow/in | while read line ; do
-            echo "hello $line"
-          done > /var/run/argo-dataflow/out
-      out:
-        fifo: true
-      sinks:
-        - kafka:
-            url: kafka-0.broker.kafka.svc.cluster.local:9092
-            topic: output-topic
+  - args:
+    - sh
+    - -c
+    - |
+      cat /var/run/argo-dataflow/in | while read line ; do
+        echo "hello $line"
+      done > /var/run/argo-dataflow/out
+    image: debian:10.7-slim
+    imagePullPolicy: IfNotPresent
+    in:
+      fifo: true
+    name: main
+    out:
+      fifo: true
+    resources: {}
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic
