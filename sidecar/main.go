@@ -25,7 +25,7 @@ var (
 	pipelineName    = os.Getenv("PIPELINE_NAME")
 	nodeName  = os.Getenv("NODE_NAME")
 	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
-	defaultNATSURL  = "default-nats"
+	defaultNATSURL  = "nats"
 	node            = &dfv1.Node{}
 	config          = sarama.NewConfig()
 )

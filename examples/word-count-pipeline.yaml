@@ -9,7 +9,6 @@ metadata:
 
       It also shows an example of a pipelines where nodes run to completion.
     dataflow.argoproj.io/name: Word Count
-  creationTimestamp: null
   name: word-count
 spec:
   nodes:
@@ -39,10 +38,11 @@ spec:
     - -c
     - |
       cat /var/run/argo-dataflow/in | while read sentence; do
+        [ $sentence = EOF ] && exit 0
         for word in $sentence; do
             echo $word
         done
-      done > /var/run/argo-dataflow/out
+      done | tee /var/run/argo-dataflow/out
     image: debian:10.7-slim
     imagePullPolicy: IfNotPresent
     in:
@@ -67,9 +67,10 @@ spec:
       cat /var/run/argo-dataflow/in | while read word; do
         if [ $word = EOF ]; then
             echo $i
+            exit 0
         fi
         i=$((i+1))
-      done | tee -a /var/run/argo-dataflow/out
+      done | tee /var/run/argo-dataflow/out
     image: debian:10.7-slim
     imagePullPolicy: IfNotPresent
     in:
@@ -81,7 +82,19 @@ spec:
     sinks:
     - kafka:
         topic: output-topic
-        url: kafka-0.broker.kafka.svc.cluster.local:9092
     sources:
     - nats:
         subject: b-c
+
+---
+apiVersion: v1
+data:
+  text: |
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    EOF
+kind: ConfigMap
+metadata:
+  name: word-count-input

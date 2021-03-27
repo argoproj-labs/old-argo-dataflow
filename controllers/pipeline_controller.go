@@ -86,7 +86,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		deploymentName := "pipeline-" + pipeline.Name + "-" + node.Name
 		log.Info("creating replicaset (if not exists)", "nodeName", node.Name, "deploymentName", deploymentName)
 		volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
-		node.Container.VolumeMounts = append(node.Container.VolumeMounts, volMnt)
+		container := node.Container
+		container.Name = "main"
+		container.VolumeMounts = append(container.VolumeMounts, volMnt)
 		matchLabels := map[string]string{KeyPipelineName: pipeline.Name, KeyNodeName: node.Name}
 		if err := r.Client.Create(
 			ctx,
@@ -137,7 +139,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 									},
 									VolumeMounts: []corev1.VolumeMount{volMnt},
 								},
-								node.Container,
+								container,
 							},
 						},
 					},
@@ -189,8 +191,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	newStatus.Message = fmt.Sprintf("%d pending, %d running, %d succeeded, %d failed, %d total", pending, running, succeeded, failed, total)
 
-	if running == total {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Running", Status: metav1.ConditionTrue, Reason: "DeploysRunning"})
+	if newStatus.Phase == dfv1.PipelineRunning {
+		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Running", Status: metav1.ConditionTrue, Reason: "Running"})
 	}
 
 	if !reflect.DeepEqual(pipeline.Status, newStatus) {

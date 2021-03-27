@@ -17,9 +17,9 @@ spec:
           image: kuali/nats-streaming-console:latest
           env:
             - name: STAN_URL
-              value: http://default-nats:4222
+              value: http://nats:4222
             - name: STAN_MONITOR_URL
-              value: http://default-nats:8222
+              value: http://nats:8222
             - name: STAN_CLUSTER
               value: default
           ports:

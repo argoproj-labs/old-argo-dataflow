@@ -5,7 +5,6 @@ metadata:
     dataflow.argoproj.io/description: |
       This pipeline processes pets (cats and dogs).
     dataflow.argoproj.io/name: Vetinary
-  creationTimestamp: null
   name: vet
 spec:
   nodes:
@@ -14,7 +13,6 @@ spec:
     - -c
     - |
       cat /in/text | tee /var/run/argo-dataflow/out
-      sleep 999
     image: debian:10.7-slim
     imagePullPolicy: IfNotPresent
     name: read-pets
@@ -107,3 +105,14 @@ spec:
     sources:
     - nats:
         subject: dogs
+
+---
+apiVersion: v1
+data:
+  text: |
+    {"type": "dog", "name": "Emma"}
+    {"type": "cat", "name": "Dino"}
+    EOF
+kind: ConfigMap
+metadata:
+  name: pets

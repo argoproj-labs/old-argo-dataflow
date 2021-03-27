@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -27,21 +28,30 @@ func main() {
 			panic(err)
 		}
 		println(fn)
-		text := strings.Split(string(data), "---")[0]
-		pipeline := &dfv1.Pipeline{}
-		if err := yaml.Unmarshal([]byte(text), pipeline); err != nil {
-			panic(err)
-		}
-		if data, err := yaml.Marshal(pipeline); err != nil {
-			panic(err)
-		} else {
-			if err := ioutil.WriteFile(path+fn, data, 0600); err != nil {
+		var formatted []string
+		for i, text := range strings.Split(string(data), "---") {
+			if i == 0 {
+				pipeline := &dfv1.Pipeline{}
+				if err := yaml.Unmarshal([]byte(text), pipeline); err != nil {
+					panic(err)
+				}
+				annotations := pipeline.GetAnnotations()
+				_, _ = fmt.Printf("### [%s](%s)\n\n", annotations["dataflow.argoproj.io/name"], fn)
+				_, _ = fmt.Printf("%s\n\n", annotations["dataflow.argoproj.io/description"])
+				_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", fn)
+			}
+			un := &unstructured.Unstructured{}
+			if err := yaml.Unmarshal([]byte(text), un); err != nil {
 				panic(err)
 			}
+			if data, err := yaml.Marshal(un); err != nil {
+				panic(err)
+			} else {
+				formatted = append(formatted, string(data))
+			}
 		}
-		annotations := pipeline.GetAnnotations()
-		_, _ = fmt.Printf("### [%s](%s)\n\n", annotations["dataflow.argoproj.io/name"], fn)
-		_, _ = fmt.Printf("%s\n\n", annotations["dataflow.argoproj.io/description"])
-		_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", fn)
+		if err := ioutil.WriteFile(path+fn, []byte(strings.Join(formatted, "\n---\n")), 0600); err != nil {
+			panic(err)
+		}
 	}
 }

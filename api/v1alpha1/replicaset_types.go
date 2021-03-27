@@ -45,7 +45,7 @@ const (
 )
 
 func MinReplicaSetPhase(v ...ReplicaSetPhase) ReplicaSetPhase {
-	for _, p := range []ReplicaSetPhase{ReplicaSetFailed, ReplicaSetPending, ReplicaSetRunning, ReplicaSetSucceeded} {
+	for _, p := range []ReplicaSetPhase{ReplicaSetFailed, ReplicaSetSucceeded, ReplicaSetPending, ReplicaSetRunning} {
 		for _, x := range v {
 			if x == p {
 				return p

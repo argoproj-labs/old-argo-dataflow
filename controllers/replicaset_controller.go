@@ -84,26 +84,9 @@ func (r *ReplicaSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	newStatus := &dfv1.ReplicaSetStatus{Phase: dfv1.ReplicaSetUnknown}
 
 	for _, pod := range pods.Items {
-		log.Info("inspecting pod", "podName", pod.Name)
-		for _, s := range append(pod.Status.InitContainerStatuses, pod.Status.ContainerStatuses...) {
-			if s.State.Terminated != nil {
-				log.Info("pod terminated", "podName", pod.Name, "exitCode", s.State.Terminated.ExitCode)
-				if int(s.State.Terminated.ExitCode) == 0 {
-					newStatus.Phase = dfv1.MinReplicaSetPhase(newStatus.Phase, dfv1.ReplicaSetSucceeded)
-				} else {
-					newStatus.Phase = dfv1.MinReplicaSetPhase(newStatus.Phase, dfv1.ReplicaSetFailed)
-				}
-			} else if s.State.Running != nil {
-				newStatus.Phase = dfv1.MinReplicaSetPhase(newStatus.Phase, dfv1.ReplicaSetRunning)
-			} else if s.State.Waiting != nil {
-				switch s.State.Waiting.Reason {
-				case "CrashLoopBackOff":
-					newStatus.Phase = dfv1.MinReplicaSetPhase(newStatus.Phase, dfv1.ReplicaSetFailed)
-				default:
-					newStatus.Phase = dfv1.MinReplicaSetPhase(newStatus.Phase, dfv1.ReplicaSetPending)
-				}
-			}
-		}
+		phase := inferPhase(pod)
+		log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
+		newStatus.Phase = dfv1.MinReplicaSetPhase(newStatus.Phase, phase)
 	}
 
 	if !reflect.DeepEqual(rs.Status, newStatus) {
@@ -115,6 +98,48 @@ func (r *ReplicaSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func inferPhase(pod corev1.Pod) dfv1.ReplicaSetPhase {
+	phase := dfv1.ReplicaSetUnknown
+	for _, s := range pod.Status.InitContainerStatuses{
+		phase = dfv1.MinReplicaSetPhase(phase, func() dfv1.ReplicaSetPhase {
+			// init containers run to completion, but pod can still be running
+			if s.State.Running != nil {
+				return dfv1.ReplicaSetRunning
+			} else if s.State.Waiting != nil {
+				switch s.State.Waiting.Reason {
+				case "CrashLoopBackOff":
+					return dfv1.ReplicaSetFailed
+				default:
+					return dfv1.ReplicaSetPending
+				}
+			}
+			return dfv1.ReplicaSetUnknown
+		}())
+	}
+	for _, s := range pod.Status.ContainerStatuses {
+		phase = dfv1.MinReplicaSetPhase(phase, func() dfv1.ReplicaSetPhase {
+			if s.State.Terminated != nil {
+				if int(s.State.Terminated.ExitCode) == 0 {
+					return dfv1.ReplicaSetSucceeded
+				} else {
+					return dfv1.ReplicaSetFailed
+				}
+			} else if s.State.Running != nil {
+				return dfv1.ReplicaSetRunning
+			} else if s.State.Waiting != nil {
+				switch s.State.Waiting.Reason {
+				case "CrashLoopBackOff":
+					return dfv1.ReplicaSetFailed
+				default:
+					return dfv1.ReplicaSetPending
+				}
+			}
+			return dfv1.ReplicaSetUnknown
+		}())
+	}
+	return phase
 }
 
 func (r *ReplicaSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
