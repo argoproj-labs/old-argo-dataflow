@@ -1,0 +1,120 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: vet
+  annotations:
+    dataflow.argoproj.io/name: Vetinary
+    dataflow.argoproj.io/description: |
+      This pipeline process pets (cats and dogs).
+spec:
+  nodes:
+    - name: read-pets
+      volumes:
+        - name: in
+          configMap:
+            name: pets
+      volumeMounts:
+        - mountPath: /in
+          name: in
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - |
+          cat /in/text | tee /var/run/argo-dataflow/out
+          sleep 999
+      out:
+        fifo: true
+      sinks:
+        - bus:
+            subject: animals
+
+    - name: filter-cats
+      sources:
+        - bus:
+            subject: animals
+      in:
+        fifo: true
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - |
+          cat /var/run/argo-dataflow/in | grep cat | tee /var/run/argo-dataflow/out
+      out:
+        fifo: true
+      sinks:
+        - bus:
+            subject: cats
+
+    - name: process-cats
+      sources:
+        - bus:
+            subject: cats
+      in:
+        fifo: true
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - |
+          cat /var/run/argo-dataflow/in | tee /var/run/argo-dataflow/out
+      out:
+        fifo: true
+      sinks:
+        - kafka:
+            url: kafka-0.broker.kafka.svc.cluster.local:9092
+            topic: output-topic
+
+    - name: filter-dogs
+      sources:
+        - bus:
+            subject: animals
+      in:
+        fifo: true
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - |
+          cat /var/run/argo-dataflow/in | grep dog > /var/run/argo-dataflow/out
+      out:
+        fifo: true
+      sinks:
+        - bus:
+            subject: dogs
+
+    - name: process-dogs
+      sources:
+        - bus:
+            subject: dogs
+      in:
+        fifo: true
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      args:
+        - sh
+        - -c
+        - |
+          cat /var/run/argo-dataflow/in | tee /var/run/argo-dataflow/out
+      out:
+        fifo: true
+      sinks:
+        - kafka:
+            url: kafka-0.broker.kafka.svc.cluster.local:9092
+            topic: output-topic
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pets
+data:
+  text: |
+    {"type": "dog", "name": "Emma"}
+    {"type": "cat", "name": "Dino"}
+    EOF

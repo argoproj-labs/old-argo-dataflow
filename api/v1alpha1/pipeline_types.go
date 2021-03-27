@@ -111,10 +111,8 @@ func MinPhase(v ...PipelinePhase) PipelinePhase {
 type NodePhase string
 
 const (
-	NodeUnknown NodePhase = ""
 	NodePending NodePhase = "Pending"
 	NodeRunning NodePhase = "Running"
-	NodeError   NodePhase = "Error"
 )
 
 type NodeStatus struct {
