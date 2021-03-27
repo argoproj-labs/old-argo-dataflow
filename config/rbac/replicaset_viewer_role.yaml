@@ -1,22 +1,16 @@
-
----
+# permissions for end users to view replicasets.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
-  name: manager-role
+  name: replicaset-viewer-role
 rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
   - replicasets
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - dataflow.argoproj.io
@@ -24,5 +18,3 @@ rules:
   - replicasets/status
   verbs:
   - get
-  - patch
-  - update

@@ -130,6 +130,6 @@ examples/%.yaml: /dev/null
 	kubectl delete pipeline --all
 	sleep 4s
 	kubectl apply -f $@
-	kubectl wait pipeline --all --for condition=Available
+	kubectl wait pipeline --all --for condition=Running
 test-e2e:
 	./hack/test-e2e.sh

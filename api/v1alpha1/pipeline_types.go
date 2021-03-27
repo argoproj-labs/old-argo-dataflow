@@ -39,12 +39,13 @@ type Node struct {
 	corev1.Container `json:",inline" protobuf:"bytes,1,opt,name=container"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Volumes  []corev1.Volume `json:"volumes,omitempty" protobuf:"bytes,2,rep,name=volumes"`
-	Replicas *Replicas       `json:"replicas,omitempty" protobuf:"bytes,3,opt,name=replicas"`
-	In       *Interface      `json:"in,omitempty" protobuf:"bytes,4,opt,name=in"`
-	Out      *Interface      `json:"out,omitempty" protobuf:"bytes,5,opt,name=out"`
-	Sources  []Source        `json:"sources,omitempty" protobuf:"bytes,6,rep,name=sources"`
-	Sinks    []Sink          `json:"sinks,omitempty" protobuf:"bytes,7,rep,name=sinks"`
+	Volumes       []corev1.Volume      `json:"volumes,omitempty" protobuf:"bytes,2,rep,name=volumes"`
+	Replicas      *Replicas            `json:"replicas,omitempty" protobuf:"bytes,3,opt,name=replicas"`
+	In            *Interface           `json:"in,omitempty" protobuf:"bytes,4,opt,name=in"`
+	Out           *Interface           `json:"out,omitempty" protobuf:"bytes,5,opt,name=out"`
+	Sources       []Source             `json:"sources,omitempty" protobuf:"bytes,6,rep,name=sources"`
+	Sinks         []Sink               `json:"sinks,omitempty" protobuf:"bytes,7,rep,name=sinks"`
+	RestartPolicy corev1.RestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,8,rep,name=restartPolicy"`
 }
 
 func (in *Node) GetReplicas() Replicas {
@@ -52,6 +53,13 @@ func (in *Node) GetReplicas() Replicas {
 		return *in.Replicas
 	}
 	return Replicas{}
+}
+
+func (in *Node) GetRestartPolicy() corev1.RestartPolicy {
+	if in.RestartPolicy != "" {
+		return in.RestartPolicy
+	}
+	return corev1.RestartPolicyOnFailure
 }
 
 type Kafka struct {
@@ -89,18 +97,19 @@ type PipelineSpec struct {
 	Nodes []Node `json:"nodes,omitempty" protobuf:"bytes,1,rep,name=nodes"`
 }
 
-// +kubebuilder:validation:Enum=Pending;Running;Error
+// +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
 type PipelinePhase string
 
 const (
-	PipelineUnknown PipelinePhase = ""
-	PipelinePending PipelinePhase = "Pending"
-	PipelineRunning PipelinePhase = "Running"
-	PipelineError   PipelinePhase = "Error"
+	PipelineUnknown   PipelinePhase = ""
+	PipelinePending   PipelinePhase = "Pending"
+	PipelineRunning   PipelinePhase = "Running"
+	PipelineSucceeded PipelinePhase = "Succeeded"
+	PipelineFailed    PipelinePhase = "Failed"
 )
 
-func MinPhase(v ...PipelinePhase) PipelinePhase {
-	for _, p := range []PipelinePhase{PipelineError, PipelinePending, PipelineRunning} {
+func MinPipelinePhase(v ...PipelinePhase) PipelinePhase {
+	for _, p := range []PipelinePhase{PipelineFailed, PipelinePending, PipelineRunning} {
 		for _, x := range v {
 			if x == p {
 				return p
@@ -110,12 +119,14 @@ func MinPhase(v ...PipelinePhase) PipelinePhase {
 	return PipelineUnknown
 }
 
-// +kubebuilder:validation:Enum=Pending;Running;Error
+// +kubebuilder:validation:Enum=Pending;Running;Succeeded;Failed
 type NodePhase string
 
 const (
-	NodePending NodePhase = "Pending"
-	NodeRunning NodePhase = "Running"
+	NodePending   NodePhase = "Pending"
+	NodeRunning   NodePhase = "Running"
+	NodeSucceeded NodePhase = "Succeeded"
+	NodeFailed    NodePhase = "Failed"
 )
 
 type NodeStatus struct {
@@ -134,7 +145,7 @@ type PipelineStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=pl
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="PipelinePhase",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`

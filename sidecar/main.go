@@ -23,7 +23,7 @@ import (
 var (
 	log             = klogr.New()
 	pipelineName    = os.Getenv("PIPELINE_NAME")
-	deploymentName  = os.Getenv("DEPLOYMENT_NAME")
+	nodeName  = os.Getenv("NODE_NAME")
 	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
 	defaultNATSURL  = "default-nats"
 	node            = &dfv1.Node{}
@@ -65,7 +65,7 @@ func mainE() error {
 	if err := json.Unmarshal([]byte(os.Getenv("NODE")), node); err != nil {
 		return err
 	}
-	log.WithValues("node", node, "deploymentName", deploymentName, "pipelineName", pipelineName).Info("config")
+	log.WithValues("node", node, "nodeName", nodeName, "pipelineName", pipelineName).Info("config")
 
 	config.ClientID = "dataflow-sidecar"
 
@@ -100,11 +100,11 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			url := defaultNATSURL
 			subject := "pipeline." + pipelineName + "." + source.NATS.Subject
 			log.Info("connecting source", "type", "nats", "url", url, "subject", subject)
-			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for deployment/"+deploymentName))
+			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for node "+nodeName))
 			if err != nil {
 				return fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
 			}
-			if _, err := nc.QueueSubscribe(subject, deploymentName, func(m *nats.Msg) {
+			if _, err := nc.QueueSubscribe(subject, nodeName, func(m *nats.Msg) {
 				if err := toMain(m.Data); err != nil {
 					log.Error(err, "failed to send message from nats to main")
 				} else {
@@ -117,7 +117,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			url := defaultKafkaURL
 			topic := source.Kafka.Topic
 			log.Info("connecting source", "type", "kafka", "url", url, "topic", topic)
-			group, err := sarama.NewConsumerGroup([]string{url}, deploymentName, config)
+			group, err := sarama.NewConsumerGroup([]string{url}, nodeName, config)
 			if err != nil {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
@@ -249,7 +249,7 @@ func connnectSink() (func([]byte) error, error) {
 			url := defaultNATSURL
 			subject := "pipeline." + pipelineName + "." + sink.NATS.Subject
 			log.Info("connecting sink", "type", "nats", "url", url, "subject", subject)
-			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for deployment/"+deploymentName))
+			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for node "+nodeName))
 			if err != nil {
 				return nil, fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
 			}

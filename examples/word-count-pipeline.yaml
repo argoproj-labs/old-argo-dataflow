@@ -18,7 +18,6 @@ spec:
     - -c
     - |
       cat /in/text | tee /var/run/argo-dataflow/out
-      sleep 999
     image: debian:10.7-slim
     imagePullPolicy: IfNotPresent
     name: read-text

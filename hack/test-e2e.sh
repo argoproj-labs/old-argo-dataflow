@@ -7,5 +7,5 @@ ls *.yaml | while read f; do
   kubectl delete pipeline --all > /dev/null
   echo " ▶ TEST $f"
   kubectl apply -f "$f"
-  kubectl wait pipeline --all --for condition=Available
+  kubectl wait pipeline --all --for condition=Running
 done

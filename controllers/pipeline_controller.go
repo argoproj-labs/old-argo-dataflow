@@ -23,7 +23,6 @@ import (
 	"reflect"
 
 	"github.com/go-logr/logr"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -69,7 +68,7 @@ type PipelineReconciler struct {
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups="",resources=deployments,verbs=get;watch;list;create
+// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=replicasets,verbs=get;watch;list;create
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
@@ -81,18 +80,17 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	log.Info("reconciling", "nodes", len(pipeline.Spec.Nodes))
+
 	for _, node := range pipeline.Spec.Nodes {
 		deploymentName := "pipeline-" + pipeline.Name + "-" + node.Name
-		log.WithValues("nodeName", node.Name, "deploymentName", deploymentName).Info("creating deployment (if not exists)")
-		matchLabels := map[string]string{
-			KeyPipelineName: pipeline.Name,
-			KeyNodeName:     node.Name,
-		}
+		log.Info("creating replicaset (if not exists)", "nodeName", node.Name, "deploymentName", deploymentName)
 		volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
 		node.Container.VolumeMounts = append(node.Container.VolumeMounts, volMnt)
+		matchLabels := map[string]string{KeyPipelineName: pipeline.Name, KeyNodeName: node.Name}
 		if err := r.Client.Create(
 			ctx,
-			&appsv1.Deployment{
+			&dfv1.ReplicaSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      deploymentName,
 					Namespace: pipeline.Namespace,
@@ -101,12 +99,12 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 						*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
 					},
 				},
-				Spec: appsv1.DeploymentSpec{
-					Selector: &metav1.LabelSelector{MatchLabels: matchLabels},
+				Spec: dfv1.ReplicaSetSpec{
 					Replicas: node.GetReplicas().Value,
 					Template: corev1.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{Labels: matchLabels},
 						Spec: corev1.PodSpec{
+							RestartPolicy: node.GetRestartPolicy(),
 							Volumes: append(
 								node.Volumes,
 								corev1.Volume{
@@ -129,7 +127,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 									ImagePullPolicy: imagePullPolicy,
 									Env: []corev1.EnvVar{
 										{Name: "PIPELINE_NAME", Value: pipeline.Name},
-										{Name: "DEPLOYMENT_NAME", Value: deploymentName},
+										{Name: "NODE_NAME", Value: node.Name},
 										{Name: "NODE", Value: dfv1.Json(&dfv1.Node{
 											In:      node.In,
 											Out:     node.Out,
@@ -150,39 +148,53 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	deploys := &appsv1.DeploymentList{}
-	selector, _ := labels.Parse("dataflow.argoproj.io/pipeline-name=" + pipeline.Name)
-	if err := r.Client.List(ctx, deploys, &client.ListOptions{LabelSelector: selector}); err != nil {
+	rs := &dfv1.ReplicaSetList{}
+	selector, _ := labels.Parse(KeyPipelineName + "=" + pipeline.Name)
+	if err := r.Client.List(ctx, rs, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	available, total := 0, len(deploys.Items)
+	pending, running, succeeded, failed, total := 0, 0, 0, 0, len(rs.Items)
 	newStatus := &dfv1.PipelineStatus{
 		Phase:        dfv1.PipelineUnknown,
 		NodeStatuses: make([]dfv1.NodeStatus, total),
 		Conditions:   []metav1.Condition{},
 	}
-	for i, deploy := range deploys.Items {
-		nodeName := deploy.GetLabels()[KeyNodeName]
-		switch deploy.Status.AvailableReplicas {
-		case 0:
-			newStatus.Phase = dfv1.MinPhase(newStatus.Phase, dfv1.PipelinePending)
+	for i, rs := range rs.Items {
+		nodeName := rs.GetLabels()[KeyNodeName]
+		if rs.Status == nil {
+			continue
+		}
+		switch rs.Status.Phase {
+		case dfv1.ReplicaSetUnknown, dfv1.ReplicaSetPending:
+			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelinePending)
 			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodePending}
-		default:
-			newStatus.Phase = dfv1.MinPhase(newStatus.Phase, dfv1.PipelineRunning)
+			pending++
+		case dfv1.ReplicaSetRunning:
+			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineRunning)
 			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeRunning}
-			available++
+			running++
+		case dfv1.ReplicaSetSucceeded:
+			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineSucceeded)
+			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeSucceeded}
+			succeeded++
+		case dfv1.ReplicaSetFailed:
+			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineFailed)
+			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeFailed}
+			failed++
+		default:
+			panic("should never happen")
 		}
 	}
 
-	newStatus.Message = fmt.Sprintf("%d/%d nodes available", available, total)
+	newStatus.Message = fmt.Sprintf("%d pending, %d running, %d succeeded, %d failed, %d total", pending, running, succeeded, failed, total)
 
-	if available == total {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Available", Status: metav1.ConditionTrue, Reason: "DeploysAvailable"})
+	if running == total {
+		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Running", Status: metav1.ConditionTrue, Reason: "DeploysRunning"})
 	}
 
 	if !reflect.DeepEqual(pipeline.Status, newStatus) {
-		log.Info("updating status", "phase", newStatus.Phase, "message", newStatus.Message)
+		log.Info("updating pipeline status", "phase", newStatus.Phase, "message", newStatus.Message)
 		pipeline.Status = newStatus
 		if err := r.Status().Update(ctx, pipeline); IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
@@ -209,6 +221,6 @@ func IgnoreConflict(err error) error {
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dfv1.Pipeline{}).
-		Owns(&appsv1.Deployment{}).
+		Owns(&dfv1.ReplicaSet{}).
 		Complete(r)
 }
