@@ -36,6 +36,10 @@ func (in *FuncSpec) GetReplicas() int {
 // +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
 type FuncPhase string
 
+func (p FuncPhase) Completed() bool {
+	return p == FuncSucceeded || p == FuncFailed
+}
+
 const (
 	FuncUnknown   FuncPhase = ""
 	FuncPending   FuncPhase = "Pending"

@@ -56,13 +56,13 @@ var _ = Describe("Pipeline controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, p)).Should(Succeed())
 
-			d := &dfv1.Func{}
+			fn := &dfv1.Func{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-node"}, d)
+				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-node"}, fn)
 			}).
 				Should(Succeed())
 
-			Expect(d.Spec.Replicas).Should(Equal(replicas))
+			Expect(fn.Spec.Replicas).Should(Equal(replicas))
 		})
 	})
 })

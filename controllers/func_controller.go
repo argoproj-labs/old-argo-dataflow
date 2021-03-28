@@ -27,6 +27,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/remotecommand"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -36,8 +40,10 @@ import (
 // FuncReconciler reconciles a Func object
 type FuncReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log        logr.Logger
+	Scheme     *runtime.Scheme
+	RESTConfig *rest.Config
+	Kubernetes kubernetes.Interface
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=funcs,verbs=get;list;watch;create;update;patch;delete
@@ -93,6 +99,23 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			phase := inferPhase(pod)
 			log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
 			newStatus.Phase = dfv1.MinFuncPhase(newStatus.Phase, phase)
+
+			if phase.Completed() {
+				log.Info("killing sidecar")
+				req := r.Kubernetes.CoreV1().RESTClient().Post().
+					Resource("pods").
+					Namespace(pod.Namespace).
+					Name(pod.Name).
+					SubResource("exec")
+				option := &corev1.PodExecOptions{
+					Container: KeySidecar,
+					Command:   []string{"kill", "-9", "--", "-1"},
+				}
+				req.VersionedParams(option, scheme.ParameterCodec)
+				if _, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", req.URL()); err != nil {
+					return ctrl.Result{}, err
+				}
+			}
 		}
 	}
 

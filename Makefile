@@ -44,7 +44,7 @@ undeploy: manifests
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	kustomize build config/default s| sed 's/argoproj\//alexcollinsintuit\//' | sed 's/:latest/:$(TAG)/' > install/default.yaml
+	kustomize build config/default | sed 's/argoproj\//alexcollinsintuit\//' | sed 's/:latest/:$(TAG)/' > install/default.yaml
 
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
@@ -127,10 +127,9 @@ unnats:
 	kubectl -n $(NS) delete -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 
 examples/%.yaml: /dev/null
-	kubectl delete pipeline --all
-	sleep 4s
-	kubectl apply -f $@
-	kubectl wait pipeline --all --for condition=Running
-test-e2e:
-	./hack/test-e2e.sh
-test-examples: test-e2e
+	@kubectl delete pipeline --all > /dev/null
+	@echo " ▶ RUN $@"
+	@kubectl apply -f $@
+	@kubectl wait pipeline --all --for condition=Running
+	@echo
+test-examples: $(shell ls -cr examples/*.yaml | sort)

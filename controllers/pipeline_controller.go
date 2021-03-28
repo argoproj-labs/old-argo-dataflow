@@ -42,11 +42,6 @@ var (
 	imagePullPolicy = corev1.PullIfNotPresent // TODO
 )
 
-const (
-	KeyPipelineName = "dataflow.argoproj.io/pipeline-name"
-	KeyNodeName     = "dataflow.argoproj.io/node-name"
-	KeyReplica      = "dataflow.argoproj.io/replica"
-)
 
 var log = klogr.New()
 
