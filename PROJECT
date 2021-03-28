@@ -5,6 +5,6 @@ resources:
   kind: Pipeline
   version: v1alpha1
 - group: dataflow
-  kind: ReplicaSet
+  kind: Func
   version: v1alpha1
 version: "2"

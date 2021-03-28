@@ -1,24 +1,20 @@
-# permissions for end users to edit replicasets.
+# permissions for end users to view funcs.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: replicaset-editor-role
+  name: func-viewer-role
 rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - replicasets
+  - funcs
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - replicasets/status
+  - funcs/status
   verbs:
   - get

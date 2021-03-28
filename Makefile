@@ -133,3 +133,4 @@ examples/%.yaml: /dev/null
 	kubectl wait pipeline --all --for condition=Running
 test-e2e:
 	./hack/test-e2e.sh
+test-examples: test-e2e

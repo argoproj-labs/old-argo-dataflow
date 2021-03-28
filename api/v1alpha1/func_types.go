@@ -21,12 +21,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ReplicaSetSpec struct {
+type FuncSpec struct {
 	Replicas *int32                 `json:"replicas,omitempty"`
 	Template corev1.PodTemplateSpec `json:"template"`
 }
 
-func (in *ReplicaSetSpec) GetReplicas() int {
+func (in *FuncSpec) GetReplicas() int {
 	if in.Replicas != nil {
 		return int(*in.Replicas)
 	}
@@ -34,51 +34,51 @@ func (in *ReplicaSetSpec) GetReplicas() int {
 }
 
 // +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
-type ReplicaSetPhase string
+type FuncPhase string
 
 const (
-	ReplicaSetUnknown   ReplicaSetPhase = ""
-	ReplicaSetPending   ReplicaSetPhase = "Pending"
-	ReplicaSetRunning   ReplicaSetPhase = "Running"
-	ReplicaSetSucceeded ReplicaSetPhase = "Succeeded"
-	ReplicaSetFailed    ReplicaSetPhase = "Failed"
+	FuncUnknown   FuncPhase = ""
+	FuncPending   FuncPhase = "Pending"
+	FuncRunning   FuncPhase = "Running"
+	FuncSucceeded FuncPhase = "Succeeded"
+	FuncFailed    FuncPhase = "Failed"
 )
 
-func MinReplicaSetPhase(v ...ReplicaSetPhase) ReplicaSetPhase {
-	for _, p := range []ReplicaSetPhase{ReplicaSetFailed, ReplicaSetSucceeded, ReplicaSetPending, ReplicaSetRunning} {
+func MinFuncPhase(v ...FuncPhase) FuncPhase {
+	for _, p := range []FuncPhase{FuncFailed, FuncSucceeded, FuncPending, FuncRunning} {
 		for _, x := range v {
 			if x == p {
 				return p
 			}
 		}
 	}
-	return ReplicaSetUnknown
+	return FuncUnknown
 }
 
-type ReplicaSetStatus struct {
-	Phase ReplicaSetPhase `json:"phase"`
+type FuncStatus struct {
+	Phase FuncPhase `json:"phase"`
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:shortName=rs
+// +kubebuilder:resource:shortName=fn
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
-type ReplicaSet struct {
+type Func struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ReplicaSetSpec    `json:"spec"`
-	Status *ReplicaSetStatus `json:"status,omitempty"`
+	Spec   FuncSpec    `json:"spec"`
+	Status *FuncStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-type ReplicaSetList struct {
+type FuncList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ReplicaSet `json:"items"`
+	Items           []Func `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&ReplicaSet{}, &ReplicaSetList{})
+	SchemeBuilder.Register(&Func{}, &FuncList{})
 }

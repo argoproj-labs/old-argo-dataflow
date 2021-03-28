@@ -85,10 +85,10 @@ var _ = BeforeSuite(func(done Done) {
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 
-	err = (&ReplicaSetReconciler{
+	err = (&FuncReconciler{
 		Client: k8sClient,
 		Scheme: k8sManager.GetScheme(),
-		Log:    ctrl.Log.WithName("controllers").WithName("ReplicaSet"),
+		Log:    ctrl.Log.WithName("controllers").WithName("Func"),
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 

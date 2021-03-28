@@ -75,12 +75,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.ReplicaSetReconciler{
+	if err = (&controllers.FuncReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("ReplicaSet"),
+		Log:    ctrl.Log.WithName("controllers").WithName("Func"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ReplicaSet")
+		setupLog.Error(err, "unable to create controller", "controller", "Func")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

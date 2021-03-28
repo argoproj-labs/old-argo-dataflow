@@ -44,8 +44,8 @@ var _ = Describe("Pipeline controller", func() {
 					Nodes: []dfv1.Node{
 						{
 							Container: corev1.Container{
-								Name:     "my-node",
-								Image:    "docker/whalesay:latest",
+								Name:  "my-node",
+								Image: "docker/whalesay:latest",
 							},
 							Replicas: &dfv1.Replicas{Value: replicas},
 							Sources:  []dfv1.Source{{}},
@@ -56,7 +56,7 @@ var _ = Describe("Pipeline controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, p)).Should(Succeed())
 
-			d := &dfv1.ReplicaSet{}
+			d := &dfv1.Func{}
 			Eventually(func() error {
 				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-node"}, d)
 			}).

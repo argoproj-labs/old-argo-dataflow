@@ -6,16 +6,16 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: replicasets.dataflow.argoproj.io
+  name: funcs.dataflow.argoproj.io
 spec:
   group: dataflow.argoproj.io
   names:
-    kind: ReplicaSet
-    listKind: ReplicaSetList
-    plural: replicasets
+    kind: Func
+    listKind: FuncList
+    plural: funcs
     shortNames:
-    - rs
-    singular: replicaset
+    - fn
+    singular: func
   scope: Namespaced
   versions:
   - additionalPrinterColumns:

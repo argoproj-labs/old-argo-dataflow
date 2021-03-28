@@ -45,6 +45,7 @@ var (
 const (
 	KeyPipelineName = "dataflow.argoproj.io/pipeline-name"
 	KeyNodeName     = "dataflow.argoproj.io/node-name"
+	KeyReplica      = "dataflow.argoproj.io/replica"
 )
 
 var log = klogr.New()
@@ -68,7 +69,7 @@ type PipelineReconciler struct {
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=replicasets,verbs=get;watch;list;create
+// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=funcs,verbs=get;watch;list;create
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
@@ -84,7 +85,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	for _, node := range pipeline.Spec.Nodes {
 		deploymentName := "pipeline-" + pipeline.Name + "-" + node.Name
-		log.Info("creating replicaset (if not exists)", "nodeName", node.Name, "deploymentName", deploymentName)
+		log.Info("creating func (if not exists)", "nodeName", node.Name, "deploymentName", deploymentName)
 		volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
 		container := node.Container
 		container.Name = "main"
@@ -92,7 +93,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		matchLabels := map[string]string{KeyPipelineName: pipeline.Name, KeyNodeName: node.Name}
 		if err := r.Client.Create(
 			ctx,
-			&dfv1.ReplicaSet{
+			&dfv1.Func{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      deploymentName,
 					Namespace: pipeline.Namespace,
@@ -101,7 +102,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 						*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
 					},
 				},
-				Spec: dfv1.ReplicaSetSpec{
+				Spec: dfv1.FuncSpec{
 					Replicas: node.GetReplicas().Value,
 					Template: corev1.PodTemplateSpec{
 						ObjectMeta: metav1.ObjectMeta{Labels: matchLabels},
@@ -150,7 +151,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	rs := &dfv1.ReplicaSetList{}
+	rs := &dfv1.FuncList{}
 	selector, _ := labels.Parse(KeyPipelineName + "=" + pipeline.Name)
 	if err := r.Client.List(ctx, rs, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
@@ -168,19 +169,19 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			continue
 		}
 		switch rs.Status.Phase {
-		case dfv1.ReplicaSetUnknown, dfv1.ReplicaSetPending:
+		case dfv1.FuncUnknown, dfv1.FuncPending:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelinePending)
 			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodePending}
 			pending++
-		case dfv1.ReplicaSetRunning:
+		case dfv1.FuncRunning:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineRunning)
 			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeRunning}
 			running++
-		case dfv1.ReplicaSetSucceeded:
+		case dfv1.FuncSucceeded:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineSucceeded)
 			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeSucceeded}
 			succeeded++
-		case dfv1.ReplicaSetFailed:
+		case dfv1.FuncFailed:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineFailed)
 			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeFailed}
 			failed++
@@ -223,6 +224,6 @@ func IgnoreConflict(err error) error {
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dfv1.Pipeline{}).
-		Owns(&dfv1.ReplicaSet{}).
+		Owns(&dfv1.Func{}).
 		Complete(r)
 }

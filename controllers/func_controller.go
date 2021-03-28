@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -32,43 +33,43 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-// ReplicaSetReconciler reconciles a ReplicaSet object
-type ReplicaSetReconciler struct {
+// FuncReconciler reconciles a Func object
+type FuncReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=replicasets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=replicasets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=funcs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=funcs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=,resources=pods,verbs=get;watch;list;create
-func (r *ReplicaSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("replicaset", req.NamespacedName)
+func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := r.Log.WithValues("func", req.NamespacedName)
 
-	rs := &dfv1.ReplicaSet{}
-	if err := r.Get(ctx, req.NamespacedName, rs); err != nil {
+	fn := &dfv1.Func{}
+	if err := r.Get(ctx, req.NamespacedName, fn); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.Info("reconciling", "replicas", rs.Spec.GetReplicas())
+	replicas := fn.Spec.GetReplicas()
+	log.Info("reconciling", "replicas", replicas)
 
-	for i := 0; i < rs.Spec.GetReplicas(); i++ {
-		podName := fmt.Sprintf("%s-%d", rs.Name, i)
+	for i := 0; i < replicas; i++ {
+		podName := fmt.Sprintf("%s-%d", fn.Name, i)
 		log.Info("creating pod (if not exists)", "podName", podName)
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      podName,
-					Namespace: rs.Namespace,
-					Labels: map[string]string{
-						KeyNodeName: rs.Name,
-					},
+					Name:        podName,
+					Namespace:   fn.Namespace,
+					Labels:      map[string]string{KeyNodeName: fn.Name},
+					Annotations: map[string]string{KeyReplica: strconv.Itoa(i)},
 					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(rs.GetObjectMeta(), dfv1.GroupVersion.WithKind("ReplicaSet")),
+						*metav1.NewControllerRef(fn.GetObjectMeta(), dfv1.GroupVersion.WithKind("Func")),
 					},
 				},
-				Spec: rs.Spec.Template.Spec,
+				Spec: fn.Spec.Template.Spec,
 			},
 		); IgnoreAlreadyExists(err) != nil {
 			return ctrl.Result{}, err
@@ -76,23 +77,29 @@ func (r *ReplicaSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	pods := &corev1.PodList{}
-	selector, _ := labels.Parse(KeyNodeName + "=" + rs.Name)
+	selector, _ := labels.Parse(KeyNodeName + "=" + fn.Name)
 	if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	newStatus := &dfv1.ReplicaSetStatus{Phase: dfv1.ReplicaSetUnknown}
+	newStatus := &dfv1.FuncStatus{Phase: dfv1.FuncUnknown}
 
 	for _, pod := range pods.Items {
-		phase := inferPhase(pod)
-		log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
-		newStatus.Phase = dfv1.MinReplicaSetPhase(newStatus.Phase, phase)
+		if i, _ := strconv.Atoi(pod.GetAnnotations()[KeyReplica]); i >= replicas {
+			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
+				return ctrl.Result{}, err
+			}
+		} else {
+			phase := inferPhase(pod)
+			log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
+			newStatus.Phase = dfv1.MinFuncPhase(newStatus.Phase, phase)
+		}
 	}
 
-	if !reflect.DeepEqual(rs.Status, newStatus) {
-		log.Info("updating replicaset status", "phase", newStatus.Phase)
-		rs.Status = newStatus
-		if err := r.Status().Update(ctx, rs); IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+	if !reflect.DeepEqual(fn.Status, newStatus) {
+		log.Info("updating func status", "phase", newStatus.Phase)
+		fn.Status = newStatus
+		if err := r.Status().Update(ctx, fn); IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}
 	}
@@ -100,51 +107,51 @@ func (r *ReplicaSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	return ctrl.Result{}, nil
 }
 
-func inferPhase(pod corev1.Pod) dfv1.ReplicaSetPhase {
-	phase := dfv1.ReplicaSetUnknown
-	for _, s := range pod.Status.InitContainerStatuses{
-		phase = dfv1.MinReplicaSetPhase(phase, func() dfv1.ReplicaSetPhase {
+func inferPhase(pod corev1.Pod) dfv1.FuncPhase {
+	phase := dfv1.FuncUnknown
+	for _, s := range pod.Status.InitContainerStatuses {
+		phase = dfv1.MinFuncPhase(phase, func() dfv1.FuncPhase {
 			// init containers run to completion, but pod can still be running
 			if s.State.Running != nil {
-				return dfv1.ReplicaSetRunning
+				return dfv1.FuncRunning
 			} else if s.State.Waiting != nil {
 				switch s.State.Waiting.Reason {
 				case "CrashLoopBackOff":
-					return dfv1.ReplicaSetFailed
+					return dfv1.FuncFailed
 				default:
-					return dfv1.ReplicaSetPending
+					return dfv1.FuncPending
 				}
 			}
-			return dfv1.ReplicaSetUnknown
+			return dfv1.FuncUnknown
 		}())
 	}
 	for _, s := range pod.Status.ContainerStatuses {
-		phase = dfv1.MinReplicaSetPhase(phase, func() dfv1.ReplicaSetPhase {
+		phase = dfv1.MinFuncPhase(phase, func() dfv1.FuncPhase {
 			if s.State.Terminated != nil {
 				if int(s.State.Terminated.ExitCode) == 0 {
-					return dfv1.ReplicaSetSucceeded
+					return dfv1.FuncSucceeded
 				} else {
-					return dfv1.ReplicaSetFailed
+					return dfv1.FuncFailed
 				}
 			} else if s.State.Running != nil {
-				return dfv1.ReplicaSetRunning
+				return dfv1.FuncRunning
 			} else if s.State.Waiting != nil {
 				switch s.State.Waiting.Reason {
 				case "CrashLoopBackOff":
-					return dfv1.ReplicaSetFailed
+					return dfv1.FuncFailed
 				default:
-					return dfv1.ReplicaSetPending
+					return dfv1.FuncPending
 				}
 			}
-			return dfv1.ReplicaSetUnknown
+			return dfv1.FuncUnknown
 		}())
 	}
 	return phase
 }
 
-func (r *ReplicaSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *FuncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&dfv1.ReplicaSet{}).
+		For(&dfv1.Func{}).
 		Owns(&corev1.Pod{}).
 		Complete(r)
 }

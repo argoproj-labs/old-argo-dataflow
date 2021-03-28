@@ -9,7 +9,7 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - replicasets
+  - funcs
   verbs:
   - create
   - delete
@@ -21,7 +21,7 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - replicasets/status
+  - funcs/status
   verbs:
   - get
   - patch
