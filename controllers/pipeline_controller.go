@@ -42,7 +42,6 @@ var (
 	imagePullPolicy = corev1.PullIfNotPresent // TODO
 )
 
-
 var log = klogr.New()
 
 func init() {
@@ -76,16 +75,16 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	if pipeline.GetDeletionTimestamp() != nil {
+		return ctrl.Result{}, nil
+	}
+
 	log.Info("reconciling", "nodes", len(pipeline.Spec.Nodes))
 
-	for _, node := range pipeline.Spec.Nodes {
-		deploymentName := "pipeline-" + pipeline.Name + "-" + node.Name
-		log.Info("creating func (if not exists)", "nodeName", node.Name, "deploymentName", deploymentName)
-		volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
-		container := node.Container
-		container.Name = "main"
-		container.VolumeMounts = append(container.VolumeMounts, volMnt)
-		matchLabels := map[string]string{KeyPipelineName: pipeline.Name, KeyNodeName: node.Name}
+	for _, fn := range pipeline.Spec.Nodes {
+		deploymentName := "pipeline-" + pipeline.Name + "-" + fn.Name
+		log.Info("creating func (if not exists)", "nodeName", fn.Name, "deploymentName", deploymentName)
+		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyFuncName: fn.Name}
 		if err := r.Client.Create(
 			ctx,
 			&dfv1.Func{
@@ -97,73 +96,31 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 						*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
 					},
 				},
-				Spec: dfv1.FuncSpec{
-					Replicas: node.GetReplicas().Value,
-					Template: corev1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{Labels: matchLabels},
-						Spec: corev1.PodSpec{
-							RestartPolicy: node.GetRestartPolicy(),
-							Volumes: append(
-								node.Volumes,
-								corev1.Volume{
-									Name:         volMnt.Name,
-									VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
-								},
-							),
-							InitContainers: []corev1.Container{
-								{
-									Name:            "dataflow-init",
-									Image:           initImage,
-									ImagePullPolicy: imagePullPolicy,
-									VolumeMounts:    []corev1.VolumeMount{volMnt},
-								},
-							},
-							Containers: []corev1.Container{
-								{
-									Name:            "dataflow-sidecar",
-									Image:           sidecarImage,
-									ImagePullPolicy: imagePullPolicy,
-									Env: []corev1.EnvVar{
-										{Name: "PIPELINE_NAME", Value: pipeline.Name},
-										{Name: "NODE_NAME", Value: node.Name},
-										{Name: "NODE", Value: dfv1.Json(&dfv1.Node{
-											In:      node.In,
-											Out:     node.Out,
-											Sources: node.Sources,
-											Sinks:   node.Sinks,
-										})},
-									},
-									VolumeMounts: []corev1.VolumeMount{volMnt},
-								},
-								container,
-							},
-						},
-					},
-				},
+				Spec: fn,
 			},
 		); IgnoreAlreadyExists(err) != nil {
 			return ctrl.Result{}, err
 		}
 	}
 
-	rs := &dfv1.FuncList{}
-	selector, _ := labels.Parse(KeyPipelineName + "=" + pipeline.Name)
-	if err := r.Client.List(ctx, rs, &client.ListOptions{LabelSelector: selector}); err != nil {
+	funcs := &dfv1.FuncList{}
+	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipeline.Name)
+	if err := r.Client.List(ctx, funcs, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	pending, running, succeeded, failed, total := 0, 0, 0, 0, len(rs.Items)
+	pending, running, succeeded, failed, total := 0, 0, 0, 0, len(funcs.Items)
 	newStatus := &dfv1.PipelineStatus{
 		Phase:        dfv1.PipelineUnknown,
 		NodeStatuses: make([]dfv1.NodeStatus, total),
 		Conditions:   []metav1.Condition{},
 	}
-	for i, rs := range rs.Items {
-		nodeName := rs.GetLabels()[KeyNodeName]
-		if rs.Status == nil {
+	for i, fn := range funcs.Items {
+		nodeName := fn.GetLabels()[dfv1.KeyFuncName]
+		if fn.Status == nil {
 			continue
 		}
-		switch rs.Status.Phase {
+		switch fn.Status.Phase {
 		case dfv1.FuncUnknown, dfv1.FuncPending:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelinePending)
 			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodePending}
@@ -189,6 +146,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if newStatus.Phase == dfv1.PipelineRunning {
 		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Running", Status: metav1.ConditionTrue, Reason: "Running"})
+	} else {
+		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Running", Status: metav1.ConditionFalse, Reason: "Running"})
 	}
 
 	if !reflect.DeepEqual(pipeline.Status, newStatus) {

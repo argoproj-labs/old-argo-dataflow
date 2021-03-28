@@ -154,15 +154,15 @@ func (m *NATS) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_NATS proto.InternalMessageInfo
 
-func (m *Node) Reset()      { *m = Node{} }
-func (*Node) ProtoMessage() {}
-func (*Node) Descriptor() ([]byte, []int) {
+func (m *FuncSpec) Reset()      { *m = FuncSpec{} }
+func (*FuncSpec) ProtoMessage() {}
+func (*FuncSpec) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{4}
 }
-func (m *Node) XXX_Unmarshal(b []byte) error {
+func (m *FuncSpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *Node) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *FuncSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
 	if err != nil {
@@ -170,13 +170,13 @@ func (m *Node) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
-func (m *Node) XXX_Merge(src proto.Message) {
+func (m *FuncSpec) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Node.Merge(m, src)
 }
-func (m *Node) XXX_Size() int {
+func (m *FuncSpec) XXX_Size() int {
 	return m.Size()
 }
-func (m *Node) XXX_DiscardUnknown() {
+func (m *FuncSpec) XXX_DiscardUnknown() {
 	xxx_messageInfo_Node.DiscardUnknown(m)
 }
 
@@ -411,7 +411,7 @@ func init() {
 	proto.RegisterType((*Interface)(nil), "github.com.argoproj_labs.argo_dataflow.api.v1alpha1.Interface")
 	proto.RegisterType((*Kafka)(nil), "github.com.argoproj_labs.argo_dataflow.api.v1alpha1.Kafka")
 	proto.RegisterType((*NATS)(nil), "github.com.argoproj_labs.argo_dataflow.api.v1alpha1.NATS")
-	proto.RegisterType((*Node)(nil), "github.com.argoproj_labs.argo_dataflow.api.v1alpha1.Node")
+	proto.RegisterType((*FuncSpec)(nil), "github.com.argoproj_labs.argo_dataflow.api.v1alpha1.FuncSpec")
 	proto.RegisterType((*NodeStatus)(nil), "github.com.argoproj_labs.argo_dataflow.api.v1alpha1.NodeStatus")
 	proto.RegisterType((*Pipeline)(nil), "github.com.argoproj_labs.argo_dataflow.api.v1alpha1.Pipeline")
 	proto.RegisterType((*PipelineList)(nil), "github.com.argoproj_labs.argo_dataflow.api.v1alpha1.PipelineList")
@@ -634,7 +634,7 @@ func (m *NATS) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *Node) Marshal() (dAtA []byte, err error) {
+func (m *FuncSpec) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -644,12 +644,12 @@ func (m *Node) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *Node) MarshalTo(dAtA []byte) (int, error) {
+func (m *FuncSpec) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *Node) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *FuncSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1179,7 +1179,7 @@ func (m *NATS) Size() (n int) {
 	return n
 }
 
-func (m *Node) Size() (n int) {
+func (m *FuncSpec) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1409,7 +1409,7 @@ func (this *NATS) String() string {
 	}, "")
 	return s
 }
-func (this *Node) String() string {
+func (this *FuncSpec) String() string {
 	if this == nil {
 		return "nil"
 	}
@@ -1428,7 +1428,7 @@ func (this *Node) String() string {
 		repeatedStringForSinks += strings.Replace(strings.Replace(f.String(), "Sink", "Sink", 1), `&`, ``, 1) + ","
 	}
 	repeatedStringForSinks += "}"
-	s := strings.Join([]string{`&Node{`,
+	s := strings.Join([]string{`&FuncSpec{`,
 		`Container:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.Container), "Container", "v1.Container", 1), `&`, ``, 1) + `,`,
 		`Volumes:` + repeatedStringForVolumes + `,`,
 		`Replicas:` + strings.Replace(this.Replicas.String(), "Replicas", "Replicas", 1) + `,`,
@@ -1484,9 +1484,9 @@ func (this *PipelineSpec) String() string {
 	if this == nil {
 		return "nil"
 	}
-	repeatedStringForNodes := "[]Node{"
+	repeatedStringForNodes := "[]FuncSpec{"
 	for _, f := range this.Nodes {
-		repeatedStringForNodes += strings.Replace(strings.Replace(f.String(), "Node", "Node", 1), `&`, ``, 1) + ","
+		repeatedStringForNodes += strings.Replace(strings.Replace(f.String(), "FuncSpec", "FuncSpec", 1), `&`, ``, 1) + ","
 	}
 	repeatedStringForNodes += "}"
 	s := strings.Join([]string{`&PipelineSpec{`,
@@ -2008,7 +2008,7 @@ func (m *NATS) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *Node) Unmarshal(dAtA []byte) error {
+func (m *FuncSpec) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2031,10 +2031,10 @@ func (m *Node) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: Node: wiretype end group for non-group")
+			return fmt.Errorf("proto: FuncSpec: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Node: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: FuncSpec: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2774,7 +2774,7 @@ func (m *PipelineSpec) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Nodes = append(m.Nodes, Node{})
+			m.Nodes = append(m.Nodes, FuncSpec{})
 			if err := m.Nodes[len(m.Nodes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

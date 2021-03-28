@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/nats-io/nats.go"
@@ -22,19 +23,31 @@ import (
 
 var (
 	log             = klogr.New()
-	pipelineName    = os.Getenv("PIPELINE_NAME")
-	nodeName  = os.Getenv("NODE_NAME")
+	pipelineName    = os.Getenv(dfv1.EnvPipelineName)
 	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
 	defaultNATSURL  = "nats"
-	node            = &dfv1.Node{}
+	fn              = &dfv1.FuncSpec{}
 	config          = sarama.NewConfig()
 )
 
-const varRun = "/var/run/argo-dataflow"
+const (
+	varRun   = "/var/run/argo-dataflow"
+	killFile = "/tmp/kill"
+)
 
 func main() {
-	if err := mainE(); err != nil {
-		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 066); err != nil {
+	err := func() error {
+		switch os.Args[1] {
+		case "kill":
+			return ioutil.WriteFile(killFile, nil, 0600)
+		case "run":
+			return run()
+		default:
+			return fmt.Errorf("unknown comand")
+		}
+	}()
+	if err != nil {
+		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 0600); err != nil {
 			panic(err)
 		}
 		panic(err)
@@ -59,17 +72,17 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 	return nil
 }
 
-func mainE() error {
+func run() error {
 	ctx := signals.SetupSignalHandler()
 
-	if err := json.Unmarshal([]byte(os.Getenv("NODE")), node); err != nil {
+	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvFunc)), fn); err != nil {
 		return err
 	}
-	log.WithValues("node", node, "nodeName", nodeName, "pipelineName", pipelineName).Info("config")
+	log.WithValues("func", fn, "fn.Name", fn.Name, "pipelineName", pipelineName).Info("config")
 
-	config.ClientID = "dataflow-sidecar"
+	config.ClientID = dfv1.CtrSidecar
 
-	toSink, err := connnectSink()
+	toSink, err := connectSink()
 	if err != nil {
 		return err
 	}
@@ -89,22 +102,31 @@ func mainE() error {
 
 	log.Info("ready")
 
-	<-ctx.Done()
-
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			_, err := os.Stat(killFile)
+			if err == nil {
+				return nil
+			}
+			time.Sleep(3 * time.Second)
+		}
+	}
 }
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
-	for _, source := range node.Sources {
+	for _, source := range fn.Sources {
 		if source.NATS != nil {
 			url := defaultNATSURL
 			subject := "pipeline." + pipelineName + "." + source.NATS.Subject
 			log.Info("connecting source", "type", "nats", "url", url, "subject", subject)
-			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for node "+nodeName))
+			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for fn "+fn.Name))
 			if err != nil {
 				return fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
 			}
-			if _, err := nc.QueueSubscribe(subject, nodeName, func(m *nats.Msg) {
+			if _, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
 				if err := toMain(m.Data); err != nil {
 					log.Error(err, "failed to send message from nats to main")
 				} else {
@@ -117,7 +139,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			url := defaultKafkaURL
 			topic := source.Kafka.Topic
 			log.Info("connecting source", "type", "kafka", "url", url, "topic", topic)
-			group, err := sarama.NewConsumerGroup([]string{url}, nodeName, config)
+			group, err := sarama.NewConsumerGroup([]string{url}, fn.Name, config)
 			if err != nil {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
@@ -132,12 +154,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 }
 
 func connectTo() (func([]byte) error, error) {
-	if node.In == nil {
+	if fn.In == nil {
 		log.Info("no in interface configured")
 		return func(i []byte) error {
 			return fmt.Errorf("no in interface configured")
 		}, nil
-	} else if node.In.FIFO {
+	} else if fn.In.FIFO {
 		log.Info("FIFO in interface configured")
 		path := filepath.Join(varRun, "in")
 		log.WithValues("path", path).Info("opened input FIFO")
@@ -156,7 +178,7 @@ func connectTo() (func([]byte) error, error) {
 			log.Info("sent message from source to main via FIFO")
 			return nil
 		}, nil
-	} else if node.In.HTTP != nil {
+	} else if fn.In.HTTP != nil {
 		log.Info("HTTP in interface configured")
 		return func(data []byte) error {
 			log.Info("sending message from source to main via HTTP")
@@ -176,10 +198,10 @@ func connectTo() (func([]byte) error, error) {
 }
 
 func connectOut(toSink func([]byte) error) error {
-	if node.Out == nil {
+	if fn.Out == nil {
 		log.Info("no out interface configured")
 		return nil
-	} else if node.Out.FIFO {
+	} else if fn.Out.FIFO {
 		log.Info("FIFO out interface configured")
 		path := filepath.Join(varRun, "out")
 		go func() {
@@ -209,7 +231,7 @@ func connectOut(toSink func([]byte) error) error {
 			}
 		}()
 		return nil
-	} else if node.Out.HTTP != nil {
+	} else if fn.Out.HTTP != nil {
 		log.Info("HTTP out interface configured")
 		http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 			data, err := ioutil.ReadAll(r.Body)
@@ -242,14 +264,14 @@ func connectOut(toSink func([]byte) error) error {
 	}
 }
 
-func connnectSink() (func([]byte) error, error) {
+func connectSink() (func([]byte) error, error) {
 	var toSink func([]byte) error
-	for _, sink := range node.Sinks {
+	for _, sink := range fn.Sinks {
 		if sink.NATS != nil {
 			url := defaultNATSURL
 			subject := "pipeline." + pipelineName + "." + sink.NATS.Subject
 			log.Info("connecting sink", "type", "nats", "url", url, "subject", subject)
-			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for node "+nodeName))
+			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for fn "+fn.Name))
 			if err != nil {
 				return nil, fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
 			}

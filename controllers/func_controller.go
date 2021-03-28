@@ -19,8 +19,10 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -28,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -57,8 +58,19 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	replicas := fn.Spec.GetReplicas()
-	log.Info("reconciling", "replicas", replicas)
+	if fn.GetDeletionTimestamp() != nil {
+		return ctrl.Result{}, nil
+	}
+
+	pipelineName := fn.GetLabels()[dfv1.KeyPipelineName]
+	replicas := fn.Spec.GetReplicas().GetValue()
+
+	log.Info("reconciling", "replicas", replicas, "pipelineName", pipelineName)
+
+	volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
+	container := fn.Spec.Container
+	container.Name = "main"
+	container.VolumeMounts = append(container.VolumeMounts, volMnt)
 
 	for i := 0; i < replicas; i++ {
 		podName := fmt.Sprintf("%s-%d", fn.Name, i)
@@ -69,13 +81,51 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        podName,
 					Namespace:   fn.Namespace,
-					Labels:      map[string]string{KeyNodeName: fn.Name},
-					Annotations: map[string]string{KeyReplica: strconv.Itoa(i)},
+					Labels:      map[string]string{dfv1.KeyFuncName: fn.Name, dfv1.KeyPipelineName: pipelineName},
+					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(i)},
 					OwnerReferences: []metav1.OwnerReference{
 						*metav1.NewControllerRef(fn.GetObjectMeta(), dfv1.GroupVersion.WithKind("Func")),
 					},
 				},
-				Spec: fn.Spec.Template.Spec,
+				Spec: corev1.PodSpec{
+					RestartPolicy: fn.Spec.GetRestartPolicy(),
+					Volumes: append(
+						fn.Spec.Volumes,
+						corev1.Volume{
+							Name:         volMnt.Name,
+							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+						},
+					),
+					InitContainers: []corev1.Container{
+						{
+							Name:            dfv1.CtrInit,
+							Image:           initImage,
+							ImagePullPolicy: imagePullPolicy,
+							VolumeMounts:    []corev1.VolumeMount{volMnt},
+						},
+					},
+					Containers: []corev1.Container{
+						{
+							Name:            dfv1.CtrSidecar,
+							Image:           sidecarImage,
+							ImagePullPolicy: imagePullPolicy,
+							Command:         []string{"/sidecar"},
+							Args:            []string{"run"},
+							Env: []corev1.EnvVar{
+								{Name: dfv1.EnvPipelineName, Value: pipelineName},
+								{Name: dfv1.EnvFunc, Value: dfv1.Json(&dfv1.FuncSpec{
+									Container: corev1.Container{Name: fn.Name},
+									In:        fn.Spec.In,
+									Out:       fn.Spec.Out,
+									Sources:   fn.Spec.Sources,
+									Sinks:     fn.Spec.Sinks,
+								})},
+							},
+							VolumeMounts: []corev1.VolumeMount{volMnt},
+						},
+						container,
+					},
+				},
 			},
 		); IgnoreAlreadyExists(err) != nil {
 			return ctrl.Result{}, err
@@ -83,7 +133,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	pods := &corev1.PodList{}
-	selector, _ := labels.Parse(KeyNodeName + "=" + fn.Name)
+	selector, _ := labels.Parse(dfv1.KeyFuncName + "=" + fn.Name)
 	if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -91,7 +141,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	newStatus := &dfv1.FuncStatus{Phase: dfv1.FuncUnknown}
 
 	for _, pod := range pods.Items {
-		if i, _ := strconv.Atoi(pod.GetAnnotations()[KeyReplica]); i >= replicas {
+		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= replicas {
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, err
 			}
@@ -100,20 +150,33 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
 			newStatus.Phase = dfv1.MinFuncPhase(newStatus.Phase, phase)
 
-			if phase.Completed() {
-				log.Info("killing sidecar")
-				req := r.Kubernetes.CoreV1().RESTClient().Post().
-					Resource("pods").
-					Namespace(pod.Namespace).
-					Name(pod.Name).
-					SubResource("exec")
-				option := &corev1.PodExecOptions{
-					Container: KeySidecar,
-					Command:   []string{"kill", "-9", "--", "-1"},
+			for _, s := range pod.Status.ContainerStatuses {
+				if s.Name != "main" || s.State.Terminated == nil {
+					continue
 				}
-				req.VersionedParams(option, scheme.ParameterCodec)
-				if _, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", req.URL()); err != nil {
-					return ctrl.Result{}, err
+				url := r.Kubernetes.CoreV1().RESTClient().Post().
+					Resource("pods").
+					Name(pod.Name).
+					Namespace(pod.Namespace).
+					SubResource("exec").
+					Param("container", dfv1.CtrSidecar).
+					Param("stdout", "true").
+					Param("stderr", "true").
+					Param("tty", "false").
+					Param("command", "/sidecar").
+					Param("command", "kill").
+					URL()
+				log.Info("killing sidecar", "url", url)
+				exec, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", url)
+				if err != nil {
+					return ctrl.Result{}, fmt.Errorf("failed to exec %w", err)
+				}
+				if err := exec.Stream(remotecommand.StreamOptions{
+					Stdout: os.Stdout,
+					Stderr: os.Stderr,
+					Tty:    true,
+				}); IgnoreContainerNotFound(err) != nil {
+					return ctrl.Result{}, fmt.Errorf("failed to stream %w", err)
 				}
 			}
 		}
@@ -128,6 +191,13 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func IgnoreContainerNotFound(err error) error {
+	if err != nil && strings.Contains(err.Error(), "container not found") {
+		return nil
+	}
+	return err
 }
 
 func inferPhase(pod corev1.Pod) dfv1.FuncPhase {

@@ -16,7 +16,7 @@ build: generate manifests
 	go build ./...
 
 # Run tests
-test: generate
+test: build
 	go test ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
@@ -127,9 +127,9 @@ unnats:
 	kubectl -n $(NS) delete -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 
 examples/%.yaml: /dev/null
-	@kubectl delete pipeline --all > /dev/null
+	@kubectl delete pipeline --all --cascade=foreground > /dev/null
 	@echo " ▶ RUN $@"
 	@kubectl apply -f $@
 	@kubectl wait pipeline --all --for condition=Running
 	@echo
-test-examples: $(shell ls -cr examples/*.yaml | sort)
+test-examples: $(shell ls examples/*.yaml | sort)

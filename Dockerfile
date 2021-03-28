@@ -30,7 +30,7 @@ FROM gcr.io/distroless/static:nonroot AS sidecar
 WORKDIR /
 COPY --from=sidecar-builder /workspace/sidecar .
 USER nonroot:nonroot
-ENTRYPOINT ["/sidecar"]
+CMD ["/sidecar"]
 
 FROM builder AS init-builder
 COPY init/main.go main.go

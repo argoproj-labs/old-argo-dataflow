@@ -1,5 +1,14 @@
 ### Examples
 
+### [Runs to completion](completion-pipeline.yaml)
+
+This example shows running to completion.
+
+
+```
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/completion-pipeline.yaml
+```
+
 ### [Using FIFOs for input and outputs](fifos-pipeline.yaml)
 
 This example use named pipe to send and receive messages.

@@ -27,6 +27,13 @@ type Replicas struct {
 	Value *int32 `json:"value" protobuf:"varint,1,opt,name=value"`
 }
 
+func (in Replicas) GetValue() int {
+	if in.Value != nil {
+		return int(*in.Value)
+	}
+	return 1
+}
+
 type HTTP struct {
 }
 
@@ -35,7 +42,7 @@ type Interface struct {
 	HTTP *HTTP `json:"http,omitempty" protobuf:"bytes,2,opt,name=http"`
 }
 
-type Node struct {
+type FuncSpec struct {
 	corev1.Container `json:",inline" protobuf:"bytes,1,opt,name=container"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
@@ -48,14 +55,14 @@ type Node struct {
 	RestartPolicy corev1.RestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,8,rep,name=restartPolicy"`
 }
 
-func (in *Node) GetReplicas() Replicas {
+func (in *FuncSpec) GetReplicas() Replicas {
 	if in.Replicas != nil {
 		return *in.Replicas
 	}
 	return Replicas{}
 }
 
-func (in *Node) GetRestartPolicy() corev1.RestartPolicy {
+func (in *FuncSpec) GetRestartPolicy() corev1.RestartPolicy {
 	if in.RestartPolicy != "" {
 		return in.RestartPolicy
 	}
@@ -94,7 +101,7 @@ type Sink struct {
 type PipelineSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Nodes []Node `json:"nodes,omitempty" protobuf:"bytes,1,rep,name=nodes"`
+	Nodes []FuncSpec `json:"nodes,omitempty" protobuf:"bytes,1,rep,name=nodes"`
 }
 
 // +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
@@ -109,7 +116,7 @@ const (
 )
 
 func MinPipelinePhase(v ...PipelinePhase) PipelinePhase {
-	for _, p := range []PipelinePhase{PipelineFailed, PipelinePending, PipelineRunning} {
+	for _, p := range []PipelinePhase{PipelineFailed, PipelinePending, PipelineRunning, PipelineSucceeded} {
 		for _, x := range v {
 			if x == p {
 				return p

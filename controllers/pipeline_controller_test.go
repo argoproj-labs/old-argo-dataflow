@@ -41,7 +41,7 @@ var _ = Describe("Pipeline controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: dfv1.PipelineSpec{
-					Nodes: []dfv1.Node{
+					Nodes: []dfv1.FuncSpec{
 						{
 							Container: corev1.Container{
 								Name:  "my-node",
@@ -62,7 +62,7 @@ var _ = Describe("Pipeline controller", func() {
 			}).
 				Should(Succeed())
 
-			Expect(fn.Spec.Replicas).Should(Equal(replicas))
+			Expect(fn.Spec.Replicas.Value).Should(Equal(replicas))
 		})
 	})
 })

@@ -17,21 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-type FuncSpec struct {
-	Replicas *int32                 `json:"replicas,omitempty"`
-	Template corev1.PodTemplateSpec `json:"template"`
-}
-
-func (in *FuncSpec) GetReplicas() int {
-	if in.Replicas != nil {
-		return int(*in.Replicas)
-	}
-	return 1
-}
 
 // +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
 type FuncPhase string
@@ -49,7 +36,7 @@ const (
 )
 
 func MinFuncPhase(v ...FuncPhase) FuncPhase {
-	for _, p := range []FuncPhase{FuncFailed, FuncSucceeded, FuncPending, FuncRunning} {
+	for _, p := range []FuncPhase{FuncFailed, FuncPending, FuncRunning, FuncSucceeded} {
 		for _, x := range v {
 			if x == p {
 				return p
