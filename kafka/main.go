@@ -21,7 +21,7 @@ var (
 	tlsClientCert = flag.String("tls-client-cert", "", "Client cert for client authentication (use with -tls-enabled and -tls-client-key)")
 	tlsClientKey  = flag.String("tls-client-key", "", "Client key for client authentication (use with tls-enabled and -tls-client-cert)")
 
-	logger = log.New(os.Stderr, "", log.LstdFlags)
+	logger = log.New(os.Stdout, "", log.LstdFlags)
 )
 
 func main() {
@@ -58,13 +58,14 @@ func main() {
 	}
 	defer producer.Close()
 	err = func() error {
-		switch os.Args[1] {
+		cmd := flag.Args()[0]
+		switch cmd {
 		case "create-topic":
 			return createTopicCmd(admin)
 		case "pump-topic":
 			return pumpTopicCmd(producer)
 		default:
-			return fmt.Errorf("unknown comand")
+			return fmt.Errorf("unknown comand %q", cmd)
 		}
 	}()
 	if err != nil {
@@ -78,6 +79,7 @@ func pumpTopicCmd(producer sarama.AsyncProducer) error {
 			Topic: *topic,
 			Value: sarama.StringEncoder(fmt.Sprintf("my-val-%d", i)),
 		}
+		log.Printf("send %d\n", i)
 		time.Sleep(100 * time.Millisecond)
 	}
 }
