@@ -44,6 +44,14 @@ func auditMsg(m []byte) string {
 }
 
 func main() {
+	defer func() {
+		for _, c := range closers {
+			if err := c(); err != nil {
+				log.Error(err, "failed to close")
+			}
+		}
+	}()
+	ctx := signals.SetupSignalHandler()
 	err := func() error {
 		switch os.Args[1] {
 		case "cat":
@@ -53,7 +61,7 @@ func main() {
 		case "kill":
 			return killCmd()
 		case "sidecar":
-			return sidecarCmd()
+			return sidecarCmd(ctx)
 		default:
 			return fmt.Errorf("unknown comand")
 		}
@@ -124,15 +132,7 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 	return nil
 }
 
-func sidecarCmd() error {
-	defer func() {
-		for _, c := range closers {
-			if err := c(); err != nil {
-				log.Error(err, "failed to close")
-			}
-		}
-	}()
-	ctx := signals.SetupSignalHandler()
+func sidecarCmd(ctx context.Context) error {
 
 	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvFunc)), fn); err != nil {
 		return err
@@ -180,7 +180,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 	for _, source := range fn.Sources {
 		if source.NATS != nil {
 			url := defaultNATSURL
-			subject := "pipeline." + pipelineName + "." + source.NATS.Subject
+			subject := source.NATS.Subject
 			log.Info("connecting to source", "type", "nats", "url", url, "subject", subject)
 			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for fn "+fn.Name))
 			if err != nil {
@@ -190,7 +190,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				nc.Close()
 				return nil
 			})
-			if _, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
+			if sub, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
 				log.Info("◷ nats →")
 				if err := toMain(m.Data); err != nil {
 					log.Error(err, "failed to send message from nats to main")
@@ -198,7 +198,9 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					log.Info("✔ nats → ", "subject", subject)
 				}
 			}); err != nil {
-				return fmt.Errorf("failed to subscribe: %w", err)
+				return fmt.Errorf( "failed to subscribe: %w", err)
+			}else {
+				pending, _, err := sub.Pending()
 			}
 		} else if source.Kafka != nil {
 			url := defaultKafkaURL
@@ -212,6 +214,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			if err := group.Consume(ctx, []string{topic}, handler{toMain}); err != nil {
 				return fmt.Errorf("failed to create kafka consumer: %w", err)
 			}
+
 		} else {
 			return fmt.Errorf("source misconfigured")
 		}
@@ -337,7 +340,7 @@ func connectSink() (func([]byte) error, error) {
 	for _, sink := range fn.Sinks {
 		if sink.NATS != nil {
 			url := defaultNATSURL
-			subject := "pipeline." + pipelineName + "." + sink.NATS.Subject
+			subject := sink.NATS.Subject
 			log.Info("connecting sink", "type", "nats", "url", url, "subject", subject)
 			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for fn "+fn.Name))
 			if err != nil {

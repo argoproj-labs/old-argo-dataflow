@@ -17,9 +17,9 @@ metadata:
   name: replicas
 spec:
   funcs:
-  - image: argoproj/dataflow-runner:latest
-    args:
-      - cat
+  - args:
+    - cat
+    image: argoproj/dataflow-runner:latest
     imagePullPolicy: IfNotPresent
     in:
       http: {}

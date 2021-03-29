@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/Shopify/sarama/tools/tls"
@@ -24,43 +25,64 @@ var (
 )
 
 func main() {
-	if err := mainE(); err != nil {
-		println(err.Error())
-		os.Exit(1)
-	}
-}
-
-func mainE() error {
 	flag.Parse()
-
 	if *brokerList == "" {
-		return fmt.Errorf("you have to provide -brokers as a comma-separated list, or set the KAFKA_PEERS environment variable.")
+		panic(fmt.Errorf("you have to provide -brokers as a comma-separated list, or set the KAFKA_PEERS environment variable."))
 	}
-
 	if *topic == "" {
-		return fmt.Errorf("-topic is required")
+		panic(fmt.Errorf("-topic is required"))
 	}
-
 	if *verbose {
 		sarama.Logger = logger
 	}
-
 	config := sarama.NewConfig()
 	if *tlsEnabled {
 		tlsConfig, err := tls.NewConfig(*tlsClientCert, *tlsClientKey)
 		if err != nil {
-			return err
+			panic(err)
 		}
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = tlsConfig
 		config.Net.TLS.Config.InsecureSkipVerify = *tlsSkipVerify
 	}
 
-	admin, err := sarama.NewClusterAdmin(strings.Split(*brokerList, ","), config)
+	addrs := strings.Split(*brokerList, ",")
+	admin, err := sarama.NewClusterAdmin(addrs, config)
 	if err != nil {
-		return err
+		panic(err)
 	}
+	defer admin.Close()
+	producer, err := sarama.NewAsyncProducer(addrs, config)
+	if err != nil {
+		panic(err)
+	}
+	defer producer.Close()
+	err = func() error {
+		switch os.Args[1] {
+		case "create-topic":
+			return createTopicCmd(admin)
+		case "pump-topic":
+			return pumpTopicCmd(producer)
+		default:
+			return fmt.Errorf("unknown comand")
+		}
+	}()
+	if err != nil {
+		panic(err)
+	}
+}
 
+func pumpTopicCmd(producer sarama.AsyncProducer) error {
+	for i := 0; ; i++ {
+		producer.Input() <- &sarama.ProducerMessage{
+			Topic: *topic,
+			Value: sarama.StringEncoder(fmt.Sprintf("my-val-%d", i)),
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func createTopicCmd(admin sarama.ClusterAdmin) error {
 	if err := admin.CreateTopic(*topic, &sarama.TopicDetail{NumPartitions: 1, ReplicationFactor: 1}, false); err != nil {
 		if terr, ok := err.(*sarama.TopicError); ok && terr.Err == sarama.ErrTopicAlreadyExists {
 			_, _ = fmt.Fprintf(os.Stdout, "topic %q already exists\n", *topic)
