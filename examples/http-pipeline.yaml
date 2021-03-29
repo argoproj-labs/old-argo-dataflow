@@ -17,8 +17,10 @@ metadata:
   creationTimestamp: null
   name: http
 spec:
-  nodes:
-  - image: argoproj/dataflow-cat:latest
+  funcs:
+  - args:
+    - cat
+    image: argoproj/dataflow-runner:latest
     imagePullPolicy: IfNotPresent
     in:
       http: {}

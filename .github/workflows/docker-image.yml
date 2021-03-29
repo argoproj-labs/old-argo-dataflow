@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        target: [ cat, controller, init, sidecar ]
+        target: [ controller, runner ]
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-buildx-action@v1

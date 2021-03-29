@@ -47,27 +47,29 @@ func MinFuncPhase(v ...FuncPhase) FuncPhase {
 }
 
 type FuncStatus struct {
-	Phase FuncPhase `json:"phase"`
+	Phase   FuncPhase `json:"phase" protobuf:"bytes,1,opt,name=phase,casttype=FuncPhase"`
+	Message string    `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=fn
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 type Func struct {
 	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	Spec   FuncSpec    `json:"spec"`
-	Status *FuncStatus `json:"status,omitempty"`
+	Spec   FuncSpec    `json:"spec" protobuf:"bytes,2,opt,name=spec"`
+	Status *FuncStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 // +kubebuilder:object:root=true
 
 type FuncList struct {
 	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Func `json:"items"`
+	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+	Items           []Func `json:"items" protobuf:"bytes,2,rep,name=items"`
 }
 
 func init() {

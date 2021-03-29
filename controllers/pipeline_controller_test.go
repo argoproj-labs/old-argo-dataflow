@@ -41,7 +41,7 @@ var _ = Describe("Pipeline controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: dfv1.PipelineSpec{
-					Nodes: []dfv1.FuncSpec{
+					Funcs: []dfv1.FuncSpec{
 						{
 							Container: corev1.Container{
 								Name:  "my-node",

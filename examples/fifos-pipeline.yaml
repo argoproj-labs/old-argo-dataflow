@@ -15,7 +15,7 @@ metadata:
   creationTimestamp: null
   name: fifos
 spec:
-  nodes:
+  funcs:
   - args:
     - sh
     - -c

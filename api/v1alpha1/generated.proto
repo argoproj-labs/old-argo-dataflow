@@ -25,6 +25,50 @@ import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 // Package-wide variables from generator "generated".
 option go_package = "v1alpha1";
 
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:shortName=fn
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
+message Func {
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
+
+  optional FuncSpec spec = 2;
+
+  optional FuncStatus status = 3;
+}
+
+message FuncList {
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
+
+  repeated Func items = 2;
+}
+
+message FuncSpec {
+  optional k8s.io.api.core.v1.Container container = 1;
+
+  // +patchStrategy=merge
+  // +patchMergeKey=name
+  repeated k8s.io.api.core.v1.Volume volumes = 2;
+
+  optional Replicas replicas = 3;
+
+  optional Interface in = 4;
+
+  optional Interface out = 5;
+
+  repeated Source sources = 6;
+
+  repeated Sink sinks = 7;
+
+  optional string restartPolicy = 8;
+}
+
+message FuncStatus {
+  optional string phase = 1;
+
+  optional string message = 2;
+}
+
 message HTTP {
 }
 
@@ -50,36 +94,10 @@ message NATS {
   optional string subject = 3;
 }
 
-message Node {
-  optional k8s.io.api.core.v1.Container container = 1;
-
-  // +patchStrategy=merge
-  // +patchMergeKey=name
-  repeated k8s.io.api.core.v1.Volume volumes = 2;
-
-  optional Replicas replicas = 3;
-
-  optional Interface in = 4;
-
-  optional Interface out = 5;
-
-  repeated Source sources = 6;
-
-  repeated Sink sinks = 7;
-}
-
-message NodeStatus {
-  optional string name = 1;
-
-  optional string phase = 2;
-
-  optional string message = 3;
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=pl
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="PipelinePhase",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 message Pipeline {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
@@ -98,7 +116,7 @@ message PipelineList {
 message PipelineSpec {
   // +patchStrategy=merge
   // +patchMergeKey=name
-  repeated Node nodes = 1;
+  repeated FuncSpec funcs = 1;
 }
 
 message PipelineStatus {
@@ -107,8 +125,6 @@ message PipelineStatus {
   optional string message = 2;
 
   repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 3;
-
-  repeated NodeStatus nodeStatuses = 4;
 }
 
 message Replicas {

@@ -21,35 +21,13 @@ COPY --from=controller-builder /workspace/manager .
 USER nonroot:nonroot
 ENTRYPOINT ["/manager"]
 
-FROM builder AS sidecar-builder
-COPY sidecar/main.go main.go
+FROM builder AS runner-builder
+COPY runner/main.go main.go
 COPY api/ api/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o sidecar main.go
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o runner main.go
 
-FROM gcr.io/distroless/static:nonroot AS sidecar
+FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
-COPY --from=sidecar-builder /workspace/sidecar .
+COPY --from=runner-builder /workspace/runner .
 USER nonroot:nonroot
-CMD ["/sidecar"]
-
-FROM builder AS init-builder
-COPY init/main.go main.go
-COPY api/ api/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o init main.go
-
-FROM gcr.io/distroless/static:nonroot AS init
-WORKDIR /
-COPY --from=init-builder /workspace/init .
-USER nonroot:nonroot
-ENTRYPOINT ["/init"]
-
-FROM builder AS cat-builder
-COPY cat/main.go main.go
-COPY api/ api/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o cat main.go
-
-FROM gcr.io/distroless/static:nonroot AS cat
-WORKDIR /
-COPY --from=cat-builder /workspace/cat .
-USER nonroot:nonroot
-ENTRYPOINT ["/cat"]
+ENTRYPOINT ["/runner"]

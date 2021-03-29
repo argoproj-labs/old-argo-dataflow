@@ -102,7 +102,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: "Example pipeline"
 spec:
-  nodes:
+  funcs:
     - name: a
       sources:
         - kafka:

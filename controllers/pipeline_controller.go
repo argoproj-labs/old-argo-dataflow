@@ -19,40 +19,18 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
 	"reflect"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
-	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/klog/klogr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
-
-var (
-	initImage       = os.Getenv("INIT_IMAGE")
-	sidecarImage    = os.Getenv("SIDECAR_IMAGE")
-	imagePullPolicy = corev1.PullIfNotPresent // TODO
-)
-
-var log = klogr.New()
-
-func init() {
-	if initImage == "" {
-		initImage = "argoproj/dataflow-init:latest"
-	}
-	if sidecarImage == "" {
-		sidecarImage = "argoproj/dataflow-sidecar:latest"
-	}
-	log.WithValues("initImage", initImage, "sidecarImage", sidecarImage).Info("config")
-}
 
 // PipelineReconciler reconciles a Pipeline object
 type PipelineReconciler struct {
@@ -79,9 +57,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("reconciling", "nodes", len(pipeline.Spec.Nodes))
+	log.Info("reconciling", "funcs", len(pipeline.Spec.Funcs))
 
-	for _, fn := range pipeline.Spec.Nodes {
+	for _, fn := range pipeline.Spec.Funcs {
 		deploymentName := "pipeline-" + pipeline.Name + "-" + fn.Name
 		log.Info("creating func (if not exists)", "nodeName", fn.Name, "deploymentName", deploymentName)
 		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyFuncName: fn.Name}
@@ -111,31 +89,25 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	pending, running, succeeded, failed, total := 0, 0, 0, 0, len(funcs.Items)
 	newStatus := &dfv1.PipelineStatus{
-		Phase:        dfv1.PipelineUnknown,
-		NodeStatuses: make([]dfv1.NodeStatus, total),
-		Conditions:   []metav1.Condition{},
+		Phase:      dfv1.PipelineUnknown,
+		Conditions: []metav1.Condition{},
 	}
-	for i, fn := range funcs.Items {
-		nodeName := fn.GetLabels()[dfv1.KeyFuncName]
+	for _, fn := range funcs.Items {
 		if fn.Status == nil {
 			continue
 		}
 		switch fn.Status.Phase {
 		case dfv1.FuncUnknown, dfv1.FuncPending:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelinePending)
-			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodePending}
 			pending++
 		case dfv1.FuncRunning:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineRunning)
-			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeRunning}
 			running++
 		case dfv1.FuncSucceeded:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineSucceeded)
-			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeSucceeded}
 			succeeded++
 		case dfv1.FuncFailed:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineFailed)
-			newStatus.NodeStatuses[i] = dfv1.NodeStatus{Name: nodeName, Phase: dfv1.NodeFailed}
 			failed++
 		default:
 			panic("should never happen")
@@ -159,20 +131,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func IgnoreAlreadyExists(err error) error {
-	if apierr.IsAlreadyExists(err) {
-		return nil
-	}
-	return err
-}
-
-func IgnoreConflict(err error) error {
-	if apierr.IsConflict(err) {
-		return nil
-	}
-	return err
 }
 
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {

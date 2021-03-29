@@ -16,8 +16,10 @@ metadata:
   creationTimestamp: null
   name: replicas
 spec:
-  nodes:
-  - image: argoproj/dataflow-cat:latest
+  funcs:
+  - image: argoproj/dataflow-runner:latest
+    args:
+      - cat
     imagePullPolicy: IfNotPresent
     in:
       http: {}

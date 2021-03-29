@@ -43,7 +43,7 @@ spec:
             type: object
           spec:
             properties:
-              nodes:
+              funcs:
                 items:
                   properties:
                     args:
@@ -2809,24 +2809,6 @@ spec:
                 type: array
               message:
                 type: string
-              nodeStatuses:
-                items:
-                  properties:
-                    message:
-                      type: string
-                    name:
-                      type: string
-                    phase:
-                      enum:
-                      - Pending
-                      - Running
-                      - Succeeded
-                      - Failed
-                      type: string
-                  required:
-                  - name
-                  type: object
-                type: array
               phase:
                 enum:
                 - ""

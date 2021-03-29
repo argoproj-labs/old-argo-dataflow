@@ -101,7 +101,7 @@ type Sink struct {
 type PipelineSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Nodes []FuncSpec `json:"nodes,omitempty" protobuf:"bytes,1,rep,name=nodes"`
+	Funcs []FuncSpec `json:"funcs,omitempty" protobuf:"bytes,1,rep,name=funcs"`
 }
 
 // +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
@@ -126,27 +126,10 @@ func MinPipelinePhase(v ...PipelinePhase) PipelinePhase {
 	return PipelineUnknown
 }
 
-// +kubebuilder:validation:Enum=Pending;Running;Succeeded;Failed
-type NodePhase string
-
-const (
-	NodePending   NodePhase = "Pending"
-	NodeRunning   NodePhase = "Running"
-	NodeSucceeded NodePhase = "Succeeded"
-	NodeFailed    NodePhase = "Failed"
-)
-
-type NodeStatus struct {
-	Name    string    `json:"name" protobuf:"bytes,1,opt,name=name"`
-	Phase   NodePhase `json:"phase,omitempty" protobuf:"bytes,2,opt,name=phase,casttype=NodePhase"`
-	Message string    `json:"message,omitempty" protobuf:"bytes,3,opt,name=message"`
-}
-
 type PipelineStatus struct {
-	Phase        PipelinePhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=PipelinePhase"`
-	Message      string             `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
-	Conditions   []metav1.Condition `json:"conditions,omitempty" protobuf:"bytes,3,rep,name=conditions"`
-	NodeStatuses []NodeStatus       `json:"nodeStatuses,omitempty" protobuf:"bytes,4,rep,name=nodeStatuses"`
+	Phase      PipelinePhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=PipelinePhase"`
+	Message    string             `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Conditions []metav1.Condition `json:"conditions,omitempty" protobuf:"bytes,3,rep,name=conditions"`
 }
 
 // +kubebuilder:object:root=true

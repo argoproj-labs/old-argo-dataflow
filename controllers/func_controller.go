@@ -22,7 +22,6 @@ import (
 	"os"
 	"reflect"
 	"strconv"
-	"strings"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -99,7 +98,8 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					InitContainers: []corev1.Container{
 						{
 							Name:            dfv1.CtrInit,
-							Image:           initImage,
+							Image:           runnerImage,
+							Args:            []string{"init"},
 							ImagePullPolicy: imagePullPolicy,
 							VolumeMounts:    []corev1.VolumeMount{volMnt},
 						},
@@ -107,10 +107,9 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Containers: []corev1.Container{
 						{
 							Name:            dfv1.CtrSidecar,
-							Image:           sidecarImage,
+							Image:           runnerImage,
 							ImagePullPolicy: imagePullPolicy,
-							Command:         []string{"/sidecar"},
-							Args:            []string{"run"},
+							Args:            []string{"sidecar"},
 							Env: []corev1.EnvVar{
 								{Name: dfv1.EnvPipelineName, Value: pipelineName},
 								{Name: dfv1.EnvFunc, Value: dfv1.Json(&dfv1.FuncSpec{
@@ -149,6 +148,9 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			phase := inferPhase(pod)
 			log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
 			newStatus.Phase = dfv1.MinFuncPhase(newStatus.Phase, phase)
+			if newStatus.Phase.Completed() && pod.Status.Message != "" {
+				newStatus.Message = pod.Status.Message
+			}
 
 			for _, s := range pod.Status.ContainerStatuses {
 				if s.Name != "main" || s.State.Terminated == nil {
@@ -163,7 +165,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Param("stdout", "true").
 					Param("stderr", "true").
 					Param("tty", "false").
-					Param("command", "/sidecar").
+					Param("command", "/runner").
 					Param("command", "kill").
 					URL()
 				log.Info("killing sidecar", "url", url)
@@ -191,55 +193,6 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func IgnoreContainerNotFound(err error) error {
-	if err != nil && strings.Contains(err.Error(), "container not found") {
-		return nil
-	}
-	return err
-}
-
-func inferPhase(pod corev1.Pod) dfv1.FuncPhase {
-	phase := dfv1.FuncUnknown
-	for _, s := range pod.Status.InitContainerStatuses {
-		phase = dfv1.MinFuncPhase(phase, func() dfv1.FuncPhase {
-			// init containers run to completion, but pod can still be running
-			if s.State.Running != nil {
-				return dfv1.FuncRunning
-			} else if s.State.Waiting != nil {
-				switch s.State.Waiting.Reason {
-				case "CrashLoopBackOff":
-					return dfv1.FuncFailed
-				default:
-					return dfv1.FuncPending
-				}
-			}
-			return dfv1.FuncUnknown
-		}())
-	}
-	for _, s := range pod.Status.ContainerStatuses {
-		phase = dfv1.MinFuncPhase(phase, func() dfv1.FuncPhase {
-			if s.State.Terminated != nil {
-				if int(s.State.Terminated.ExitCode) == 0 {
-					return dfv1.FuncSucceeded
-				} else {
-					return dfv1.FuncFailed
-				}
-			} else if s.State.Running != nil {
-				return dfv1.FuncRunning
-			} else if s.State.Waiting != nil {
-				switch s.State.Waiting.Reason {
-				case "CrashLoopBackOff":
-					return dfv1.FuncFailed
-				default:
-					return dfv1.FuncPending
-				}
-			}
-			return dfv1.FuncUnknown
-		}())
-	}
-	return phase
 }
 
 func (r *FuncReconciler) SetupWithManager(mgr ctrl.Manager) error {

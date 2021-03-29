@@ -11,14 +11,13 @@ metadata:
     dataflow.argoproj.io/name: Word Count
   name: word-count
 spec:
-  nodes:
+  funcs:
   - args:
     - sh
     - -c
     - |
-      cat /in/text | tee /var/run/argo-dataflow/out
+      cat /in/text | tee -a /var/run/argo-dataflow/out
     image: debian:10.7-slim
-    imagePullPolicy: IfNotPresent
     name: read-text
     out:
       fifo: true
@@ -42,7 +41,7 @@ spec:
         for word in $sentence; do
             echo $word
         done
-      done | tee /var/run/argo-dataflow/out
+      done | tee -a /var/run/argo-dataflow/out
     image: debian:10.7-slim
     imagePullPolicy: IfNotPresent
     in:
@@ -70,9 +69,8 @@ spec:
             exit 0
         fi
         i=$((i+1))
-      done | tee /var/run/argo-dataflow/out
+      done | tee -a /var/run/argo-dataflow/out
     image: debian:10.7-slim
-    imagePullPolicy: IfNotPresent
     in:
       fifo: true
     name: count-words

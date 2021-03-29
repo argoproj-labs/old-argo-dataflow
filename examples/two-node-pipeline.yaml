@@ -16,8 +16,10 @@ metadata:
   creationTimestamp: null
   name: two-node
 spec:
-  nodes:
-  - image: argoproj/dataflow-cat:latest
+  funcs:
+  - args:
+    - cat
+    image: argoproj/dataflow-runner:latest
     imagePullPolicy: IfNotPresent
     in:
       http: {}
@@ -31,7 +33,9 @@ spec:
     sources:
     - kafka:
         topic: input-topic
-  - image: argoproj/dataflow-cat:latest
+  - args:
+    - cat
+    image: argoproj/dataflow-runner:latest
     imagePullPolicy: IfNotPresent
     in:
       http: {}

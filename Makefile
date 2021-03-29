@@ -66,14 +66,12 @@ lint:
 	golangci-lint run --fix
 	kubectl apply --dry-run=server -f examples
 
-cat-image:
-	docker build . --target cat        --tag argoproj/dataflow-cat:$(TAG)
-controller-image:
+.PHONY: controller
+controller:
 	docker build . --target controller --tag argoproj/dataflow-controller:$(TAG)
-init-image:
-	docker build . --target init       --tag argoproj/dataflow-init:$(TAG)
-sidecar-image:
-	docker build . --target sidecar    --tag argoproj/dataflow-sidecar:$(TAG)
+.PHONY: runner
+runner:
+	docker build . --target runner --tag argoproj/dataflow-runner:$(TAG)
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -112,6 +110,7 @@ kubebuilder:
 kafka:
 	kubectl get ns kafka || kubectl create ns kafka
 	kubectl -n kafka apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
+kafka-9092: kafka
 	kubectl -n kafka port-forward svc/broker 9092:9092
 unkafka:
 	kubectl delete ns kafka
@@ -119,10 +118,11 @@ unkafka:
 nats:
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
-	kubectl apply -k config/nats
-	kubectl port-forward svc/nats-ui 8282:8282
+nats-4222: nats
+	kubectl port-forward svc/nats 4222:4222
+nats-8222: nats
+	kubectl port-forward svc/nats 8222:8222
 unnats:
-	kubectl delete -k config/nats
 	kubectl -n $(NS) delete -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
 	kubectl -n $(NS) delete -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 
