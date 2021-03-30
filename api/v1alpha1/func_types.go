@@ -20,7 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-
 // +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
 type FuncPhase string
 
@@ -55,13 +54,13 @@ type Message struct {
 type SourceStatus struct {
 	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Total       int      `json:"total"` // TODO each replica needs its own total
+	Total       int      `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
 }
 
 type SinkStatus struct {
 	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Total       int      `json:"total"` // TODO each replica needs its own total
+	Total       int      `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
 }
 
 type SourceStatuses []SourceStatus
@@ -95,10 +94,14 @@ func (s *SinkStatuses) Set(name string, short string) {
 }
 
 type FuncStatus struct {
-	Phase         FuncPhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=FuncPhase"`
-	Message       string         `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Phase   FuncPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=FuncPhase"`
+	Message string    `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	// +patchStrategy=merge
+	// +patchMergeKey=name
 	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
-	SinkStatues   SinkStatuses   `json:"sinkStatuses,omitempty" protobuf:"bytes,4,rep,name=sinkStatuses"`
+	// +patchStrategy=merge
+	// +patchMergeKey=name
+	SinkStatues SinkStatuses `json:"sinkStatuses,omitempty" protobuf:"bytes,4,rep,name=sinkStatuses"`
 }
 
 // +kubebuilder:object:root=true

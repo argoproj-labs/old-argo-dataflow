@@ -69,8 +69,12 @@ message FuncStatus {
 
   optional string message = 2;
 
+  // +patchStrategy=merge
+  // +patchMergeKey=name
   repeated SourceStatus sourceStatuses = 3;
 
+  // +patchStrategy=merge
+  // +patchMergeKey=name
   repeated SinkStatus sinkStatuses = 4;
 }
 
@@ -154,6 +158,8 @@ message SinkStatus {
   optional string name = 1;
 
   optional Message lastMessage = 2;
+
+  optional int64 total = 3;
 }
 
 message Source {
@@ -168,5 +174,7 @@ message SourceStatus {
   optional string name = 1;
 
   optional Message lastMessage = 2;
+
+  optional int64 total = 3;
 }
 
