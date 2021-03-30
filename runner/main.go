@@ -38,16 +38,13 @@ var (
 	fn              = &dfv1.Func{}
 	config          = sarama.NewConfig()
 	closers         []func() error
+	updateInterval  = 15 * time.Second
 )
 
 const (
 	varRun   = "/var/run/argo-dataflow"
 	killFile = "/tmp/kill"
 )
-
-func init() {
-	replica, _ = strconv.Atoi(os.Getenv(dfv1.EnvReplica))
-}
 
 // format or redact message
 func short(m []byte) string {
@@ -127,6 +124,7 @@ func killCmd() error {
 type handler struct {
 	name         string
 	sourceToMain func([]byte) error
+	offset       int64
 }
 
 func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
@@ -139,6 +137,7 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 			log.Error(err, "failed to send message from kafka to main")
 		} else {
 			debug.Info("✔ kafka →")
+			h.offset = m.Offset
 			sess.MarkMessage(m, "")
 		}
 	}
@@ -150,7 +149,13 @@ func sidecarCmd(ctx context.Context) error {
 	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvFunc)), fn); err != nil {
 		return err
 	}
-	log.WithValues("funcName", fn.Name, "pipelineName", pipelineName).Info("config")
+
+	if v, err := strconv.Atoi(os.Getenv(dfv1.EnvReplica)); err != nil {
+		return err
+	} else {
+		replica = v
+	}
+	log.WithValues("funcName", fn.Name, "pipelineName", pipelineName, "replica", replica).Info("config")
 
 	fn.Status = &dfv1.FuncStatus{
 		SourceStatues: []dfv1.SourceStatus{},
@@ -198,7 +203,7 @@ func sidecarCmd(ctx context.Context) error {
 				err != nil {
 				log.Error(err, "failed to patch func status")
 			}
-			time.Sleep(10 * time.Second)
+			time.Sleep(updateInterval)
 		}
 	}()
 	log.Info("ready")
@@ -247,10 +252,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						if pending, _, err := sub.Pending(); err != nil {
 							log.Error(err, "failed to get pending", "subject", subject)
 						} else {
-							log.Info("setting pending", "subject", subject, "pending", pending)
-							fn.Status.SourceStatues.SetPending(source.Name, replica, pending)
+							debug.Info("setting pending", "subject", subject, "pending", pending)
+							fn.Status.SourceStatues.SetPending(source.Name, replica, int64(pending))
 						}
-						time.Sleep(15 * time.Second)
+						time.Sleep(updateInterval)
 					}
 				}()
 			}
@@ -258,17 +263,36 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			url := defaultKafkaURL
 			topic := source.Kafka.Topic
 			log.Info("connecting kafka source", "type", "kafka", "url", url, "topic", topic)
+			client, err := sarama.NewClient([]string{url}, config) // I am not giving any configuration
+			if err != nil {
+				return fmt.Errorf("failed to create kafka client: %w", err)
+			}
+			closers = append(closers, client.Close)
 			group, err := sarama.NewConsumerGroup([]string{url}, fn.Name, config)
 			if err != nil {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
 			closers = append(closers, group.Close)
+			handler := handler{source.Name, toMain, 0}
 			go func() {
 				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
-				if err := group.Consume(ctx, []string{topic}, handler{source.Name, toMain}); err != nil {
+				if err := group.Consume(ctx, []string{topic}, handler); err != nil {
 					log.Error(err, "failed to create kafka consumer")
 				}
-
+			}()
+			go func() {
+				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+				for {
+					newestOffset, err := client.GetOffset(topic, 0, sarama.OffsetNewest)
+					if err != nil {
+						log.Error(err, "failed to get offset", "topic", topic)
+					} else {
+						pending := newestOffset - handler.offset
+						debug.Info("setting pending", "type", "kafka", "topic", topic, "pending", pending)
+						fn.Status.SourceStatues.SetPending(source.Name, replica, pending)
+					}
+					time.Sleep(updateInterval)
+				}
 			}()
 		} else {
 			return fmt.Errorf("source misconfigured")

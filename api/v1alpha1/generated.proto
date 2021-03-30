@@ -105,10 +105,9 @@ message Message {
 }
 
 message Metrics {
-  optional uint64 total = 1;
+  optional uint32 replica = 4;
 
-  // messages per second
-  optional uint64 rate = 2;
+  optional uint64 total = 1;
 
   optional uint64 pending = 3;
 }
@@ -171,6 +170,8 @@ message SinkStatus {
 
   optional Message lastMessage = 2;
 
+  // +patchStrategy=merge
+  // +patchMergeKey=replica
   repeated Metrics metrics = 3;
 }
 
@@ -187,6 +188,8 @@ message SourceStatus {
 
   optional Message lastMessage = 2;
 
+  // +patchStrategy=merge
+  // +patchMergeKey=replica
   repeated Metrics metrics = 3;
 }
 

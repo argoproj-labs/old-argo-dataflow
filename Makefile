@@ -110,6 +110,7 @@ kubebuilder:
 	tar -zxvf kubebuilder_$(version)_$(name)_$(arch).tar.gz
 	mv kubebuilder_$(version)_$(name)_$(arch) kubebuilder && sudo mv kubebuilder /usr/local/
 
+.PHONY: kafka
 kafka:
 	kubectl get ns kafka || kubectl create ns kafka
 	kubectl -n kafka apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3

@@ -34,6 +34,8 @@ pipelines composed of many tasks is typcially small and homogenic.
   or docker image), Kubernetes
 * [Apache Beam](https://beam.apache.org/) see
   also [Beam Capability Matrix](https://beam.apache.org/documentation/runners/capability-matrix/)
+* Kafka
+* NATS Streaming
 
 ## Collaborators and Consulted
 
@@ -110,7 +112,8 @@ spec:
             topic: input-topic
       in:
         http: { }
-      image: argoproj/dataflow-cat:latest
+      image: argoproj/dataflow-runner:latest
+      args: [ cat ]
       out:
         http: { }
       sinks:
@@ -123,7 +126,8 @@ spec:
             subject: a-b
       in:
         http: { }
-      image: argoproj/dataflow-cat:latest
+      image: argoproj/dataflow-runner:latest
+      args: [ cat ]
       replicas:
         value: 2
       out:
@@ -138,25 +142,35 @@ spec:
 
 [![Architecture](docs/assets/architecture.png)](https://docs.google.com/drawings/d/1Dk7mgZ3jKpBg_DQ3c8og04ULoKpGTGUt52pBE-Vet2o/edit)
 
-### Long Running Pods
-
-Starting and stopping pods is expensive. In MVP, I believe we should support pod-reuse.
-
 ### Data Format
 
 Similar to CloudEvents. Enable easy interop with other compliant tools.
 
 ### Data Input/Output Options
 
-* HTTP endpoint - slower, but easier to get right
-* named pipes - not commonly used, but core Linux capability for IPC
+#### HTTP
+
+Slower, but easier to get right.
+
+To receive messages from sinks via HTTP, expose an endpoint on `http://localhost:8080/messages`. Dataflow will POST each message to it.
+
+To send messages to source via HTTP, POST the message to `http://localhost:3569/messages`.
+
+#### FIFO
+
+Core Linux capability for IPC.
+
+Read messages from `/var/run/argo-dataflow/in` and write them to `/var/run/argo-dataflow/out`. Each messages must be a single line - you must escape new lines.
+
+#### Future
+
 * files - chunky - but great for grouping by key
 * socket - fast, but the low level programming is hard to get right
 * stdin/stdout - performance can be poor on these - can be achived more easily and flexible using FIFO
 
 We may well want several options.
 
-### Data Chunking
+### Data Chunking (Future)
 
 After discussing with @vigith, we need to support this. We need to provide a way for a user to decide when a chunk
 starts and end, this maybe a function itself. A pod will receive a sequence of messages as a series of frames, e.g.

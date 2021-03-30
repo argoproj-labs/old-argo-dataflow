@@ -52,22 +52,25 @@ type Message struct {
 }
 
 type Metrics struct {
-	Total uint64 `json:"total" protobuf:"varint,1,opt,name=total"`
-	// messages per second
-	Rate    uint64 `json:"rate,omitempty" protobuf:"varint,2,opt,name=rate"`
+	Replica uint32 `json:"replica" protobuf:"varint,4,opt,name=replica"`
+	Total   uint64 `json:"total,omitempty" protobuf:"varint,1,opt,name=total"`
 	Pending uint64 `json:"pending,omitempty" protobuf:"varint,3,opt,name=pending"`
 }
 
 type SourceStatus struct {
-	Name        string    `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	LastMessage *Message  `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Metrics     []Metrics `json:"metrics,omitempty" protobuf:"bytes,3,rep,name=metrics"`
+	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
+	// +patchStrategy=merge
+	// +patchMergeKey=replica
+	Metrics []Metrics `json:"metrics,omitempty" protobuf:"bytes,3,rep,name=metrics"`
 }
 
 type SinkStatus struct {
-	Name        string    `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	LastMessage *Message  `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Metrics     []Metrics `json:"metrics,omitempty" protobuf:"bytes,3,rep,name=metrics"`
+	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
+	// +patchStrategy=merge
+	// +patchMergeKey=replica
+	Metrics []Metrics `json:"metrics,omitempty" protobuf:"bytes,3,rep,name=metrics"`
 }
 
 type SourceStatuses []SourceStatus
@@ -77,8 +80,8 @@ func (s *SourceStatuses) Set(name string, replica int, short string) {
 	for i, x := range *s {
 		if x.Name == name {
 			x.LastMessage = m
-			for len(x.Metrics) < replica {
-				x.Metrics = append(x.Metrics, Metrics{})
+			for j := len(x.Metrics); j <= replica; j++ {
+				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(j)})
 			}
 			x.Metrics[i].Total++
 			(*s)[i] = x
@@ -88,11 +91,11 @@ func (s *SourceStatuses) Set(name string, replica int, short string) {
 	*s = append(*s, SourceStatus{Name: name, LastMessage: m})
 }
 
-func (s *SourceStatuses) SetPending(name string, replica, pending int) {
+func (s *SourceStatuses) SetPending(name string, replica int, pending int64) {
 	for i, x := range *s {
 		if x.Name == name {
-			for len(x.Metrics) <= replica {
-				x.Metrics = append(x.Metrics, Metrics{})
+			for j := len(x.Metrics); j <= replica; j++ {
+				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(j)})
 			}
 			x.Metrics[i].Pending = uint64(pending)
 			(*s)[i] = x
@@ -100,6 +103,7 @@ func (s *SourceStatuses) SetPending(name string, replica, pending int) {
 		}
 	}
 	metrics := make([]Metrics, replica+1)
+	metrics[replica].Replica = uint32(replica)
 	metrics[replica].Pending = uint64(pending)
 	*s = append(*s, SourceStatus{Metrics: metrics})
 }
@@ -111,8 +115,8 @@ func (s *SinkStatuses) Set(name string, replica int, short string) {
 	for i, x := range *s {
 		if x.Name == name {
 			x.LastMessage = m
-			for len(x.Metrics) <= replica {
-				x.Metrics = append(x.Metrics, Metrics{})
+			for i := len(x.Metrics); i <= replica; i++ {
+				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(i)})
 			}
 			x.Metrics[i].Total++
 			(*s)[i] = x

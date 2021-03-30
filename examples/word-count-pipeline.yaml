@@ -50,7 +50,7 @@ spec:
     out:
       fifo: true
     replicas:
-      value: 3
+      value: 5
     resources: {}
     sinks:
     - nats:

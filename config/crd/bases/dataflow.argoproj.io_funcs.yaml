@@ -2633,15 +2633,14 @@ spec:
                           pending:
                             format: int64
                             type: integer
-                          rate:
-                            description: messages per second
-                            format: int64
+                          replica:
+                            format: int32
                             type: integer
                           total:
                             format: int64
                             type: integer
                         required:
-                        - total
+                        - replica
                         type: object
                       type: array
                     name:
@@ -2668,15 +2667,14 @@ spec:
                           pending:
                             format: int64
                             type: integer
-                          rate:
-                            description: messages per second
-                            format: int64
+                          replica:
+                            format: int32
                             type: integer
                           total:
                             format: int64
                             type: integer
                         required:
-                        - total
+                        - replica
                         type: object
                       type: array
                     name:
