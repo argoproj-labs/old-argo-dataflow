@@ -2623,6 +2623,10 @@ spec:
                       type: object
                     name:
                       type: string
+                    rate:
+                      description: messages per second
+                      format: int64
+                      type: integer
                     total:
                       format: int64
                       type: integer
@@ -2646,6 +2650,13 @@ spec:
                       type: object
                     name:
                       type: string
+                    pending:
+                      format: int64
+                      type: integer
+                    rate:
+                      description: messages per second
+                      format: int64
+                      type: integer
                     total:
                       format: int64
                       type: integer

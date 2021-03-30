@@ -54,13 +54,18 @@ type Message struct {
 type SourceStatus struct {
 	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Total       int64    `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
+	Total       uint64   `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
+	// messages per second
+	Rate    uint64 `json:"rate,omitempty" protobuf:"varint,4,opt,name=rate"`       // TODO each replica needs its own total
+	Pending uint64 `json:"pending,omitempty" protobuf:"varint,5,opt,name=pending"` // TODO each replica needs its own total
 }
 
 type SinkStatus struct {
 	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Total       int64    `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
+	Total       uint64   `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
+	// messages per second
+	Rate uint64 `json:"rate,omitempty" protobuf:"varint,4,opt,name=rate"` // TODO each replica needs its own total
 }
 
 type SourceStatuses []SourceStatus
@@ -76,6 +81,17 @@ func (s *SourceStatuses) Set(name string, short string) {
 		}
 	}
 	*s = append(*s, SourceStatus{Name: name, LastMessage: m})
+}
+
+func (s *SourceStatuses) SetPending(name string, pending int) {
+	for i, x := range *s {
+		if x.Name == name {
+			x.Pending = uint64(pending)
+			(*s)[i] = x
+			return
+		}
+	}
+	*s = append(*s, SourceStatus{Pending: uint64(pending)})
 }
 
 type SinkStatuses []SinkStatus

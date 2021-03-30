@@ -159,7 +159,10 @@ message SinkStatus {
 
   optional Message lastMessage = 2;
 
-  optional int64 total = 3;
+  optional uint64 total = 3;
+
+  // messages per second
+  optional uint64 rate = 4;
 }
 
 message Source {
@@ -175,6 +178,12 @@ message SourceStatus {
 
   optional Message lastMessage = 2;
 
-  optional int64 total = 3;
+  optional uint64 total = 3;
+
+  // messages per second
+  optional uint64 rate = 4;
+
+  // TODO each replica needs its own total
+  optional uint64 pending = 5;
 }
 

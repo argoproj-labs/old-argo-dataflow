@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	brokerList    = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The comma separated list of brokers in the Kafka cluster")
-	topic         = flag.String("topic", "", "REQUIRED: the topic to consume")
+	brokerList    = flag.String("brokers", defaultPeers(), "The comma separated list of brokers in the Kafka cluster")
+	topic         = flag.String("topic", "input-topic", "The topic to")
 	verbose       = flag.Bool("verbose", false, "Whether to turn on sarama logging")
 	tlsEnabled    = flag.Bool("tls-enabled", false, "Whether to enable TLS")
 	tlsSkipVerify = flag.Bool("tls-skip-verify", false, "Whether skip TLS server cert verification")
@@ -23,6 +23,13 @@ var (
 
 	logger = log.New(os.Stdout, "", log.LstdFlags)
 )
+
+func defaultPeers() string {
+	if env, ok := os.LookupEnv("KAFKA_PEERS"); ok {
+		return env
+	}
+	return "kafka-0.broker.kafka.svc.cluster.local:9092"
+}
 
 func main() {
 	flag.Parse()
@@ -73,14 +80,25 @@ func main() {
 	}
 }
 
+var (
+	message = flag.String("message", "my-val-%d", "message format")
+	sleep   = flag.String("sleep", "1s", "how long to sleep")
+)
+
 func pumpTopicCmd(producer sarama.AsyncProducer) error {
+	duration, err := time.ParseDuration(*sleep)
+	if err != nil {
+		return err
+	}
+	start := time.Now()
 	for i := 0; ; i++ {
+		x := fmt.Sprintf(*message, i)
 		producer.Input() <- &sarama.ProducerMessage{
 			Topic: *topic,
-			Value: sarama.StringEncoder(fmt.Sprintf("my-val-%d", i)),
+			Value: sarama.StringEncoder(x),
 		}
-		log.Printf("send %d\n", i)
-		time.Sleep(3*time.Second)
+		log.Printf("sent %q (%.0f/s)\n", x, (1+float64(i))/time.Since(start).Seconds())
+		time.Sleep(duration)
 	}
 }
 

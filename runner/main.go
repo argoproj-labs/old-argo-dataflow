@@ -162,26 +162,20 @@ func sidecarCmd(ctx context.Context) error {
 		return err
 	}
 
-	println("ALEX", 4)
-
 	toMain, err := connectTo()
 	if err != nil {
 		return err
 	}
-	println("ALEX", 5)
 
 	if err := connectSources(ctx, toMain); err != nil {
 		return err
 	}
 
-	println("ALEX", 0)
 	dynamicInterface := dynamic.NewForConfigOrDie(ctrl.GetConfigOrDie())
 
 	go func() {
-		println("ALEX", 1)
-		runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 		for {
-			println("ALEX", 3)
 			patch := dfv1.Json(&dfv1.Func{Status: fn.Status})
 			log.Info("patching func status (sinks/sources)", "patch", patch)
 			if _, err := dynamicInterface.
@@ -198,10 +192,9 @@ func sidecarCmd(ctx context.Context) error {
 				err != nil {
 				log.Error(err, "failed to patch func status")
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 	}()
-	println("ALEX", 2)
 	log.Info("ready")
 	for {
 		select {
@@ -231,7 +224,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				nc.Close()
 				return nil
 			})
-			if _, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
+			if sub, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
 				log.Info("◷ nats →", "m", short(m.Data))
 				fn.Status.SourceStatues.Set(source.Name, short(m.Data))
 				if err := toMain(m.Data); err != nil {
@@ -241,6 +234,19 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				}
 			}); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
+			} else {
+				go func() {
+					defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+					for {
+						if pending, _, err := sub.Pending(); err != nil {
+							log.Error(err, "failed to get pending", "subject", subject)
+						} else {
+							log.Info("setting pending", "subject", subject, "pending", pending)
+							fn.Status.SourceStatues.SetPending(source.Name, pending)
+						}
+						time.Sleep(15 * time.Second)
+					}
+				}()
 			}
 		} else if source.Kafka != nil {
 			url := defaultKafkaURL
@@ -252,7 +258,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			}
 			closers = append(closers, group.Close)
 			go func() {
-				runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 				if err := group.Consume(ctx, []string{topic}, handler{source.Name, toMain}); err != nil {
 					log.Error(err, "failed to create kafka consumer")
 				}
@@ -318,7 +324,7 @@ func connectOut(toSink func([]byte) error) error {
 		log.Info("FIFO out interface configured")
 		path := filepath.Join(varRun, "out")
 		go func() {
-			runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+			defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 			err := func() error {
 				fifo, err := os.OpenFile(path, os.O_RDONLY, os.ModeNamedPipe)
 				if err != nil {
@@ -364,7 +370,7 @@ func connectOut(toSink func([]byte) error) error {
 			w.WriteHeader(200)
 		})
 		go func() {
-			runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+			defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 			log.Info("starting HTTP server")
 			err := http.ListenAndServe(":3569", nil)
 			if err != nil {
