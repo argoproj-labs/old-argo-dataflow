@@ -54,13 +54,13 @@ type Message struct {
 type SourceStatus struct {
 	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Total       int      `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
+	Total       int64    `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
 }
 
 type SinkStatus struct {
 	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Total       int      `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
+	Total       int64    `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
 }
 
 type SourceStatuses []SourceStatus
