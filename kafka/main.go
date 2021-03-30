@@ -80,7 +80,7 @@ func pumpTopicCmd(producer sarama.AsyncProducer) error {
 			Value: sarama.StringEncoder(fmt.Sprintf("my-val-%d", i)),
 		}
 		log.Printf("send %d\n", i)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(3*time.Second)
 	}
 }
 

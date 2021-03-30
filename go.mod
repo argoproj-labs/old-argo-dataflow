@@ -14,6 +14,7 @@ require (
 	github.com/nats-io/nkeys v0.1.4 // indirect
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449 // indirect
 	golang.org/x/tools v0.0.0-20200717024301-6ddee64345a6 // indirect

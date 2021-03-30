@@ -15,9 +15,13 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/nats-io/nats.go"
-	"k8s.io/apimachinery/pkg/util/runtime"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/klog/klogr"
 	"k8s.io/utils/strings"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -25,10 +29,11 @@ import (
 
 var (
 	log             = klogr.New()
+	debug           = log.V(4)
 	pipelineName    = os.Getenv(dfv1.EnvPipelineName)
 	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
 	defaultNATSURL  = "nats"
-	fn              = &dfv1.FuncSpec{}
+	fn              = &dfv1.Func{}
 	config          = sarama.NewConfig()
 	closers         []func() error
 )
@@ -39,7 +44,7 @@ const (
 )
 
 // format or redact message
-func auditMsg(m []byte) string {
+func short(m []byte) string {
 	return strings.ShortenString(string(m), 16)
 }
 
@@ -114,6 +119,7 @@ func killCmd() error {
 }
 
 type handler struct {
+	name         string
 	sourceToMain func([]byte) error
 }
 
@@ -121,11 +127,12 @@ func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
-		log.Info("◷ kafka →")
+		log.Info("◷ kafka →", "m", short(m.Value))
+		fn.Status.SourceStatues.Set(h.name, short(m.Value))
 		if err := h.sourceToMain(m.Value); err != nil {
 			log.Error(err, "failed to send message from kafka to main")
 		} else {
-			log.Info("✔ kafka →")
+			debug.Info("✔ kafka →")
 			sess.MarkMessage(m, "")
 		}
 	}
@@ -137,7 +144,12 @@ func sidecarCmd(ctx context.Context) error {
 	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvFunc)), fn); err != nil {
 		return err
 	}
-	log.WithValues("func", fn, "fn.Name", fn.Name, "pipelineName", pipelineName).Info("config")
+	log.WithValues("funcName", fn.Name, "pipelineName", pipelineName).Info("config")
+
+	fn.Status = &dfv1.FuncStatus{
+		SourceStatues: []dfv1.SourceStatus{},
+		SinkStatues:   []dfv1.SinkStatus{},
+	}
 
 	config.ClientID = dfv1.CtrSidecar
 
@@ -150,24 +162,53 @@ func sidecarCmd(ctx context.Context) error {
 		return err
 	}
 
+	println("ALEX", 4)
+
 	toMain, err := connectTo()
 	if err != nil {
 		return err
 	}
+	println("ALEX", 5)
 
 	if err := connectSources(ctx, toMain); err != nil {
 		return err
 	}
 
-	log.Info("ready")
+	println("ALEX", 0)
+	dynamicInterface := dynamic.NewForConfigOrDie(ctrl.GetConfigOrDie())
 
+	go func() {
+		println("ALEX", 1)
+		runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		for {
+			println("ALEX", 3)
+			patch := dfv1.Json(&dfv1.Func{Status: fn.Status})
+			log.Info("patching func status (sinks/sources)", "patch", patch)
+			if _, err := dynamicInterface.
+				Resource(dfv1.FuncsGroupVersionResource).
+				Namespace(fn.Namespace).
+				Patch(
+					ctx,
+					fn.Name,
+					types.MergePatchType,
+					[]byte(patch),
+					metav1.PatchOptions{},
+					"status",
+				);
+				err != nil {
+				log.Error(err, "failed to patch func status")
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
+	println("ALEX", 2)
+	log.Info("ready")
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
-			_, err := os.Stat(killFile)
-			if err == nil {
+			if _, err := os.Stat(killFile); err == nil {
 				log.Info("kill file has appeared, exiting")
 				return nil
 			}
@@ -177,7 +218,7 @@ func sidecarCmd(ctx context.Context) error {
 }
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
-	for _, source := range fn.Sources {
+	for _, source := range fn.Spec.Sources {
 		if source.NATS != nil {
 			url := defaultNATSURL
 			subject := source.NATS.Subject
@@ -190,17 +231,16 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				nc.Close()
 				return nil
 			})
-			if sub, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
-				log.Info("◷ nats →")
+			if _, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
+				log.Info("◷ nats →", "m", short(m.Data))
+				fn.Status.SourceStatues.Set(source.Name, short(m.Data))
 				if err := toMain(m.Data); err != nil {
 					log.Error(err, "failed to send message from nats to main")
 				} else {
-					log.Info("✔ nats → ", "subject", subject)
+					debug.Info("✔ nats → ", "subject", subject)
 				}
 			}); err != nil {
-				return fmt.Errorf( "failed to subscribe: %w", err)
-			}else {
-				pending, _, err := sub.Pending()
+				return fmt.Errorf("failed to subscribe: %w", err)
 			}
 		} else if source.Kafka != nil {
 			url := defaultKafkaURL
@@ -211,10 +251,13 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
 			closers = append(closers, group.Close)
-			if err := group.Consume(ctx, []string{topic}, handler{toMain}); err != nil {
-				return fmt.Errorf("failed to create kafka consumer: %w", err)
-			}
+			go func() {
+				runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+				if err := group.Consume(ctx, []string{topic}, handler{source.Name, toMain}); err != nil {
+					log.Error(err, "failed to create kafka consumer")
+				}
 
+			}()
 		} else {
 			return fmt.Errorf("source misconfigured")
 		}
@@ -223,12 +266,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 }
 
 func connectTo() (func([]byte) error, error) {
-	if fn.In == nil {
+	if fn.Spec.In == nil {
 		log.Info("no in interface configured")
 		return func(i []byte) error {
 			return fmt.Errorf("no in interface configured")
 		}, nil
-	} else if fn.In.FIFO {
+	} else if fn.Spec.In.FIFO {
 		log.Info("FIFO in interface configured")
 		path := filepath.Join(varRun, "in")
 		log.WithValues("path", path).Info("opened input FIFO")
@@ -238,20 +281,20 @@ func connectTo() (func([]byte) error, error) {
 		}
 		closers = append(closers, fifo.Close)
 		return func(data []byte) error {
-			log.Info("◷ source → fifo")
+			debug.Info("◷ source → fifo")
 			if _, err := fifo.Write(data); err != nil {
 				return fmt.Errorf("failed to write message from source to main via FIFO: %w", err)
 			}
 			if _, err := fifo.Write([]byte("\n")); err != nil {
 				return fmt.Errorf("failed to write new line from source to main via FIFO: %w", err)
 			}
-			log.Info("✔ source → fifo")
+			debug.Info("✔ source → fifo")
 			return nil
 		}, nil
-	} else if fn.In.HTTP != nil {
+	} else if fn.Spec.In.HTTP != nil {
 		log.Info("HTTP in interface configured")
 		return func(data []byte) error {
-			log.Info("◷ source → http")
+			debug.Info("◷ source → http")
 			resp, err := http.Post("http://localhost:8080/messages", "application/json", bytes.NewBuffer(data))
 			if err != nil {
 				return fmt.Errorf("failed to sent message from source to main via HTTP: %w", err)
@@ -259,7 +302,7 @@ func connectTo() (func([]byte) error, error) {
 			if resp.StatusCode >= 300 {
 				return fmt.Errorf("failed to sent message from source to main via HTTP: %s", resp.Status)
 			}
-			log.Info("✔ source → http")
+			debug.Info("✔ source → http")
 			return nil
 		}, nil
 	} else {
@@ -268,14 +311,14 @@ func connectTo() (func([]byte) error, error) {
 }
 
 func connectOut(toSink func([]byte) error) error {
-	if fn.Out == nil {
+	if fn.Spec.Out == nil {
 		log.Info("no out interface configured")
 		return nil
-	} else if fn.Out.FIFO {
+	} else if fn.Spec.Out.FIFO {
 		log.Info("FIFO out interface configured")
 		path := filepath.Join(varRun, "out")
 		go func() {
-			runtime.HandleCrash(runtime.PanicHandlers...)
+			runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 			err := func() error {
 				fifo, err := os.OpenFile(path, os.O_RDONLY, os.ModeNamedPipe)
 				if err != nil {
@@ -285,11 +328,11 @@ func connectOut(toSink func([]byte) error) error {
 				log.WithValues("path", path).Info("opened output FIFO")
 				scanner := bufio.NewScanner(fifo)
 				for scanner.Scan() {
-					log.Info("◷ fifo → sink")
+					debug.Info("◷ fifo → sink")
 					if err := toSink(scanner.Bytes()); err != nil {
 						return fmt.Errorf("failed to send message from main to sink: %w", err)
 					}
-					log.Info("✔ fifo → sink")
+					debug.Info("✔ fifo → sink")
 				}
 				if err = scanner.Err(); err != nil {
 					return fmt.Errorf("scanner error: %w", err)
@@ -302,7 +345,7 @@ func connectOut(toSink func([]byte) error) error {
 			}
 		}()
 		return nil
-	} else if fn.Out.HTTP != nil {
+	} else if fn.Spec.Out.HTTP != nil {
 		log.Info("HTTP out interface configured")
 		http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 			data, err := ioutil.ReadAll(r.Body)
@@ -311,17 +354,17 @@ func connectOut(toSink func([]byte) error) error {
 				w.WriteHeader(500)
 				return
 			}
-			log.Info("◷ http → sink")
+			debug.Info("◷ http → sink")
 			if err := toSink(data); err != nil {
 				log.Error(err, "failed to send message from main to sink")
 				w.WriteHeader(500)
 				return
 			}
-			log.Info("✔ http → sink")
+			debug.Info("✔ http → sink")
 			w.WriteHeader(200)
 		})
 		go func() {
-			runtime.HandleCrash(runtime.PanicHandlers...)
+			runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 			log.Info("starting HTTP server")
 			err := http.ListenAndServe(":3569", nil)
 			if err != nil {
@@ -336,8 +379,8 @@ func connectOut(toSink func([]byte) error) error {
 }
 
 func connectSink() (func([]byte) error, error) {
-	var toSink func([]byte) error
-	for _, sink := range fn.Sinks {
+	var toSinks []func([]byte) error
+	for _, sink := range fn.Spec.Sinks {
 		if sink.NATS != nil {
 			url := defaultNATSURL
 			subject := sink.NATS.Subject
@@ -350,10 +393,11 @@ func connectSink() (func([]byte) error, error) {
 				nc.Close()
 				return nil
 			})
-			toSink = func(msg []byte) error {
-				log.Info("◷ → nats", "subject", subject, "m", auditMsg(msg))
-				return nc.Publish(subject, msg)
-			}
+			toSinks = append(toSinks, func(m []byte) error {
+				fn.Status.SinkStatues.Set(sink.Name, short(m))
+				log.Info("◷ → nats", "subject", subject, "m", short(m))
+				return nc.Publish(subject, m)
+			})
 		} else if sink.Kafka != nil {
 			url := defaultKafkaURL
 			topic := sink.Kafka.Topic
@@ -363,17 +407,25 @@ func connectSink() (func([]byte) error, error) {
 				return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 			}
 			closers = append(closers, producer.Close)
-			toSink = func(msg []byte) error {
-				log.Info("◷ → kafka", "topic", topic, "m", auditMsg(msg))
+			toSinks = append(toSinks, func(m []byte) error {
+				fn.Status.SinkStatues.Set(sink.Name, short(m))
+				log.Info("◷ → kafka", "topic", topic, "m", short(m))
 				producer.Input() <- &sarama.ProducerMessage{
 					Topic: topic,
-					Value: sarama.StringEncoder(msg),
+					Value: sarama.StringEncoder(m),
 				}
 				return nil
-			}
+			})
 		} else {
 			return nil, fmt.Errorf("sink misconfigured")
 		}
 	}
-	return toSink, nil
+	return func(m []byte) error {
+		for _, s := range toSinks {
+			if err := s(m); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, nil
 }

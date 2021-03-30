@@ -1763,8 +1763,50 @@ spec:
                 - Succeeded
                 - Failed
                 type: string
-            required:
-            - phase
+              sinkStatuses:
+                items:
+                  properties:
+                    lastMessage:
+                      properties:
+                        data:
+                          type: string
+                        time:
+                          format: date-time
+                          type: string
+                      required:
+                      - data
+                      - time
+                      type: object
+                    name:
+                      type: string
+                    total:
+                      type: integer
+                  required:
+                  - total
+                  type: object
+                type: array
+              sourceStatuses:
+                items:
+                  properties:
+                    lastMessage:
+                      properties:
+                        data:
+                          type: string
+                        time:
+                          format: date-time
+                          type: string
+                      required:
+                      - data
+                      - time
+                      type: object
+                    name:
+                      type: string
+                    total:
+                      type: integer
+                  required:
+                  - total
+                  type: object
+                type: array
             type: object
         required:
         - spec

@@ -29,6 +29,7 @@ option go_package = "v1alpha1";
 // +kubebuilder:resource:shortName=fn
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 message Func {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -67,6 +68,10 @@ message FuncStatus {
   optional string phase = 1;
 
   optional string message = 2;
+
+  repeated SourceStatus sourceStatuses = 3;
+
+  repeated SinkStatus sinkStatuses = 4;
 }
 
 message HTTP {
@@ -84,6 +89,12 @@ message Kafka {
   optional string url = 2;
 
   optional string topic = 3;
+}
+
+message Message {
+  optional string data = 1;
+
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time time = 2;
 }
 
 message NATS {
@@ -139,11 +150,23 @@ message Sink {
   optional Kafka kafka = 3;
 }
 
+message SinkStatus {
+  optional string name = 1;
+
+  optional Message lastMessage = 2;
+}
+
 message Source {
   optional string name = 1;
 
   optional NATS nats = 2;
 
   optional Kafka kafka = 3;
+}
+
+message SourceStatus {
+  optional string name = 1;
+
+  optional Message lastMessage = 2;
 }
 

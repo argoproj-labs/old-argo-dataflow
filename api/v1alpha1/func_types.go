@@ -20,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+
 // +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
 type FuncPhase string
 
@@ -46,9 +47,58 @@ func MinFuncPhase(v ...FuncPhase) FuncPhase {
 	return FuncUnknown
 }
 
+type Message struct {
+	Data string      `json:"data" protobuf:"bytes,1,opt,name=data"`
+	Time metav1.Time `json:"time" protobuf:"bytes,2,opt,name=time"`
+}
+
+type SourceStatus struct {
+	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
+	Total       int      `json:"total"` // TODO each replica needs its own total
+}
+
+type SinkStatus struct {
+	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
+	Total       int      `json:"total"` // TODO each replica needs its own total
+}
+
+type SourceStatuses []SourceStatus
+
+func (s *SourceStatuses) Set(name string, short string) {
+	m := &Message{Data: short, Time: metav1.Now()}
+	for i, x := range *s {
+		if x.Name == name {
+			x.LastMessage = m
+			x.Total++
+			(*s)[i] = x
+			return
+		}
+	}
+	*s = append(*s, SourceStatus{Name: name, LastMessage: m})
+}
+
+type SinkStatuses []SinkStatus
+
+func (s *SinkStatuses) Set(name string, short string) {
+	m := &Message{Data: short, Time: metav1.Now()}
+	for i, x := range *s {
+		if x.Name == name {
+			x.LastMessage = m
+			x.Total++
+			(*s)[i] = x
+			return
+		}
+	}
+	*s = append(*s, SinkStatus{Name: name, LastMessage: m})
+}
+
 type FuncStatus struct {
-	Phase   FuncPhase `json:"phase" protobuf:"bytes,1,opt,name=phase,casttype=FuncPhase"`
-	Message string    `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Phase         FuncPhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=FuncPhase"`
+	Message       string         `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
+	SinkStatues   SinkStatuses   `json:"sinkStatuses,omitempty" protobuf:"bytes,4,rep,name=sinkStatuses"`
 }
 
 // +kubebuilder:object:root=true

@@ -28,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
@@ -112,13 +113,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							Args:            []string{"sidecar"},
 							Env: []corev1.EnvVar{
 								{Name: dfv1.EnvPipelineName, Value: pipelineName},
-								{Name: dfv1.EnvFunc, Value: dfv1.Json(&dfv1.FuncSpec{
-									Container: corev1.Container{Name: fn.Name},
-									In:        fn.Spec.In,
-									Out:       fn.Spec.Out,
-									Sources:   fn.Spec.Sources,
-									Sinks:     fn.Spec.Sinks,
-								})},
+								{Name: dfv1.EnvFunc, Value: dfv1.Json(fn)},
 							},
 							VolumeMounts: []corev1.VolumeMount{volMnt},
 						},
@@ -185,10 +180,11 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if !reflect.DeepEqual(fn.Status, newStatus) {
-		log.Info("updating func status", "phase", newStatus.Phase)
-		fn.Status = newStatus
-		if err := r.Status().Update(ctx, fn); IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
-			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
+		log.Info("patching func status (phase/message)", "phase", newStatus.Phase)
+		if err := r.Status().
+			Patch(ctx, fn, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Func{Status: newStatus}))));
+			IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
 		}
 	}
 
