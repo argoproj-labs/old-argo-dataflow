@@ -72,8 +72,8 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	container.Name = "main"
 	container.VolumeMounts = append(container.VolumeMounts, volMnt)
 
-	for i := 0; i < replicas; i++ {
-		podName := fmt.Sprintf("%s-%d", fn.Name, i)
+	for replica := 0; replica < replicas; replica++ {
+		podName := fmt.Sprintf("%s-%d", fn.Name, replica)
 		log.Info("creating pod (if not exists)", "podName", podName)
 		if err := r.Client.Create(
 			ctx,
@@ -82,7 +82,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Name:        podName,
 					Namespace:   fn.Namespace,
 					Labels:      map[string]string{dfv1.KeyFuncName: fn.Name, dfv1.KeyPipelineName: pipelineName},
-					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(i)},
+					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(replica)},
 					OwnerReferences: []metav1.OwnerReference{
 						*metav1.NewControllerRef(fn.GetObjectMeta(), dfv1.GroupVersion.WithKind("Func")),
 					},
@@ -113,6 +113,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							Args:            []string{"sidecar"},
 							Env: []corev1.EnvVar{
 								{Name: dfv1.EnvPipelineName, Value: pipelineName},
+								{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
 								{Name: dfv1.EnvFunc, Value: dfv1.Json(fn)},
 							},
 							VolumeMounts: []corev1.VolumeMount{volMnt},
@@ -132,7 +133,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
-	newStatus := &dfv1.FuncStatus{Phase: dfv1.FuncUnknown}
+	newStatus := &dfv1.FuncStatus{Phase: dfv1.FuncUnknown, Replicas: uint64(replicas)}
 
 	for _, pod := range pods.Items {
 		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= replicas {

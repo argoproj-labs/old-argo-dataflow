@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -30,6 +31,7 @@ import (
 var (
 	log             = klogr.New()
 	debug           = log.V(4)
+	replica         = 0
 	pipelineName    = os.Getenv(dfv1.EnvPipelineName)
 	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
 	defaultNATSURL  = "nats"
@@ -42,6 +44,10 @@ const (
 	varRun   = "/var/run/argo-dataflow"
 	killFile = "/tmp/kill"
 )
+
+func init() {
+	replica, _ = strconv.Atoi(os.Getenv(dfv1.EnvReplica))
+}
 
 // format or redact message
 func short(m []byte) string {
@@ -128,7 +134,7 @@ func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
 		log.Info("◷ kafka →", "m", short(m.Value))
-		fn.Status.SourceStatues.Set(h.name, short(m.Value))
+		fn.Status.SourceStatues.Set(h.name, replica, short(m.Value))
 		if err := h.sourceToMain(m.Value); err != nil {
 			log.Error(err, "failed to send message from kafka to main")
 		} else {
@@ -226,7 +232,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			})
 			if sub, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
 				log.Info("◷ nats →", "m", short(m.Data))
-				fn.Status.SourceStatues.Set(source.Name, short(m.Data))
+				fn.Status.SourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
 					log.Error(err, "failed to send message from nats to main")
 				} else {
@@ -242,7 +248,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							log.Error(err, "failed to get pending", "subject", subject)
 						} else {
 							log.Info("setting pending", "subject", subject, "pending", pending)
-							fn.Status.SourceStatues.SetPending(source.Name, pending)
+							fn.Status.SourceStatues.SetPending(source.Name, replica, pending)
 						}
 						time.Sleep(15 * time.Second)
 					}
@@ -400,7 +406,7 @@ func connectSink() (func([]byte) error, error) {
 				return nil
 			})
 			toSinks = append(toSinks, func(m []byte) error {
-				fn.Status.SinkStatues.Set(sink.Name, short(m))
+				fn.Status.SinkStatues.Set(sink.Name, replica, short(m))
 				log.Info("◷ → nats", "subject", subject, "m", short(m))
 				return nc.Publish(subject, m)
 			})
@@ -414,7 +420,7 @@ func connectSink() (func([]byte) error, error) {
 			}
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				fn.Status.SinkStatues.Set(sink.Name, short(m))
+				fn.Status.SinkStatues.Set(sink.Name, replica, short(m))
 				log.Info("◷ → kafka", "topic", topic, "m", short(m))
 				producer.Input() <- &sarama.ProducerMessage{
 					Topic: topic,

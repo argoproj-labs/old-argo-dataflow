@@ -25,6 +25,9 @@ spec:
     - jsonPath: .status.message
       name: Message
       type: string
+    - jsonPath: .status.replicas
+      name: Replicas
+      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -2607,6 +2610,9 @@ spec:
                 - Succeeded
                 - Failed
                 type: string
+              replicas:
+                format: int64
+                type: integer
               sinkStatuses:
                 items:
                   properties:
@@ -2621,17 +2627,25 @@ spec:
                       - data
                       - time
                       type: object
+                    metrics:
+                      items:
+                        properties:
+                          pending:
+                            format: int64
+                            type: integer
+                          rate:
+                            description: messages per second
+                            format: int64
+                            type: integer
+                          total:
+                            format: int64
+                            type: integer
+                        required:
+                        - total
+                        type: object
+                      type: array
                     name:
                       type: string
-                    rate:
-                      description: messages per second
-                      format: int64
-                      type: integer
-                    total:
-                      format: int64
-                      type: integer
-                  required:
-                  - total
                   type: object
                 type: array
               sourceStatuses:
@@ -2648,20 +2662,25 @@ spec:
                       - data
                       - time
                       type: object
+                    metrics:
+                      items:
+                        properties:
+                          pending:
+                            format: int64
+                            type: integer
+                          rate:
+                            description: messages per second
+                            format: int64
+                            type: integer
+                          total:
+                            format: int64
+                            type: integer
+                        required:
+                        - total
+                        type: object
+                      type: array
                     name:
                       type: string
-                    pending:
-                      format: int64
-                      type: integer
-                    rate:
-                      description: messages per second
-                      format: int64
-                      type: integer
-                    total:
-                      format: int64
-                      type: integer
-                  required:
-                  - total
                   type: object
                 type: array
             type: object

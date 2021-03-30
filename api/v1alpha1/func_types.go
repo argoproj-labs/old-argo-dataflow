@@ -51,31 +51,36 @@ type Message struct {
 	Time metav1.Time `json:"time" protobuf:"bytes,2,opt,name=time"`
 }
 
-type SourceStatus struct {
-	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Total       uint64   `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
+type Metrics struct {
+	Total uint64 `json:"total" protobuf:"varint,1,opt,name=total"`
 	// messages per second
-	Rate    uint64 `json:"rate,omitempty" protobuf:"varint,4,opt,name=rate"`       // TODO each replica needs its own total
-	Pending uint64 `json:"pending,omitempty" protobuf:"varint,5,opt,name=pending"` // TODO each replica needs its own total
+	Rate    uint64 `json:"rate,omitempty" protobuf:"varint,2,opt,name=rate"`
+	Pending uint64 `json:"pending,omitempty" protobuf:"varint,3,opt,name=pending"`
+}
+
+type SourceStatus struct {
+	Name        string    `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	LastMessage *Message  `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
+	Metrics     []Metrics `json:"metrics,omitempty" protobuf:"bytes,3,rep,name=metrics"`
 }
 
 type SinkStatus struct {
-	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
-	Total       uint64   `json:"total" protobuf:"varint,3,opt,name=total"` // TODO each replica needs its own total
-	// messages per second
-	Rate uint64 `json:"rate,omitempty" protobuf:"varint,4,opt,name=rate"` // TODO each replica needs its own total
+	Name        string    `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	LastMessage *Message  `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
+	Metrics     []Metrics `json:"metrics,omitempty" protobuf:"bytes,3,rep,name=metrics"`
 }
 
 type SourceStatuses []SourceStatus
 
-func (s *SourceStatuses) Set(name string, short string) {
+func (s *SourceStatuses) Set(name string, replica int, short string) {
 	m := &Message{Data: short, Time: metav1.Now()}
 	for i, x := range *s {
 		if x.Name == name {
 			x.LastMessage = m
-			x.Total++
+			for len(x.Metrics) < replica {
+				x.Metrics = append(x.Metrics, Metrics{})
+			}
+			x.Metrics[i].Total++
 			(*s)[i] = x
 			return
 		}
@@ -83,25 +88,33 @@ func (s *SourceStatuses) Set(name string, short string) {
 	*s = append(*s, SourceStatus{Name: name, LastMessage: m})
 }
 
-func (s *SourceStatuses) SetPending(name string, pending int) {
+func (s *SourceStatuses) SetPending(name string, replica, pending int) {
 	for i, x := range *s {
 		if x.Name == name {
-			x.Pending = uint64(pending)
+			for len(x.Metrics) <= replica {
+				x.Metrics = append(x.Metrics, Metrics{})
+			}
+			x.Metrics[i].Pending = uint64(pending)
 			(*s)[i] = x
 			return
 		}
 	}
-	*s = append(*s, SourceStatus{Pending: uint64(pending)})
+	metrics := make([]Metrics, replica+1)
+	metrics[replica].Pending = uint64(pending)
+	*s = append(*s, SourceStatus{Metrics: metrics})
 }
 
 type SinkStatuses []SinkStatus
 
-func (s *SinkStatuses) Set(name string, short string) {
+func (s *SinkStatuses) Set(name string, replica int, short string) {
 	m := &Message{Data: short, Time: metav1.Now()}
 	for i, x := range *s {
 		if x.Name == name {
 			x.LastMessage = m
-			x.Total++
+			for len(x.Metrics) <= replica {
+				x.Metrics = append(x.Metrics, Metrics{})
+			}
+			x.Metrics[i].Total++
 			(*s)[i] = x
 			return
 		}
@@ -110,8 +123,9 @@ func (s *SinkStatuses) Set(name string, short string) {
 }
 
 type FuncStatus struct {
-	Phase   FuncPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=FuncPhase"`
-	Message string    `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Phase    FuncPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=FuncPhase"`
+	Message  string    `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Replicas uint64    `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
@@ -125,6 +139,7 @@ type FuncStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
+// +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`
 type Func struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`

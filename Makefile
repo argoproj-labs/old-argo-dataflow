@@ -96,7 +96,7 @@ $(GOBIN)/kafka-console-producer:
 	go install github.com/Shopify/sarama/tools/kafka-console-producer
 
 flood:
-	go run ./kafka/ -topic input-topic -message flood-%d -sleep 10ms pump-topic
+	go run ./kafka/ -topic input-topic -message flood-%d -sleep 0ms pump-topic
 
 version:=2.3.2
 name:=darwin

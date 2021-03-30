@@ -8,9 +8,8 @@ import (
 
 func Test_SinkStatuses(t *testing.T) {
 	s := SinkStatuses{}
-	s.Set("my-name", "my-val")
+	s.Set("my-name", 0, "my-val")
 	assert.Len(t, s, 1)
-	s.Set("my-name", "my-val")
+	s.Set("my-name", 0, "my-val")
 	assert.Len(t, s, 1)
 }
-

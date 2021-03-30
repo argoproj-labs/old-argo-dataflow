@@ -22,10 +22,12 @@ import (
 	"reflect"
 
 	"github.com/go-logr/logr"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -63,21 +65,25 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		deploymentName := "pipeline-" + pipeline.Name + "-" + fn.Name
 		log.Info("creating func (if not exists)", "nodeName", fn.Name, "deploymentName", deploymentName)
 		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyFuncName: fn.Name}
-		if err := r.Client.Create(
-			ctx,
-			&dfv1.Func{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      deploymentName,
-					Namespace: pipeline.Namespace,
-					Labels:    matchLabels,
-					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
-					},
+		obj := &dfv1.Func{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      deploymentName,
+				Namespace: pipeline.Namespace,
+				Labels:    matchLabels,
+				OwnerReferences: []metav1.OwnerReference{
+					*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
 				},
-				Spec: fn,
 			},
-		); IgnoreAlreadyExists(err) != nil {
-			return ctrl.Result{}, err
+			Spec: fn,
+		}
+		if err := r.Client.Create(ctx, obj); err != nil {
+			if apierr.IsAlreadyExists(err) {
+				if err := r.Client.Patch(ctx, obj, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(obj)))); err != nil {
+					return ctrl.Result{}, err
+				}
+			} else {
+				return ctrl.Result{}, err
+			}
 		}
 	}
 

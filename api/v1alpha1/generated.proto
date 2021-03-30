@@ -30,6 +30,7 @@ option go_package = "v1alpha1";
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
+// +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`
 message Func {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -69,6 +70,8 @@ message FuncStatus {
 
   optional string message = 2;
 
+  optional uint64 replicas = 5;
+
   // +patchStrategy=merge
   // +patchMergeKey=name
   repeated SourceStatus sourceStatuses = 3;
@@ -99,6 +102,15 @@ message Message {
   optional string data = 1;
 
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time time = 2;
+}
+
+message Metrics {
+  optional uint64 total = 1;
+
+  // messages per second
+  optional uint64 rate = 2;
+
+  optional uint64 pending = 3;
 }
 
 message NATS {
@@ -159,10 +171,7 @@ message SinkStatus {
 
   optional Message lastMessage = 2;
 
-  optional uint64 total = 3;
-
-  // messages per second
-  optional uint64 rate = 4;
+  repeated Metrics metrics = 3;
 }
 
 message Source {
@@ -178,12 +187,6 @@ message SourceStatus {
 
   optional Message lastMessage = 2;
 
-  optional uint64 total = 3;
-
-  // messages per second
-  optional uint64 rate = 4;
-
-  // TODO each replica needs its own total
-  optional uint64 pending = 5;
+  repeated Metrics metrics = 3;
 }
 
