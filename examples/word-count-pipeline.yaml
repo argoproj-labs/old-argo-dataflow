@@ -12,46 +12,50 @@ metadata:
   name: word-count
 spec:
   funcs:
-  - args:
-    - sh
-    - -c
-    - |
-      cat /in/text | tee -a /var/run/argo-dataflow/out
-    image: debian:10.7-slim
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat /in/text | tee -a /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      name: main
+      out:
+        fifo: true
+      resources: {}
+      volumeMounts:
+      - mountPath: /in
+        name: in
+      volumes:
+      - configMap:
+          name: word-count-input
+        name: in
     name: read-text
-    out:
-      fifo: true
-    resources: {}
     sinks:
     - nats:
         subject: a-b
-    volumeMounts:
-    - mountPath: /in
-      name: in
-    volumes:
-    - configMap:
-        name: word-count-input
-      name: in
-  - args:
-    - sh
-    - -c
-    - |
-      cat /var/run/argo-dataflow/in | while read sentence; do
-        [ $sentence = EOF ] && exit 0
-        for word in $sentence; do
-            echo $word
-        done
-      done | tee -a /var/run/argo-dataflow/out
-    image: debian:10.7-slim
-    imagePullPolicy: IfNotPresent
-    in:
-      fifo: true
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat /var/run/argo-dataflow/in | while read sentence; do
+          [ $sentence = EOF ] && exit 0
+          for word in $sentence; do
+              echo $word
+          done
+        done | tee -a /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      in:
+        fifo: true
+      name: main
+      out:
+        fifo: true
+      resources: {}
     name: split-lines
-    out:
-      fifo: true
     replicas:
       value: 5
-    resources: {}
     sinks:
     - nats:
         subject: b-c

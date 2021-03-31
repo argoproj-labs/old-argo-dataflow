@@ -42,17 +42,24 @@ type Interface struct {
 	HTTP *HTTP `json:"http,omitempty" protobuf:"bytes,2,opt,name=http"`
 }
 
-type FuncSpec struct {
+type Container struct {
 	corev1.Container `json:",inline" protobuf:"bytes,1,opt,name=container"`
+	Volumes          []corev1.Volume `json:"volumes,omitempty" protobuf:"bytes,2,rep,name=volumes"`
+	In               *Interface      `json:"in,omitempty" protobuf:"bytes,3,opt,name=in"`
+	Out              *Interface      `json:"out,omitempty" protobuf:"bytes,4,opt,name=out"`
+}
+
+type FuncSpec struct {
+	Name      string     `json:"name" protobuf:"bytes,6,opt,name=name"`
+	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`
+	Replicas  *Replicas  `json:"replicas,omitempty" protobuf:"bytes,2,opt,name=replicas"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Volumes       []corev1.Volume      `json:"volumes,omitempty" protobuf:"bytes,2,rep,name=volumes"`
-	Replicas      *Replicas            `json:"replicas,omitempty" protobuf:"bytes,3,opt,name=replicas"`
-	In            *Interface           `json:"in,omitempty" protobuf:"bytes,4,opt,name=in"`
-	Out           *Interface           `json:"out,omitempty" protobuf:"bytes,5,opt,name=out"`
-	Sources       []Source             `json:"sources,omitempty" protobuf:"bytes,6,rep,name=sources"`
-	Sinks         []Sink               `json:"sinks,omitempty" protobuf:"bytes,7,rep,name=sinks"`
-	RestartPolicy corev1.RestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,8,rep,name=restartPolicy"`
+	Sources []Source `json:"sources,omitempty" protobuf:"bytes,3,rep,name=sources"`
+	// +patchStrategy=merge
+	// +patchMergeKey=name
+	Sinks         []Sink               `json:"sinks,omitempty" protobuf:"bytes,4,rep,name=sinks"`
+	RestartPolicy corev1.RestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,5,opt,name=restartPolicy,casttype=k8s.io/api/core/v1.RestartPolicy"`
 }
 
 func (in *FuncSpec) GetReplicas() Replicas {
@@ -67,6 +74,32 @@ func (in *FuncSpec) GetRestartPolicy() corev1.RestartPolicy {
 		return in.RestartPolicy
 	}
 	return corev1.RestartPolicyOnFailure
+}
+
+func (m *FuncSpec) GetOut() *Interface {
+	if m != nil && m.Container != nil {
+		return m.Container.Out
+	}
+	return nil
+}
+
+func (m *FuncSpec) GetIn() *Interface {
+	if m != nil && m.Container != nil {
+		return m.Container.In
+	}
+	return nil
+
+}
+
+func (m *FuncSpec) GetVolumes() []corev1.Volume {
+	if m != nil && m.Container != nil {
+		return m.Container.Volumes
+	}
+	return nil
+}
+
+func (m *FuncSpec) GetContainer() corev1.Container {
+	return m.Container.Container
 }
 
 type Kafka struct {

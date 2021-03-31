@@ -68,7 +68,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	log.Info("reconciling", "replicas", replicas, "pipelineName", pipelineName)
 
 	volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
-	container := fn.Spec.Container
+	container := fn.Spec.GetContainer()
 	container.Name = "main"
 	container.VolumeMounts = append(container.VolumeMounts, volMnt)
 
@@ -90,7 +90,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				Spec: corev1.PodSpec{
 					RestartPolicy: fn.Spec.GetRestartPolicy(),
 					Volumes: append(
-						fn.Spec.Volumes,
+						fn.Spec.GetVolumes(),
 						corev1.Volume{
 							Name:         volMnt.Name,
 							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},

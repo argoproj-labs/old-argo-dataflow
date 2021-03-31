@@ -16,21 +16,23 @@ metadata:
   name: fifos
 spec:
   funcs:
-  - args:
-    - sh
-    - -c
-    - |
-      cat /var/run/argo-dataflow/in | while read line ; do
-        echo "hello $line"
-      done > /var/run/argo-dataflow/out
-    image: debian:10.7-slim
-    imagePullPolicy: IfNotPresent
-    in:
-      fifo: true
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat /var/run/argo-dataflow/in | while read line ; do
+          echo "hello $line"
+        done > /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      in:
+        fifo: true
+      name: main
+      out:
+        fifo: true
+      resources: {}
     name: main
-    out:
-      fifo: true
-    resources: {}
     sinks:
     - kafka:
         topic: output-topic

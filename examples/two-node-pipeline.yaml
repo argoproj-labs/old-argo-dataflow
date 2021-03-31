@@ -17,32 +17,36 @@ metadata:
   name: two-node
 spec:
   funcs:
-  - args:
-    - cat
-    image: argoproj/dataflow-runner:latest
-    imagePullPolicy: IfNotPresent
-    in:
-      http: {}
+  - container:
+      args:
+      - cat
+      image: argoproj/dataflow-runner:latest
+      imagePullPolicy: IfNotPresent
+      in:
+        http: {}
+      name: main
+      out:
+        http: {}
+      resources: {}
     name: a
-    out:
-      http: {}
-    resources: {}
     sinks:
     - nats:
         subject: a-b
     sources:
     - kafka:
         topic: input-topic
-  - args:
-    - cat
-    image: argoproj/dataflow-runner:latest
-    imagePullPolicy: IfNotPresent
-    in:
-      http: {}
+  - container:
+      args:
+      - cat
+      image: argoproj/dataflow-runner:latest
+      imagePullPolicy: IfNotPresent
+      in:
+        http: {}
+      name: main
+      out:
+        http: {}
+      resources: {}
     name: b
-    out:
-      http: {}
-    resources: {}
     sinks:
     - kafka:
         topic: output-topic

@@ -302,12 +302,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 }
 
 func connectTo() (func([]byte) error, error) {
-	if fn.Spec.In == nil {
+	if fn.Spec.GetIn() == nil {
 		log.Info("no in interface configured")
 		return func(i []byte) error {
 			return fmt.Errorf("no in interface configured")
 		}, nil
-	} else if fn.Spec.In.FIFO {
+	} else if fn.Spec.GetIn().FIFO {
 		log.Info("FIFO in interface configured")
 		path := filepath.Join(varRun, "in")
 		log.WithValues("path", path).Info("opened input FIFO")
@@ -327,7 +327,7 @@ func connectTo() (func([]byte) error, error) {
 			debug.Info("✔ source → fifo")
 			return nil
 		}, nil
-	} else if fn.Spec.In.HTTP != nil {
+	} else if fn.Spec.GetIn().HTTP != nil {
 		log.Info("HTTP in interface configured")
 		return func(data []byte) error {
 			debug.Info("◷ source → http")
@@ -347,10 +347,10 @@ func connectTo() (func([]byte) error, error) {
 }
 
 func connectOut(toSink func([]byte) error) error {
-	if fn.Spec.Out == nil {
+	if fn.Spec.GetOut() == nil {
 		log.Info("no out interface configured")
 		return nil
-	} else if fn.Spec.Out.FIFO {
+	} else if fn.Spec.GetOut().FIFO {
 		log.Info("FIFO out interface configured")
 		path := filepath.Join(varRun, "out")
 		go func() {
@@ -381,7 +381,7 @@ func connectOut(toSink func([]byte) error) error {
 			}
 		}()
 		return nil
-	} else if fn.Spec.Out.HTTP != nil {
+	} else if fn.Spec.GetOut().HTTP != nil {
 		log.Info("HTTP out interface configured")
 		http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 			data, err := ioutil.ReadAll(r.Body)

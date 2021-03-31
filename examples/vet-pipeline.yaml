@@ -8,93 +8,103 @@ metadata:
   name: vet
 spec:
   funcs:
-  - args:
-    - sh
-    - -c
-    - |
-      cat /in/text | tee -a /var/run/argo-dataflow/out
-    image: debian:10.7-slim
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat /in/text | tee -a /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      name: main
+      out:
+        fifo: true
+      resources: {}
+      volumeMounts:
+      - mountPath: /in
+        name: in
+      volumes:
+      - configMap:
+          name: pets
+        name: in
     name: read-pets
-    out:
-      fifo: true
-    resources: {}
     sinks:
     - nats:
         subject: animals
-    volumeMounts:
-    - mountPath: /in
-      name: in
-    volumes:
-    - configMap:
-        name: pets
-      name: in
-  - args:
-    - sh
-    - -c
-    - |
-      cat /var/run/argo-dataflow/in | grep cat | tee -a /var/run/argo-dataflow/out
-    image: debian:10.7-slim
-    in:
-      fifo: true
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat /var/run/argo-dataflow/in | grep cat | tee -a /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      in:
+        fifo: true
+      name: main
+      out:
+        fifo: true
+      resources: {}
     name: filter-cats
-    out:
-      fifo: true
-    resources: {}
     sinks:
     - nats:
         subject: cats
     sources:
     - nats:
         subject: animals
-  - args:
-    - sh
-    - -c
-    - |
-      cat /var/run/argo-dataflow/in | tee -a /var/run/argo-dataflow/out
-    image: debian:10.7-slim
-    imagePullPolicy: IfNotPresent
-    in:
-      fifo: true
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat /var/run/argo-dataflow/in | tee -a /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      imagePullPolicy: IfNotPresent
+      in:
+        fifo: true
+      name: main
+      out:
+        fifo: true
+      resources: {}
     name: process-cats
-    out:
-      fifo: true
-    resources: {}
     sinks:
     - kafka:
         topic: output-topic
     sources:
     - nats:
         subject: cats
-  - args:
-    - sh
-    - -c
-    - |
-      cat /var/run/argo-dataflow/in | grep dog > /var/run/argo-dataflow/out
-    image: debian:10.7-slim
-    in:
-      fifo: true
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat /var/run/argo-dataflow/in | grep dog > /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      in:
+        fifo: true
+      name: main
+      out:
+        fifo: true
+      resources: {}
     name: filter-dogs
-    out:
-      fifo: true
-    resources: {}
     sinks:
     - nats:
         subject: dogs
     sources:
     - nats:
         subject: animals
-  - args:
-    - sh
-    - -c
-    - |
-      cat /var/run/argo-dataflow/in | tee -a /var/run/argo-dataflow/out
-    image: debian:10.7-slim
-    in:
-      fifo: true
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat /var/run/argo-dataflow/in | tee -a /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      in:
+        fifo: true
+      name: main
+      out:
+        fifo: true
+      resources: {}
     name: process-dogs
-    out:
-      fifo: true
-    resources: {}
     sinks:
     - kafka:
         topic: output-topic

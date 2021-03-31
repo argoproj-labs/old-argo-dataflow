@@ -17,18 +17,20 @@ metadata:
   name: replicas
 spec:
   funcs:
-  - args:
-    - cat
-    image: argoproj/dataflow-runner:latest
-    imagePullPolicy: IfNotPresent
-    in:
-      http: {}
+  - container:
+      args:
+      - cat
+      image: argoproj/dataflow-runner:latest
+      imagePullPolicy: IfNotPresent
+      in:
+        http: {}
+      name: main
+      out:
+        http: {}
+      resources: {}
     name: main
-    out:
-      http: {}
     replicas:
       value: 4
-    resources: {}
     sinks:
     - kafka:
         topic: output-topic
