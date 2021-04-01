@@ -184,7 +184,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						log.Error(err, "failed to get offset", "topic", topic)
 					} else {
 						pending := newestOffset - handler.offset
-						debug.Info("setting pending", "type", "kafka", "topic", topic, "pending", pending)
+						debug.Info("setting pending", "type", "kafka", "topic", topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
 						step.Status.SourceStatues.SetPending(source.Name, replica, pending)
 					}
 					time.Sleep(updateInterval)
