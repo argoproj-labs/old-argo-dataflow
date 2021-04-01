@@ -1,6 +1,6 @@
 module github.com/argoproj-labs/argo-dataflow
 
-go 1.16go
+go 1.16
 
 require (
 	cloud.google.com/go v0.52.0 // indirect
