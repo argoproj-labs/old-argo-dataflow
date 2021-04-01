@@ -38,8 +38,8 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-// FuncReconciler reconciles a Step object
-type FuncReconciler struct {
+// StepReconciler reconciles a Step object
+type StepReconciler struct {
 	client.Client
 	Log        logr.Logger
 	Scheme     *runtime.Scheme
@@ -50,8 +50,8 @@ type FuncReconciler struct {
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=,resources=pods,verbs=get;watch;list;create
-func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("func", req.NamespacedName)
+func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := r.Log.WithValues("step", req.NamespacedName)
 
 	fn := &dfv1.Step{}
 	if err := r.Get(ctx, req.NamespacedName, fn); err != nil {
@@ -193,7 +193,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	return ctrl.Result{}, nil
 }
 
-func (r *FuncReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *StepReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dfv1.Step{}).
 		Owns(&corev1.Pod{}).

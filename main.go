@@ -77,7 +77,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.FuncReconciler{
+	if err = (&controllers.StepReconciler{
 		Client:     mgr.GetClient(),
 		Log:        ctrl.Log.WithName("controllers").WithName("Step"),
 		Scheme:     mgr.GetScheme(),
