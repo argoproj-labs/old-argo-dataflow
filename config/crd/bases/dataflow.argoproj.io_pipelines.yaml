@@ -2762,7 +2762,11 @@ spec:
                       type: object
                     handler:
                       properties:
+                        branch:
+                          type: string
                         code:
+                          type: string
+                        path:
                           type: string
                         runtime:
                           type: string

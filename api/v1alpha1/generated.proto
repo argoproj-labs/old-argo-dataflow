@@ -99,6 +99,10 @@ message Handler {
 
   optional string url = 2;
 
+  optional string path = 5;
+
+  optional string branch = 6;
+
   optional string code = 3;
 }
 

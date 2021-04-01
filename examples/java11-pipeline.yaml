@@ -4,7 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: |
       This example of the Java 11 handler
-    dataflow.argoproj.io/name: Handler
+    dataflow.argoproj.io/name: Java 11 handler
   creationTimestamp: null
   name: java11
 spec:

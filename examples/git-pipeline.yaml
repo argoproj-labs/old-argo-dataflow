@@ -3,20 +3,17 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example of Go 1.16 handler
-    dataflow.argoproj.io/name: Go 1.16 handler
+      This example of a pipeline using Git
+    dataflow.argoproj.io/name: Git handler
   creationTimestamp: null
-  name: go1-16
+  name: git
 spec:
   funcs:
   - handler:
-      code: |
-        package main
-
-        func Handler(m []byte) ([][]byte, error) {
-          return [][]byte{[]byte("hello " + string(m))}, nil
-        }
+      branch: main
+      path: runtimes/go1.16
       runtime: go1.16
+      url: https://github.com/alexec/argo-dataflow
     name: main
     sinks:
     - kafka:

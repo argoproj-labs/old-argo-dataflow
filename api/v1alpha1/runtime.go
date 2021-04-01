@@ -31,10 +31,10 @@ func (r Runtime) GetContainer() corev1.Container {
 		}
 	case "java11":
 		return corev1.Container{
-			Name:       "main",
-			Image:      "maven:3-openjdk-11",
-			Command:    []string{"sh", "-c"},
-			Args:       []string{`
+			Name:    "main",
+			Image:   "maven:3-openjdk-11",
+			Command: []string{"sh", "-c"},
+			Args: []string{`
 set -eux
 mvn package
 java -jar target/handler.jar

@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/otiai10/copy"
 	"k8s.io/utils/strings"
 
@@ -27,27 +28,35 @@ func initCmd() error {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
 	if h := fn.Spec.Handler; h != nil {
-		log.Info("setting up handler", "runtime", h.Runtime)
-		workingDir := filepath.Join(dfv1.PathVarRunRuntimes, string(h.Runtime))
-		if err := os.Mkdir(filepath.Dir(workingDir), 0700); err != nil {
+		runtime := h.Runtime
+		log.Info("setting up handler", "runtime", runtime)
+		workingDir := filepath.Join(dfv1.PathVarRunRuntimes, string(runtime))
+		if err := os.Mkdir(filepath.Dir(workingDir), 0700); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to create runtimes dir: %w", err)
 		}
-		if err := copy.Copy(filepath.Join("runtimes", string(h.Runtime)), workingDir); err != nil {
-			return fmt.Errorf("failed to move runtimes: %w", err)
-		}
 		if url := h.URL; url != "" {
-			log.Info("cloning", "url", url)
-			if _, err := git.PlainClone(filepath.Join(dfv1.PathVarRun, "code"), false, &git.CloneOptions{
-				URL:          url,
-				Progress:     os.Stdout,
-				SingleBranch: true,
-			});
-				err != nil {
-				return fmt.Errorf("failed to clone handle: %w", err)
+			checkout := filepath.Join(dfv1.PathVarRun, "checkout",)
+			log.Info("cloning", "url", url, "checkout", checkout)
+			if _, err := git.PlainClone(checkout, false, &git.CloneOptions{
+				URL:           url,
+				Progress:      os.Stdout,
+				SingleBranch:  true, // checkout faster
+				Depth:         1,    // checkout faster
+				ReferenceName: plumbing.NewBranchReferenceName(h.GetBranch()),
+			}); IgnoreErrRepositoryAlreadyExists(err) != nil {
+				return fmt.Errorf("failed to clone repo: %w", err)
+			}
+			log.Info("moving checked out code", "path", h.Path)
+			if err := os.Rename(filepath.Join(checkout, h.GetPath()), workingDir); IgnoreIsExist(err) != nil {
+				return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 			}
 		} else if code := h.Code; code != "" {
+			log.Info("moving runtime", "runtime", runtime)
+			if err := copy.Copy(filepath.Join("runtimes", string(runtime)), workingDir); err != nil {
+				return fmt.Errorf("failed to move runtimes: %w", err)
+			}
 			log.Info("creating code file", "code", strings.ShortenString(code, 32)+"...")
-			if err := ioutil.WriteFile(filepath.Join(workingDir, h.Runtime.HandlerFile()), []byte(code), 0600); err != nil {
+			if err := ioutil.WriteFile(filepath.Join(workingDir, runtime.HandlerFile()), []byte(code), 0600); err != nil {
 				return fmt.Errorf("failed to create code file: %w", err)
 			}
 		} else {
@@ -59,6 +68,13 @@ func initCmd() error {
 
 func IgnoreIsExist(err error) error {
 	if os.IsExist(err) {
+		return nil
+	}
+	return err
+}
+
+func IgnoreErrRepositoryAlreadyExists(err error) error {
+	if err == git.ErrRepositoryAlreadyExists{
 		return nil
 	}
 	return err
