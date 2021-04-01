@@ -17,113 +17,75 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
-type FuncPhase string
-
-func (p FuncPhase) Completed() bool {
-	return p == FuncSucceeded || p == FuncFailed
-}
-
-const (
-	FuncUnknown   FuncPhase = ""
-	FuncPending   FuncPhase = "Pending"
-	FuncRunning   FuncPhase = "Running"
-	FuncSucceeded FuncPhase = "Succeeded"
-	FuncFailed    FuncPhase = "Failed"
-)
-
-func MinFuncPhase(v ...FuncPhase) FuncPhase {
-	for _, p := range []FuncPhase{FuncFailed, FuncPending, FuncRunning, FuncSucceeded} {
-		for _, x := range v {
-			if x == p {
-				return p
-			}
-		}
-	}
-	return FuncUnknown
-}
-
-type Message struct {
-	Data string      `json:"data" protobuf:"bytes,1,opt,name=data"`
-	Time metav1.Time `json:"time" protobuf:"bytes,2,opt,name=time"`
-}
-
-type Metrics struct {
-	Replica uint32 `json:"replica" protobuf:"varint,4,opt,name=replica"`
-	Total   uint64 `json:"total,omitempty" protobuf:"varint,1,opt,name=total"`
-	Pending uint64 `json:"pending,omitempty" protobuf:"varint,3,opt,name=pending"`
-}
-
-type SourceStatus struct {
-	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
+type FuncSpec struct {
+	Name      string     `json:"name,omitempty" protobuf:"bytes,6,opt,name=name"`
+	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`
+	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
+	Replicas  *Replicas  `json:"replicas,omitempty" protobuf:"bytes,2,opt,name=replicas"`
 	// +patchStrategy=merge
-	// +patchMergeKey=replica
-	Metrics []Metrics `json:"metrics,omitempty" protobuf:"bytes,3,rep,name=metrics"`
-}
-
-type SinkStatus struct {
-	Name        string   `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	LastMessage *Message `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
+	// +patchMergeKey=name
+	Sources []Source `json:"sources,omitempty" protobuf:"bytes,3,rep,name=sources"`
 	// +patchStrategy=merge
-	// +patchMergeKey=replica
-	Metrics []Metrics `json:"metrics,omitempty" protobuf:"bytes,3,rep,name=metrics"`
+	// +patchMergeKey=name
+	Sinks         []Sink               `json:"sinks,omitempty" protobuf:"bytes,4,rep,name=sinks"`
+	RestartPolicy corev1.RestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,5,opt,name=restartPolicy,casttype=k8s.io/api/core/v1.RestartPolicy"`
 }
 
-type SourceStatuses []SourceStatus
-
-func (s *SourceStatuses) Set(name string, replica int, short string) {
-	m := &Message{Data: short, Time: metav1.Now()}
-	for i, x := range *s {
-		if x.Name == name {
-			x.LastMessage = m
-			for j := len(x.Metrics); j <= replica; j++ {
-				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(j)})
-			}
-			x.Metrics[i].Total++
-			(*s)[i] = x
-			return
-		}
+func (in *FuncSpec) GetReplicas() Replicas {
+	if in.Replicas != nil {
+		return *in.Replicas
 	}
-	*s = append(*s, SourceStatus{Name: name, LastMessage: m})
+	return Replicas{}
 }
 
-func (s *SourceStatuses) SetPending(name string, replica int, pending int64) {
-	for i, x := range *s {
-		if x.Name == name {
-			for j := len(x.Metrics); j <= replica; j++ {
-				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(j)})
-			}
-			x.Metrics[i].Pending = uint64(pending)
-			(*s)[i] = x
-			return
-		}
+func (in *FuncSpec) GetRestartPolicy() corev1.RestartPolicy {
+	if in.RestartPolicy != "" {
+		return in.RestartPolicy
 	}
-	metrics := make([]Metrics, replica+1)
-	metrics[replica].Replica = uint32(replica)
-	metrics[replica].Pending = uint64(pending)
-	*s = append(*s, SourceStatus{Metrics: metrics})
+	return corev1.RestartPolicyOnFailure
 }
 
-type SinkStatuses []SinkStatus
-
-func (s *SinkStatuses) Set(name string, replica int, short string) {
-	m := &Message{Data: short, Time: metav1.Now()}
-	for i, x := range *s {
-		if x.Name == name {
-			x.LastMessage = m
-			for i := len(x.Metrics); i <= replica; i++ {
-				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(i)})
-			}
-			x.Metrics[i].Total++
-			(*s)[i] = x
-			return
-		}
+func (m *FuncSpec) GetOut() *Interface {
+	if m == nil {
+		return nil
+	} else if m.Container != nil {
+		return m.Container.GetOut()
+	} else if m.Handler != nil {
+		return m.Handler.GetOut()
 	}
-	*s = append(*s, SinkStatus{Name: name, LastMessage: m})
+	return nil
+}
+
+func (m *FuncSpec) GetIn() *Interface {
+	if m == nil {
+		return nil
+	} else if m.Container != nil {
+		return m.Container.GetIn()
+	} else if m.Handler != nil {
+		return m.Handler.GetIn()
+	}
+	return nil
+}
+
+func (m *FuncSpec) GetVolumes() []corev1.Volume {
+	if m != nil && m.Container != nil {
+		return m.Container.Volumes
+	}
+	return nil
+}
+
+func (m *FuncSpec) GetContainer() corev1.Container {
+	if c := m.Container; c != nil {
+		return c.GetContainer()
+	} else if h := m.Handler; h != nil {
+		return h.GetContainer()
+	} else {
+		panic("invalid func spec")
+	}
 }
 
 type FuncStatus struct {
