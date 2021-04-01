@@ -12,23 +12,23 @@ RUN go mod download
 FROM builder AS controller-builder
 COPY api/ api/
 COPY controllers/ controllers/
-COPY main.go main.go
+COPY main.go .
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/manager main.go
 
 FROM gcr.io/distroless/static:nonroot AS controller
 WORKDIR /
-COPY --from=controller-builder /workspace/bin/manager manager
+COPY --from=controller-builder /workspace/bin/manager .
 USER nonroot:nonroot
 ENTRYPOINT ["/manager"]
 
 FROM builder AS runner-builder
 COPY api/ api/
 COPY runner/ runner/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner runner/main.go
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner ./runner
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
 COPY runtimes runtimes
-COPY --from=runner-builder /workspace/bin/runner runner
+COPY --from=runner-builder /workspace/bin/runner .
 USER nonroot:nonroot
 ENTRYPOINT ["/runner"]

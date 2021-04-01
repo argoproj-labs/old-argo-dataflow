@@ -6,7 +6,7 @@ metadata:
       This example of Go 1.16 handler
     dataflow.argoproj.io/name: Handler
   creationTimestamp: null
-  name: go1-15
+  name: go1-16
 spec:
   funcs:
   - handler:
