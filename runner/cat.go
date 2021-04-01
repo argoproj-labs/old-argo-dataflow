@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func catCmd() error {
+func Cat() error {
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		msg, err := ioutil.ReadAll(r.Body)
 		if err != nil {

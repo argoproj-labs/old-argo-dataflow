@@ -2,6 +2,6 @@ package main
 
 import "io/ioutil"
 
-func killCmd() error {
+func Kill() error {
 	return ioutil.WriteFile(killFile, nil, 0600)
 }

@@ -15,7 +15,7 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-func initCmd() error {
+func Init() error {
 	if err := unmarshallFn(); err != nil {
 		return err
 	}

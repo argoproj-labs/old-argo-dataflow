@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Shopify/sarama"
 	"k8s.io/klog/klogr"
 	"k8s.io/utils/strings"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -15,7 +14,6 @@ import (
 var (
 	log             = klogr.New()
 	debug           = log.V(4)
-	config          = sarama.NewConfig()
 	closers         []func() error
 	updateInterval  = 15 * time.Second
 )
@@ -36,13 +34,13 @@ func main() {
 	err := func() error {
 		switch os.Args[1] {
 		case "cat":
-			return catCmd()
+			return Cat()
 		case "init":
-			return initCmd()
+			return Init()
 		case "kill":
-			return killCmd()
+			return Kill()
 		case "sidecar":
-			return sidecarCmd(ctx)
+			return Sidecar(ctx)
 		default:
 			return fmt.Errorf("unknown comand")
 		}

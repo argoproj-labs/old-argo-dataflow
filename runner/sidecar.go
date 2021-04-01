@@ -25,6 +25,7 @@ import (
 )
 
 var (
+	config          = sarama.NewConfig()
 	replica         = 0
 	pipelineName    = os.Getenv(dfv1.EnvPipelineName)
 	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
@@ -32,7 +33,7 @@ var (
 	step            = &dfv1.Step{}
 )
 
-func sidecarCmd(ctx context.Context) error {
+func Sidecar(ctx context.Context) error {
 
 	if err := unmarshallFn(); err != nil {
 		return err
@@ -168,7 +169,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
 			closers = append(closers, group.Close)
-			handler := handler{source.Name, toMain, 0}
+			handler := &handler{source.Name, toMain, 0}
 			go func() {
 				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 				if err := group.Consume(ctx, []string{topic}, handler); err != nil {

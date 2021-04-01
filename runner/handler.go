@@ -8,9 +8,9 @@ type handler struct {
 	offset       int64
 }
 
-func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
-func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
-func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+func (*handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+func (*handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
 		log.Info("◷ kafka →", "m", short(m.Value))
 		step.Status.SourceStatues.Set(h.name, replica, short(m.Value))
