@@ -61,10 +61,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	log.Info("reconciling", "steps", len(pipeline.Spec.Steps))
 
-	for _, fn := range pipeline.Spec.Steps {
-		deploymentName := "pipeline-" + pipeline.Name + "-" + fn.Name
-		log.Info("creating func (if not exists)", "nodeName", fn.Name, "deploymentName", deploymentName)
-		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: fn.Name}
+	for _, step := range pipeline.Spec.Steps {
+		deploymentName := "pipeline-" + pipeline.Name + "-" + step.Name
+		log.Info("creating func (if not exists)", "nodeName", step.Name, "deploymentName", deploymentName)
+		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: step.Name}
 		obj := &dfv1.Step{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      deploymentName,
@@ -74,7 +74,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
 				},
 			},
-			Spec: fn,
+			Spec: step,
 		}
 		if err := r.Client.Create(ctx, obj); err != nil {
 			if apierr.IsAlreadyExists(err) {
@@ -98,11 +98,11 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		Phase:      dfv1.PipelineUnknown,
 		Conditions: []metav1.Condition{},
 	}
-	for _, fn := range steps.Items {
-		if fn.Status == nil {
+	for _, step := range steps.Items {
+		if step.Status == nil {
 			continue
 		}
-		switch fn.Status.Phase {
+		switch step.Status.Phase {
 		case dfv1.StepUnknown, dfv1.StepPending:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelinePending)
 			pending++

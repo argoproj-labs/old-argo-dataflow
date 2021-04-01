@@ -18,16 +18,16 @@ func main() {
 	}
 	_, _ = fmt.Printf("### Examples\n\n")
 	for _, i := range infos {
-		fn := i.Name()
-		if !strings.HasSuffix(fn, ".yaml") {
+		f := i.Name()
+		if !strings.HasSuffix(f, ".yaml") {
 			continue
 		}
 		const path = "examples/"
-		data, err := ioutil.ReadFile(path + fn)
+		data, err := ioutil.ReadFile(path + f)
 		if err != nil {
 			panic(err)
 		}
-		println(fn)
+		println(f)
 		var formatted []string
 		for i, text := range strings.Split(string(data), "---") {
 			if i == 0 {
@@ -36,9 +36,9 @@ func main() {
 					panic(err)
 				}
 				annotations := pipeline.GetAnnotations()
-				_, _ = fmt.Printf("### [%s](%s)\n\n", annotations["dataflow.argoproj.io/name"], fn)
+				_, _ = fmt.Printf("### [%s](%s)\n\n", annotations["dataflow.argoproj.io/name"], f)
 				_, _ = fmt.Printf("%s\n\n", annotations["dataflow.argoproj.io/description"])
-				_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", fn)
+				_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", f)
 			}
 			un := &unstructured.Unstructured{}
 			if err := yaml.Unmarshal([]byte(text), un); err != nil {
@@ -50,7 +50,7 @@ func main() {
 				formatted = append(formatted, string(data))
 			}
 		}
-		if err := ioutil.WriteFile(path+fn, []byte(strings.Join(formatted, "\n---\n")), 0600); err != nil {
+		if err := ioutil.WriteFile(path+f, []byte(strings.Join(formatted, "\n---\n")), 0600); err != nil {
 			panic(err)
 		}
 	}

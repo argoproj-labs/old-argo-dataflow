@@ -55,7 +55,7 @@ spec:
       resources: {}
     name: split-lines
     replicas:
-      value: 5
+      min: 5
     sinks:
     - nats:
         subject: b-c

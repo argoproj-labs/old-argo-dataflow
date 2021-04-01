@@ -119,8 +119,24 @@ message PipelineStatus {
   repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 3;
 }
 
+// Used to calculate the number of replicas.
+// min(r.max, max(r.min, pending/ratio))
+// Example:
+// min=1, max=4, ratio=100
+// pending=0, replicas=1
+// pending=100, replicas=1
+// pending=200, replicas=2
+// pending=300, replicas=3
+// pending=400, replicas=4
+// pending=500, replicas=4
 message Replicas {
-  optional int32 value = 1;
+  optional int32 min = 1;
+
+  // this is both the min, and the initial value
+  optional int32 max = 2;
+
+  // takes precedence over min
+  optional uint32 ratio = 3;
 }
 
 message Sink {
@@ -203,7 +219,7 @@ message StepStatus {
 
   optional string message = 2;
 
-  optional uint64 replicas = 5;
+  optional uint32 replicas = 5;
 
   // +patchStrategy=merge
   // +patchMergeKey=name

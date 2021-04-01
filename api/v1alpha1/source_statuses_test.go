@@ -6,9 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSinkStatuses_Set(t *testing.T) {
+func TestSourceStatuses_Set(t *testing.T) {
 
-	ss := SinkStatuses{}
+	ss := SourceStatuses{}
 
 	ss.Set("bar", 1, "foo")
 
@@ -55,6 +55,41 @@ func TestSinkStatuses_Set(t *testing.T) {
 		if assert.Len(t, s.Metrics, 1) {
 			assert.Equal(t, uint32(0), s.Metrics[0].Replica)
 			assert.Equal(t, uint64(1), s.Metrics[0].Total)
+		}
+	}
+}
+
+func TestSourceStatuses_SetPending(t *testing.T) {
+
+	ss := SourceStatuses{}
+
+	ss.SetPending("bar", 1, 23)
+
+	if assert.Len(t, ss, 1) {
+		s := ss[0]
+		assert.Equal(t, "bar", s.Name)
+		if assert.Len(t, s.Metrics, 1) {
+			assert.Equal(t, uint32(1), s.Metrics[0].Replica)
+			assert.Equal(t, uint64(23), s.Metrics[0].Pending)
+		}
+	}
+
+	ss.SetPending("bar", 1, 34)
+
+	if assert.Len(t, ss, 1) {
+		s := ss[0]
+		if assert.Len(t, s.Metrics, 1) {
+			assert.Equal(t, uint64(34), s.Metrics[0].Pending)
+		}
+	}
+	
+	ss.SetPending("bar", 0, 45)
+
+	if assert.Len(t, ss, 1) {
+		s := ss[0]
+		if assert.Len(t, s.Metrics, 2) {
+			assert.Equal(t, uint32(0), s.Metrics[1].Replica)
+			assert.Equal(t, uint64(45), s.Metrics[1].Pending)
 		}
 	}
 }

@@ -4,18 +4,26 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 type SinkStatuses []SinkStatus
 
-func (s *SinkStatuses) Set(name string, replica int, short string) {
-	m := &Message{Data: short, Time: metav1.Now()}
-	for i, x := range *s {
+func (in *SinkStatuses) Set(name string, replica int, short string) {
+	newMessage := &Message{Data: short, Time: metav1.Now()}
+	newMetric := Metrics{Replica: uint32(replica), Total: 1}
+	for i, x := range *in {
 		if x.Name == name {
-			x.LastMessage = m
-			for i := len(x.Metrics); i <= replica; i++ {
-				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(i)})
+			x.LastMessage = newMessage
+			exists := false
+			for j, m := range x.Metrics {
+				if m.Replica == newMetric.Replica {
+					m.Total++
+					x.Metrics[j] = m
+					exists = true
+				}
 			}
-			x.Metrics[i].Total++
-			(*s)[i] = x
+			if !exists {
+				x.Metrics = append(x.Metrics, newMetric)
+			}
+			(*in)[i] = x
 			return
 		}
 	}
-	*s = append(*s, SinkStatus{Name: name, LastMessage: m})
+	*in = append(*in, SinkStatus{Name: name, LastMessage: newMessage, Metrics: []Metrics{newMetric}})
 }

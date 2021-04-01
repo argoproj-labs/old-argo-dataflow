@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	// +kubebuilder:scaffold:imports
@@ -34,7 +33,6 @@ var _ = Describe("Pipeline controller", func() {
 				})
 			}).Should(Succeed())
 
-			replicas := pointer.Int32Ptr(2)
 			p := &dfv1.Pipeline{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      Name,
@@ -43,29 +41,29 @@ var _ = Describe("Pipeline controller", func() {
 				Spec: dfv1.PipelineSpec{
 					Steps: []dfv1.StepSpec{
 						{
-							Name:      "my-func",
+							Name: "my-func",
 							Container: &dfv1.Container{
 								Container: corev1.Container{
 									Name:  "main",
 									Image: "docker/whalesay:latest",
 								},
 							},
-							Replicas:  &dfv1.Replicas{Value: replicas},
-							Sources:   []dfv1.Source{{}},
-							Sinks:     []dfv1.Sink{{}},
+							Replicas: &dfv1.Replicas{Min: 2},
+							Sources:  []dfv1.Source{{}},
+							Sinks:    []dfv1.Sink{{}},
 						},
 					},
 				},
 			}
 			Expect(k8sClient.Create(ctx, p)).Should(Succeed())
 
-			fn := &dfv1.Step{}
+			step := &dfv1.Step{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-func"}, fn)
+				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-func"}, step)
 			}).
 				Should(Succeed())
 
-			Expect(fn.Spec.Replicas.Value).Should(Equal(replicas))
+			Expect(step.Status.Replicas).Should(Equal(2))
 		})
 	})
 })

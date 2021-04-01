@@ -39,7 +39,7 @@ func (in *StepSpec) GetReplicas() Replicas {
 	if in.Replicas != nil {
 		return *in.Replicas
 	}
-	return Replicas{}
+	return Replicas{Min: 1}
 }
 
 func (in *StepSpec) GetRestartPolicy() corev1.RestartPolicy {
@@ -89,15 +89,30 @@ func (m *StepSpec) GetContainer() corev1.Container {
 }
 
 type StepStatus struct {
-	Phase    StepPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
-	Message  string    `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
-	Replicas uint64    `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
+	Phase         StepPhase    `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
+	Message       string       `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Replicas      uint32       `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
+	LastScaleTime *metav1.Time `json:"lastScaleTime,omitempty"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	SinkStatues SinkStatuses `json:"sinkStatuses,omitempty" protobuf:"bytes,4,rep,name=sinkStatuses"`
+}
+
+func (m *StepStatus) GetSourceStatues() SourceStatuses {
+	if m == nil {
+		return nil
+	}
+	return m.SourceStatues
+}
+
+func (m *StepStatus) GetReplicas() int {
+	if m == nil {
+		return 0
+	}
+	return int(m.Replicas)
 }
 
 // +kubebuilder:object:root=true

@@ -4,35 +4,58 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 type SourceStatuses []SourceStatus
 
-func (s *SourceStatuses) Set(name string, replica int, short string) {
-	m := &Message{Data: short, Time: metav1.Now()}
-	for i, x := range *s {
+func (in *SourceStatuses) Set(name string, replica int, short string) {
+	newMessage := &Message{Data: short, Time: metav1.Now()}
+	newMetric := Metrics{Replica: uint32(replica), Total: 1}
+	for i, x := range *in {
 		if x.Name == name {
-			x.LastMessage = m
-			for j := len(x.Metrics); j <= replica; j++ {
-				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(j)})
+			x.LastMessage = newMessage
+			exists := false
+			for j, m := range x.Metrics {
+				if m.Replica == newMetric.Replica {
+					m.Total++
+					x.Metrics[j] = m
+					exists = true
+				}
 			}
-			x.Metrics[i].Total++
-			(*s)[i] = x
+			if !exists {
+				x.Metrics = append(x.Metrics, newMetric)
+			}
+			(*in)[i] = x
 			return
 		}
 	}
-	*s = append(*s, SourceStatus{Name: name, LastMessage: m})
+	*in = append(*in, SourceStatus{Name: name, LastMessage: newMessage, Metrics: []Metrics{newMetric}})
 }
 
-func (s *SourceStatuses) SetPending(name string, replica int, pending int64) {
-	for i, x := range *s {
+func (in *SourceStatuses) SetPending(name string, replica int, pending uint64) {
+	newMetric := Metrics{Replica: uint32(replica), Pending: pending}
+	for i, x := range *in {
 		if x.Name == name {
-			for j := len(x.Metrics); j <= replica; j++ {
-				x.Metrics = append(x.Metrics, Metrics{Replica: uint32(j)})
+			exists := false
+			for j, m := range x.Metrics {
+				if m.Replica == newMetric.Replica {
+					m.Pending = newMetric.Pending
+					x.Metrics[j] = m
+					exists = true
+				}
 			}
-			x.Metrics[i].Pending = uint64(pending)
-			(*s)[i] = x
+			if !exists {
+				x.Metrics = append(x.Metrics, newMetric)
+			}
+			(*in)[i] = x
 			return
 		}
 	}
-	metrics := make([]Metrics, replica+1)
-	metrics[replica].Replica = uint32(replica)
-	metrics[replica].Pending = uint64(pending)
-	*s = append(*s, SourceStatus{Metrics: metrics})
+	*in = append(*in, SourceStatus{Name: name, Metrics: []Metrics{newMetric}})
+}
+
+func (in SourceStatuses) GetPending() int {
+	v := 0
+	for _, s := range in {
+		for _, m := range s.Metrics {
+			v += int(m.Pending)
+		}
+	}
+	return v
 }

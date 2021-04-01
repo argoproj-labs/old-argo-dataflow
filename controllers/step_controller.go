@@ -22,6 +22,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -53,48 +54,54 @@ type StepReconciler struct {
 func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("step", req.NamespacedName)
 
-	fn := &dfv1.Step{}
-	if err := r.Get(ctx, req.NamespacedName, fn); err != nil {
+	step := &dfv1.Step{}
+	if err := r.Get(ctx, req.NamespacedName, step); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if fn.GetDeletionTimestamp() != nil {
+	if step.GetDeletionTimestamp() != nil {
 		return ctrl.Result{}, nil
 	}
 
-	pipelineName := fn.GetLabels()[dfv1.KeyPipelineName]
-	replicas := fn.Spec.GetReplicas().GetValue()
+	pipelineName := step.GetLabels()[dfv1.KeyPipelineName]
+	lastReplicas := step.Status.GetReplicas()
+	newReplicas := step.Spec.GetReplicas().Calculate(step.Status.GetSourceStatues().GetPending())
 
-	log.Info("reconciling", "replicas", replicas, "pipelineName", pipelineName)
+	replicas := lastReplicas
+	if step.Status.LastScaleTime == nil || time.Since(step.Status.LastScaleTime.Time) > time.Minute {
+		replicas = newReplicas
+	}
+
+	log.Info("reconciling", "lastReplicas", lastReplicas, "newReplicas", newReplicas, "replicas", replicas, "pipelineName", pipelineName)
 
 	volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
-	container := fn.Spec.GetContainer()
+	container := step.Spec.GetContainer()
 	container.VolumeMounts = append(container.VolumeMounts, volMnt)
 
 	for replica := 0; replica < replicas; replica++ {
-		podName := fmt.Sprintf("%s-%d", fn.Name, replica)
+		podName := fmt.Sprintf("%s-%d", step.Name, replica)
 		log.Info("creating pod (if not exists)", "podName", podName)
 		envVars := []corev1.EnvVar{
 			{Name: dfv1.EnvPipelineName, Value: pipelineName},
 			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
-			{Name: dfv1.EnvStep, Value: dfv1.Json(fn)},
+			{Name: dfv1.EnvStep, Value: dfv1.Json(step)},
 		}
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        podName,
-					Namespace:   fn.Namespace,
-					Labels:      map[string]string{dfv1.KeyStepName: fn.Name, dfv1.KeyPipelineName: pipelineName},
+					Namespace:   step.Namespace,
+					Labels:      map[string]string{dfv1.KeyStepName: step.Name, dfv1.KeyPipelineName: pipelineName},
 					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(replica)},
 					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(fn.GetObjectMeta(), dfv1.GroupVersion.WithKind("Step")),
+						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.GroupVersion.WithKind("Step")),
 					},
 				},
 				Spec: corev1.PodSpec{
-					RestartPolicy: fn.Spec.GetRestartPolicy(),
+					RestartPolicy: step.Spec.GetRestartPolicy(),
 					Volumes: append(
-						fn.Spec.GetVolumes(),
+						step.Spec.GetVolumes(),
 						corev1.Volume{
 							Name:         volMnt.Name,
 							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
@@ -129,12 +136,16 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	pods := &corev1.PodList{}
-	selector, _ := labels.Parse(dfv1.KeyStepName + "=" + fn.Name)
+	selector, _ := labels.Parse(dfv1.KeyStepName + "=" + step.Name)
 	if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	newStatus := &dfv1.StepStatus{Phase: dfv1.StepUnknown, Replicas: uint64(replicas)}
+	newStatus := &dfv1.StepStatus{Phase: dfv1.StepUnknown, Replicas: uint32(replicas)}
+
+	if lastReplicas != replicas {
+		newStatus.LastScaleTime = &metav1.Time{Time: time.Now()}
+	}
 
 	for _, pod := range pods.Items {
 		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= replicas {
@@ -181,10 +192,10 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	if !reflect.DeepEqual(fn.Status, newStatus) {
+	if !reflect.DeepEqual(step.Status, newStatus) {
 		log.Info("patching func status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
-			Patch(ctx, fn, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus}))));
+			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus}))));
 			IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
 		}

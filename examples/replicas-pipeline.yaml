@@ -30,7 +30,9 @@ spec:
       resources: {}
     name: main
     replicas:
-      value: 4
+      max: 8
+      min: 1
+      ratio: 1000
     sinks:
     - kafka:
         topic: output-topic

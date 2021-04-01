@@ -47,8 +47,6 @@ spec:
         http: {}
       resources: {}
     name: b
-    replicas:
-      value: 2
     sinks:
     - kafka:
         topic: output-topic
