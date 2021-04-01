@@ -1,0 +1,26 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example of the Java 11 handler
+    dataflow.argoproj.io/name: Handler
+  creationTimestamp: null
+  name: java11
+spec:
+  funcs:
+  - handler:
+      code: |
+        public class Handler {
+            public static byte[][] Handle(byte[] msg) throws Exception {
+                return new byte[][]{msg};
+            }
+        }
+      runtime: java11
+    name: main
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

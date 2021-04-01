@@ -25,6 +25,15 @@ You MUST escape new lines.
 kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/fifos-pipeline.yaml
 ```
 
+### [Handler](go1-16-pipeline.yaml)
+
+This example of Go 1.16 handler
+
+
+```
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/go1-16-pipeline.yaml
+```
+
 ### [Using HTTP for input and output](http-pipeline.yaml)
 
 This examples using the `dataflow-cat` image to send and recieve messages using HTTP.
@@ -41,6 +50,15 @@ Example implementations:
 
 ```
 kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/http-pipeline.yaml
+```
+
+### [Handler](java11-pipeline.yaml)
+
+This example of the Java 11 handler
+
+
+```
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/java11-pipeline.yaml
 ```
 
 ### [Using replicas to scale](replicas-pipeline.yaml)

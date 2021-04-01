@@ -24,7 +24,7 @@ var _ = Describe("Pipeline controller", func() {
 	)
 
 	Context("When creating pipeline", func() {
-		It("Should create a new deployment", func() {
+		It("Should create a new func", func() {
 			By("By creating a new Pipeline")
 			ctx := context.Background()
 
@@ -43,13 +43,16 @@ var _ = Describe("Pipeline controller", func() {
 				Spec: dfv1.PipelineSpec{
 					Funcs: []dfv1.FuncSpec{
 						{
-							Container: corev1.Container{
-								Name:  "my-node",
-								Image: "docker/whalesay:latest",
+							Name:      "my-func",
+							Container: &dfv1.Container{
+								Container: corev1.Container{
+									Name:  "main",
+									Image: "docker/whalesay:latest",
+								},
 							},
-							Replicas: &dfv1.Replicas{Value: replicas},
-							Sources:  []dfv1.Source{{}},
-							Sinks:    []dfv1.Sink{{}},
+							Replicas:  &dfv1.Replicas{Value: replicas},
+							Sources:   []dfv1.Source{{}},
+							Sinks:     []dfv1.Sink{{}},
 						},
 					},
 				},
@@ -58,7 +61,7 @@ var _ = Describe("Pipeline controller", func() {
 
 			fn := &dfv1.Func{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-node"}, fn)
+				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-func"}, fn)
 			}).
 				Should(Succeed())
 

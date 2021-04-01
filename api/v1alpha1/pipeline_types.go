@@ -49,9 +49,40 @@ type Container struct {
 	Out              *Interface      `json:"out,omitempty" protobuf:"bytes,4,opt,name=out"`
 }
 
+func (in *Container) GetContainer() corev1.Container {
+	return in.Container
+}
+
+func (in *Container) GetOut() *Interface {
+	return in.Out
+}
+
+func (in *Container) GetIn() *Interface {
+	return in.In
+}
+
+type Handler struct {
+	Runtime Runtime `json:"runtime" protobuf:"bytes,4,opt,name=runtime,casttype=Runtime"`
+	URL     string  `json:"url,omitempty" protobuf:"bytes,2,opt,name=url"`
+	Code    string  `json:"code,omitempty" protobuf:"bytes,3,opt,name=code"`
+}
+
+func (in *Handler) GetContainer() corev1.Container {
+	return in.Runtime.GetContainer()
+}
+
+func (in *Handler) GetOut() *Interface {
+	return &Interface{HTTP: &HTTP{}}
+}
+
+func (in *Handler) GetIn() *Interface {
+	return &Interface{HTTP: &HTTP{}}
+}
+
 type FuncSpec struct {
-	Name      string     `json:"name" protobuf:"bytes,6,opt,name=name"`
+	Name      string     `json:"name,omitempty" protobuf:"bytes,6,opt,name=name"`
 	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`
+	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
 	Replicas  *Replicas  `json:"replicas,omitempty" protobuf:"bytes,2,opt,name=replicas"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
@@ -77,18 +108,25 @@ func (in *FuncSpec) GetRestartPolicy() corev1.RestartPolicy {
 }
 
 func (m *FuncSpec) GetOut() *Interface {
-	if m != nil && m.Container != nil {
-		return m.Container.Out
+	if m == nil {
+		return nil
+	} else if m.Container != nil {
+		return m.Container.GetOut()
+	} else if m.Handler != nil {
+		return m.Handler.GetOut()
 	}
 	return nil
 }
 
 func (m *FuncSpec) GetIn() *Interface {
-	if m != nil && m.Container != nil {
-		return m.Container.In
+	if m == nil {
+		return nil
+	} else if m.Container != nil {
+		return m.Container.GetIn()
+	} else if m.Handler != nil {
+		return m.Handler.GetIn()
 	}
 	return nil
-
 }
 
 func (m *FuncSpec) GetVolumes() []corev1.Volume {
@@ -99,7 +137,13 @@ func (m *FuncSpec) GetVolumes() []corev1.Volume {
 }
 
 func (m *FuncSpec) GetContainer() corev1.Container {
-	return m.Container.Container
+	if c := m.Container; c != nil {
+		return c.GetContainer()
+	} else if h := m.Handler; h != nil {
+		return h.GetContainer()
+	} else {
+		panic("invalid func spec")
+	}
 }
 
 type Kafka struct {

@@ -1,0 +1,26 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example of Go 1.16 handler
+    dataflow.argoproj.io/name: Handler
+  creationTimestamp: null
+  name: go1-15
+spec:
+  funcs:
+  - handler:
+      code: |
+        package main
+
+        func Handler(m []byte) ([][]byte, error) {
+          return [][]byte{[]byte("hello " + string(m))}, nil
+        }
+      runtime: go1.16
+    name: main
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

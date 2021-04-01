@@ -62,25 +62,27 @@ spec:
     sources:
     - nats:
         subject: a-b
-  - args:
-    - sh
-    - -c
-    - |
-      i=0
-      cat /var/run/argo-dataflow/in | while read word; do
-        if [ $word = EOF ]; then
-            echo $i
-            exit 0
-        fi
-        i=$((i+1))
-      done | tee -a /var/run/argo-dataflow/out
-    image: debian:10.7-slim
-    in:
-      fifo: true
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        i=0
+        cat /var/run/argo-dataflow/in | while read word; do
+          if [ $word = EOF ]; then
+              echo $i
+              exit 0
+          fi
+          i=$((i+1))
+        done | tee -a /var/run/argo-dataflow/out
+      image: debian:10.7-slim
+      in:
+        fifo: true
+      name: main
+      out:
+        fifo: true
+      resources: {}
     name: count-words
-    out:
-      fifo: true
-    resources: {}
     sinks:
     - kafka:
         topic: output-topic

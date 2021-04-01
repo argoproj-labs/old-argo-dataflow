@@ -5,6 +5,7 @@ go 1.15
 require (
 	cloud.google.com/go v0.52.0 // indirect
 	github.com/Shopify/sarama v1.28.0
+	github.com/go-git/go-git/v5 v5.3.0
 	github.com/go-logr/logr v0.3.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
@@ -14,6 +15,7 @@ require (
 	github.com/nats-io/nkeys v0.1.4 // indirect
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
+	github.com/otiai10/copy v1.5.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449 // indirect

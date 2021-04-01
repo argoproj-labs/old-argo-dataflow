@@ -69,12 +69,16 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
 	container := fn.Spec.GetContainer()
-	container.Name = "main"
 	container.VolumeMounts = append(container.VolumeMounts, volMnt)
 
 	for replica := 0; replica < replicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", fn.Name, replica)
 		log.Info("creating pod (if not exists)", "podName", podName)
+		envVars := []corev1.EnvVar{
+			{Name: dfv1.EnvPipelineName, Value: pipelineName},
+			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
+			{Name: dfv1.EnvFunc, Value: dfv1.Json(fn)},
+		}
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
@@ -101,6 +105,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							Name:            dfv1.CtrInit,
 							Image:           runnerImage,
 							Args:            []string{"init"},
+							Env:             envVars,
 							ImagePullPolicy: imagePullPolicy,
 							VolumeMounts:    []corev1.VolumeMount{volMnt},
 						},
@@ -111,12 +116,8 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							Image:           runnerImage,
 							ImagePullPolicy: imagePullPolicy,
 							Args:            []string{"sidecar"},
-							Env: []corev1.EnvVar{
-								{Name: dfv1.EnvPipelineName, Value: pipelineName},
-								{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
-								{Name: dfv1.EnvFunc, Value: dfv1.Json(fn)},
-							},
-							VolumeMounts: []corev1.VolumeMount{volMnt},
+							Env:             envVars,
+							VolumeMounts:    []corev1.VolumeMount{volMnt},
 						},
 						container,
 					},

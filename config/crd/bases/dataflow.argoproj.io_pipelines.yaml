@@ -2760,6 +2760,17 @@ spec:
                       required:
                       - name
                       type: object
+                    handler:
+                      properties:
+                        code:
+                          type: string
+                        runtime:
+                          type: string
+                        url:
+                          type: string
+                      required:
+                      - runtime
+                      type: object
                     name:
                       type: string
                     replicas:
@@ -2834,8 +2845,6 @@ spec:
                             type: object
                         type: object
                       type: array
-                  required:
-                  - name
                   type: object
                 type: array
             type: object

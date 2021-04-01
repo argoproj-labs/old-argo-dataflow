@@ -121,6 +121,7 @@ kafka-9092: kafka
 unkafka:
 	kubectl delete ns kafka
 
+.PHONY: nats
 nats:
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml

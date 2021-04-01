@@ -60,6 +60,8 @@ message FuncSpec {
 
   optional Container container = 1;
 
+  optional Handler handler = 7;
+
   optional Replicas replicas = 2;
 
   // +patchStrategy=merge
@@ -90,6 +92,14 @@ message FuncStatus {
 }
 
 message HTTP {
+}
+
+message Handler {
+  optional string runtime = 4;
+
+  optional string url = 2;
+
+  optional string code = 3;
 }
 
 message Interface {

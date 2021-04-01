@@ -15,7 +15,9 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	"github.com/go-git/go-git/v5"
 	"github.com/nats-io/nats.go"
+	"github.com/otiai10/copy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
@@ -42,7 +44,6 @@ var (
 )
 
 const (
-	varRun   = "/var/run/argo-dataflow"
 	killFile = "/tmp/kill"
 )
 
@@ -83,13 +84,53 @@ func main() {
 }
 
 func initCmd() error {
-	if err := syscall.Mkfifo(filepath.Join(varRun, "in"), 0600); err != nil {
+	if err := unmarshallFn(); err != nil {
+		return err
+	}
+	log.Info("creating in fifo")
+	if err := syscall.Mkfifo(filepath.Join(dfv1.PathVarRun, "in"), 0600); IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create input FIFO: %w", err)
 	}
-	if err := syscall.Mkfifo(filepath.Join(varRun, "out"), 0600); err != nil {
+	log.Info("creating out fifo")
+	if err := syscall.Mkfifo(filepath.Join(dfv1.PathVarRun, "out"), 0600); IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
+	if h := fn.Spec.Handler; h != nil {
+		log.Info("setting up handler", "runtime", h.Runtime)
+		workingDir := filepath.Join(dfv1.PathVarRunRuntimes, string(h.Runtime))
+		if err := os.Mkdir(filepath.Dir(workingDir), 0700); err != nil {
+			return fmt.Errorf("failed to create runtimes dir: %w", err)
+		}
+		if err := copy.Copy(filepath.Join("runtimes", string(h.Runtime)), workingDir); err != nil {
+			return fmt.Errorf("failed to move runtimes: %w", err)
+		}
+		if url := h.URL; url != "" {
+			log.Info("cloning", "url", url)
+			if _, err := git.PlainClone(filepath.Join(dfv1.PathVarRun, "code"), false, &git.CloneOptions{
+				URL:          url,
+				Progress:     os.Stdout,
+				SingleBranch: true,
+			});
+				err != nil {
+				return fmt.Errorf("failed to clone handle: %w", err)
+			}
+		} else if code := h.Code; code != "" {
+			log.Info("creating code file", "code", strings.ShortenString(code, 32)+"...")
+			if err := ioutil.WriteFile(filepath.Join(workingDir, h.Runtime.HandlerFile()), []byte(code), 0600); err != nil {
+				return fmt.Errorf("failed to create code file: %w", err)
+			}
+		} else {
+			panic("invalid handler")
+		}
+	}
 	return nil
+}
+
+func IgnoreIsExist(err error) error {
+	if os.IsExist(err) {
+		return nil
+	}
+	return err
 }
 
 func catCmd() error {
@@ -146,7 +187,7 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 
 func sidecarCmd(ctx context.Context) error {
 
-	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvFunc)), fn); err != nil {
+	if err := unmarshallFn(); err != nil {
 		return err
 	}
 
@@ -219,6 +260,13 @@ func sidecarCmd(ctx context.Context) error {
 			time.Sleep(3 * time.Second)
 		}
 	}
+}
+
+func unmarshallFn() error {
+	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvFunc)), fn); err != nil {
+		return fmt.Errorf("failed to unmarshall fn: %w", err)
+	}
+	return nil
 }
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
@@ -309,7 +357,7 @@ func connectTo() (func([]byte) error, error) {
 		}, nil
 	} else if fn.Spec.GetIn().FIFO {
 		log.Info("FIFO in interface configured")
-		path := filepath.Join(varRun, "in")
+		path := filepath.Join(dfv1.PathVarRun, "in")
 		log.WithValues("path", path).Info("opened input FIFO")
 		fifo, err := os.OpenFile(path, os.O_WRONLY, os.ModeNamedPipe)
 		if err != nil {
@@ -352,7 +400,7 @@ func connectOut(toSink func([]byte) error) error {
 		return nil
 	} else if fn.Spec.GetOut().FIFO {
 		log.Info("FIFO out interface configured")
-		path := filepath.Join(varRun, "out")
+		path := filepath.Join(dfv1.PathVarRun, "out")
 		go func() {
 			defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 			err := func() error {

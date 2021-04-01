@@ -10,24 +10,25 @@ COPY go.sum go.sum
 RUN go mod download
 
 FROM builder AS controller-builder
-COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o manager main.go
+COPY main.go main.go
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/manager main.go
 
 FROM gcr.io/distroless/static:nonroot AS controller
 WORKDIR /
-COPY --from=controller-builder /workspace/manager .
+COPY --from=controller-builder /workspace/bin/manager manager
 USER nonroot:nonroot
 ENTRYPOINT ["/manager"]
 
 FROM builder AS runner-builder
-COPY runner/main.go main.go
 COPY api/ api/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o runner main.go
+COPY runner/ runner/
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner runner/main.go
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
-COPY --from=runner-builder /workspace/runner .
+COPY runtimes runtimes
+COPY --from=runner-builder /workspace/bin/runner runner
 USER nonroot:nonroot
 ENTRYPOINT ["/runner"]
