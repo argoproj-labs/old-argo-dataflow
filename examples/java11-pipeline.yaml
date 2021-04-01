@@ -8,7 +8,7 @@ metadata:
   creationTimestamp: null
   name: java11
 spec:
-  funcs:
+  steps:
   - handler:
       code: |
         public class Handler {

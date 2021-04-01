@@ -27,7 +27,7 @@ func initCmd() error {
 	if err := syscall.Mkfifo(filepath.Join(dfv1.PathVarRun, "out"), 0600); IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
-	if h := fn.Spec.Handler; h != nil {
+	if h := step.Spec.Handler; h != nil {
 		runtime := h.Runtime
 		log.Info("setting up handler", "runtime", runtime)
 		workingDir := filepath.Join(dfv1.PathVarRunRuntimes, string(runtime))

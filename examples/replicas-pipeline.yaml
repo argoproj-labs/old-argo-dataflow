@@ -16,7 +16,7 @@ metadata:
   creationTimestamp: null
   name: replicas
 spec:
-  funcs:
+  steps:
   - container:
       args:
       - cat

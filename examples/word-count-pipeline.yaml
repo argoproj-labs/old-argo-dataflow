@@ -11,7 +11,7 @@ metadata:
     dataflow.argoproj.io/name: Word Count
   name: word-count
 spec:
-  funcs:
+  steps:
   - container:
       args:
       - sh

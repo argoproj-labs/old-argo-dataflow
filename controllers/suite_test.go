@@ -88,7 +88,7 @@ var _ = BeforeSuite(func(done Done) {
 	err = (&FuncReconciler{
 		Client: k8sClient,
 		Scheme: k8sManager.GetScheme(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Func"),
+		Log:    ctrl.Log.WithName("controllers").WithName("Step"),
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 

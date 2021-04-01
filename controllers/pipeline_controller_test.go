@@ -41,7 +41,7 @@ var _ = Describe("Pipeline controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: dfv1.PipelineSpec{
-					Funcs: []dfv1.FuncSpec{
+					Steps: []dfv1.StepSpec{
 						{
 							Name:      "my-func",
 							Container: &dfv1.Container{
@@ -59,7 +59,7 @@ var _ = Describe("Pipeline controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, p)).Should(Succeed())
 
-			fn := &dfv1.Func{}
+			fn := &dfv1.Step{}
 			Eventually(func() error {
 				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-func"}, fn)
 			}).

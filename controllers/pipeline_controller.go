@@ -43,7 +43,7 @@ type PipelineReconciler struct {
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=funcs,verbs=get;watch;list;create
+// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;watch;list;create
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
@@ -59,13 +59,13 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("reconciling", "funcs", len(pipeline.Spec.Funcs))
+	log.Info("reconciling", "steps", len(pipeline.Spec.Steps))
 
-	for _, fn := range pipeline.Spec.Funcs {
+	for _, fn := range pipeline.Spec.Steps {
 		deploymentName := "pipeline-" + pipeline.Name + "-" + fn.Name
 		log.Info("creating func (if not exists)", "nodeName", fn.Name, "deploymentName", deploymentName)
-		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyFuncName: fn.Name}
-		obj := &dfv1.Func{
+		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: fn.Name}
+		obj := &dfv1.Step{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      deploymentName,
 				Namespace: pipeline.Namespace,
@@ -87,32 +87,32 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	funcs := &dfv1.FuncList{}
+	steps := &dfv1.StepList{}
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipeline.Name)
-	if err := r.Client.List(ctx, funcs, &client.ListOptions{LabelSelector: selector}); err != nil {
+	if err := r.Client.List(ctx, steps, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	pending, running, succeeded, failed, total := 0, 0, 0, 0, len(funcs.Items)
+	pending, running, succeeded, failed, total := 0, 0, 0, 0, len(steps.Items)
 	newStatus := &dfv1.PipelineStatus{
 		Phase:      dfv1.PipelineUnknown,
 		Conditions: []metav1.Condition{},
 	}
-	for _, fn := range funcs.Items {
+	for _, fn := range steps.Items {
 		if fn.Status == nil {
 			continue
 		}
 		switch fn.Status.Phase {
-		case dfv1.FuncUnknown, dfv1.FuncPending:
+		case dfv1.StepUnknown, dfv1.StepPending:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelinePending)
 			pending++
-		case dfv1.FuncRunning:
+		case dfv1.StepRunning:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineRunning)
 			running++
-		case dfv1.FuncSucceeded:
+		case dfv1.StepSucceeded:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineSucceeded)
 			succeeded++
-		case dfv1.FuncFailed:
+		case dfv1.StepFailed:
 			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineFailed)
 			failed++
 		default:
@@ -142,6 +142,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dfv1.Pipeline{}).
-		Owns(&dfv1.Func{}).
+		Owns(&dfv1.Step{}).
 		Complete(r)
 }

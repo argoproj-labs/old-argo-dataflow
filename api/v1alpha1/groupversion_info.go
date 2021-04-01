@@ -35,5 +35,5 @@ var (
 	AddToScheme = SchemeBuilder.AddToScheme
 
 	PipelinesResource         = GroupVersion.WithResource("pipelines")
-	FuncsGroupVersionResource = GroupVersion.WithResource("funcs")
+	StepsGroupVersionResource = GroupVersion.WithResource("steps")
 )

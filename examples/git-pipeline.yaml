@@ -8,7 +8,7 @@ metadata:
   creationTimestamp: null
   name: git
 spec:
-  funcs:
+  steps:
   - handler:
       branch: main
       path: runtimes/go1.16

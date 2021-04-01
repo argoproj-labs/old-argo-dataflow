@@ -10,12 +10,10 @@ metadata:
 spec:
   group: dataflow.argoproj.io
   names:
-    kind: Func
-    listKind: FuncList
+    kind: Step
+    listKind: StepList
     plural: steps
-    shortNames:
-    - fn
-    singular: func
+    singular: step
   scope: Namespaced
   versions:
   - additionalPrinterColumns:

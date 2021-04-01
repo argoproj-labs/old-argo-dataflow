@@ -11,16 +11,14 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: funcs.dataflow.argoproj.io
+  name: steps.dataflow.argoproj.io
 spec:
   group: dataflow.argoproj.io
   names:
-    kind: Func
-    listKind: FuncList
-    plural: funcs
-    shortNames:
-    - fn
-    singular: func
+    kind: Step
+    listKind: StepList
+    plural: steps
+    singular: step
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -1891,7 +1889,7 @@ spec:
             type: object
           spec:
             properties:
-              funcs:
+              steps:
                 items:
                   properties:
                     args:
@@ -3715,7 +3713,7 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - funcs
+  - steps
   verbs:
   - create
   - delete
@@ -3727,7 +3725,7 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - funcs/status
+  - steps/status
   verbs:
   - get
   - patch

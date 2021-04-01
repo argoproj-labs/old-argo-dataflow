@@ -43,7 +43,7 @@ spec:
             type: object
           spec:
             properties:
-              funcs:
+              steps:
                 items:
                   properties:
                     container:

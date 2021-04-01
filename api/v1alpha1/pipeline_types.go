@@ -23,7 +23,7 @@ import (
 type PipelineSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Funcs []FuncSpec `json:"funcs,omitempty" protobuf:"bytes,1,rep,name=funcs"`
+	Steps []StepSpec `json:"steps,omitempty" protobuf:"bytes,1,rep,name=steps"`
 }
 
 type PipelineStatus struct {

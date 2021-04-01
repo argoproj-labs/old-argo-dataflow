@@ -17,7 +17,7 @@ metadata:
   creationTimestamp: null
   name: http
 spec:
-  funcs:
+  steps:
   - container:
       args:
       - cat

@@ -29,7 +29,7 @@ var (
 	pipelineName    = os.Getenv(dfv1.EnvPipelineName)
 	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
 	defaultNATSURL  = "nats"
-	fn              = &dfv1.Func{}
+	step            = &dfv1.Step{}
 )
 
 func sidecarCmd(ctx context.Context) error {
@@ -43,9 +43,9 @@ func sidecarCmd(ctx context.Context) error {
 	} else {
 		replica = v
 	}
-	log.WithValues("funcName", fn.Name, "pipelineName", pipelineName, "replica", replica).Info("config")
+	log.WithValues("stepName", step.Name, "pipelineName", pipelineName, "replica", replica).Info("config")
 
-	fn.Status = &dfv1.FuncStatus{
+	step.Status = &dfv1.StepStatus{
 		SourceStatues: []dfv1.SourceStatus{},
 		SinkStatues:   []dfv1.SinkStatus{},
 	}
@@ -75,14 +75,14 @@ func sidecarCmd(ctx context.Context) error {
 	go func() {
 		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 		for {
-			patch := dfv1.Json(&dfv1.Func{Status: fn.Status})
+			patch := dfv1.Json(&dfv1.Step{Status: step.Status})
 			log.Info("patching func status (sinks/sources)", "patch", patch)
 			if _, err := dynamicInterface.
-				Resource(dfv1.FuncsGroupVersionResource).
-				Namespace(fn.Namespace).
+				Resource(dfv1.StepsGroupVersionResource).
+				Namespace(step.Namespace).
 				Patch(
 					ctx,
-					fn.Name,
+					step.Name,
 					types.MergePatchType,
 					[]byte(patch),
 					metav1.PatchOptions{},
@@ -110,19 +110,19 @@ func sidecarCmd(ctx context.Context) error {
 }
 
 func unmarshallFn() error {
-	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvFunc)), fn); err != nil {
-		return fmt.Errorf("failed to unmarshall fn: %w", err)
+	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvStep)), step); err != nil {
+		return fmt.Errorf("failed to unmarshall step: %w", err)
 	}
 	return nil
 }
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
-	for _, source := range fn.Spec.Sources {
+	for _, source := range step.Spec.Sources {
 		if source.NATS != nil {
 			url := defaultNATSURL
 			subject := source.NATS.Subject
 			log.Info("connecting to source", "type", "nats", "url", url, "subject", subject)
-			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for fn "+fn.Name))
+			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for step "+step.Name))
 			if err != nil {
 				return fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
 			}
@@ -130,9 +130,9 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				nc.Close()
 				return nil
 			})
-			if sub, err := nc.QueueSubscribe(subject, fn.Name, func(m *nats.Msg) {
+			if sub, err := nc.QueueSubscribe(subject, step.Name, func(m *nats.Msg) {
 				log.Info("◷ nats →", "m", short(m.Data))
-				fn.Status.SourceStatues.Set(source.Name, replica, short(m.Data))
+				step.Status.SourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
 					log.Error(err, "failed to send message from nats to main")
 				} else {
@@ -148,7 +148,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							log.Error(err, "failed to get pending", "subject", subject)
 						} else {
 							debug.Info("setting pending", "subject", subject, "pending", pending)
-							fn.Status.SourceStatues.SetPending(source.Name, replica, int64(pending))
+							step.Status.SourceStatues.SetPending(source.Name, replica, int64(pending))
 						}
 						time.Sleep(updateInterval)
 					}
@@ -163,7 +163,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to create kafka client: %w", err)
 			}
 			closers = append(closers, client.Close)
-			group, err := sarama.NewConsumerGroup([]string{url}, fn.Name, config)
+			group, err := sarama.NewConsumerGroup([]string{url}, step.Name, config)
 			if err != nil {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
@@ -184,7 +184,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					} else {
 						pending := newestOffset - handler.offset
 						debug.Info("setting pending", "type", "kafka", "topic", topic, "pending", pending)
-						fn.Status.SourceStatues.SetPending(source.Name, replica, pending)
+						step.Status.SourceStatues.SetPending(source.Name, replica, pending)
 					}
 					time.Sleep(updateInterval)
 				}
@@ -197,12 +197,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 }
 
 func connectTo() (func([]byte) error, error) {
-	if fn.Spec.GetIn() == nil {
+	if step.Spec.GetIn() == nil {
 		log.Info("no in interface configured")
 		return func(i []byte) error {
 			return fmt.Errorf("no in interface configured")
 		}, nil
-	} else if fn.Spec.GetIn().FIFO {
+	} else if step.Spec.GetIn().FIFO {
 		log.Info("FIFO in interface configured")
 		path := filepath.Join(dfv1.PathVarRun, "in")
 		log.WithValues("path", path).Info("opened input FIFO")
@@ -222,7 +222,7 @@ func connectTo() (func([]byte) error, error) {
 			debug.Info("✔ source → fifo")
 			return nil
 		}, nil
-	} else if fn.Spec.GetIn().HTTP != nil {
+	} else if step.Spec.GetIn().HTTP != nil {
 		log.Info("HTTP in interface configured")
 		return func(data []byte) error {
 			debug.Info("◷ source → http")
@@ -242,10 +242,10 @@ func connectTo() (func([]byte) error, error) {
 }
 
 func connectOut(toSink func([]byte) error) error {
-	if fn.Spec.GetOut() == nil {
+	if step.Spec.GetOut() == nil {
 		log.Info("no out interface configured")
 		return nil
-	} else if fn.Spec.GetOut().FIFO {
+	} else if step.Spec.GetOut().FIFO {
 		log.Info("FIFO out interface configured")
 		path := filepath.Join(dfv1.PathVarRun, "out")
 		go func() {
@@ -276,7 +276,7 @@ func connectOut(toSink func([]byte) error) error {
 			}
 		}()
 		return nil
-	} else if fn.Spec.GetOut().HTTP != nil {
+	} else if step.Spec.GetOut().HTTP != nil {
 		log.Info("HTTP out interface configured")
 		http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 			data, err := ioutil.ReadAll(r.Body)
@@ -311,12 +311,12 @@ func connectOut(toSink func([]byte) error) error {
 
 func connectSink() (func([]byte) error, error) {
 	var toSinks []func([]byte) error
-	for _, sink := range fn.Spec.Sinks {
+	for _, sink := range step.Spec.Sinks {
 		if sink.NATS != nil {
 			url := defaultNATSURL
 			subject := sink.NATS.Subject
 			log.Info("connecting sink", "type", "nats", "url", url, "subject", subject)
-			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for fn "+fn.Name))
+			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for step "+step.Name))
 			if err != nil {
 				return nil, fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
 			}
@@ -325,7 +325,7 @@ func connectSink() (func([]byte) error, error) {
 				return nil
 			})
 			toSinks = append(toSinks, func(m []byte) error {
-				fn.Status.SinkStatues.Set(sink.Name, replica, short(m))
+				step.Status.SinkStatues.Set(sink.Name, replica, short(m))
 				log.Info("◷ → nats", "subject", subject, "m", short(m))
 				return nc.Publish(subject, m)
 			})
@@ -339,7 +339,7 @@ func connectSink() (func([]byte) error, error) {
 			}
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				fn.Status.SinkStatues.Set(sink.Name, replica, short(m))
+				step.Status.SinkStatues.Set(sink.Name, replica, short(m))
 				log.Info("◷ → kafka", "topic", topic, "m", short(m))
 				producer.Input() <- &sarama.ProducerMessage{
 					Topic: topic,

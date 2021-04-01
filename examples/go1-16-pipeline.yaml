@@ -8,7 +8,7 @@ metadata:
   creationTimestamp: null
   name: go1-16
 spec:
-  funcs:
+  steps:
   - handler:
       code: |
         package main

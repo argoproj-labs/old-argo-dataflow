@@ -16,7 +16,7 @@ metadata:
   creationTimestamp: null
   name: two-node
 spec:
-  funcs:
+  steps:
   - container:
       args:
       - cat

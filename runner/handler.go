@@ -13,7 +13,7 @@ func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
 		log.Info("◷ kafka →", "m", short(m.Value))
-		fn.Status.SourceStatues.Set(h.name, replica, short(m.Value))
+		step.Status.SourceStatues.Set(h.name, replica, short(m.Value))
 		if err := h.sourceToMain(m.Value); err != nil {
 			log.Error(err, "failed to send message from kafka to main")
 		} else {

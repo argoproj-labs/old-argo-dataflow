@@ -15,7 +15,7 @@ metadata:
   creationTimestamp: null
   name: fifos
 spec:
-  funcs:
+  steps:
   - container:
       args:
       - sh

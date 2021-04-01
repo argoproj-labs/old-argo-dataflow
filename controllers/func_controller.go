@@ -38,7 +38,7 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-// FuncReconciler reconciles a Func object
+// FuncReconciler reconciles a Step object
 type FuncReconciler struct {
 	client.Client
 	Log        logr.Logger
@@ -47,13 +47,13 @@ type FuncReconciler struct {
 	Kubernetes kubernetes.Interface
 }
 
-// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=funcs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=funcs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=,resources=pods,verbs=get;watch;list;create
 func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("func", req.NamespacedName)
 
-	fn := &dfv1.Func{}
+	fn := &dfv1.Step{}
 	if err := r.Get(ctx, req.NamespacedName, fn); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -77,7 +77,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		envVars := []corev1.EnvVar{
 			{Name: dfv1.EnvPipelineName, Value: pipelineName},
 			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
-			{Name: dfv1.EnvFunc, Value: dfv1.Json(fn)},
+			{Name: dfv1.EnvStep, Value: dfv1.Json(fn)},
 		}
 		if err := r.Client.Create(
 			ctx,
@@ -85,10 +85,10 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        podName,
 					Namespace:   fn.Namespace,
-					Labels:      map[string]string{dfv1.KeyFuncName: fn.Name, dfv1.KeyPipelineName: pipelineName},
+					Labels:      map[string]string{dfv1.KeyStepName: fn.Name, dfv1.KeyPipelineName: pipelineName},
 					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(replica)},
 					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(fn.GetObjectMeta(), dfv1.GroupVersion.WithKind("Func")),
+						*metav1.NewControllerRef(fn.GetObjectMeta(), dfv1.GroupVersion.WithKind("Step")),
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -129,12 +129,12 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	pods := &corev1.PodList{}
-	selector, _ := labels.Parse(dfv1.KeyFuncName + "=" + fn.Name)
+	selector, _ := labels.Parse(dfv1.KeyStepName + "=" + fn.Name)
 	if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	newStatus := &dfv1.FuncStatus{Phase: dfv1.FuncUnknown, Replicas: uint64(replicas)}
+	newStatus := &dfv1.StepStatus{Phase: dfv1.StepUnknown, Replicas: uint64(replicas)}
 
 	for _, pod := range pods.Items {
 		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= replicas {
@@ -144,7 +144,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		} else {
 			phase := inferPhase(pod)
 			log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
-			newStatus.Phase = dfv1.MinFuncPhase(newStatus.Phase, phase)
+			newStatus.Phase = dfv1.MinStepPhase(newStatus.Phase, phase)
 			if newStatus.Phase.Completed() && pod.Status.Message != "" {
 				newStatus.Message = pod.Status.Message
 			}
@@ -184,7 +184,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if !reflect.DeepEqual(fn.Status, newStatus) {
 		log.Info("patching func status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
-			Patch(ctx, fn, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Func{Status: newStatus}))));
+			Patch(ctx, fn, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus}))));
 			IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
 		}
@@ -195,7 +195,7 @@ func (r *FuncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 func (r *FuncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&dfv1.Func{}).
+		For(&dfv1.Step{}).
 		Owns(&corev1.Pod{}).
 		Complete(r)
 }

@@ -79,12 +79,12 @@ func main() {
 
 	if err = (&controllers.FuncReconciler{
 		Client:     mgr.GetClient(),
-		Log:        ctrl.Log.WithName("controllers").WithName("Func"),
+		Log:        ctrl.Log.WithName("controllers").WithName("Step"),
 		Scheme:     mgr.GetScheme(),
 		RESTConfig: restConfig,
 		Kubernetes: kubernetes.NewForConfigOrDie(restConfig),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Func")
+		setupLog.Error(err, "unable to create controller", "controller", "Step")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

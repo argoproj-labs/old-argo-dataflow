@@ -8,7 +8,7 @@ metadata:
   creationTimestamp: null
   name: completion
 spec:
-  funcs:
+  steps:
   - container:
       args:
       - sh

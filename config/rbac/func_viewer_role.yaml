@@ -1,4 +1,4 @@
-# permissions for end users to view funcs.
+# permissions for end users to view steps.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -7,7 +7,7 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - funcs
+  - steps
   verbs:
   - get
   - list
@@ -15,6 +15,6 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - funcs/status
+  - steps/status
   verbs:
   - get

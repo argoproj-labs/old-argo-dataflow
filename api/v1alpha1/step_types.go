@@ -21,7 +21,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type FuncSpec struct {
+type StepSpec struct {
 	Name      string     `json:"name,omitempty" protobuf:"bytes,6,opt,name=name"`
 	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`
 	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
@@ -35,21 +35,21 @@ type FuncSpec struct {
 	RestartPolicy corev1.RestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,5,opt,name=restartPolicy,casttype=k8s.io/api/core/v1.RestartPolicy"`
 }
 
-func (in *FuncSpec) GetReplicas() Replicas {
+func (in *StepSpec) GetReplicas() Replicas {
 	if in.Replicas != nil {
 		return *in.Replicas
 	}
 	return Replicas{}
 }
 
-func (in *FuncSpec) GetRestartPolicy() corev1.RestartPolicy {
+func (in *StepSpec) GetRestartPolicy() corev1.RestartPolicy {
 	if in.RestartPolicy != "" {
 		return in.RestartPolicy
 	}
 	return corev1.RestartPolicyOnFailure
 }
 
-func (m *FuncSpec) GetOut() *Interface {
+func (m *StepSpec) GetOut() *Interface {
 	if m == nil {
 		return nil
 	} else if m.Container != nil {
@@ -60,7 +60,7 @@ func (m *FuncSpec) GetOut() *Interface {
 	return nil
 }
 
-func (m *FuncSpec) GetIn() *Interface {
+func (m *StepSpec) GetIn() *Interface {
 	if m == nil {
 		return nil
 	} else if m.Container != nil {
@@ -71,25 +71,25 @@ func (m *FuncSpec) GetIn() *Interface {
 	return nil
 }
 
-func (m *FuncSpec) GetVolumes() []corev1.Volume {
+func (m *StepSpec) GetVolumes() []corev1.Volume {
 	if m != nil && m.Container != nil {
 		return m.Container.Volumes
 	}
 	return nil
 }
 
-func (m *FuncSpec) GetContainer() corev1.Container {
+func (m *StepSpec) GetContainer() corev1.Container {
 	if c := m.Container; c != nil {
 		return c.GetContainer()
 	} else if h := m.Handler; h != nil {
 		return h.GetContainer()
 	} else {
-		panic("invalid func spec")
+		panic("invalid step spec")
 	}
 }
 
-type FuncStatus struct {
-	Phase    FuncPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=FuncPhase"`
+type StepStatus struct {
+	Phase    StepPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
 	Message  string    `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
 	Replicas uint64    `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
 	// +patchStrategy=merge
@@ -101,27 +101,26 @@ type FuncStatus struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:shortName=fn
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 // +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`
-type Func struct {
+type Step struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	Spec   FuncSpec    `json:"spec" protobuf:"bytes,2,opt,name=spec"`
-	Status *FuncStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec   StepSpec    `json:"spec" protobuf:"bytes,2,opt,name=spec"`
+	Status *StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 // +kubebuilder:object:root=true
 
-type FuncList struct {
+type StepList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
-	Items           []Func `json:"items" protobuf:"bytes,2,rep,name=items"`
+	Items           []Step `json:"items" protobuf:"bytes,2,rep,name=items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Func{}, &FuncList{})
+	SchemeBuilder.Register(&Step{}, &StepList{})
 }
