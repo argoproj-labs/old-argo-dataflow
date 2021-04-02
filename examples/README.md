@@ -78,13 +78,13 @@ Example implementations:
 kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/http-pipeline.yaml
 ```
 
-### [Java 11 handler](java11-pipeline.yaml)
+### [Java 16 handler](java16-pipeline.yaml)
 
-This example of the Java 11 handler
+This example of the Java 16 handler
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/java11-pipeline.yaml
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/java16-pipeline.yaml
 ```
 
 ### [Map messages](map-pipeline.yaml)

@@ -3,10 +3,10 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example of the Java 11 handler
-    dataflow.argoproj.io/name: Java 11 handler
+      This example of the Java 16 handler
+    dataflow.argoproj.io/name: Java 16 handler
   creationTimestamp: null
-  name: java11
+  name: java16
 spec:
   steps:
   - handler:
@@ -16,7 +16,7 @@ spec:
                 return new byte[][]{msg};
             }
         }
-      runtime: java11
+      runtime: java16
     name: main
     sinks:
     - kafka:
