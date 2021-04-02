@@ -88,8 +88,7 @@ func Sidecar(ctx context.Context) error {
 					[]byte(patch),
 					metav1.PatchOptions{},
 					"status",
-				);
-				err != nil {
+				); err != nil {
 				log.Error(err, "failed to patch step status")
 			}
 			time.Sleep(updateInterval)
@@ -330,7 +329,10 @@ func connectSink() (func([]byte) error, error) {
 			toSinks = append(toSinks, func(m []byte) error {
 				step.Status.SinkStatues.Set(sink.Name, replica, short(m))
 				log.Info("◷ → nats", "subject", subject, "m", short(m))
-				return nc.Publish(subject, m)
+				return nc.PublishMsg(&nats.Msg{
+					Subject: subject,
+					Data:    m,
+				})
 			})
 		} else if sink.Kafka != nil {
 			url := defaultKafkaURL
