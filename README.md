@@ -114,12 +114,12 @@ spec:
         image: argoproj/dataflow-runner:latest
         args: [ cat ]
       sinks:
-        - nats:
+        - stan:
             subject: a-b
 
     - name: b
       sources:
-        - nats:
+        - stan:
             subject: a-b
       container:
         image: argoproj/dataflow-runner:latest

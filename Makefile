@@ -121,13 +121,9 @@ kafka-9092: kafka
 	kubectl -n kafka port-forward svc/broker 9092:9092
 
 .PHONY: nats
-nats:
+stan:
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
-nats-4222: nats
-	kubectl port-forward svc/nats 4222:4222
-nats-8222: nats
-	kubectl port-forward svc/nats 8222:8222
 
 nuke: undeploy uninstall
 	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml

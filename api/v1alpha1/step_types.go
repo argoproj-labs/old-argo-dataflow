@@ -35,7 +35,7 @@ type StepSpec struct {
 	// +patchMergeKey=name
 	Sinks         []Sink               `json:"sinks,omitempty" protobuf:"bytes,4,rep,name=sinks"`
 	RestartPolicy corev1.RestartPolicy `json:"restartPolicy,omitempty" protobuf:"bytes,5,opt,name=restartPolicy,casttype=k8s.io/api/core/v1.RestartPolicy"`
-	Terminator    bool                 `json:"terminator,omitempty"` // if this step terminates, terminate all steps in the pipeline
+	Terminator    bool                 `json:"terminator,omitempty" protobuf:"varint,10,opt,name=terminator"` // if this step terminates, terminate all steps in the pipeline
 }
 
 func (in *StepSpec) GetReplicas() Replicas {

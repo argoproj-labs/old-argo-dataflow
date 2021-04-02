@@ -1,6 +1,6 @@
 package v1alpha1
 
-// +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Errors
+// +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
 type StepPhase string
 
 func (p StepPhase) Completed() bool {

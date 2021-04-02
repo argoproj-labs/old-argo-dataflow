@@ -86,14 +86,6 @@ message Metrics {
   optional uint64 pending = 3;
 }
 
-message NATS {
-  optional string name = 1;
-
-  optional string url = 2;
-
-  optional string subject = 3;
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=pl
 // +kubebuilder:subresource:status
@@ -147,10 +139,18 @@ message Replicas {
   optional uint32 ratio = 3;
 }
 
+message STAN {
+  optional string name = 1;
+
+  optional string url = 2;
+
+  optional string subject = 3;
+}
+
 message Sink {
   optional string name = 1;
 
-  optional NATS nats = 2;
+  optional STAN nats = 2;
 
   optional Kafka kafka = 3;
 }
@@ -168,7 +168,7 @@ message SinkStatus {
 message Source {
   optional string name = 1;
 
-  optional NATS nats = 2;
+  optional STAN stan = 2;
 
   optional Kafka kafka = 3;
 }
@@ -225,6 +225,8 @@ message StepSpec {
   repeated Sink sinks = 4;
 
   optional string restartPolicy = 5;
+
+  optional bool terminator = 10;
 }
 
 message StepStatus {

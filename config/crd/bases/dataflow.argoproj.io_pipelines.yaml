@@ -1773,7 +1773,7 @@ spec:
                             type: object
                           name:
                             type: string
-                          nats:
+                          stan:
                             properties:
                               name:
                                 type: string
@@ -1802,7 +1802,7 @@ spec:
                             type: object
                           name:
                             type: string
-                          nats:
+                          stan:
                             properties:
                               name:
                                 type: string
@@ -1899,7 +1899,7 @@ spec:
                 - Pending
                 - Running
                 - Succeeded
-                - Errors
+                - Failed
                 type: string
             type: object
         required:

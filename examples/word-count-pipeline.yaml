@@ -30,7 +30,7 @@ spec:
         name: in
     name: read-text
     sinks:
-    - nats:
+    - stan:
         subject: a-b
   - container:
       args:
@@ -52,10 +52,10 @@ spec:
     replicas:
       min: 5
     sinks:
-    - nats:
+    - stan:
         subject: b-c
     sources:
-    - nats:
+    - stan:
         subject: a-b
   - container:
       args:
@@ -80,7 +80,7 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - nats:
+    - stan:
         subject: b-c
     terminator: true
 

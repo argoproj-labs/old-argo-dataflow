@@ -26,7 +26,7 @@ spec:
         name: in
     name: read-pets
     sinks:
-    - nats:
+    - stan:
         subject: animals
   - container:
       args:
@@ -41,10 +41,10 @@ spec:
         fifo: true
     name: filter-cats
     sinks:
-    - nats:
+    - stan:
         subject: cats
     sources:
-    - nats:
+    - stan:
         subject: animals
   - container:
       args:
@@ -62,7 +62,7 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - nats:
+    - stan:
         subject: cats
   - container:
       args:
@@ -77,10 +77,10 @@ spec:
         fifo: true
     name: filter-dogs
     sinks:
-    - nats:
+    - stan:
         subject: dogs
     sources:
-    - nats:
+    - stan:
         subject: animals
   - container:
       args:
@@ -98,7 +98,7 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - nats:
+    - stan:
         subject: dogs
 
 ---

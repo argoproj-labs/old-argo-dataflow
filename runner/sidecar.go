@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/nats-io/nats.go"
+	"github.com/nats-io/stan.go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
@@ -25,12 +25,13 @@ import (
 )
 
 var (
-	config          = sarama.NewConfig()
-	replica         = 0
-	pipelineName    = os.Getenv(dfv1.EnvPipelineName)
-	defaultKafkaURL = "kafka-0.broker.kafka.svc.cluster.local:9092"
-	defaultNATSURL  = "nats"
-	step            = &dfv1.Step{}
+	config               = sarama.NewConfig()
+	replica              = 0
+	pipelineName         = os.Getenv(dfv1.EnvPipelineName)
+	defaultKafkaURL      = "kafka-0.broker.kafka.svc.cluster.local:9092"
+	defaultNATSURL       = "nats"
+	defaultSTANClusterID = "stan"
+	step                 = &dfv1.Step{}
 )
 
 func Sidecar(ctx context.Context) error {
@@ -120,28 +121,28 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 	for _, source := range step.Spec.Sources {
 		if source.NATS != nil {
 			url := defaultNATSURL
+			clusterID := defaultSTANClusterID
+			clientID := pipelineName + "-" + step.Name
 			subject := source.NATS.Subject
-			log.Info("connecting to source", "type", "nats", "url", url, "subject", subject)
-			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (source) for step "+step.Name))
+			log.Info("connecting to source", "type", "stan", "url", url, "clusterID", clusterID, "clientID", clusterID, "subject", subject)
+			sc, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
 			if err != nil {
-				return fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
+				return  fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", url, clusterID, clientID, subject, err)
 			}
-			closers = append(closers, func() error {
-				nc.Close()
-				return nil
-			})
-			if sub, err := nc.QueueSubscribe(subject, step.Name, func(m *nats.Msg) {
-				log.Info("◷ nats →", "m", short(m.Data))
+			closers = append(closers, sc.Close)
+			if sub, err := sc.Subscribe(subject, func(m *stan.Msg) {
+				log.Info("◷ stan →", "m", short(m.Data))
 				step.Status.SourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
 					step.Status.SourceStatues.IncErrors(source.Name, replica)
-					log.Error(err, "failed to send message from nats to main")
+					log.Error(err, "failed to send message from stan to main")
 				} else {
-					debug.Info("✔ nats → ", "subject", subject)
+					debug.Info("✔ stan → ", "subject", subject)
 				}
-			}); err != nil {
+			}, stan.DurableName(source.Name)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			} else {
+				closers = append(closers, sub.Close)
 				go func() {
 					defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 					for {
@@ -316,23 +317,19 @@ func connectSink() (func([]byte) error, error) {
 	for _, sink := range step.Spec.Sinks {
 		if sink.NATS != nil {
 			url := defaultNATSURL
+			clusterID := defaultSTANClusterID
+			clientID := pipelineName + "-" + step.Name
 			subject := sink.NATS.Subject
-			log.Info("connecting sink", "type", "nats", "url", url, "subject", subject)
-			nc, err := nats.Connect(url, nats.Name("Argo Dataflow Sidecar (sink) for step "+step.Name))
+			log.Info("connecting sink", "type", "stan", "url", url, "clusterID", clusterID, "clientID", clusterID, "subject", subject)
+			sc, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
 			if err != nil {
-				return nil, fmt.Errorf("failed to connect to nats %s %s: %w", url, subject, err)
+				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", url, clusterID, clientID, subject, err)
 			}
-			closers = append(closers, func() error {
-				nc.Close()
-				return nil
-			})
+			closers = append(closers, sc.Close)
 			toSinks = append(toSinks, func(m []byte) error {
 				step.Status.SinkStatues.Set(sink.Name, replica, short(m))
-				log.Info("◷ → nats", "subject", subject, "m", short(m))
-				return nc.PublishMsg(&nats.Msg{
-					Subject: subject,
-					Data:    m,
-				})
+				log.Info("◷ → stan", "subject", subject, "m", short(m))
+				return sc.Publish(subject, m)
 			})
 		} else if sink.Kafka != nil {
 			url := defaultKafkaURL

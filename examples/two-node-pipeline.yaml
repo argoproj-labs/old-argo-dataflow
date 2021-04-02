@@ -23,7 +23,7 @@ spec:
       image: argoproj/dataflow-runner:latest
     name: a
     sinks:
-    - nats:
+    - stan:
         subject: a-b
     sources:
     - kafka:
@@ -37,5 +37,5 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - nats:
+    - stan:
         subject: a-b
