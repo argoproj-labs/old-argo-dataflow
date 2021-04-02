@@ -6,7 +6,7 @@ import (
 	"github.com/antonmedv/expr"
 )
 
-func Map(x string) error {
+func Group(x string) error {
 	prog, err := expr.Compile(x)
 	if err != nil {
 		return fmt.Errorf("failed to compile %q: %w", x, err)
@@ -16,10 +16,14 @@ func Map(x string) error {
 		if err != nil {
 			return nil, err
 		}
-		b, ok := res.([]byte)
+		b, ok := res.(bool)
 		if !ok {
-			return nil, fmt.Errorf("must return []byte")
+			return nil, fmt.Errorf("must return bool")
 		}
-		return [][]byte{b}, nil
+		if b {
+			return [][]byte{msg}, nil
+		} else {
+			return nil, nil
+		}
 	})
 }

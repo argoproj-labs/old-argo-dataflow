@@ -120,7 +120,7 @@ kafka:
 kafka-9092: kafka
 	kubectl -n kafka port-forward svc/broker 9092:9092
 
-.PHONY: nats
+.PHONY: stan
 stan:
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml

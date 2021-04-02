@@ -1613,6 +1613,8 @@ spec:
                 type: object
               filter:
                 type: string
+              group:
+                type: object
               handler:
                 properties:
                   branch:

@@ -35,6 +35,8 @@ func main() {
 		switch os.Args[1] {
 		case "cat":
 			return Cat()
+		case "chunker":
+			return Group(os.Args[2])
 		case "filter":
 			return Filter(os.Args[2])
 		case "init":
