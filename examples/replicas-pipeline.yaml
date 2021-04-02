@@ -21,13 +21,6 @@ spec:
       args:
       - cat
       image: argoproj/dataflow-runner:latest
-      imagePullPolicy: IfNotPresent
-      in:
-        http: {}
-      name: main
-      out:
-        http: {}
-      resources: {}
     name: main
     replicas:
       max: 8

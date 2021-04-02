@@ -10,16 +10,8 @@ type Handler struct {
 	Code    string  `json:"code,omitempty" protobuf:"bytes,3,opt,name=code"`
 }
 
-func (in *Handler) GetContainer() corev1.Container {
-	return in.Runtime.GetContainer()
-}
-
-func (in *Handler) GetOut() *Interface {
-	return &Interface{HTTP: &HTTP{}}
-}
-
-func (in *Handler) GetIn() *Interface {
-	return &Interface{HTTP: &HTTP{}}
+func (in *Handler) GetContainer(policy corev1.PullPolicy, mnt corev1.VolumeMount) corev1.Container {
+	return in.Runtime.GetContainer(policy, mnt)
 }
 
 func (in *Handler) GetPath() string {

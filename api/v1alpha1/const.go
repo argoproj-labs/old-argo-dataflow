@@ -2,8 +2,9 @@ package v1alpha1
 
 const (
 	// container names
-	CtrInit    = "dataflow-init"
-	CtrSidecar = "dataflow-sidecar"
+	CtrInit    = "init"
+	CtrMain    = "main"
+	CtrSidecar = "sidecar"
 	// env vars
 	EnvPipelineName = "ARGO_DATAFLOW_PIPELINE_NAME"
 	EnvStep         = "ARGO_DATAFLOW_STEP"

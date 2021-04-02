@@ -1,0 +1,28 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This examples shows the built-in mapping.
+
+      Maps are written using expression syntax and must return a byte array.
+
+      They have a single variable, `msg`, which is a byte array.
+
+      The function `string` is provided to convert the message to a string.
+      The function `bytes` is provided to convert the message back to a byte array.
+
+      https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
+    dataflow.argoproj.io/name: Map messages
+  creationTimestamp: null
+  name: map
+spec:
+  steps:
+  - map: bytes('hello ' + string(msg))
+    name: main
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

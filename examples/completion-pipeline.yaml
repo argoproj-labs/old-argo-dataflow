@@ -16,5 +16,4 @@ spec:
       - |
         exit 0
       image: debian:10.7-slim
-      name: main
     name: main

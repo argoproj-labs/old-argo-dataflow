@@ -16,7 +16,7 @@ import (
 )
 
 func Init() error {
-	if err := unmarshallFn(); err != nil {
+	if err := unmarshallStep(); err != nil {
 		return err
 	}
 	log.Info("creating in fifo")

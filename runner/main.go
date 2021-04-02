@@ -35,10 +35,14 @@ func main() {
 		switch os.Args[1] {
 		case "cat":
 			return Cat()
+		case "filter":
+			return Filter(os.Args[2])
 		case "init":
 			return Init()
 		case "kill":
 			return Kill()
+		case "map":
+			return Map(os.Args[2])
 		case "sidecar":
 			return Sidecar(ctx)
 		default:

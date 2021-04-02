@@ -19,10 +19,8 @@ spec:
       - |
         cat /in/text | tee -a /var/run/argo-dataflow/out
       image: debian:10.7-slim
-      name: main
       out:
         fifo: true
-      resources: {}
       volumeMounts:
       - mountPath: /in
         name: in
@@ -46,13 +44,10 @@ spec:
           done
         done | tee -a /var/run/argo-dataflow/out
       image: debian:10.7-slim
-      imagePullPolicy: IfNotPresent
       in:
         fifo: true
-      name: main
       out:
         fifo: true
-      resources: {}
     name: split-lines
     replicas:
       min: 5
@@ -78,10 +73,8 @@ spec:
       image: debian:10.7-slim
       in:
         fifo: true
-      name: main
       out:
         fifo: true
-      resources: {}
     name: count-words
     sinks:
     - kafka:

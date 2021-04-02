@@ -23,7 +23,7 @@ var _ = Describe("Pipeline controller", func() {
 	)
 
 	Context("When creating pipeline", func() {
-		It("Should create a new func", func() {
+		It("Should create a new step", func() {
 			By("By creating a new Pipeline")
 			ctx := context.Background()
 
@@ -41,12 +41,9 @@ var _ = Describe("Pipeline controller", func() {
 				Spec: dfv1.PipelineSpec{
 					Steps: []dfv1.StepSpec{
 						{
-							Name: "my-func",
+							Name: "my-step",
 							Container: &dfv1.Container{
-								Container: corev1.Container{
-									Name:  "main",
-									Image: "docker/whalesay:latest",
-								},
+								Image: "docker/whalesay:latest",
 							},
 							Replicas: &dfv1.Replicas{Min: 2},
 							Sources:  []dfv1.Source{{}},
@@ -59,11 +56,9 @@ var _ = Describe("Pipeline controller", func() {
 
 			step := &dfv1.Step{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-func"}, step)
+				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-step"}, step)
 			}).
 				Should(Succeed())
-
-			Expect(step.Status.Replicas).Should(Equal(2))
 		})
 	})
 })

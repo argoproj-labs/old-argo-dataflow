@@ -1,0 +1,27 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This examples shows the built-in filtering.
+
+      Filters are written using expression syntax and must return a boolean.
+
+      They have a single variable, `msg`, which is a byte array.
+
+      The function `string` is provided to convert the message to a string.
+
+      https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
+    dataflow.argoproj.io/name: Filter messages
+  creationTimestamp: null
+  name: filter
+spec:
+  steps:
+  - filter: string(msg) contains "val"
+    name: main
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

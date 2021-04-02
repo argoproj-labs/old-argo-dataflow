@@ -25,6 +25,23 @@ You MUST escape new lines.
 kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/fifos-pipeline.yaml
 ```
 
+### [Filter messages](filter-pipeline.yaml)
+
+This examples shows the built-in filtering.
+
+Filters are written using expression syntax and must return a boolean.
+
+They have a single variable, `msg`, which is a byte array.
+
+The function `string` is provided to convert the message to a string.
+
+https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
+
+
+```
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/filter-pipeline.yaml
+```
+
 ### [Git handler](git-pipeline.yaml)
 
 This example of a pipeline using Git
@@ -68,6 +85,24 @@ This example of the Java 11 handler
 
 ```
 kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/java11-pipeline.yaml
+```
+
+### [Map messages](map-pipeline.yaml)
+
+This examples shows the built-in mapping.
+
+Maps are written using expression syntax and must return a byte array.
+
+They have a single variable, `msg`, which is a byte array.
+
+The function `string` is provided to convert the message to a string.
+The function `bytes` is provided to convert the message back to a byte array.
+
+https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
+
+
+```
+kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/map-pipeline.yaml
 ```
 
 ### [Using replicas to scale](replicas-pipeline.yaml)

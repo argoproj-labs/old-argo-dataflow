@@ -25,6 +25,8 @@ type StepSpec struct {
 	Name      string     `json:"name,omitempty" protobuf:"bytes,6,opt,name=name"`
 	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`
 	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
+	Filter    Filter     `json:"filter,omitempty" protobuf:"bytes,8,opt,name=filter,casttype=Filter"`
+	Map       Map        `json:"map,omitempty" protobuf:"bytes,9,opt,name=map,casttype=Map"`
 	Replicas  *Replicas  `json:"replicas,omitempty" protobuf:"bytes,2,opt,name=replicas"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
@@ -49,40 +51,36 @@ func (in *StepSpec) GetRestartPolicy() corev1.RestartPolicy {
 	return corev1.RestartPolicyOnFailure
 }
 
-func (m *StepSpec) GetOut() *Interface {
-	if m == nil {
-		return nil
-	} else if m.Container != nil {
-		return m.Container.GetOut()
-	} else if m.Handler != nil {
-		return m.Handler.GetOut()
+func (in *StepSpec) GetOut() *Interface {
+	if in.Container != nil {
+		return in.Container.GetOut()
+	}
+	return DefaultInterface
+}
+
+func (in *StepSpec) GetIn() *Interface {
+	if in.Container != nil {
+		return in.Container.GetIn()
+	}
+	return DefaultInterface
+}
+
+func (in *StepSpec) GetVolumes() []corev1.Volume {
+	if in != nil && in.Container != nil {
+		return in.Container.Volumes
 	}
 	return nil
 }
 
-func (m *StepSpec) GetIn() *Interface {
-	if m == nil {
-		return nil
-	} else if m.Container != nil {
-		return m.Container.GetIn()
-	} else if m.Handler != nil {
-		return m.Handler.GetIn()
-	}
-	return nil
-}
-
-func (m *StepSpec) GetVolumes() []corev1.Volume {
-	if m != nil && m.Container != nil {
-		return m.Container.Volumes
-	}
-	return nil
-}
-
-func (m *StepSpec) GetContainer() corev1.Container {
-	if c := m.Container; c != nil {
-		return c.GetContainer()
-	} else if h := m.Handler; h != nil {
-		return h.GetContainer()
+func (in *StepSpec) GetContainer(runnerImage string, policy corev1.PullPolicy, mnt corev1.VolumeMount) corev1.Container {
+	if c := in.Container; c != nil {
+		return c.GetContainer(policy, mnt)
+	} else if h := in.Handler; h != nil {
+		return h.GetContainer(policy, mnt)
+	} else if m := in.Map; m != "" {
+		return m.GetContainer(runnerImage, policy)
+	} else if f := in.Filter; f != "" {
+		return f.GetContainer(runnerImage, policy)
 	} else {
 		panic("invalid step spec")
 	}
@@ -92,7 +90,7 @@ type StepStatus struct {
 	Phase         StepPhase    `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
 	Message       string       `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
 	Replicas      uint32       `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
-	LastScaleTime *metav1.Time `json:"lastScaleTime,omitempty"`
+	LastScaleTime *metav1.Time `json:"lastScaleTime,omitempty" protobuf:"bytes,6,opt,name=lastScaleTime"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`

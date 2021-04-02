@@ -68,15 +68,17 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	newReplicas := step.Spec.GetReplicas().Calculate(step.Status.GetSourceStatues().GetPending())
 
 	replicas := lastReplicas
-	if step.Status.LastScaleTime == nil || time.Since(step.Status.LastScaleTime.Time) > time.Minute {
+	if step.Status == nil || step.Status.LastScaleTime == nil || time.Since(step.Status.LastScaleTime.Time) > time.Minute {
 		replicas = newReplicas
 	}
 
 	log.Info("reconciling", "lastReplicas", lastReplicas, "newReplicas", newReplicas, "replicas", replicas, "pipelineName", pipelineName)
 
-	volMnt := corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}
-	container := step.Spec.GetContainer()
-	container.VolumeMounts = append(container.VolumeMounts, volMnt)
+	container := step.Spec.GetContainer(
+		runnerImage,
+		imagePullPolicy,
+		corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
+	)
 
 	for replica := 0; replica < replicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
@@ -103,7 +105,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Volumes: append(
 						step.Spec.GetVolumes(),
 						corev1.Volume{
-							Name:         volMnt.Name,
+							Name: (corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}).Name,
 							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 						},
 					),
@@ -114,7 +116,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							Args:            []string{"init"},
 							Env:             envVars,
 							ImagePullPolicy: imagePullPolicy,
-							VolumeMounts:    []corev1.VolumeMount{volMnt},
+							VolumeMounts:    []corev1.VolumeMount{(corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"})},
 						},
 					},
 					Containers: []corev1.Container{
@@ -124,7 +126,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							ImagePullPolicy: imagePullPolicy,
 							Args:            []string{"sidecar"},
 							Env:             envVars,
-							VolumeMounts:    []corev1.VolumeMount{volMnt},
+							VolumeMounts:    []corev1.VolumeMount{(corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"})},
 						},
 						container,
 					},
@@ -141,10 +143,15 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
-	newStatus := &dfv1.StepStatus{Phase: dfv1.StepUnknown, Replicas: uint32(replicas)}
+	newStatus := step.Status.DeepCopy()
+	if newStatus == nil {
+		newStatus = &dfv1.StepStatus{}
+	}
+	newStatus.Phase = dfv1.StepUnknown
 
 	if lastReplicas != replicas {
 		newStatus.LastScaleTime = &metav1.Time{Time: time.Now()}
+		newStatus.Replicas = uint32(replicas)
 	}
 
 	for _, pod := range pods.Items {
@@ -193,7 +200,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if !reflect.DeepEqual(step.Status, newStatus) {
-		log.Info("patching func status (phase/message)", "phase", newStatus.Phase)
+		log.Info("patching step status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
 			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus}))));
 			IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon

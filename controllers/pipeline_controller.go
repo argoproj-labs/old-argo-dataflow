@@ -63,7 +63,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	for _, step := range pipeline.Spec.Steps {
 		deploymentName := "pipeline-" + pipeline.Name + "-" + step.Name
-		log.Info("creating func (if not exists)", "nodeName", step.Name, "deploymentName", deploymentName)
+		log.Info("creating step (if not exists)", "stepName", step.Name, "deploymentName", deploymentName)
 		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: step.Name}
 		obj := &dfv1.Step{
 			ObjectMeta: metav1.ObjectMeta{
@@ -94,10 +94,11 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	pending, running, succeeded, failed, total := 0, 0, 0, 0, len(steps.Items)
-	newStatus := &dfv1.PipelineStatus{
-		Phase:      dfv1.PipelineUnknown,
-		Conditions: []metav1.Condition{},
+	newStatus := pipeline.Status.DeepCopy()
+	if newStatus == nil {
+		newStatus = &dfv1.PipelineStatus{}
 	}
+	newStatus.Phase = dfv1.PipelineUnknown
 	for _, step := range steps.Items {
 		if step.Status == nil {
 			continue
@@ -123,9 +124,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	newStatus.Message = fmt.Sprintf("%d pending, %d running, %d succeeded, %d failed, %d total", pending, running, succeeded, failed, total)
 
 	if newStatus.Phase == dfv1.PipelineRunning {
+		newStatus.Conditions = []metav1.Condition{}
 		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Running", Status: metav1.ConditionTrue, Reason: "Running"})
-	} else {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Running", Status: metav1.ConditionFalse, Reason: "Running"})
 	}
 
 	if !reflect.DeepEqual(pipeline.Status, newStatus) {

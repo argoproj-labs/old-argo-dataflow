@@ -25,13 +25,10 @@ spec:
           echo "hello $line"
         done > /var/run/argo-dataflow/out
       image: debian:10.7-slim
-      imagePullPolicy: IfNotPresent
       in:
         fifo: true
-      name: main
       out:
         fifo: true
-      resources: {}
     name: main
     sinks:
     - kafka:

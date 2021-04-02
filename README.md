@@ -110,12 +110,9 @@ spec:
         - kafka:
             url: kafka-0.broker.kafka.svc.cluster.local:9092
             topic: input-topic
-      in:
-        http: { }
-      image: argoproj/dataflow-runner:latest
-      args: [ cat ]
-      out:
-        http: { }
+      container:
+        image: argoproj/dataflow-runner:latest
+        args: [ cat ]
       sinks:
         - nats:
             subject: a-b
@@ -124,14 +121,11 @@ spec:
       sources:
         - nats:
             subject: a-b
-      in:
-        http: { }
-      image: argoproj/dataflow-runner:latest
-      args: [ cat ]
+      container:
+        image: argoproj/dataflow-runner:latest
+        args: [ cat ]
       replicas:
-        value: 2
-      out:
-        http: { }
+        min: 2
       sinks:
         - kafka:
             url: kafka-0.broker.kafka.svc.cluster.local:9092
@@ -146,13 +140,20 @@ spec:
 
 Similar to CloudEvents. Enable easy interop with other compliant tools.
 
+### Features
+
+* Each steps is a container - deploy an image, or have DF build your code from Git
+* Connect steps to send and receive images from Kafka and NATS
+
+
 ### Data Input/Output Options
 
 #### HTTP
 
 Slower, but easier to get right.
 
-To receive messages from sinks via HTTP, expose an endpoint on `http://localhost:8080/messages`. Dataflow will POST each message to it.
+To receive messages from sinks via HTTP, expose an endpoint on `http://localhost:8080/messages`. Dataflow will POST each
+message to it.
 
 To send messages to source via HTTP, POST the message to `http://localhost:3569/messages`.
 
@@ -160,7 +161,8 @@ To send messages to source via HTTP, POST the message to `http://localhost:3569/
 
 Core Linux capability for IPC.
 
-Read messages from `/var/run/argo-dataflow/in` and write them to `/var/run/argo-dataflow/out`. Each messages must be a single line - you must escape new lines.
+Read messages from `/var/run/argo-dataflow/in` and write them to `/var/run/argo-dataflow/out`. Each messages must be a
+single line - you must escape new lines.
 
 #### Future
 

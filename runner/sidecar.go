@@ -35,7 +35,7 @@ var (
 
 func Sidecar(ctx context.Context) error {
 
-	if err := unmarshallFn(); err != nil {
+	if err := unmarshallStep(); err != nil {
 		return err
 	}
 
@@ -77,7 +77,7 @@ func Sidecar(ctx context.Context) error {
 		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 		for {
 			patch := dfv1.Json(&dfv1.Step{Status: step.Status})
-			log.Info("patching func status (sinks/sources)", "patch", patch)
+			log.Info("patching step status (sinks/sources)", "patch", patch)
 			if _, err := dynamicInterface.
 				Resource(dfv1.StepsGroupVersionResource).
 				Namespace(step.Namespace).
@@ -90,7 +90,7 @@ func Sidecar(ctx context.Context) error {
 					"status",
 				);
 				err != nil {
-				log.Error(err, "failed to patch func status")
+				log.Error(err, "failed to patch step status")
 			}
 			time.Sleep(updateInterval)
 		}
@@ -110,7 +110,7 @@ func Sidecar(ctx context.Context) error {
 	}
 }
 
-func unmarshallFn() error {
+func unmarshallStep() error {
 	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvStep)), step); err != nil {
 		return fmt.Errorf("failed to unmarshall step: %w", err)
 	}

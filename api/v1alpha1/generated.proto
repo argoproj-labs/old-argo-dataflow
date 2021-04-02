@@ -26,7 +26,7 @@ import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 option go_package = "v1alpha1";
 
 message Container {
-  optional k8s.io.api.core.v1.Container container = 1;
+  optional string image = 1;
 
   repeated k8s.io.api.core.v1.Volume volumes = 2;
 
@@ -201,6 +201,10 @@ message StepSpec {
 
   optional Handler handler = 7;
 
+  optional string filter = 8;
+
+  optional string map = 9;
+
   optional Replicas replicas = 2;
 
   // +patchStrategy=merge
@@ -220,6 +224,8 @@ message StepStatus {
   optional string message = 2;
 
   optional uint32 replicas = 5;
+
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastScaleTime = 6;
 
   // +patchStrategy=merge
   // +patchMergeKey=name
