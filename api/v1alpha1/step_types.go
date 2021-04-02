@@ -118,6 +118,7 @@ func (m *StepStatus) GetReplicas() int {
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 // +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`
+// +kubebuilder:printcolumn:name="Errors",type=string,JSONPath=`.status.sourceStatuses.errors`
 type Step struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`

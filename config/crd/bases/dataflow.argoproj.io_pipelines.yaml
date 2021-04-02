@@ -1897,7 +1897,7 @@ spec:
                 - Pending
                 - Running
                 - Succeeded
-                - Failed
+                - Errors
                 type: string
             type: object
         required:

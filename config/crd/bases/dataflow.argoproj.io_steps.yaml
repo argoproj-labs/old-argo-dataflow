@@ -26,6 +26,9 @@ spec:
     - jsonPath: .status.replicas
       name: Replicas
       type: string
+    - jsonPath: .status.sourceStatuses.errors
+      name: Errors
+      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -1725,7 +1728,7 @@ spec:
                 - Pending
                 - Running
                 - Succeeded
-                - Failed
+                - Errors
                 type: string
               replicas:
                 format: int32
@@ -1747,6 +1750,9 @@ spec:
                     metrics:
                       items:
                         properties:
+                          errors:
+                            format: int64
+                            type: integer
                           pending:
                             format: int64
                             type: integer
@@ -1781,6 +1787,9 @@ spec:
                     metrics:
                       items:
                         properties:
+                          errors:
+                            format: int64
+                            type: integer
                           pending:
                             format: int64
                             type: integer

@@ -1,6 +1,6 @@
 package v1alpha1
 
-// +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
+// +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Errors
 type PipelinePhase string
 
 const (
@@ -8,7 +8,7 @@ const (
 	PipelinePending   PipelinePhase = "Pending"
 	PipelineRunning   PipelinePhase = "Running"
 	PipelineSucceeded PipelinePhase = "Succeeded"
-	PipelineFailed    PipelinePhase = "Failed"
+	PipelineFailed    PipelinePhase = "Errors"
 )
 
 func MinPipelinePhase(v ...PipelinePhase) PipelinePhase {

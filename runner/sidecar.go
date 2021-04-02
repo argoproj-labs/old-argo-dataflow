@@ -135,6 +135,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				log.Info("◷ nats →", "m", short(m.Data))
 				step.Status.SourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
+					step.Status.SourceStatues.IncErrors(source.Name, replica)
 					log.Error(err, "failed to send message from nats to main")
 				} else {
 					debug.Info("✔ nats → ", "subject", subject)
@@ -181,6 +182,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				for {
 					newestOffset, err := client.GetOffset(topic, 0, sarama.OffsetNewest)
 					if err != nil {
+						step.Status.SourceStatues.IncErrors(source.Name, replica)
 						log.Error(err, "failed to get offset", "topic", topic)
 					} else {
 						pending := uint64(newestOffset - handler.offset)
@@ -334,7 +336,8 @@ func connectSink() (func([]byte) error, error) {
 			url := defaultKafkaURL
 			topic := sink.Kafka.Topic
 			log.Info("connecting sink", "type", "kafka", "url", url, "topic", topic)
-			producer, err := sarama.NewAsyncProducer([]string{url}, config)
+			config.Producer.Return.Successes = true
+			producer, err := sarama.NewSyncProducer([]string{url}, config)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 			}
@@ -342,11 +345,11 @@ func connectSink() (func([]byte) error, error) {
 			toSinks = append(toSinks, func(m []byte) error {
 				step.Status.SinkStatues.Set(sink.Name, replica, short(m))
 				log.Info("◷ → kafka", "topic", topic, "m", short(m))
-				producer.Input() <- &sarama.ProducerMessage{
+				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
 					Topic: topic,
-					Value: sarama.StringEncoder(m),
-				}
-				return nil
+					Value: sarama.ByteEncoder(m),
+				})
+				return err
 			})
 		} else {
 			return nil, fmt.Errorf("sink misconfigured")

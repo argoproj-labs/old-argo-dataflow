@@ -6,48 +6,57 @@ type SourceStatuses []SourceStatus
 
 func (in *SourceStatuses) Set(name string, replica int, short string) {
 	newMessage := &Message{Data: short, Time: metav1.Now()}
-	newMetric := Metrics{Replica: uint32(replica), Total: 1}
-	for i, x := range *in {
-		if x.Name == name {
-			x.LastMessage = newMessage
-			exists := false
-			for j, m := range x.Metrics {
-				if m.Replica == newMetric.Replica {
-					m.Total++
-					x.Metrics[j] = m
-					exists = true
-				}
-			}
-			if !exists {
-				x.Metrics = append(x.Metrics, newMetric)
-			}
-			(*in)[i] = x
-			return
-		}
-	}
-	*in = append(*in, SourceStatus{Name: name, LastMessage: newMessage, Metrics: []Metrics{newMetric}})
+	in.apply(
+		name,
+		replica,
+		func(s *SourceStatus) { s.LastMessage = newMessage },
+		func(m *Metrics) { m.Total++ },
+	)
+}
+
+func (in *SourceStatuses) IncErrors(name string, replica int) {
+	in.apply(
+		name,
+		replica,
+		func(*SourceStatus) {},
+		func(m *Metrics) { m.Errors++ },
+	)
 }
 
 func (in *SourceStatuses) SetPending(name string, replica int, pending uint64) {
-	newMetric := Metrics{Replica: uint32(replica), Pending: pending}
+	in.apply(
+		name,
+		replica,
+		func(*SourceStatus) {},
+		func(m *Metrics) { m.Pending = pending },
+	)
+}
+
+func (in *SourceStatuses) apply(name string, replica int, fs func(*SourceStatus), fm func(*Metrics)) {
+	newMetric := &Metrics{Replica: uint32(replica)}
+	fm(newMetric)
 	for i, x := range *in {
 		if x.Name == name {
+			fs(&x)
 			exists := false
 			for j, m := range x.Metrics {
 				if m.Replica == newMetric.Replica {
-					m.Pending = newMetric.Pending
+					fm(&m)
 					x.Metrics[j] = m
 					exists = true
 				}
 			}
 			if !exists {
-				x.Metrics = append(x.Metrics, newMetric)
+				x.Metrics = append(x.Metrics, *newMetric)
 			}
 			(*in)[i] = x
 			return
 		}
 	}
-	*in = append(*in, SourceStatus{Name: name, Metrics: []Metrics{newMetric}})
+	x := SourceStatus{Name: name, Metrics: []Metrics{*newMetric}}
+	fs(&x)
+	*in = append(*in, x)
+
 }
 
 func (in SourceStatuses) GetPending() int {
