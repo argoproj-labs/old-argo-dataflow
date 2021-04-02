@@ -1,9 +1,14 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/antonmedv/expr"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 func Group(x string) error {
@@ -16,14 +21,10 @@ func Group(x string) error {
 		if err != nil {
 			return nil, err
 		}
-		b, ok := res.(bool)
+		group, ok := res.(string)
 		if !ok {
-			return nil, fmt.Errorf("must return bool")
+			return nil, fmt.Errorf("must return string")
 		}
-		if b {
-			return [][]byte{msg}, nil
-		} else {
-			return nil, nil
-		}
+		return nil, ioutil.WriteFile(filepath.Join(dfv1.PathVarRun, "groups", group, string(sha256.New().Sum(msg))), msg, 0600)
 	})
 }

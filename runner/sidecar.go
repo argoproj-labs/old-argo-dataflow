@@ -25,6 +25,7 @@ import (
 )
 
 var (
+	updateInterval       = 15 * time.Second
 	config               = sarama.NewConfig()
 	replica              = 0
 	pipelineName         = os.Getenv(dfv1.EnvPipelineName)
@@ -127,7 +128,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			log.Info("connecting to source", "type", "stan", "url", url, "clusterID", clusterID, "clientID", clusterID, "subject", subject)
 			sc, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
 			if err != nil {
-				return  fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", url, clusterID, clientID, subject, err)
+				return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", url, clusterID, clientID, subject, err)
 			}
 			closers = append(closers, sc.Close)
 			if sub, err := sc.Subscribe(subject, func(m *stan.Msg) {

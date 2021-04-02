@@ -1714,6 +1714,11 @@ spec:
                     filter:
                       type: string
                     group:
+                      properties:
+                        key:
+                          type: string
+                      required:
+                      - key
                       type: object
                     handler:
                       properties:

@@ -168,7 +168,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			}
 
 			for _, s := range pod.Status.ContainerStatuses {
-				if s.Name != dfv1.CtrSidecar || s.State.Running == nil {
+				if s.Name != dfv1.CtrMain || s.State.Terminated == nil {
 					continue
 				}
 				url := r.Kubernetes.CoreV1().RESTClient().Post().
@@ -176,14 +176,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Name(pod.Name).
 					Namespace(pod.Namespace).
 					SubResource("exec").
-					Param("container", s.Name).
+					Param("container", dfv1.CtrSidecar).
 					Param("stdout", "true").
 					Param("stderr", "true").
 					Param("tty", "false").
 					Param("command", "/runner").
 					Param("command", "kill").
 					URL()
-				log.Info("killing container", "url", url)
+				log.Info("main container terminated: killing sidecar", "url", url)
 				exec, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", url)
 				if err != nil {
 					return ctrl.Result{}, fmt.Errorf("failed to exec %w", err)

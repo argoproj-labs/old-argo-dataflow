@@ -165,7 +165,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Param("command", "-c").
 					Param("command", "'kill -9 -- -1").
 					URL()
-				log.Info("killing container", "url", url)
+				log.Info("pipeline terminated: killing container", "url", url)
 				exec, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", url)
 				if err != nil {
 					return ctrl.Result{}, fmt.Errorf("failed to exec %w", err)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"time"
 
 	"k8s.io/klog/klogr"
 	"k8s.io/utils/strings"
@@ -12,20 +11,15 @@ import (
 )
 
 var (
-	log             = klogr.New()
-	debug           = log.V(4)
-	closers         []func() error
-	updateInterval  = 15 * time.Second
-)
-
-const (
-	killFile = "/tmp/kill"
+	log     = klogr.New()
+	debug   = log.V(4)
+	closers []func() error
 )
 
 func main() {
 	defer func() {
-		for _, c := range closers {
-			if err := c(); err != nil {
+		for i := len(closers) - 1; i >= 0; i-- {
+			if err := closers[i](); err != nil {
 				log.Error(err, "failed to close")
 			}
 		}
@@ -35,10 +29,10 @@ func main() {
 		switch os.Args[1] {
 		case "cat":
 			return Cat()
-		case "chunker":
-			return Group(os.Args[2])
 		case "filter":
 			return Filter(os.Args[2])
+		case "group":
+			return Group(os.Args[2])
 		case "init":
 			return Init()
 		case "kill":
