@@ -69,10 +69,6 @@ be passed as the body of a single HTTP POST request.
 
 To send a message, send a HTTP post to http://localhost:3569/messages.
 
-Example implementations:
-
-* Go: ../cat/main.go
-
 
 ```
 kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/http-pipeline.yaml
