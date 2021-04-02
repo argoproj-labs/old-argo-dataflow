@@ -150,7 +150,7 @@ message STAN {
 message Sink {
   optional string name = 1;
 
-  optional STAN nats = 2;
+  optional STAN stan = 2;
 
   optional Kafka kafka = 3;
 }

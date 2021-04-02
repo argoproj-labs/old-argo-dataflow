@@ -315,11 +315,11 @@ func connectOut(toSink func([]byte) error) error {
 func connectSink() (func([]byte) error, error) {
 	var toSinks []func([]byte) error
 	for _, sink := range step.Spec.Sinks {
-		if sink.NATS != nil {
+		if sink.STAN != nil {
 			url := defaultNATSURL
 			clusterID := defaultSTANClusterID
 			clientID := pipelineName + "-" + step.Name
-			subject := sink.NATS.Subject
+			subject := sink.STAN.Subject
 			log.Info("connecting sink", "type", "stan", "url", url, "clusterID", clusterID, "clientID", clusterID, "subject", subject)
 			sc, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
 			if err != nil {
