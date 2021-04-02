@@ -31,7 +31,8 @@ install: manifests
 
 # Uninstall CRDs from a cluster
 uninstall: manifests
-	kustomize build config/crd | kubectl delete -f -
+	kubectl delete --ignore-not-found pipeline --all || true
+	kustomize build config/crd | kubectl delete --ignore-not-found -f -
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests runner controller
@@ -39,7 +40,7 @@ deploy: manifests runner controller
 	kustomize build config/default | kubectl apply -f -
 
 undeploy: manifests
-	kustomize build config/default | kubectl delete -f -
+	kustomize build config/default | kubectl delete --ignore-not-found -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
@@ -118,8 +119,6 @@ kafka:
 	kubectl -n kafka apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
 kafka-9092: kafka
 	kubectl -n kafka port-forward svc/broker 9092:9092
-unkafka:
-	kubectl delete ns kafka
 
 .PHONY: nats
 nats:
@@ -129,9 +128,14 @@ nats-4222: nats
 	kubectl port-forward svc/nats 4222:4222
 nats-8222: nats
 	kubectl port-forward svc/nats 8222:8222
-unnats:
-	kubectl -n $(NS) delete -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
-	kubectl -n $(NS) delete -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
+
+nuke: undeploy uninstall
+	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
+	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
+	kubectl delete --ignore-not-found ns kafka
+	git clean -fxd
+	docker image remove argoproj/dataflow-runner || true
+	docker system prune -f
 
 examples/%.yaml: /dev/null
 	@kubectl delete pipeline --all --cascade=foreground > /dev/null
