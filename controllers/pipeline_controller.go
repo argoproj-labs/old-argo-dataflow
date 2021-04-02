@@ -19,15 +19,20 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/remotecommand"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -37,8 +42,10 @@ import (
 // PipelineReconciler reconciles a Pipeline object
 type PipelineReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log        logr.Logger
+	Scheme     *runtime.Scheme
+	RESTConfig *rest.Config
+	Kubernetes kubernetes.Interface
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
@@ -99,6 +106,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		newStatus = &dfv1.PipelineStatus{}
 	}
 	newStatus.Phase = dfv1.PipelineUnknown
+	terminate := false
 	for _, step := range steps.Items {
 		if step.Status == nil {
 			continue
@@ -119,13 +127,58 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		default:
 			panic("should never happen")
 		}
+		terminate = terminate || step.Status.Phase.Completed() && step.Spec.Terminator
 	}
 
-	newStatus.Message = fmt.Sprintf("%d pending, %d running, %d succeeded, %d failed, %d total", pending, running, succeeded, failed, total)
+	newStatus.Message = fmt.Sprintf("%d pending, %d running, %d succeeded, %d failed, %d total, terminate %v", pending, running, succeeded, failed, total, terminate)
 
 	if newStatus.Phase == dfv1.PipelineRunning {
 		newStatus.Conditions = []metav1.Condition{}
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: "Running", Status: metav1.ConditionTrue, Reason: "Running"})
+		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionRunning, Status: metav1.ConditionTrue, Reason: dfv1.ConditionRunning})
+	} else if newStatus.Conditions != nil {
+		meta.RemoveStatusCondition(&newStatus.Conditions, dfv1.ConditionRunning)
+	}
+
+	if terminate {
+		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionTerminated, Status: metav1.ConditionTrue, Reason: dfv1.ConditionTerminated})
+		pods := &corev1.PodList{}
+		selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipeline.Name)
+		if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
+			return ctrl.Result{}, err
+		}
+
+		for _, pod := range pods.Items {
+			for _, s := range pod.Status.ContainerStatuses {
+				if s.Name != dfv1.CtrMain || s.State.Running == nil {
+					continue
+				}
+				url := r.Kubernetes.CoreV1().RESTClient().Post().
+					Resource("pods").
+					Name(pod.Name).
+					Namespace(pod.Namespace).
+					SubResource("exec").
+					Param("container", s.Name).
+					Param("stdout", "true").
+					Param("stderr", "true").
+					Param("tty", "false").
+					Param("command", "sh").
+					Param("command", "-c").
+					Param("command", "'kill -9 -- -1").
+					URL()
+				log.Info("killing container", "url", url)
+				exec, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", url)
+				if err != nil {
+					return ctrl.Result{}, fmt.Errorf("failed to exec %w", err)
+				}
+				if err := exec.Stream(remotecommand.StreamOptions{
+					Stdout: os.Stdout,
+					Stderr: os.Stderr,
+					Tty:    true,
+				}); IgnoreContainerNotFound(err) != nil {
+					return ctrl.Result{}, fmt.Errorf("failed to stream %w", err)
+				}
+			}
+		}
 	}
 
 	if !reflect.DeepEqual(pipeline.Status, newStatus) {

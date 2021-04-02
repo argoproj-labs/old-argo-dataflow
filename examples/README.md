@@ -150,7 +150,7 @@ This pipeline count the number of words in a document, not the number of count o
 
 For that we need `GroupByKey`.
 
-It also shows an example of a pipelines where nodes run to completion.
+It also shows an example of a pipelines terminates based on a single step's status.
 
 
 ```

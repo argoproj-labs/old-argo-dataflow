@@ -134,7 +134,7 @@ nuke: undeploy uninstall
 	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 	kubectl delete --ignore-not-found ns kafka
 	git clean -fxd
-	docker image remove argoproj/dataflow-runner || true
+	docker image rm argoproj/dataflow-runner || true
 	docker system prune -f
 
 examples/%.yaml: /dev/null

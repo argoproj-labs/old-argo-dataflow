@@ -68,10 +68,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	k := kubernetes.NewForConfigOrDie(restConfig)
 	if err = (&controllers.PipelineReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Pipeline"),
-		Scheme: mgr.GetScheme(),
+		Client:     mgr.GetClient(),
+		Log:        ctrl.Log.WithName("controllers").WithName("Pipeline"),
+		Scheme:     mgr.GetScheme(),
+		RESTConfig: restConfig,
+		Kubernetes: k,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
@@ -82,7 +85,7 @@ func main() {
 		Log:        ctrl.Log.WithName("controllers").WithName("Step"),
 		Scheme:     mgr.GetScheme(),
 		RESTConfig: restConfig,
-		Kubernetes: kubernetes.NewForConfigOrDie(restConfig),
+		Kubernetes: k,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Step")
 		os.Exit(1)

@@ -105,7 +105,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Volumes: append(
 						step.Spec.GetVolumes(),
 						corev1.Volume{
-							Name: (corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}).Name,
+							Name:         (corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}).Name,
 							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 						},
 					),
@@ -168,7 +168,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			}
 
 			for _, s := range pod.Status.ContainerStatuses {
-				if s.Name != "main" || s.State.Terminated == nil {
+				if s.Name != dfv1.CtrSidecar || s.State.Running == nil {
 					continue
 				}
 				url := r.Kubernetes.CoreV1().RESTClient().Post().
@@ -176,14 +176,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Name(pod.Name).
 					Namespace(pod.Namespace).
 					SubResource("exec").
-					Param("container", dfv1.CtrSidecar).
+					Param("container", s.Name).
 					Param("stdout", "true").
 					Param("stderr", "true").
 					Param("tty", "false").
 					Param("command", "/runner").
 					Param("command", "kill").
 					URL()
-				log.Info("killing sidecar", "url", url)
+				log.Info("killing container", "url", url)
 				exec, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", url)
 				if err != nil {
 					return ctrl.Result{}, fmt.Errorf("failed to exec %w", err)

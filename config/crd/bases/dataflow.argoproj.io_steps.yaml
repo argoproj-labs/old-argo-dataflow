@@ -1714,6 +1714,8 @@ spec:
                       type: object
                   type: object
                 type: array
+              terminator:
+                type: boolean
             type: object
           status:
             properties:

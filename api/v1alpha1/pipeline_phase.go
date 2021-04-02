@@ -8,7 +8,7 @@ const (
 	PipelinePending   PipelinePhase = "Pending"
 	PipelineRunning   PipelinePhase = "Running"
 	PipelineSucceeded PipelinePhase = "Succeeded"
-	PipelineFailed    PipelinePhase = "Errors"
+	PipelineFailed    PipelinePhase = "Failed"
 )
 
 func MinPipelinePhase(v ...PipelinePhase) PipelinePhase {
