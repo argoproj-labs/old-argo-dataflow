@@ -23,7 +23,7 @@ spec:
       image: argoproj/dataflow-runner:latest
     name: main
     replicas:
-      max: 8
+      max: 4
       min: 1
       ratio: 1000
     sinks:

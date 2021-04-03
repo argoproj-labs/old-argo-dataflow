@@ -64,30 +64,21 @@ func TestSourceStatuses_SetPending(t *testing.T) {
 
 	ss := SourceStatuses{}
 
-	ss.SetPending("bar", 1, 23)
+	ss.SetPending("bar", 23)
 
 	if assert.Len(t, ss, 1) {
-		s := ss["bar"]
-		if assert.Len(t, s.Metrics, 1) {
-			assert.Equal(t, uint64(23), s.Metrics["0"].Pending)
-		}
+		assert.Equal(t, uint64(23), ss["bar"].Pending)
 	}
 
-	ss.SetPending("bar", 1, 34)
+	ss.SetPending("bar", 34)
 
 	if assert.Len(t, ss, 1) {
-		s := ss["bar"]
-		if assert.Len(t, s.Metrics, 1) {
-			assert.Equal(t, uint64(34), s.Metrics["0"].Pending)
-		}
+		assert.Equal(t, uint64(34), ss["bar"].Pending)
 	}
 
-	ss.SetPending("bar", 0, 45)
+	ss.SetPending("bar", 45)
 
 	if assert.Len(t, ss, 1) {
-		s := ss["bar"]
-		if assert.Len(t, s.Metrics, 2) {
-			assert.Equal(t, uint64(45), s.Metrics["1"].Pending)
-		}
+		assert.Equal(t, uint64(45), ss["bar"].Pending)
 	}
 }

@@ -1762,9 +1762,6 @@ spec:
                           errors:
                             format: int64
                             type: integer
-                          pending:
-                            format: int64
-                            type: integer
                           total:
                             format: int64
                             type: integer
@@ -1792,14 +1789,14 @@ spec:
                           errors:
                             format: int64
                             type: integer
-                          pending:
-                            format: int64
-                            type: integer
                           total:
                             format: int64
                             type: integer
                         type: object
                       type: object
+                    pending:
+                      format: int64
+                      type: integer
                   type: object
                 type: object
             type: object

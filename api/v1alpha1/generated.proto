@@ -84,8 +84,6 @@ message Metrics {
   optional uint64 total = 1;
 
   optional uint64 errors = 5;
-
-  optional uint64 pending = 3;
 }
 
 // +kubebuilder:object:root=true
@@ -174,7 +172,9 @@ message Source {
 message SourceStatus {
   optional Message lastMessage = 2;
 
-  map<string, Metrics> metrics = 3;
+  optional uint64 pending = 3;
+
+  map<string, Metrics> metrics = 4;
 }
 
 // +kubebuilder:object:root=true
