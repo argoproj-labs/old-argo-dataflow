@@ -78,6 +78,7 @@ func Sidecar(ctx context.Context) error {
 	go func() {
 		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 		for {
+			// TODO - we should not patch if there are no changes
 			patch := dfv1.Json(&dfv1.Step{Status: step.Status})
 			log.Info("patching step status (sinks/sources)", "patch", patch)
 			if _, err := dynamicInterface.
@@ -92,6 +93,12 @@ func Sidecar(ctx context.Context) error {
 					"status",
 				); err != nil {
 				log.Error(err, "failed to patch step status")
+			}
+			// once we're reported pending, it possible we won't get anymore messages for a while, so the value
+			// we have will be wrong
+			for i, s := range step.Status.SourceStatues {
+				s.Pending = 0
+				step.Status.SourceStatues[i] = s
 			}
 			time.Sleep(updateInterval)
 		}
