@@ -49,8 +49,8 @@ func Sidecar(ctx context.Context) error {
 	log.WithValues("stepName", step.Name, "pipelineName", pipelineName, "replica", replica).Info("config")
 
 	step.Status = &dfv1.StepStatus{
-		SourceStatues: []dfv1.SourceStatus{},
-		SinkStatues:   []dfv1.SinkStatus{},
+		SourceStatues: dfv1.SourceStatuses{},
+		SinkStatues:   dfv1.SinkStatuses{},
 	}
 
 	config.ClientID = dfv1.CtrSidecar
@@ -135,7 +135,6 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				log.Info("◷ stan →", "m", short(m.Data))
 				step.Status.SourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
-					step.Status.SourceStatues.IncErrors(source.Name, replica)
 					log.Error(err, "failed to send message from stan to main")
 				} else {
 					debug.Info("✔ stan → ", "subject", subject)
@@ -183,7 +182,6 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				for {
 					newestOffset, err := client.GetOffset(topic, 0, sarama.OffsetNewest)
 					if err != nil {
-						step.Status.SourceStatues.IncErrors(source.Name, replica)
 						log.Error(err, "failed to get offset", "topic", topic)
 					} else {
 						pending := uint64(newestOffset - handler.offset)

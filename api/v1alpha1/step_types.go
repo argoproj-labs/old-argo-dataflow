@@ -27,7 +27,7 @@ type StepSpec struct {
 	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
 	Filter    Filter     `json:"filter,omitempty" protobuf:"bytes,8,opt,name=filter,casttype=Filter"`
 	Map       Map        `json:"map,omitempty" protobuf:"bytes,9,opt,name=map,casttype=Map"`
-	Group     *Group     `json:"group,omitempty"`
+	Group     *Group     `json:"group,omitempty" protobuf:"bytes,11,opt,name=group"`
 	Replicas  *Replicas  `json:"replicas,omitempty" protobuf:"bytes,2,opt,name=replicas"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
@@ -89,12 +89,10 @@ func (in *StepSpec) GetContainer(runnerImage string, policy corev1.PullPolicy, m
 }
 
 type StepStatus struct {
-	Phase         StepPhase    `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
-	Message       string       `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
-	Replicas      uint32       `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
-	LastScaleTime *metav1.Time `json:"lastScaleTime,omitempty" protobuf:"bytes,6,opt,name=lastScaleTime"`
-	// +patchStrategy=merge
-	// +patchMergeKey=name
+	Phase         StepPhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
+	Message       string         `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Replicas      uint32         `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
+	LastScaleTime *metav1.Time   `json:"lastScaleTime,omitempty" protobuf:"bytes,6,opt,name=lastScaleTime"`
 	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name

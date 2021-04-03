@@ -363,8 +363,10 @@ func (in *SinkStatus) DeepCopyInto(out *SinkStatus) {
 	}
 	if in.Metrics != nil {
 		in, out := &in.Metrics, &out.Metrics
-		*out = make([]Metrics, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]Metrics, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 }
 
@@ -383,8 +385,8 @@ func (in SinkStatuses) DeepCopyInto(out *SinkStatuses) {
 	{
 		in := &in
 		*out = make(SinkStatuses, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 }
@@ -434,8 +436,10 @@ func (in *SourceStatus) DeepCopyInto(out *SourceStatus) {
 	}
 	if in.Metrics != nil {
 		in, out := &in.Metrics, &out.Metrics
-		*out = make([]Metrics, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]Metrics, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 }
 
@@ -454,8 +458,8 @@ func (in SourceStatuses) DeepCopyInto(out *SourceStatuses) {
 	{
 		in := &in
 		*out = make(SourceStatuses, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 }
@@ -592,15 +596,15 @@ func (in *StepStatus) DeepCopyInto(out *StepStatus) {
 	if in.SourceStatues != nil {
 		in, out := &in.SourceStatues, &out.SourceStatues
 		*out = make(SourceStatuses, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.SinkStatues != nil {
 		in, out := &in.SinkStatues, &out.SinkStatues
 		*out = make(SinkStatuses, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 }

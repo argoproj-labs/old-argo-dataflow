@@ -1743,7 +1743,7 @@ spec:
                 format: int32
                 type: integer
               sinkStatuses:
-                items:
+                additionalProperties:
                   properties:
                     lastMessage:
                       properties:
@@ -1757,7 +1757,7 @@ spec:
                       - time
                       type: object
                     metrics:
-                      items:
+                      additionalProperties:
                         properties:
                           errors:
                             format: int64
@@ -1765,22 +1765,15 @@ spec:
                           pending:
                             format: int64
                             type: integer
-                          replica:
-                            format: int32
-                            type: integer
                           total:
                             format: int64
                             type: integer
-                        required:
-                        - replica
                         type: object
-                      type: array
-                    name:
-                      type: string
+                      type: object
                   type: object
-                type: array
+                type: object
               sourceStatuses:
-                items:
+                additionalProperties:
                   properties:
                     lastMessage:
                       properties:
@@ -1794,7 +1787,7 @@ spec:
                       - time
                       type: object
                     metrics:
-                      items:
+                      additionalProperties:
                         properties:
                           errors:
                             format: int64
@@ -1802,20 +1795,13 @@ spec:
                           pending:
                             format: int64
                             type: integer
-                          replica:
-                            format: int32
-                            type: integer
                           total:
                             format: int64
                             type: integer
-                        required:
-                        - replica
                         type: object
-                      type: array
-                    name:
-                      type: string
+                      type: object
                   type: object
-                type: array
+                type: object
             type: object
         required:
         - spec

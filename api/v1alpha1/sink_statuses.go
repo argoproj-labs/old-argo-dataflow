@@ -1,29 +1,21 @@
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	"strconv"
 
-type SinkStatuses []SinkStatus
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
-func (in *SinkStatuses) Set(name string, replica int, short string) {
-	newMessage := &Message{Data: short, Time: metav1.Now()}
-	newMetric := Metrics{Replica: uint32(replica), Total: 1}
-	for i, x := range *in {
-		if x.Name == name {
-			x.LastMessage = newMessage
-			exists := false
-			for j, m := range x.Metrics {
-				if m.Replica == newMetric.Replica {
-					m.Total++
-					x.Metrics[j] = m
-					exists = true
-				}
-			}
-			if !exists {
-				x.Metrics = append(x.Metrics, newMetric)
-			}
-			(*in)[i] = x
-			return
-		}
+type SinkStatuses map[string]SinkStatus
+
+func (in SinkStatuses) Set(name string, replica int, short string) {
+	x := in[name]
+	x.LastMessage = &Message{Data: short, Time: metav1.Now()}
+	if x.Metrics == nil {
+		x.Metrics = map[string]Metrics{}
 	}
-	*in = append(*in, SinkStatus{Name: name, LastMessage: newMessage, Metrics: []Metrics{newMetric}})
+	m := x.Metrics[strconv.Itoa(replica)]
+	m.Total++
+	x.Metrics[strconv.Itoa(replica)] = m
+	in[name] = x
 }
