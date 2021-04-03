@@ -158,13 +158,9 @@ message Sink {
 }
 
 message SinkStatus {
-  optional string name = 1;
-
   optional Message lastMessage = 2;
 
-  // +patchStrategy=merge
-  // +patchMergeKey=replica
-  repeated Metrics metrics = 3;
+  map<string, Metrics> metrics = 3;
 }
 
 message Source {
@@ -178,7 +174,7 @@ message Source {
 message SourceStatus {
   optional Message lastMessage = 2;
 
-  map<int64, Metrics> metrics = 3;
+  map<string, Metrics> metrics = 3;
 }
 
 // +kubebuilder:object:root=true
@@ -242,6 +238,6 @@ message StepStatus {
 
   // +patchStrategy=merge
   // +patchMergeKey=name
-  repeated SinkStatus sinkStatuses = 4;
+  map<string, SinkStatus> sinkStatuses = 4;
 }
 
