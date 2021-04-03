@@ -120,11 +120,11 @@ func unmarshallStep() error {
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
 	for _, source := range step.Spec.Sources {
-		if source.NATS != nil {
+		if source.STAN != nil {
 			url := defaultNATSURL
 			clusterID := defaultSTANClusterID
 			clientID := pipelineName + "-" + step.Name
-			subject := source.NATS.Subject
+			subject := source.STAN.Subject
 			log.Info("connecting to source", "type", "stan", "url", url, "clusterID", clusterID, "clientID", clusterID, "subject", subject)
 			sc, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
 			if err != nil {

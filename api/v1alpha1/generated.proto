@@ -41,6 +41,10 @@ message Container {
   repeated string args = 7;
 }
 
+message Group {
+  optional string key = 1;
+}
+
 message HTTP {
 }
 
@@ -160,8 +164,6 @@ message SinkStatus {
 
   optional Message lastMessage = 2;
 
-  // +patchStrategy=merge
-  // +patchMergeKey=replica
   repeated Metrics metrics = 3;
 }
 
@@ -213,6 +215,8 @@ message StepSpec {
   optional string filter = 8;
 
   optional string map = 9;
+
+  optional Group group = 11;
 
   optional Replicas replicas = 2;
 
