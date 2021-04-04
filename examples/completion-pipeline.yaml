@@ -3,7 +3,9 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example shows running to completion.
+      This example shows a pipelne running to completion.
+
+      A pipeline that run to completion (aka "terimanting") is one that will finish
     dataflow.argoproj.io/name: Runs to completion
   creationTimestamp: null
   name: completion
