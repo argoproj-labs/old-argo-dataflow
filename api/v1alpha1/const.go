@@ -10,7 +10,8 @@ const (
 	CtrSidecar = "sidecar"
 	// env vars
 	EnvPipelineName = "ARGO_DATAFLOW_PIPELINE_NAME"
-	EnvStep         = "ARGO_DATAFLOW_STEP"
+	EnvNamespace    = "ARGO_DATAFLOW_NAMESPACE"
+	EnvStepSpec     = "ARGO_DATAFLOW_STEP_SPEC"
 	EnvReplica      = "ARGO_DATAFLOW_REPLICA"
 	// label/annotation keys
 	KeyPipelineName = "dataflow.argoproj.io/pipeline-name"

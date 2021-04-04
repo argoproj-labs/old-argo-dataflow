@@ -85,8 +85,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		log.Info("creating pod (if not exists)", "podName", podName)
 		envVars := []corev1.EnvVar{
 			{Name: dfv1.EnvPipelineName, Value: pipelineName},
+			{Name: dfv1.EnvNamespace, Value: step.Namespace},
 			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
-			{Name: dfv1.EnvStep, Value: dfv1.Json(step)},
+			{Name: dfv1.EnvStepSpec, Value: dfv1.Json(step.Spec)},
 		}
 		if err := r.Client.Create(
 			ctx,

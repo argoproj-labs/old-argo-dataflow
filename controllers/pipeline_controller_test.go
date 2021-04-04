@@ -56,7 +56,7 @@ var _ = Describe("Pipeline controller", func() {
 
 			step := &dfv1.Step{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "pipeline-my-pipeline-my-step"}, step)
+				return k8sClient.Get(ctx, client.ObjectKey{Namespace: Namespace, Name: "my-pipeline-my-step"}, step)
 			}).
 				Should(Succeed())
 		})

@@ -142,7 +142,9 @@ message Replicas {
 message STAN {
   optional string name = 1;
 
-  optional string url = 2;
+  optional string natsUrl = 4;
+
+  optional string clusterId = 5;
 
   optional string subject = 3;
 }

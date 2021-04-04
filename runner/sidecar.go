@@ -10,34 +10,43 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/nats-io/stan.go"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var (
-	updateInterval       = 15 * time.Second
-	config               = sarama.NewConfig()
-	replica              = 0
-	pipelineName         = os.Getenv(dfv1.EnvPipelineName)
-	defaultKafkaURL      = "kafka-0.broker.kafka.svc.cluster.local:9092"
-	defaultNATSURL       = "nats"
-	defaultSTANClusterID = "stan"
-	step                 = &dfv1.Step{}
+	updateInterval = 15 * time.Second
+	config         = sarama.NewConfig()
+	replica        = 0
+	pipelineName   = os.Getenv(dfv1.EnvPipelineName)
+	namespace      = os.Getenv(dfv1.EnvNamespace)
+	spec           = &dfv1.StepSpec{}
+	status         = &dfv1.StepStatus{
+		SourceStatues: dfv1.SourceStatuses{},
+		SinkStatues:   dfv1.SinkStatuses{},
+	}
 )
 
 func Sidecar(ctx context.Context) error {
 
-	if err := unmarshallStep(); err != nil {
+	if err := unmarshallSpec(); err != nil {
+		return err
+	}
+
+	if err := enrichSpec(ctx); err != nil {
 		return err
 	}
 
@@ -46,12 +55,7 @@ func Sidecar(ctx context.Context) error {
 	} else {
 		replica = v
 	}
-	log.WithValues("stepName", step.Name, "pipelineName", pipelineName, "replica", replica).Info("config")
-
-	step.Status = &dfv1.StepStatus{
-		SourceStatues: dfv1.SourceStatuses{},
-		SinkStatues:   dfv1.SinkStatuses{},
-	}
+	log.WithValues("stepName", spec.Name, "pipelineName", pipelineName, "replica", replica).Info("config")
 
 	config.ClientID = dfv1.CtrSidecar
 
@@ -77,28 +81,31 @@ func Sidecar(ctx context.Context) error {
 
 	go func() {
 		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		lastStatus := status.DeepCopy()
 		for {
-			// TODO - we should not patch if there are no changes
-			patch := dfv1.Json(&dfv1.Step{Status: step.Status})
-			log.Info("patching step status (sinks/sources)", "patch", patch)
-			if _, err := dynamicInterface.
-				Resource(dfv1.StepsGroupVersionResource).
-				Namespace(step.Namespace).
-				Patch(
-					ctx,
-					step.Name,
-					types.MergePatchType,
-					[]byte(patch),
-					metav1.PatchOptions{},
-					"status",
-				); err != nil {
-				log.Error(err, "failed to patch step status")
-			}
-			// once we're reported pending, it possible we won't get anymore messages for a while, so the value
-			// we have will be wrong
-			for i, s := range step.Status.SourceStatues {
-				s.Pending = 0
-				step.Status.SourceStatues[i] = s
+			if !reflect.DeepEqual(lastStatus, status) {
+				patch := dfv1.Json(&dfv1.Step{Status: status})
+				log.Info("patching step status (sinks/sources)", "patch", patch)
+				if _, err := dynamicInterface.
+					Resource(dfv1.StepsGroupVersionResource).
+					Namespace(namespace).
+					Patch(
+						ctx,
+						pipelineName+"-"+spec.Name,
+						types.MergePatchType,
+						[]byte(patch),
+						metav1.PatchOptions{},
+						"status",
+					); err != nil {
+					log.Error(err, "failed to patch step status")
+				}
+				// once we're reported pending, it possible we won't get anymore messages for a while, so the value
+				// we have will be wrong
+				for i, s := range status.SourceStatues {
+					s.Pending = 0
+					status.SourceStatues[i] = s
+				}
+				lastStatus = status.DeepCopy()
 			}
 			time.Sleep(updateInterval)
 		}
@@ -118,33 +125,95 @@ func Sidecar(ctx context.Context) error {
 	}
 }
 
-func unmarshallStep() error {
-	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvStep)), step); err != nil {
-		return fmt.Errorf("failed to unmarshall step: %w", err)
+func enrichSpec(ctx context.Context) error {
+	secrets := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie()).CoreV1().Secrets(namespace)
+
+	for i, source := range spec.Sources {
+		if s := source.STAN; s != nil {
+			secret, err := secrets.Get(ctx, "dataflow-stan-"+stringOr(s.Name, "default"), metav1.GetOptions{})
+			if err != nil {
+				if !apierr.IsNotFound(err) {
+					return err
+				}
+			} else {
+				s.NATSURL = string(secret.Data["natsUrl"])
+				s.ClusterID = string(secret.Data["clusterId"])
+			}
+			source.STAN = s
+		} else if k := source.Kafka; k != nil {
+			secret, err := secrets.Get(ctx, "dataflow-kafka-"+stringOr(k.Name, "default"), metav1.GetOptions{})
+			if err != nil {
+				if !apierr.IsNotFound(err) {
+					return err
+				}
+			} else {
+				k.URL = string(secret.Data["url"])
+			}
+			source.Kafka = k
+		}
+		spec.Sources[i] = source
+	}
+
+	for i, sink := range spec.Sinks {
+		if s := sink.STAN; s != nil {
+			secret, err := secrets.Get(ctx, "dataflow-stan-"+stringOr(s.Name, "default"), metav1.GetOptions{})
+			if err != nil {
+				if !apierr.IsNotFound(err) {
+					return err
+				}
+			} else {
+				s.NATSURL = string(secret.Data["natsUrl"])
+				s.ClusterID = string(secret.Data["clusterId"])
+			}
+			sink.STAN = s
+		} else if k := sink.Kafka; k != nil {
+			secret, err := secrets.Get(ctx, "dataflow-kafka-"+stringOr(k.Name, "default"), metav1.GetOptions{})
+			if err != nil {
+				if !apierr.IsNotFound(err) {
+					return err
+				}
+			} else {
+				k.URL = string(secret.Data["url"])
+			}
+			sink.Kafka = k
+		}
+		spec.Sinks[i] = sink
+	}
+
+	return nil
+}
+
+func stringOr(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
+}
+
+func unmarshallSpec() error {
+	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvStepSpec)), spec); err != nil {
+		return fmt.Errorf("failed to unmarshall spec: %w", err)
 	}
 	return nil
 }
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
-	for _, source := range step.Spec.Sources {
-		if source.STAN != nil {
-			url := defaultNATSURL
-			clusterID := defaultSTANClusterID
-			clientID := pipelineName + "-" + step.Name
-			subject := source.STAN.Subject
-			log.Info("connecting to source", "type", "stan", "url", url, "clusterID", clusterID, "clientID", clusterID, "subject", subject)
-			sc, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
+	for _, source := range spec.Sources {
+		if s := source.STAN; s != nil {
+			clientID := pipelineName + "-" + spec.Name
+			log.Info("connecting to source", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", s.ClusterID, "subject", s.Subject)
+			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))
 			if err != nil {
-				return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", url, clusterID, clientID, subject, err)
+				return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", s.NATSURL, s.ClusterID, clientID, s.Subject, err)
 			}
 			closers = append(closers, sc.Close)
-			if sub, err := sc.Subscribe(subject, func(m *stan.Msg) {
+			if sub, err := sc.Subscribe(s.Subject, func(m *stan.Msg) {
 				log.Info("◷ stan →", "m", short(m.Data))
-				step.Status.SourceStatues.Set(source.Name, replica, short(m.Data))
+				status.SourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
 					log.Error(err, "failed to send message from stan to main")
 				} else {
-					debug.Info("✔ stan → ", "subject", subject)
+					debug.Info("✔ stan → ", "subject", s.Subject)
 				}
 			}, stan.DurableName(source.Name)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
@@ -154,25 +223,23 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 					for {
 						if pending, _, err := sub.Pending(); err != nil {
-							log.Error(err, "failed to get pending", "subject", subject)
+							log.Error(err, "failed to get pending", "subject", s.Subject)
 						} else {
-							debug.Info("setting pending", "subject", subject, "pending", pending)
-							step.Status.SourceStatues.SetPending(source.Name, uint64(pending))
+							debug.Info("setting pending", "subject", s.Subject, "pending", pending)
+							status.SourceStatues.SetPending(source.Name, uint64(pending))
 						}
 						time.Sleep(updateInterval)
 					}
 				}()
 			}
-		} else if source.Kafka != nil {
-			url := defaultKafkaURL
-			topic := source.Kafka.Topic
-			log.Info("connecting kafka source", "type", "kafka", "url", url, "topic", topic)
-			client, err := sarama.NewClient([]string{url}, config) // I am not giving any configuration
+		} else if k := source.Kafka; k != nil {
+			log.Info("connecting kafka source", "type", "kafka", "url", k.URL, "topic", k.Topic)
+			client, err := sarama.NewClient([]string{k.URL}, config) // I am not giving any configuration
 			if err != nil {
 				return fmt.Errorf("failed to create kafka client: %w", err)
 			}
 			closers = append(closers, client.Close)
-			group, err := sarama.NewConsumerGroup([]string{url}, step.Name, config)
+			group, err := sarama.NewConsumerGroup([]string{k.URL}, pipelineName+"-"+spec.Name, config)
 			if err != nil {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
@@ -180,20 +247,20 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			handler := &handler{source.Name, toMain, 0}
 			go func() {
 				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
-				if err := group.Consume(ctx, []string{topic}, handler); err != nil {
+				if err := group.Consume(ctx, []string{k.Topic}, handler); err != nil {
 					log.Error(err, "failed to create kafka consumer")
 				}
 			}()
 			go func() {
 				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 				for {
-					newestOffset, err := client.GetOffset(topic, 0, sarama.OffsetNewest)
+					newestOffset, err := client.GetOffset(k.Topic, 0, sarama.OffsetNewest)
 					if err != nil {
-						log.Error(err, "failed to get offset", "topic", topic)
+						log.Error(err, "failed to get offset", "topic", k.Topic)
 					} else {
 						pending := uint64(newestOffset - handler.offset)
-						debug.Info("setting pending", "type", "kafka", "topic", topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
-						step.Status.SourceStatues.SetPending(source.Name, pending)
+						debug.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
+						status.SourceStatues.SetPending(source.Name, pending)
 					}
 					time.Sleep(updateInterval)
 				}
@@ -206,12 +273,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 }
 
 func connectTo() (func([]byte) error, error) {
-	if step.Spec.GetIn() == nil {
+	if spec.GetIn() == nil {
 		log.Info("no in interface configured")
 		return func(i []byte) error {
 			return fmt.Errorf("no in interface configured")
 		}, nil
-	} else if step.Spec.GetIn().FIFO {
+	} else if spec.GetIn().FIFO {
 		log.Info("FIFO in interface configured")
 		path := filepath.Join(dfv1.PathVarRun, "in")
 		log.WithValues("path", path).Info("opened input FIFO")
@@ -231,7 +298,7 @@ func connectTo() (func([]byte) error, error) {
 			debug.Info("✔ source → fifo")
 			return nil
 		}, nil
-	} else if step.Spec.GetIn().HTTP != nil {
+	} else if spec.GetIn().HTTP != nil {
 		log.Info("HTTP in interface configured")
 		return func(data []byte) error {
 			debug.Info("◷ source → http")
@@ -251,10 +318,10 @@ func connectTo() (func([]byte) error, error) {
 }
 
 func connectOut(toSink func([]byte) error) error {
-	if step.Spec.GetOut() == nil {
+	if spec.GetOut() == nil {
 		log.Info("no out interface configured")
 		return nil
-	} else if step.Spec.GetOut().FIFO {
+	} else if spec.GetOut().FIFO {
 		log.Info("FIFO out interface configured")
 		path := filepath.Join(dfv1.PathVarRun, "out")
 		go func() {
@@ -285,7 +352,7 @@ func connectOut(toSink func([]byte) error) error {
 			}
 		}()
 		return nil
-	} else if step.Spec.GetOut().HTTP != nil {
+	} else if spec.GetOut().HTTP != nil {
 		log.Info("HTTP out interface configured")
 		http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 			data, err := ioutil.ReadAll(r.Body)
@@ -320,38 +387,33 @@ func connectOut(toSink func([]byte) error) error {
 
 func connectSink() (func([]byte) error, error) {
 	var toSinks []func([]byte) error
-	for _, sink := range step.Spec.Sinks {
-		if sink.STAN != nil {
-			url := defaultNATSURL
-			clusterID := defaultSTANClusterID
-			clientID := pipelineName + "-" + step.Name
-			subject := sink.STAN.Subject
-			log.Info("connecting sink", "type", "stan", "url", url, "clusterID", clusterID, "clientID", clusterID, "subject", subject)
-			sc, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
+	for _, sink := range spec.Sinks {
+		if s := sink.STAN; s != nil {
+			clientID := pipelineName + "-" + spec.Name
+			log.Info("connecting sink", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", s.ClusterID, "subject", s.Subject)
+			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))
 			if err != nil {
-				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", url, clusterID, clientID, subject, err)
+				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", s.NATSURL, s.ClusterID, clientID, s.Subject, err)
 			}
 			closers = append(closers, sc.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				step.Status.SinkStatues.Set(sink.Name, replica, short(m))
-				log.Info("◷ → stan", "subject", subject, "m", short(m))
-				return sc.Publish(subject, m)
+				status.SinkStatues.Set(sink.Name, replica, short(m))
+				log.Info("◷ → stan", "subject", s.Subject, "m", short(m))
+				return sc.Publish(s.Subject, m)
 			})
-		} else if sink.Kafka != nil {
-			url := defaultKafkaURL
-			topic := sink.Kafka.Topic
-			log.Info("connecting sink", "type", "kafka", "url", url, "topic", topic)
+		} else if k := sink.Kafka; k != nil {
+			log.Info("connecting sink", "type", "kafka", "url", k.URL, "topic", k.Topic)
 			config.Producer.Return.Successes = true
-			producer, err := sarama.NewSyncProducer([]string{url}, config)
+			producer, err := sarama.NewSyncProducer([]string{k.URL}, config)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 			}
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				step.Status.SinkStatues.Set(sink.Name, replica, short(m))
-				log.Info("◷ → kafka", "topic", topic, "m", short(m))
+				status.SinkStatues.Set(sink.Name, replica, short(m))
+				log.Info("◷ → kafka", "topic", k.Topic, "m", short(m))
 				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
-					Topic: topic,
+					Topic: k.Topic,
 					Value: sarama.ByteEncoder(m),
 				})
 				return err

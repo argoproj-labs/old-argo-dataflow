@@ -1782,11 +1782,13 @@ spec:
                             type: string
                           stan:
                             properties:
+                              clusterId:
+                                type: string
                               name:
                                 type: string
-                              subject:
+                              natsUrl:
                                 type: string
-                              url:
+                              subject:
                                 type: string
                             required:
                             - subject
@@ -1811,11 +1813,13 @@ spec:
                             type: string
                           stan:
                             properties:
+                              clusterId:
+                                type: string
                               name:
                                 type: string
-                              subject:
+                              natsUrl:
                                 type: string
-                              url:
+                              subject:
                                 type: string
                             required:
                             - subject

@@ -44,12 +44,10 @@ undeploy: manifests
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
-manifests: controller-gen api/v1alpha1/generated.pb.go
+manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-install/default.yaml: config/default
-	kustomize build config/default | sed 's/argoproj\//alexcollinsintuit\//' | sed 's/:latest/:$(TAG)/' > install/default.yaml
 
-generate: controller-gen
+generate: controller-gen proto
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 	go run ./examples > examples/README.md
 
@@ -117,6 +115,7 @@ kubebuilder:
 kafka:
 	kubectl get ns kafka || kubectl create ns kafka
 	kubectl -n kafka apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
+	kubectl -n $(NS) apply -f config/quick-start/dataflow-kafka-default-secret.yaml
 kafka-9092: kafka
 	kubectl -n kafka port-forward svc/broker 9092:9092
 
@@ -124,6 +123,7 @@ kafka-9092: kafka
 stan:
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
+	kubectl -n $(NS) apply -f config/quick-start/dataflow-stan-default-secret.yaml
 
 nuke: undeploy uninstall
 	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
