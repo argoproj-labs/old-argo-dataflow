@@ -5,15 +5,21 @@ import (
 	"io/ioutil"
 	"os"
 
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/klogr"
 	"k8s.io/utils/strings"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
 var (
-	log     = klogr.New()
-	debug   = log.V(4)
-	closers []func() error
+	log                 = klogr.New()
+	debug               = log.V(4)
+	closers             []func() error
+	restConfig          = ctrl.GetConfigOrDie()
+	dynamicInterface    = dynamic.NewForConfigOrDie(restConfig)
+	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 )
 
 func main() {

@@ -37,20 +37,21 @@ spec:
       - sh
       - -c
       - |
+        set -eu
+        echo starting..
         cat /var/run/argo-dataflow/in | while read sentence; do
           [ $sentence = EOF ] && exit 0
           for word in $sentence; do
               echo $word
           done
         done | tee -a /var/run/argo-dataflow/out
+        echo done
       image: debian:10.7-slim
       in:
         fifo: true
       out:
         fifo: true
     name: split-lines
-    replicas:
-      min: 5
     sinks:
     - stan:
         subject: b-c
@@ -62,6 +63,7 @@ spec:
       - sh
       - -c
       - |
+        set -eu
         i=0
         cat /var/run/argo-dataflow/in | while read word; do
           if [ $word = EOF ]; then

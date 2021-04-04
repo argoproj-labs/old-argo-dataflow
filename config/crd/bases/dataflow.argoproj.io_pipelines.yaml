@@ -1790,6 +1790,13 @@ spec:
                                 type: string
                               subject:
                                 type: string
+                              subjectPrefix:
+                                enum:
+                                - ""
+                                - None
+                                - NamespaceName
+                                - NamespacedPipelineName
+                                type: string
                             required:
                             - subject
                             type: object
@@ -1820,6 +1827,13 @@ spec:
                               natsUrl:
                                 type: string
                               subject:
+                                type: string
+                              subjectPrefix:
+                                enum:
+                                - ""
+                                - None
+                                - NamespaceName
+                                - NamespacedPipelineName
                                 type: string
                             required:
                             - subject

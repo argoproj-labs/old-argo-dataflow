@@ -20,9 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
-	ctrl "sigs.k8s.io/controller-runtime"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
@@ -77,7 +74,6 @@ func Sidecar(ctx context.Context) error {
 		return err
 	}
 
-	dynamicInterface := dynamic.NewForConfigOrDie(ctrl.GetConfigOrDie())
 
 	go func() {
 		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
@@ -126,28 +122,34 @@ func Sidecar(ctx context.Context) error {
 }
 
 func enrichSpec(ctx context.Context) error {
-	secrets := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie()).CoreV1().Secrets(namespace)
-
+	secrets := kubernetesInterface.CoreV1().Secrets(namespace)
 	for i, source := range spec.Sources {
 		if s := source.STAN; s != nil {
-			secret, err := secrets.Get(ctx, "dataflow-stan-"+stringOr(s.Name, "default"), metav1.GetOptions{})
+			secret, err := secrets.Get(ctx, "dataflow-stan-"+dfv1.StringOr(s.Name, "default"), metav1.GetOptions{})
 			if err != nil {
 				if !apierr.IsNotFound(err) {
 					return err
 				}
 			} else {
-				s.NATSURL = string(secret.Data["natsUrl"])
-				s.ClusterID = string(secret.Data["clusterId"])
+				s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
+				s.ClusterID = dfv1.StringOr(s.ClusterID, string(secret.Data["clusterId"]))
+				s.SubjectPrefix = dfv1.SubjectPrefixOr(s.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
+			}
+			switch s.SubjectPrefix {
+			case dfv1.SubjectPrefixNamespaceName:
+				s.Subject = fmt.Sprintf("%s.%s", namespace, s.Subject)
+			case dfv1.SubjectPrefixNamespacedPipelineName:
+				s.Subject = fmt.Sprintf("%s.%s.%s", namespace, pipelineName, s.Subject)
 			}
 			source.STAN = s
 		} else if k := source.Kafka; k != nil {
-			secret, err := secrets.Get(ctx, "dataflow-kafka-"+stringOr(k.Name, "default"), metav1.GetOptions{})
+			secret, err := secrets.Get(ctx, "dataflow-kafka-"+dfv1.StringOr(k.Name, "default"), metav1.GetOptions{})
 			if err != nil {
 				if !apierr.IsNotFound(err) {
 					return err
 				}
 			} else {
-				k.URL = string(secret.Data["url"])
+				k.URL = dfv1.StringOr(k.URL, string(secret.Data["url"]))
 			}
 			source.Kafka = k
 		}
@@ -156,18 +158,25 @@ func enrichSpec(ctx context.Context) error {
 
 	for i, sink := range spec.Sinks {
 		if s := sink.STAN; s != nil {
-			secret, err := secrets.Get(ctx, "dataflow-stan-"+stringOr(s.Name, "default"), metav1.GetOptions{})
+			secret, err := secrets.Get(ctx, "dataflow-stan-"+dfv1.StringOr(s.Name, "default"), metav1.GetOptions{})
 			if err != nil {
 				if !apierr.IsNotFound(err) {
 					return err
 				}
 			} else {
-				s.NATSURL = string(secret.Data["natsUrl"])
-				s.ClusterID = string(secret.Data["clusterId"])
+				s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
+				s.ClusterID = dfv1.StringOr(s.ClusterID, string(secret.Data["clusterId"]))
+				s.SubjectPrefix = dfv1.SubjectPrefixOr(s.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
+			}
+			switch s.SubjectPrefix {
+			case dfv1.SubjectPrefixNamespaceName:
+				s.Subject = fmt.Sprintf("%s.%s", namespace, s.Subject)
+			case dfv1.SubjectPrefixNamespacedPipelineName:
+				s.Subject = fmt.Sprintf("%s.%s.%s", namespace, pipelineName, s.Subject)
 			}
 			sink.STAN = s
 		} else if k := sink.Kafka; k != nil {
-			secret, err := secrets.Get(ctx, "dataflow-kafka-"+stringOr(k.Name, "default"), metav1.GetOptions{})
+			secret, err := secrets.Get(ctx, "dataflow-kafka-"+dfv1.StringOr(k.Name, "default"), metav1.GetOptions{})
 			if err != nil {
 				if !apierr.IsNotFound(err) {
 					return err
@@ -183,13 +192,6 @@ func enrichSpec(ctx context.Context) error {
 	return nil
 }
 
-func stringOr(a, b string) string {
-	if a != "" {
-		return a
-	}
-	return b
-}
-
 func unmarshallSpec() error {
 	if err := json.Unmarshal([]byte(os.Getenv(dfv1.EnvStepSpec)), spec); err != nil {
 		return fmt.Errorf("failed to unmarshall spec: %w", err)
@@ -198,16 +200,16 @@ func unmarshallSpec() error {
 }
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
-	for _, source := range spec.Sources {
+	for i, source := range spec.Sources {
 		if s := source.STAN; s != nil {
-			clientID := pipelineName + "-" + spec.Name
-			log.Info("connecting to source", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", s.ClusterID, "subject", s.Subject)
+			clientID := fmt.Sprintf("%s-%s-%d-source-%d", pipelineName, spec.Name, replica, i)
+			log.Info("connecting to source", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", clientID, "subject", s.Subject)
 			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))
 			if err != nil {
 				return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", s.NATSURL, s.ClusterID, clientID, s.Subject, err)
 			}
 			closers = append(closers, sc.Close)
-			if sub, err := sc.Subscribe(s.Subject, func(m *stan.Msg) {
+			if sub, err := sc.QueueSubscribe(s.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
 				log.Info("◷ stan →", "m", short(m.Data))
 				status.SourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
@@ -215,7 +217,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				} else {
 					debug.Info("✔ stan → ", "subject", s.Subject)
 				}
-			}, stan.DurableName(source.Name)); err != nil {
+			}); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			} else {
 				closers = append(closers, sub.Close)
@@ -387,10 +389,10 @@ func connectOut(toSink func([]byte) error) error {
 
 func connectSink() (func([]byte) error, error) {
 	var toSinks []func([]byte) error
-	for _, sink := range spec.Sinks {
+	for i, sink := range spec.Sinks {
 		if s := sink.STAN; s != nil {
-			clientID := pipelineName + "-" + spec.Name
-			log.Info("connecting sink", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", s.ClusterID, "subject", s.Subject)
+			clientID := fmt.Sprintf("%s-%s-%d-source-%d", pipelineName, spec.Name, replica, i)
+			log.Info("connecting sink", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", clientID, "subject", s.Subject)
 			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))
 			if err != nil {
 				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", s.NATSURL, s.ClusterID, clientID, s.Subject, err)

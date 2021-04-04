@@ -26,9 +26,6 @@ spec:
     - jsonPath: .status.replicas
       name: Replicas
       type: string
-    - jsonPath: .status.sourceStatuses.errors
-      name: Errors
-      type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -1689,6 +1686,13 @@ spec:
                           type: string
                         subject:
                           type: string
+                        subjectPrefix:
+                          enum:
+                          - ""
+                          - None
+                          - NamespaceName
+                          - NamespacedPipelineName
+                          type: string
                       required:
                       - subject
                       type: object
@@ -1719,6 +1723,13 @@ spec:
                         natsUrl:
                           type: string
                         subject:
+                          type: string
+                        subjectPrefix:
+                          enum:
+                          - ""
+                          - None
+                          - NamespaceName
+                          - NamespacedPipelineName
                           type: string
                       required:
                       - subject
