@@ -17,6 +17,7 @@ const (
 	KeyPipelineName = "dataflow.argoproj.io/pipeline-name"
 	KeyStepName     = "dataflow.argoproj.io/step-name"
 	KeyReplica      = "dataflow.argoproj.io/replica"
+	KeyRestart      = "dataflow.argoproj.io/restart"
 	// paths
 	PathCheckout       = "/var/run/argo-dataflow/checkout"
 	PathGroups         = "/var/run/argo-dataflow/groups"

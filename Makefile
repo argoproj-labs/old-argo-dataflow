@@ -115,20 +115,21 @@ kubebuilder:
 kafka:
 	kubectl get ns kafka || kubectl create ns kafka
 	kubectl -n kafka apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
-	kubectl -n $(NS) apply -f config/quick-start/dataflow-kafka-default-secret.yaml
+	kubectl -n $(NS) apply -f examples/dataflow-kafka-default-secret.yaml
 kafka-9092: kafka
 	kubectl -n kafka port-forward svc/broker 9092:9092
 
 .PHONY: stan
 stan:
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
+	kubectl -n $(NS) wait pod nats-0 --for=condition=Ready
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
-	kubectl -n $(NS) apply -f config/quick-start/dataflow-stan-default-secret.yaml
+	kubectl -n $(NS) apply -f examples/dataflow-stan-default-secret.yaml
 
 nuke: undeploy uninstall
 	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
 	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
-	kubectl delete --ignore-not-found ns kafka
+	kubectl delete --ignore-not-found ns kafika
 	git clean -fxd
 	docker image rm argoproj/dataflow-runner || true
 	docker system prune -f

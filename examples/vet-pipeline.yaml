@@ -28,17 +28,7 @@ spec:
     sinks:
     - stan:
         subject: animals
-  - container:
-      args:
-      - sh
-      - -c
-      - |
-        cat /var/run/argo-dataflow/in | grep cat | tee -a /var/run/argo-dataflow/out
-      image: debian:10.7-slim
-      in:
-        fifo: true
-      out:
-        fifo: true
+  - filter: string(msg) contains "cat"
     name: filter-cats
     sinks:
     - stan:
@@ -46,17 +36,7 @@ spec:
     sources:
     - stan:
         subject: animals
-  - container:
-      args:
-      - sh
-      - -c
-      - |
-        cat /var/run/argo-dataflow/in | tee -a /var/run/argo-dataflow/out
-      image: debian:10.7-slim
-      in:
-        fifo: true
-      out:
-        fifo: true
+  - map: bytes("Meow! " + object(msg).name)
     name: process-cats
     sinks:
     - kafka:
@@ -64,17 +44,7 @@ spec:
     sources:
     - stan:
         subject: cats
-  - container:
-      args:
-      - sh
-      - -c
-      - |
-        cat /var/run/argo-dataflow/in | grep dog > /var/run/argo-dataflow/out
-      image: debian:10.7-slim
-      in:
-        fifo: true
-      out:
-        fifo: true
+  - filter: string(msg) contains "dog"
     name: filter-dogs
     sinks:
     - stan:
@@ -82,17 +52,7 @@ spec:
     sources:
     - stan:
         subject: animals
-  - container:
-      args:
-      - sh
-      - -c
-      - |
-        cat /var/run/argo-dataflow/in | tee -a /var/run/argo-dataflow/out
-      image: debian:10.7-slim
-      in:
-        fifo: true
-      out:
-        fifo: true
+  - map: bytes("Woof! " + object(msg).name)
     name: process-dogs
     sinks:
     - kafka:
