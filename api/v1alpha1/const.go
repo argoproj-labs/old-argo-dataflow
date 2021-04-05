@@ -18,6 +18,10 @@ const (
 	KeyStepName     = "dataflow.argoproj.io/step-name"
 	KeyReplica      = "dataflow.argoproj.io/replica"
 	// paths
-	PathVarRun         = "/var/run/argo-dataflow"
+	PathCheckout       = "/var/run/argo-dataflow/checkout"
+	PathGroups         = "/var/run/argo-dataflow/groups"
+	PathFIFOIn         = "/var/run/argo-dataflow/in"
+	PathFIFOOut        = "/var/run/argo-dataflow/out"
 	PathVarRunRuntimes = "/var/run/argo-dataflow/runtimes"
+	PathWorkingDir     = "/var/run/argo-dataflow/wd"
 )

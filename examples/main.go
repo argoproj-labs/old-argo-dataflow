@@ -7,8 +7,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 func main() {
@@ -31,14 +29,16 @@ func main() {
 		var formatted []string
 		for i, text := range strings.Split(string(data), "---") {
 			if i == 0 {
-				pipeline := &dfv1.Pipeline{}
-				if err := yaml.Unmarshal([]byte(text), pipeline); err != nil {
+				un := &unstructured.Unstructured{}
+				if err := yaml.Unmarshal([]byte(text), un); err != nil {
 					panic(err)
 				}
-				annotations := pipeline.GetAnnotations()
-				_, _ = fmt.Printf("### [%s](%s)\n\n", annotations["dataflow.argoproj.io/name"], f)
-				_, _ = fmt.Printf("%s\n\n", annotations["dataflow.argoproj.io/description"])
-				_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", f)
+				annotations := un.GetAnnotations()
+				if name, ok := annotations["dataflow.argoproj.io/name"]; ok {
+					_, _ = fmt.Printf("### [%s](%s)\n\n", name, f)
+					_, _ = fmt.Printf("%s\n\n", annotations["dataflow.argoproj.io/description"])
+					_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", f)
+				}
 			}
 			un := &unstructured.Unstructured{}
 			if err := yaml.Unmarshal([]byte(text), un); err != nil {

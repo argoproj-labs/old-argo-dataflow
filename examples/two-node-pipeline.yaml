@@ -10,8 +10,6 @@ metadata:
       By convention, subjects should be the two node names with a hyphen.
 
       If the first node is named `foo` and the second is named `bar`, then the subject should be `foo-bar`.
-
-      Subjects names only need to be unique within the pipeline.
     dataflow.argoproj.io/name: Two nodes pipeline
   creationTimestamp: null
   name: two-node

@@ -3,7 +3,9 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example of Go 1.16 handler
+      This example of Go 1.16 handler.
+
+      [Learn about handlers](../docs/HANDLERS.md)
     dataflow.argoproj.io/name: Go 1.16 handler
   creationTimestamp: null
   name: go1-16

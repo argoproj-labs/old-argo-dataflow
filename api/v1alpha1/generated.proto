@@ -41,6 +41,16 @@ message Container {
   repeated string args = 7;
 }
 
+message Git {
+  optional string image = 1;
+
+  optional string url = 2;
+
+  optional string path = 3;
+
+  optional string branch = 4;
+}
+
 message Group {
   optional string key = 1;
 }
@@ -50,12 +60,6 @@ message HTTP {
 
 message Handler {
   optional string runtime = 4;
-
-  optional string url = 2;
-
-  optional string path = 5;
-
-  optional string branch = 6;
 
   optional string code = 3;
 }
@@ -147,6 +151,8 @@ message STAN {
   optional string clusterId = 5;
 
   optional string subject = 3;
+
+  optional string subjectPrefix = 6;
 }
 
 message Sink {
@@ -184,7 +190,6 @@ message SourceStatus {
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
 // +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`
-// +kubebuilder:printcolumn:name="Errors",type=string,JSONPath=`.status.sourceStatuses.errors`
 message Step {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -205,6 +210,8 @@ message StepSpec {
   optional Container container = 1;
 
   optional Handler handler = 7;
+
+  optional Git git = 12;
 
   optional string filter = 8;
 

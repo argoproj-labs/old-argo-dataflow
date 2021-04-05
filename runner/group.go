@@ -25,6 +25,6 @@ func Group(x string) error {
 		if !ok {
 			return nil, fmt.Errorf("must return string")
 		}
-		return nil, ioutil.WriteFile(filepath.Join(dfv1.PathVarRun, "groups", group, string(sha256.New().Sum(msg))), msg, 0600)
+		return nil, ioutil.WriteFile(filepath.Join(dfv1.PathGroups, group, string(sha256.New().Sum(msg))), msg, 0600)
 	})
 }

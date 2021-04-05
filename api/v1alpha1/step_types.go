@@ -25,6 +25,7 @@ type StepSpec struct {
 	Name      string     `json:"name,omitempty" protobuf:"bytes,6,opt,name=name"`
 	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`
 	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
+	Git       *Git       `json:"git,omitempty" protobuf:"bytes,12,opt,name=git"`
 	Filter    Filter     `json:"filter,omitempty" protobuf:"bytes,8,opt,name=filter,casttype=Filter"`
 	Map       Map        `json:"map,omitempty" protobuf:"bytes,9,opt,name=map,casttype=Map"`
 	Group     *Group     `json:"group,omitempty" protobuf:"bytes,11,opt,name=group"`
@@ -79,6 +80,8 @@ func (in *StepSpec) GetContainer(runnerImage string, policy corev1.PullPolicy, m
 		return c.GetContainer(policy, mnt)
 	} else if h := in.Handler; h != nil {
 		return h.GetContainer(policy, mnt)
+	} else if g := in.Git; g != nil {
+		return g.GetContainer(policy)
 	} else if m := in.Map; m != "" {
 		return m.GetContainer(runnerImage, policy)
 	} else if f := in.Filter; f != "" {

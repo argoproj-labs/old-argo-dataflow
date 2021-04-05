@@ -5,5 +5,5 @@ type STAN struct {
 	NATSURL       string        `json:"natsUrl,omitempty" protobuf:"bytes,4,opt,name=natsUrl"`
 	ClusterID     string        `json:"clusterId,omitempty" protobuf:"bytes,5,opt,name=clusterId"`
 	Subject       string        `json:"subject" protobuf:"bytes,3,opt,name=subject"`
-	SubjectPrefix SubjectPrefix `json:"subjectPrefix,omitempty"`
+	SubjectPrefix SubjectPrefix `json:"subjectPrefix,omitempty" protobuf:"bytes,6,opt,name=subjectPrefix,casttype=SubjectPrefix"`
 }

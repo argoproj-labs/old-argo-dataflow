@@ -53,7 +53,7 @@ generate: controller-gen proto
 
 proto: api/v1alpha1/generated.pb.go api/v1alpha1/generated.proto
 
-api/v1alpha1/generated.%: api/v1alpha1/pipeline_types.go
+api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -name '*generated*' -not -name groupversion_info.go)
 	[ ! -e api/v1alpha1/groupversion_info.go ] || mv api/v1alpha1/groupversion_info.go api/v1alpha1/groupversion_info.go.0
 	go-to-protobuf \
 		--go-header-file=./hack/boilerplate.go.txt \
@@ -139,4 +139,4 @@ examples/%.yaml: /dev/null
 	@kubectl apply -f $@
 	@kubectl wait pipeline --all --for condition=Running
 	@echo
-test-examples: $(shell ls examples/*.yaml | sort)
+test-examples: $(shell ls examples/*-pipeline.yaml | sort)

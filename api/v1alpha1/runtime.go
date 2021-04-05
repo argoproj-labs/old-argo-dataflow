@@ -8,6 +8,8 @@ func (r Runtime) HandlerFile() string {
 		return "handler.go"
 	case "java16":
 		return "Handler.java"
+	case "python3-9":
+		return "handler.py"
 	default:
 		panic(r)
 	}
@@ -19,6 +21,8 @@ func (r Runtime) GetImage() string {
 		return "golang:1.16"
 	case "java16":
 		return "openjdk:16"
+	case "python3-9":
+		return "python:3.9"
 	default:
 		panic(r)
 	}

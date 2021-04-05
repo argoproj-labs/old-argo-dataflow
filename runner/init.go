@@ -20,47 +20,42 @@ func Init() error {
 		return err
 	}
 	log.Info("creating in fifo")
-	if err := syscall.Mkfifo(filepath.Join(dfv1.PathVarRun, "in"), 0600); IgnoreIsExist(err) != nil {
+	if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create input FIFO: %w", err)
 	}
 	log.Info("creating out fifo")
-	if err := syscall.Mkfifo(filepath.Join(dfv1.PathVarRun, "out"), 0600); IgnoreIsExist(err) != nil {
+	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0600); IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
-	if h := spec.Handler; h != nil {
-		runtime := h.Runtime
-		log.Info("setting up handler", "runtime", runtime)
-		workingDir := filepath.Join(dfv1.PathVarRunRuntimes, string(runtime))
+	if g := spec.Git; g != nil {
+		checkout := dfv1.PathCheckout
+		log.Info("cloning", "url", g.URL, "checkout", checkout)
+		if _, err := git.PlainClone(checkout, false, &git.CloneOptions{
+			URL:           g.URL,
+			Progress:      os.Stdout,
+			SingleBranch:  true, // checkout faster
+			Depth:         1,    // checkout faster
+			ReferenceName: plumbing.NewBranchReferenceName(g.GetBranch()),
+		}); IgnoreErrRepositoryAlreadyExists(err) != nil {
+			return fmt.Errorf("failed to clone repo: %w", err)
+		}
+		log.Info("moving checked out code", "path", g.Path)
+		if err := os.Rename(filepath.Join(checkout, g.GetPath()), dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
+			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
+		}
+	} else if h := spec.Handler; h != nil {
+		log.Info("setting up handler", "runtime", h.Runtime)
+		workingDir := filepath.Join(dfv1.PathVarRunRuntimes, string(h.Runtime))
 		if err := os.Mkdir(filepath.Dir(workingDir), 0700); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to create runtimes dir: %w", err)
 		}
-		if url := h.URL; url != "" {
-			checkout := filepath.Join(dfv1.PathVarRun, "checkout",)
-			log.Info("cloning", "url", url, "checkout", checkout)
-			if _, err := git.PlainClone(checkout, false, &git.CloneOptions{
-				URL:           url,
-				Progress:      os.Stdout,
-				SingleBranch:  true, // checkout faster
-				Depth:         1,    // checkout faster
-				ReferenceName: plumbing.NewBranchReferenceName(h.GetBranch()),
-			}); IgnoreErrRepositoryAlreadyExists(err) != nil {
-				return fmt.Errorf("failed to clone repo: %w", err)
-			}
-			log.Info("moving checked out code", "path", h.Path)
-			if err := os.Rename(filepath.Join(checkout, h.GetPath()), workingDir); IgnoreIsExist(err) != nil {
-				return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
-			}
-		} else if code := h.Code; code != "" {
-			log.Info("moving runtime", "runtime", runtime)
-			if err := copy.Copy(filepath.Join("runtimes", string(runtime)), workingDir); err != nil {
-				return fmt.Errorf("failed to move runtimes: %w", err)
-			}
-			log.Info("creating code file", "code", strings.ShortenString(code, 32)+"...")
-			if err := ioutil.WriteFile(filepath.Join(workingDir, runtime.HandlerFile()), []byte(code), 0600); err != nil {
-				return fmt.Errorf("failed to create code file: %w", err)
-			}
-		} else {
-			panic("invalid handler")
+		log.Info("moving runtime", "runtime", h.Runtime)
+		if err := copy.Copy(filepath.Join("runtimes", string(h.Runtime)), workingDir); err != nil {
+			return fmt.Errorf("failed to move runtimes: %w", err)
+		}
+		log.Info("creating code file", "code", strings.ShortenString(h.Code, 32)+"...")
+		if err := ioutil.WriteFile(filepath.Join(workingDir, h.Runtime.HandlerFile()), []byte(h.Code), 0600); err != nil {
+			return fmt.Errorf("failed to create code file: %w", err)
 		}
 	}
 	return nil
@@ -74,7 +69,7 @@ func IgnoreIsExist(err error) error {
 }
 
 func IgnoreErrRepositoryAlreadyExists(err error) error {
-	if err == git.ErrRepositoryAlreadyExists{
+	if err == git.ErrRepositoryAlreadyExists {
 		return nil
 	}
 	return err

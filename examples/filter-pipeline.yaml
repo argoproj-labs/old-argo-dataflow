@@ -9,9 +9,7 @@ metadata:
 
       They have a single variable, `msg`, which is a byte array.
 
-      The function `string` is provided to convert the message to a string.
-
-      https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
+      [Learn about expressions](../docs/EXPRESSIONS.md)
     dataflow.argoproj.io/name: Filter messages
   creationTimestamp: null
   name: filter

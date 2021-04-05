@@ -7,9 +7,9 @@ metadata:
 
       Two named pipes are made available:
 
-      The container can read lines from `/var/run/argo-dataflow/in`. Each line will be a single message.
+      * The container can read lines from `/var/run/argo-dataflow/in`. Each line will be a single message.
+      * The contain can write to `/var/run/argo-dataflow/out`. Each line MUST be a single message.
 
-      The contain can write to `/var/run/argo-dataflow/out`. Each line MUST be a single message.
       You MUST escape new lines.
     dataflow.argoproj.io/name: Using FIFOs for input and outputs
   creationTimestamp: null

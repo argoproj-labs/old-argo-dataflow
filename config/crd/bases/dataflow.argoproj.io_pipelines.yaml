@@ -1713,6 +1713,20 @@ spec:
                       type: object
                     filter:
                       type: string
+                    git:
+                      properties:
+                        branch:
+                          type: string
+                        image:
+                          type: string
+                        path:
+                          type: string
+                        url:
+                          type: string
+                      required:
+                      - image
+                      - url
+                      type: object
                     group:
                       properties:
                         key:
@@ -1722,17 +1736,12 @@ spec:
                       type: object
                     handler:
                       properties:
-                        branch:
-                          type: string
                         code:
-                          type: string
-                        path:
                           type: string
                         runtime:
                           type: string
-                        url:
-                          type: string
                       required:
+                      - code
                       - runtime
                       type: object
                     map:

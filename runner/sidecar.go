@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"time"
@@ -73,7 +72,6 @@ func Sidecar(ctx context.Context) error {
 	if err := connectSources(ctx, toMain); err != nil {
 		return err
 	}
-
 
 	go func() {
 		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
@@ -281,10 +279,8 @@ func connectTo() (func([]byte) error, error) {
 			return fmt.Errorf("no in interface configured")
 		}, nil
 	} else if spec.GetIn().FIFO {
-		log.Info("FIFO in interface configured")
-		path := filepath.Join(dfv1.PathVarRun, "in")
-		log.WithValues("path", path).Info("opened input FIFO")
-		fifo, err := os.OpenFile(path, os.O_WRONLY, os.ModeNamedPipe)
+		log.Info("opened input FIFO")
+		fifo, err := os.OpenFile(dfv1.PathFIFOIn, os.O_WRONLY, os.ModeNamedPipe)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open input FIFO: %w", err)
 		}
@@ -325,16 +321,15 @@ func connectOut(toSink func([]byte) error) error {
 		return nil
 	} else if spec.GetOut().FIFO {
 		log.Info("FIFO out interface configured")
-		path := filepath.Join(dfv1.PathVarRun, "out")
 		go func() {
 			defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 			err := func() error {
-				fifo, err := os.OpenFile(path, os.O_RDONLY, os.ModeNamedPipe)
+				fifo, err := os.OpenFile(dfv1.PathFIFOOut, os.O_RDONLY, os.ModeNamedPipe)
 				if err != nil {
 					return fmt.Errorf("failed to open output FIFO: %w", err)
 				}
 				defer fifo.Close()
-				log.WithValues("path", path).Info("opened output FIFO")
+				log.Info("opened output FIFO")
 				scanner := bufio.NewScanner(fifo)
 				for scanner.Scan() {
 					debug.Info("◷ fifo → sink")

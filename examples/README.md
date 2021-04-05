@@ -2,11 +2,44 @@
 
 ### [Runs to completion](completion-pipeline.yaml)
 
-This example shows running to completion.
+This example shows a pipelne running to completion.
+
+A pipeline that run to completion (aka "terimanting") is one that will finish.
+
+For a pipeline to terminate one of two things must happen:
+
+* Every steps exits successfully (i.e. with exit code 0).
+* One step exits successfully, and is marked with `terminator: true`. When this happens, all other steps are killed.
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/completion-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/completion-pipeline.yaml
+```
+
+### [Default Kafka config](dataflow-kafka-default-secret.yaml)
+
+This is an example of providing a namespace named Kafka configuration.
+
+The secret must be named `dataflow-kafka-${name}`.
+
+[Learn about configuration](../docs/CONFIGURATION.md)
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml
+```
+
+### [Default NATS Streaming (STAN) configuration](dataflow-stan-default-secret.yaml)
+
+This is an example of providing a namespace named NATS Streaming configuration.
+
+The secret must be named `dataflow-nats-${name}`.
+
+[Learn about configuration](../docs/CONFIGURATION.md)
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-stan-default-secret.yaml
 ```
 
 ### [Using FIFOs for input and outputs](fifos-pipeline.yaml)
@@ -15,14 +48,14 @@ This example use named pipe to send and receive messages.
 
 Two named pipes are made available:
 
-The container can read lines from `/var/run/argo-dataflow/in`. Each line will be a single message.
+* The container can read lines from `/var/run/argo-dataflow/in`. Each line will be a single message.
+* The contain can write to `/var/run/argo-dataflow/out`. Each line MUST be a single message.
 
-The contain can write to `/var/run/argo-dataflow/out`. Each line MUST be a single message.
 You MUST escape new lines.
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/fifos-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/fifos-pipeline.yaml
 ```
 
 ### [Filter messages](filter-pipeline.yaml)
@@ -33,31 +66,36 @@ Filters are written using expression syntax and must return a boolean.
 
 They have a single variable, `msg`, which is a byte array.
 
-The function `string` is provided to convert the message to a string.
-
-https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
+[Learn about expressions](../docs/EXPRESSIONS.md)
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/filter-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/filter-pipeline.yaml
 ```
 
 ### [Git handler](git-pipeline.yaml)
 
-This example of a pipeline using Git
+This example of a pipeline using Git .
+
+The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
+your code when the step starts.
+
+[Learn about Git](../docs/GIT.md)
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/git-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/git-pipeline.yaml
 ```
 
 ### [Go 1.16 handler](go1-16-pipeline.yaml)
 
-This example of Go 1.16 handler
+This example of Go 1.16 handler.
+
+[Learn about handlers](../docs/HANDLERS.md)
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/go1-16-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/go1-16-pipeline.yaml
 ```
 
 ### [Using HTTP for input and output](http-pipeline.yaml)
@@ -71,16 +109,18 @@ To send a message, send a HTTP post to http://localhost:3569/messages.
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/http-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/http-pipeline.yaml
 ```
 
 ### [Java 16 handler](java16-pipeline.yaml)
 
-This example of the Java 16 handler
+This example is of the Java 16 handler.
+
+[Learn about handlers](../docs/HANDLERS.md)
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/java16-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/java16-pipeline.yaml
 ```
 
 ### [Map messages](map-pipeline.yaml)
@@ -91,31 +131,42 @@ Maps are written using expression syntax and must return a byte array.
 
 They have a single variable, `msg`, which is a byte array.
 
-The function `string` is provided to convert the message to a string.
-The function `bytes` is provided to convert the message back to a byte array.
-
-https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md
+[Learn about expressions](../docs/EXPRESSIONS.md)
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/map-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/map-pipeline.yaml
 ```
 
 ### [Using replicas to scale](replicas-pipeline.yaml)
 
-This example shows a example of having multiple replicas of a single node.
+This example shows a example of having multiple replicas of a single step.
 
-As each node correspondes to a deployment, this will be the number of replicas (i.e. pods) for the deployment.
+This one automatically scales up depending on the number of messages pending processing.
 
-The same message  will not be send to two different replicas.
+The ratio is defined as the number of pending messages per replica:
 
-This allows you to scale up to process more messages.
+```
+replica = pending / ration
+```
 
-You can also use `kubectl scale replicas pipeline-${pipelineName}-${nodeName} --replicas 4`.
+The number of replicas will not scale beyond the min/max bounds:
+
+```
+min <= replica <= max
+```
+
+* `min` is used as the initial number of replicas.
+* If `ratio` is undefined no scaling can occur; `max` is meaningless.
+* If `ratio` is defined but `max` is not, the step may scale to infinity.
+* If `max` and `ratio` are undefined, then the number of replicas is `min`.
+* In this example, because the ratio is 1000, if 2000 messages pending, two replicas will be started.
+* To prevent scaling up and down repeatedly - scale up or down occurs a maximum of once a minute.
+* The same message will not be send to two different replicas.
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/replicas-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/replicas-pipeline.yaml
 ```
 
 ### [Two nodes pipeline](two-node-pipeline.yaml)
@@ -128,11 +179,9 @@ By convention, subjects should be the two node names with a hyphen.
 
 If the first node is named `foo` and the second is named `bar`, then the subject should be `foo-bar`.
 
-Subjects names only need to be unique within the pipeline.
-
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/two-node-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/two-node-pipeline.yaml
 ```
 
 ### [Vetinary](vet-pipeline.yaml)
@@ -141,7 +190,7 @@ This pipeline processes pets (cats and dogs).
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/vet-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/vet-pipeline.yaml
 ```
 
 ### [Word Count](word-count-pipeline.yaml)
@@ -154,6 +203,6 @@ It also shows an example of a pipelines terminates based on a single step's stat
 
 
 ```
-kubectl apply -f https://raw.githunatsercontent.com/argoproj-labs/argo-dataflow/main/examples/word-count-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/word-count-pipeline.yaml
 ```
 

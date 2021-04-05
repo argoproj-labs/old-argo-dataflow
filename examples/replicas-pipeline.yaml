@@ -3,15 +3,29 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example shows a example of having multiple replicas of a single node.
+      This example shows a example of having multiple replicas of a single step.
 
-      As each node correspondes to a deployment, this will be the number of replicas (i.e. pods) for the deployment.
+      This one automatically scales up depending on the number of messages pending processing.
 
-      The same message  will not be send to two different replicas.
+      The ratio is defined as the number of pending messages per replica:
 
-      This allows you to scale up to process more messages.
+      ```
+      replica = pending / ration
+      ```
 
-      You can also use `kubectl scale replicas pipeline-${pipelineName}-${nodeName} --replicas 4`.
+      The number of replicas will not scale beyond the min/max bounds:
+
+      ```
+      min <= replica <= max
+      ```
+
+      * `min` is used as the initial number of replicas.
+      * If `ratio` is undefined no scaling can occur; `max` is meaningless.
+      * If `ratio` is defined but `max` is not, the step may scale to infinity.
+      * If `max` and `ratio` are undefined, then the number of replicas is `min`.
+      * In this example, because the ratio is 1000, if 2000 messages pending, two replicas will be started.
+      * To prevent scaling up and down repeatedly - scale up or down occurs a maximum of once a minute.
+      * The same message will not be send to two different replicas.
     dataflow.argoproj.io/name: Using replicas to scale
   creationTimestamp: null
   name: replicas
