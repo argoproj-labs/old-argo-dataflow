@@ -19,10 +19,11 @@ const (
 	KeyReplica      = "dataflow.argoproj.io/replica"
 	KeyRestart      = "dataflow.argoproj.io/restart"
 	// paths
-	PathCheckout       = "/var/run/argo-dataflow/checkout"
-	PathGroups         = "/var/run/argo-dataflow/groups"
-	PathFIFOIn         = "/var/run/argo-dataflow/in"
-	PathFIFOOut        = "/var/run/argo-dataflow/out"
-	PathVarRunRuntimes = "/var/run/argo-dataflow/runtimes"
-	PathWorkingDir     = "/var/run/argo-dataflow/wd"
+	PathCheckout   = "/var/run/argo-dataflow/checkout"
+	PathGroups     = "/var/run/argo-dataflow/groups"
+	PathFIFOIn     = "/var/run/argo-dataflow/in"
+	PathFIFOOut    = "/var/run/argo-dataflow/out"
+	PathVarRun     = "/var/run/argo-dataflow"
+	PathRuntimes   = "/var/run/argo-dataflow/runtimes"
+	PathWorkingDir = "/var/run/argo-dataflow/wd"
 )

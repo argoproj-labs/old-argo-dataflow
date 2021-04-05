@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -87,7 +89,7 @@ func (in *StepSpec) GetContainer(runnerImage string, policy corev1.PullPolicy, m
 type StepStatus struct {
 	Phase         StepPhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
 	Message       string         `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
-	Replicas      uint32         `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
+	Replicas      uint32         `json:"replicas" protobuf:"varint,5,opt,name=replicas"`
 	LastScaleTime *metav1.Time   `json:"lastScaleTime,omitempty" protobuf:"bytes,6,opt,name=lastScaleTime"`
 	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
 	// +patchStrategy=merge
@@ -104,9 +106,16 @@ func (m *StepStatus) GetSourceStatues() SourceStatuses {
 
 func (m *StepStatus) GetReplicas() int {
 	if m == nil {
-		return 0
+		return -1
 	}
 	return int(m.Replicas)
+}
+
+func (m *StepStatus) GetLastScaleTime() time.Time {
+	if m == nil || m.LastScaleTime == nil {
+		return time.Time{}
+	}
+	return m.LastScaleTime.Time
 }
 
 // +kubebuilder:object:root=true
@@ -120,6 +129,27 @@ type Step struct {
 
 	Spec   StepSpec    `json:"spec" protobuf:"bytes,2,opt,name=spec"`
 	Status *StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+}
+
+const (
+	scalingQuietDuration = time.Minute // how long to wait since the last scaling event to scale
+	peekQuietDuration    = time.Minute // how long to wait since the last scaling to peek
+)
+
+func (in *Step) GetTargetReplicas(pending int) int {
+
+	targetReplicas := in.Spec.Replicas.Calculate(pending)
+	lastScaleTime := in.Status.GetLastScaleTime()
+	currentReplicas := in.Status.GetReplicas()
+
+	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaleTime) > peekQuietDuration {
+		targetReplicas = 1
+	}
+	if time.Since(lastScaleTime) < scalingQuietDuration {
+		targetReplicas = currentReplicas
+	}
+
+	return targetReplicas
 }
 
 // +kubebuilder:object:root=true

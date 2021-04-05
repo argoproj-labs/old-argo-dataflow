@@ -51,7 +51,8 @@ generate: controller-gen proto
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 	go run ./examples > examples/README.md
 
-proto: api/v1alpha1/generated.pb.go api/v1alpha1/generated.proto
+# not dependant on api/v1alpha1/generated.proto because it often does not change when this target runs, so results in remakes when they are not needed
+proto: api/v1alpha1/generated.pb.go
 
 api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -name '*generated*' -not -name groupversion_info.go)
 	[ ! -e api/v1alpha1/groupversion_info.go ] || mv api/v1alpha1/groupversion_info.go api/v1alpha1/groupversion_info.go.0

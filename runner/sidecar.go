@@ -246,9 +246,9 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					newestOffset, err := client.GetOffset(k.Topic, 0, sarama.OffsetNewest)
 					if err != nil {
 						log.Error(err, "failed to get offset", "topic", k.Topic)
-					} else {
+					} else if handler.offset > 0 { // zero implies we've not processed a message yet
 						pending := uint64(newestOffset - handler.offset)
-						debug.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
+						log.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
 						status.SourceStatues.SetPending(source.Name, pending)
 					}
 					time.Sleep(updateInterval)

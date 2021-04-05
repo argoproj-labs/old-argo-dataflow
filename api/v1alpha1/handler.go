@@ -17,7 +17,7 @@ func (in *Handler) GetContainer(policy corev1.PullPolicy, mnt corev1.VolumeMount
 		Image:           in.Runtime.GetImage(),
 		ImagePullPolicy: policy,
 		Command:         []string{"./entrypoint.sh"},
-		WorkingDir:      filepath.Join(PathVarRunRuntimes, string(in.Runtime)),
+		WorkingDir:      filepath.Join(PathRuntimes, string(in.Runtime)),
 		VolumeMounts:    []corev1.VolumeMount{mnt},
 	}
 }

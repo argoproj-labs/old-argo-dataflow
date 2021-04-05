@@ -15,9 +15,9 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 		log.Info("◷ kafka →", "m", short(m.Value))
 		status.SourceStatues.Set(h.name, replica, short(m.Value))
 		if err := h.sourceToMain(m.Value); err != nil {
-			log.Error(err, "failed to send message from kafka to main")
+			return err
 		} else {
-			debug.Info("✔ kafka →")
+			log.Info("✔ kafka →", "offset", m.Offset)
 			h.offset = m.Offset
 			sess.MarkMessage(m, "")
 		}

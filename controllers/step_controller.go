@@ -64,15 +64,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	pipelineName := step.GetLabels()[dfv1.KeyPipelineName]
-	lastReplicas := step.Status.GetReplicas()
-	newReplicas := step.Spec.GetReplicas().Calculate(step.Status.GetSourceStatues().GetPending())
+	pending := step.Status.GetSourceStatues().GetPending()
+	targetReplicas := step.GetTargetReplicas(pending)
+	currentReplicas := step.Status.GetReplicas()
 
-	replicas := lastReplicas
-	if step.Status == nil || step.Status.LastScaleTime == nil || time.Since(step.Status.LastScaleTime.Time) > time.Minute {
-		replicas = newReplicas
-	}
-
-	log.Info("reconciling", "lastReplicas", lastReplicas, "newReplicas", newReplicas, "replicas", replicas, "pipelineName", pipelineName)
+	log.Info("reconciling", "pending", pending, "currentReplicas", currentReplicas, "targetReplicas", targetReplicas, "pipelineName", pipelineName)
 
 	container := step.Spec.GetContainer(
 		runnerImage,
@@ -80,7 +76,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
 	)
 
-	for replica := 0; replica < replicas; replica++ {
+	for replica := 0; replica < targetReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
 		log.Info("creating pod (if not exists)", "podName", podName)
 		envVars := []corev1.EnvVar{
@@ -89,6 +85,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
 			{Name: dfv1.EnvStepSpec, Value: dfv1.Json(step.Spec)},
 		}
+		volume := corev1.Volume{
+			Name:         "var-run-argo-dataflow",
+			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+		}
+		volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: dfv1.PathVarRun}}
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
@@ -103,21 +104,15 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: corev1.PodSpec{
 					RestartPolicy: step.Spec.GetRestartPolicy(),
-					Volumes: append(
-						step.Spec.GetVolumes(),
-						corev1.Volume{
-							Name:         (corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}).Name,
-							VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
-						},
-					),
+					Volumes:       append(step.Spec.GetVolumes(), volume),
 					InitContainers: []corev1.Container{
 						{
 							Name:            dfv1.CtrInit,
 							Image:           runnerImage,
+							ImagePullPolicy: imagePullPolicy,
 							Args:            []string{"init"},
 							Env:             envVars,
-							ImagePullPolicy: imagePullPolicy,
-							VolumeMounts:    []corev1.VolumeMount{(corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"})},
+							VolumeMounts:    volumeMounts,
 						},
 					},
 					Containers: []corev1.Container{
@@ -127,7 +122,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							ImagePullPolicy: imagePullPolicy,
 							Args:            []string{"sidecar"},
 							Env:             envVars,
-							VolumeMounts:    []corev1.VolumeMount{(corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"})},
+							VolumeMounts:    volumeMounts,
 						},
 						container,
 					},
@@ -150,13 +145,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 	newStatus.Phase = dfv1.StepUnknown
 
-	if lastReplicas != replicas {
+	if currentReplicas != targetReplicas {
 		newStatus.LastScaleTime = &metav1.Time{Time: time.Now()}
-		newStatus.Replicas = uint32(replicas)
+		newStatus.Replicas = uint32(targetReplicas)
 	}
 
 	for _, pod := range pods.Items {
-		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= replicas {
+		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= targetReplicas {
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, err
 			}

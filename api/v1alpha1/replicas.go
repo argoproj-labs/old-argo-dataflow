@@ -21,7 +21,7 @@ func (in Replicas) Calculate(pending int) int {
 	if in.Ratio > 0 {
 		n = pending / int(in.Ratio)
 	}
-	if int(in.Min) > n {
+	if n < int(in.Min) {
 		n = int(in.Min)
 	}
 	if in.Max != nil && n > int(*in.Max) {

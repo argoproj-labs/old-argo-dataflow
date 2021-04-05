@@ -38,13 +38,14 @@ func Init() error {
 		}); IgnoreErrRepositoryAlreadyExists(err) != nil {
 			return fmt.Errorf("failed to clone repo: %w", err)
 		}
-		log.Info("moving checked out code", "path", g.Path)
-		if err := os.Rename(filepath.Join(dfv1.PathCheckout, g.GetPath()), dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
+		path := g.GetPath()
+		log.Info("moving checked out code", "path", path)
+		if err := os.Rename(filepath.Join(dfv1.PathCheckout, path), dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
 	} else if h := spec.Handler; h != nil {
 		log.Info("setting up handler", "runtime", h.Runtime)
-		workingDir := filepath.Join(dfv1.PathVarRunRuntimes, string(h.Runtime))
+		workingDir := filepath.Join(dfv1.PathRuntimes, string(h.Runtime))
 		if err := os.Mkdir(filepath.Dir(workingDir), 0700); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to create runtimes dir: %w", err)
 		}

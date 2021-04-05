@@ -1816,6 +1816,8 @@ spec:
                       type: integer
                   type: object
                 type: object
+            required:
+            - replicas
             type: object
         required:
         - spec

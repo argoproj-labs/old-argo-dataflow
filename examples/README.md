@@ -147,7 +147,7 @@ This one automatically scales up depending on the number of messages pending pro
 The ratio is defined as the number of pending messages per replica:
 
 ```
-replica = pending / ration
+replica = pending / ratio
 ```
 
 The number of replicas will not scale beyond the min/max bounds:
@@ -163,6 +163,11 @@ min <= replica <= max
 * In this example, because the ratio is 1000, if 2000 messages pending, two replicas will be started.
 * To prevent scaling up and down repeatedly - scale up or down occurs a maximum of once a minute.
 * The same message will not be send to two different replicas.
+
+## Scale-To-Zero
+
+You can scale to zero by setting `min: 0`. The number of replicas will start at zero, and periodically be scaled
+up to 1 so that the number of pending messages can be measured and the targe number of replicas re-calculated.
 
 
 ```
