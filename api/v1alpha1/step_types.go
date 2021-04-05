@@ -87,14 +87,12 @@ func (in *StepSpec) GetContainer(runnerImage string, policy corev1.PullPolicy, m
 }
 
 type StepStatus struct {
-	Phase         StepPhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
+	Phase         StepPhase      `json:"phase" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
 	Message       string         `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
 	Replicas      uint32         `json:"replicas" protobuf:"varint,5,opt,name=replicas"`
 	LastScaleTime *metav1.Time   `json:"lastScaleTime,omitempty" protobuf:"bytes,6,opt,name=lastScaleTime"`
 	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
-	// +patchStrategy=merge
-	// +patchMergeKey=name
-	SinkStatues SinkStatuses `json:"sinkStatuses,omitempty" protobuf:"bytes,4,rep,name=sinkStatuses"`
+	SinkStatues   SinkStatuses   `json:"sinkStatuses,omitempty" protobuf:"bytes,4,rep,name=sinkStatuses"`
 }
 
 func (m *StepStatus) GetSourceStatues() SourceStatuses {
@@ -131,25 +129,27 @@ type Step struct {
 	Status *StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
-const (
-	scalingQuietDuration = time.Minute // how long to wait since the last scaling event to scale
-	peekQuietDuration    = time.Minute // how long to wait since the last scaling to peek
-)
-
 func (in *Step) GetTargetReplicas(pending int) int {
 
-	targetReplicas := in.Spec.Replicas.Calculate(pending)
+	targetReplicas := in.Spec.GetReplicas().Calculate(pending)
 	lastScaleTime := in.Status.GetLastScaleTime()
-	currentReplicas := in.Status.GetReplicas()
+	currentReplicas := in.Status.GetReplicas() // can be -1
 
-	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaleTime) > peekQuietDuration {
+	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaleTime) > PeekQuietDuration {
 		targetReplicas = 1
 	}
-	if time.Since(lastScaleTime) < scalingQuietDuration {
+	if time.Since(lastScaleTime) < ScalingQuietDuration {
 		targetReplicas = currentReplicas
 	}
 
 	return targetReplicas
+}
+
+func RequeueAfter(currentReplicas, targetReplicas int) time.Duration {
+	if currentReplicas == 0 && targetReplicas == 0 {
+		return PeekQuietDuration
+	}
+	return 0
 }
 
 // +kubebuilder:object:root=true

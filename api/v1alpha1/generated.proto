@@ -243,8 +243,6 @@ message StepStatus {
 
   map<string, SourceStatus> sourceStatuses = 3;
 
-  // +patchStrategy=merge
-  // +patchMergeKey=name
   map<string, SinkStatus> sinkStatuses = 4;
 }
 

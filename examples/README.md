@@ -150,7 +150,7 @@ The ratio is defined as the number of pending messages per replica:
 replica = pending / ratio
 ```
 
-The number of replicas will not scale beyond the min/max bounds:
+The number of replicas will not scale beyond the min/max bounds (except when *peeking*, see below):
 
 ```
 min <= replica <= max
@@ -164,10 +164,10 @@ min <= replica <= max
 * To prevent scaling up and down repeatedly - scale up or down occurs a maximum of once a minute.
 * The same message will not be send to two different replicas.
 
-## Scale-To-Zero
+## Scale-To-Zero and Peeking
 
 You can scale to zero by setting `min: 0`. The number of replicas will start at zero, and periodically be scaled
-up to 1 so that the number of pending messages can be measured and the targe number of replicas re-calculated.
+to 1  so it can "peek" the number of pending messages can be measured and the targe number of replicas re-calculated.
 
 
 ```

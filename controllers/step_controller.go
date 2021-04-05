@@ -32,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/remotecommand"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -44,6 +45,7 @@ type StepReconciler struct {
 	client.Client
 	Log        logr.Logger
 	Scheme     *runtime.Scheme
+	Recorder   record.EventRecorder
 	RESTConfig *rest.Config
 	Kubernetes kubernetes.Interface
 }
@@ -51,6 +53,7 @@ type StepReconciler struct {
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=,resources=pods,verbs=get;watch;list;create
+// +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("step", req.NamespacedName)
 
@@ -65,8 +68,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	pipelineName := step.GetLabels()[dfv1.KeyPipelineName]
 	pending := step.Status.GetSourceStatues().GetPending()
-	targetReplicas := step.GetTargetReplicas(pending)
 	currentReplicas := step.Status.GetReplicas()
+	targetReplicas := step.GetTargetReplicas(pending)
 
 	log.Info("reconciling", "pending", pending, "currentReplicas", currentReplicas, "targetReplicas", targetReplicas, "pipelineName", pipelineName)
 
@@ -96,7 +99,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        podName,
 					Namespace:   step.Namespace,
-					Labels:      map[string]string{dfv1.KeyStepName: step.Name, dfv1.KeyPipelineName: pipelineName},
+					Labels:      map[string]string{dfv1.KeyStepName: step.Spec.Name, dfv1.KeyPipelineName: pipelineName},
 					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(replica)},
 					OwnerReferences: []metav1.OwnerReference{
 						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.GroupVersion.WithKind("Step")),
@@ -134,7 +137,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	pods := &corev1.PodList{}
-	selector, _ := labels.Parse(dfv1.KeyStepName + "=" + step.Name)
+	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + step.Spec.Name)
 	if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -148,10 +151,12 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if currentReplicas != targetReplicas {
 		newStatus.LastScaleTime = &metav1.Time{Time: time.Now()}
 		newStatus.Replicas = uint32(targetReplicas)
+		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
 	}
 
 	for _, pod := range pods.Items {
 		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= targetReplicas {
+			log.Info("deleting pod", "podName", pod.Name)
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, err
 			}
@@ -204,7 +209,17 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{
+		RequeueAfter: dfv1.RequeueAfter(currentReplicas, targetReplicas),
+	}, nil
+}
+
+func eventReason(currentReplicas, targetReplicas int) string {
+	eventType := "ScaleDown"
+	if targetReplicas > currentReplicas {
+		eventType = "ScaleUp"
+	}
+	return eventType
 }
 
 func (r *StepReconciler) SetupWithManager(mgr ctrl.Manager) error {

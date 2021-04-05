@@ -84,6 +84,7 @@ func main() {
 		Client:     mgr.GetClient(),
 		Log:        ctrl.Log.WithName("controllers").WithName("Step"),
 		Scheme:     mgr.GetScheme(),
+		Recorder:   mgr.GetEventRecorderFor("step-reconciler"),
 		RESTConfig: restConfig,
 		Kubernetes: k,
 	}).SetupWithManager(mgr); err != nil {

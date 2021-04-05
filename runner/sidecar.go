@@ -30,10 +30,8 @@ var (
 	pipelineName   = os.Getenv(dfv1.EnvPipelineName)
 	namespace      = os.Getenv(dfv1.EnvNamespace)
 	spec           = &dfv1.StepSpec{}
-	status         = &dfv1.StepStatus{
-		SourceStatues: dfv1.SourceStatuses{},
-		SinkStatues:   dfv1.SinkStatuses{},
-	}
+	sourceStatues  = dfv1.SourceStatuses{}
+	sinkStatues    = dfv1.SinkStatuses{}
 )
 
 func Sidecar(ctx context.Context) error {
@@ -73,10 +71,20 @@ func Sidecar(ctx context.Context) error {
 
 	go func() {
 		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
-		lastStatus := status.DeepCopy()
+		lastStatus := &dfv1.StepStatus{}
 		for {
+			status := &dfv1.StepStatus{
+				SourceStatues: sourceStatues,
+				SinkStatues: sinkStatues,
+			}
 			if !reflect.DeepEqual(lastStatus, status) {
-				patch := dfv1.Json(&dfv1.Step{Status: status})
+				// we need to be careful to just patch fields we own
+				patch := dfv1.Json(map[string]interface{} {
+					"status": map[string]interface{}{
+						"sourceStatuses": sourceStatues,
+						"sinkStatuses": sinkStatues,
+					},
+				})
 				log.Info("patching step status (sinks/sources)", "patch", patch)
 				if _, err := dynamicInterface.
 					Resource(dfv1.StepsGroupVersionResource).
@@ -198,7 +206,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			closers = append(closers, sc.Close)
 			if sub, err := sc.QueueSubscribe(s.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
 				log.Info("◷ stan →", "m", short(m.Data))
-				status.SourceStatues.Set(source.Name, replica, short(m.Data))
+				sourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
 					log.Error(err, "failed to send message from stan to main")
 				} else {
@@ -215,7 +223,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							log.Error(err, "failed to get pending", "subject", s.Subject)
 						} else {
 							debug.Info("setting pending", "subject", s.Subject, "pending", pending)
-							status.SourceStatues.SetPending(source.Name, uint64(pending))
+							sourceStatues.SetPending(source.Name, uint64(pending))
 						}
 						time.Sleep(updateInterval)
 					}
@@ -249,7 +257,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					} else if handler.offset > 0 { // zero implies we've not processed a message yet
 						pending := uint64(newestOffset - handler.offset)
 						log.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
-						status.SourceStatues.SetPending(source.Name, pending)
+						sourceStatues.SetPending(source.Name, pending)
 					}
 					time.Sleep(updateInterval)
 				}
@@ -382,7 +390,7 @@ func connectSink() (func([]byte) error, error) {
 			}
 			closers = append(closers, sc.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				status.SinkStatues.Set(sink.Name, replica, short(m))
+				sinkStatues.Set(sink.Name, replica, short(m))
 				log.Info("◷ → stan", "subject", s.Subject, "m", short(m))
 				return sc.Publish(s.Subject, m)
 			})
@@ -395,7 +403,7 @@ func connectSink() (func([]byte) error, error) {
 			}
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				status.SinkStatues.Set(sink.Name, replica, short(m))
+				sinkStatues.Set(sink.Name, replica, short(m))
 				log.Info("◷ → kafka", "topic", k.Topic, "m", short(m))
 				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
 					Topic: k.Topic,

@@ -1817,6 +1817,7 @@ spec:
                   type: object
                 type: object
             required:
+            - phase
             - replicas
             type: object
         required:

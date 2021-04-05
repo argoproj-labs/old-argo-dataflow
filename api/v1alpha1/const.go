@@ -15,7 +15,7 @@ const (
 	EnvReplica      = "ARGO_DATAFLOW_REPLICA"
 	// label/annotation keys
 	KeyPipelineName = "dataflow.argoproj.io/pipeline-name"
-	KeyStepName     = "dataflow.argoproj.io/step-name"
+	KeyStepName     = "dataflow.argoproj.io/step-name" // the step name without pipeline name prefixß
 	KeyReplica      = "dataflow.argoproj.io/replica"
 	KeyRestart      = "dataflow.argoproj.io/restart"
 	// paths
