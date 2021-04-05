@@ -54,16 +54,9 @@ func (in *StepSpec) GetRestartPolicy() corev1.RestartPolicy {
 	return corev1.RestartPolicyOnFailure
 }
 
-func (in *StepSpec) GetOut() *Interface {
-	if in.Container != nil {
-		return in.Container.GetOut()
-	}
-	return DefaultInterface
-}
-
 func (in *StepSpec) GetIn() *Interface {
 	if in.Container != nil {
-		return in.Container.GetIn()
+		return in.Container.In
 	}
 	return DefaultInterface
 }

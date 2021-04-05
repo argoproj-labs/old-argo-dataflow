@@ -1,7 +1,9 @@
 package main
 
-func Cat() error {
-	return do(func(msg []byte) ([][]byte, error) {
+import "context"
+
+func Cat(ctx context.Context) error {
+	return do(ctx, func(msg []byte) ([][]byte, error) {
 		return [][]byte{msg}, nil
 	})
 }

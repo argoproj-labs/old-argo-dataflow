@@ -34,8 +34,6 @@ message Container {
 
   optional Interface in = 3;
 
-  optional Interface out = 4;
-
   repeated string command = 6;
 
   repeated string args = 7;

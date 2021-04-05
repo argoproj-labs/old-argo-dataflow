@@ -60,9 +60,7 @@ func Sidecar(ctx context.Context) error {
 		return err
 	}
 
-	if err := connectOut(toSink); err != nil {
-		return err
-	}
+	connectOut(toSink)
 
 	toMain, err := connectTo()
 	if err != nil {
@@ -105,18 +103,9 @@ func Sidecar(ctx context.Context) error {
 		}
 	}()
 	log.Info("ready")
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			if _, err := os.Stat(killFile); err == nil {
-				log.Info("kill file has appeared, exiting")
-				return nil
-			}
-			time.Sleep(3 * time.Second)
-		}
-	}
+	<-ctx.Done()
+	log.Info("done")
+	return nil
 }
 
 func enrichSpec(ctx context.Context) error {
@@ -215,7 +204,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				} else {
 					debug.Info("✔ stan → ", "subject", s.Subject)
 				}
-			}); err != nil {
+			}, stan.DeliverAllAvailable(), stan.DurableName(clientID)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			} else {
 				closers = append(closers, sub.Close)
@@ -273,12 +262,13 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 }
 
 func connectTo() (func([]byte) error, error) {
-	if spec.GetIn() == nil {
+	in := spec.GetIn()
+	if in == nil {
 		log.Info("no in interface configured")
 		return func(i []byte) error {
 			return fmt.Errorf("no in interface configured")
 		}, nil
-	} else if spec.GetIn().FIFO {
+	} else if in.FIFO {
 		log.Info("opened input FIFO")
 		fifo, err := os.OpenFile(dfv1.PathFIFOIn, os.O_WRONLY, os.ModeNamedPipe)
 		if err != nil {
@@ -296,8 +286,16 @@ func connectTo() (func([]byte) error, error) {
 			debug.Info("✔ source → fifo")
 			return nil
 		}, nil
-	} else if spec.GetIn().HTTP != nil {
+	} else if in.HTTP != nil {
 		log.Info("HTTP in interface configured")
+		log.Info("waiting for HTTP in interface to be ready")
+		for {
+			if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode == 200 {
+				log.Info("HTTP in interface ready")
+				break
+			}
+			time.Sleep(3 * time.Second)
+		}
 		return func(data []byte) error {
 			debug.Info("◷ source → http")
 			resp, err := http.Post("http://localhost:8080/messages", "application/json", bytes.NewBuffer(data))
@@ -315,78 +313,68 @@ func connectTo() (func([]byte) error, error) {
 	}
 }
 
-func connectOut(toSink func([]byte) error) error {
-	if spec.GetOut() == nil {
-		log.Info("no out interface configured")
-		return nil
-	} else if spec.GetOut().FIFO {
-		log.Info("FIFO out interface configured")
-		go func() {
-			defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
-			err := func() error {
-				fifo, err := os.OpenFile(dfv1.PathFIFOOut, os.O_RDONLY, os.ModeNamedPipe)
-				if err != nil {
-					return fmt.Errorf("failed to open output FIFO: %w", err)
-				}
-				defer fifo.Close()
-				log.Info("opened output FIFO")
-				scanner := bufio.NewScanner(fifo)
-				for scanner.Scan() {
-					debug.Info("◷ fifo → sink")
-					if err := toSink(scanner.Bytes()); err != nil {
-						return fmt.Errorf("failed to send message from main to sink: %w", err)
-					}
-					debug.Info("✔ fifo → sink")
-				}
-				if err = scanner.Err(); err != nil {
-					return fmt.Errorf("scanner error: %w", err)
-				}
-				return nil
-			}()
+func connectOut(toSink func([]byte) error) {
+	log.Info("FIFO out interface configured")
+	go func() {
+		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		err := func() error {
+			fifo, err := os.OpenFile(dfv1.PathFIFOOut, os.O_RDONLY, os.ModeNamedPipe)
 			if err != nil {
-				log.Error(err, "failed to received message from FIFO")
-				os.Exit(1)
+				return fmt.Errorf("failed to open output FIFO: %w", err)
 			}
+			defer fifo.Close()
+			log.Info("opened output FIFO")
+			scanner := bufio.NewScanner(fifo)
+			for scanner.Scan() {
+				debug.Info("◷ fifo → sink")
+				if err := toSink(scanner.Bytes()); err != nil {
+					return fmt.Errorf("failed to send message from main to sink: %w", err)
+				}
+				debug.Info("✔ fifo → sink")
+			}
+			if err = scanner.Err(); err != nil {
+				return fmt.Errorf("scanner error: %w", err)
+			}
+			return nil
 		}()
-		return nil
-	} else if spec.GetOut().HTTP != nil {
-		log.Info("HTTP out interface configured")
-		http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-			data, err := ioutil.ReadAll(r.Body)
-			if err != nil {
-				log.Error(err, "failed to read message body from main via HTTP")
-				w.WriteHeader(500)
-				return
-			}
-			debug.Info("◷ http → sink")
-			if err := toSink(data); err != nil {
-				log.Error(err, "failed to send message from main to sink")
-				w.WriteHeader(500)
-				return
-			}
-			debug.Info("✔ http → sink")
-			w.WriteHeader(200)
-		})
-		go func() {
-			defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
-			log.Info("starting HTTP server")
-			err := http.ListenAndServe(":3569", nil)
-			if err != nil {
-				log.Error(err, "failed to listen-and-server")
-				os.Exit(1)
-			}
-		}()
-		return nil
-	} else {
-		return fmt.Errorf("out interface misconfigured")
-	}
+		if err != nil {
+			log.Error(err, "failed to received message from FIFO")
+			os.Exit(1)
+		}
+	}()
+	log.Info("HTTP out interface configured")
+	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
+		data, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Error(err, "failed to read message body from main via HTTP")
+			w.WriteHeader(500)
+			return
+		}
+		debug.Info("◷ http → sink")
+		if err := toSink(data); err != nil {
+			log.Error(err, "failed to send message from main to sink")
+			w.WriteHeader(500)
+			return
+		}
+		debug.Info("✔ http → sink")
+		w.WriteHeader(200)
+	})
+	go func() {
+		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		log.Info("starting HTTP server")
+		err := http.ListenAndServe(":3569", nil)
+		if err != nil {
+			log.Error(err, "failed to listen-and-server")
+			os.Exit(1)
+		}
+	}()
 }
 
 func connectSink() (func([]byte) error, error) {
 	var toSinks []func([]byte) error
 	for i, sink := range spec.Sinks {
 		if s := sink.STAN; s != nil {
-			clientID := fmt.Sprintf("%s-%s-%d-source-%d", pipelineName, spec.Name, replica, i)
+			clientID := fmt.Sprintf("%s-%s-%d-sink-%d", pipelineName, spec.Name, replica, i)
 			log.Info("connecting sink", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", clientID, "subject", s.Subject)
 			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))
 			if err != nil {

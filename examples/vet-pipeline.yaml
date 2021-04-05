@@ -15,8 +15,6 @@ spec:
       - |
         cat /in/text | tee -a /var/run/argo-dataflow/out
       image: debian:10.7-slim
-      out:
-        fifo: true
       volumeMounts:
       - mountPath: /in
         name: in
@@ -36,7 +34,7 @@ spec:
     sources:
     - stan:
         subject: animals
-  - map: bytes("Meow! " + object(msg).name)
+  - map: json("Meow! " + object(msg).name)
     name: process-cats
     sinks:
     - kafka:
@@ -52,7 +50,7 @@ spec:
     sources:
     - stan:
         subject: animals
-  - map: bytes("Woof! " + object(msg).name)
+  - map: json("Woof! " + object(msg).name)
     name: process-dogs
     sinks:
     - kafka:

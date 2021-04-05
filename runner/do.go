@@ -2,11 +2,17 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
+
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
-func do(mapper func(msg []byte) ([][]byte, error)) error {
+func do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
+	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		in, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -14,9 +20,9 @@ func do(mapper func(msg []byte) ([][]byte, error)) error {
 			w.WriteHeader(500)
 			return
 		}
-		msgs, err := mapper(in)
+		msgs, err := fn(in)
 		if err != nil {
-			log.Error(err, "failed run program")
+			log.Error(err, "failed execute")
 			w.WriteHeader(500)
 			return
 		}
@@ -36,5 +42,15 @@ func do(mapper func(msg []byte) ([][]byte, error)) error {
 		}
 		w.WriteHeader(200)
 	})
-	return http.ListenAndServe(":8080", nil)
+
+	go func() {
+		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		if err := http.ListenAndServe(":8080", nil); err != nil {
+			panic(err)
+		}
+	}()
+
+	<-ctx.Done()
+
+	return nil
 }

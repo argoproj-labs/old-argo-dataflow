@@ -28,9 +28,8 @@ func Init() error {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
 	if g := spec.Git; g != nil {
-		checkout := dfv1.PathCheckout
-		log.Info("cloning", "url", g.URL, "checkout", checkout)
-		if _, err := git.PlainClone(checkout, false, &git.CloneOptions{
+		log.Info("cloning", "url", g.URL, "checkout", dfv1.PathCheckout)
+		if _, err := git.PlainClone(dfv1.PathCheckout, false, &git.CloneOptions{
 			URL:           g.URL,
 			Progress:      os.Stdout,
 			SingleBranch:  true, // checkout faster
@@ -40,7 +39,7 @@ func Init() error {
 			return fmt.Errorf("failed to clone repo: %w", err)
 		}
 		log.Info("moving checked out code", "path", g.Path)
-		if err := os.Rename(filepath.Join(checkout, g.GetPath()), dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
+		if err := os.Rename(filepath.Join(dfv1.PathCheckout, g.GetPath()), dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
 	} else if h := spec.Handler; h != nil {

@@ -19,6 +19,8 @@ spec:
       args:
       - cat
       image: argoproj/dataflow-runner:latest
+      in:
+        http: {}
     name: a
     sinks:
     - stan:
@@ -30,6 +32,8 @@ spec:
       args:
       - cat
       image: argoproj/dataflow-runner:latest
+      in:
+        http: {}
     name: b
     sinks:
     - kafka:

@@ -19,8 +19,6 @@ spec:
       - |
         cat /in/text | tee -a /var/run/argo-dataflow/out
       image: debian:10.7-slim
-      out:
-        fifo: true
       volumeMounts:
       - mountPath: /in
         name: in
@@ -31,51 +29,41 @@ spec:
     name: read-text
     sinks:
     - stan:
-        subject: a-b
+        subject: lines
   - container:
       args:
-      - sh
+      - bash
       - -c
       - |
-        set -eu
-        echo starting..
-        cat /var/run/argo-dataflow/in | while read sentence; do
-          [ $sentence = EOF ] && exit 0
+        set -eux -o pipefail
+        while read sentence; do
           for word in $sentence; do
               echo $word
           done
-        done | tee -a /var/run/argo-dataflow/out
-        echo done
+        done > /var/run/argo-dataflow/out < /var/run/argo-dataflow/in
       image: debian:10.7-slim
       in:
-        fifo: true
-      out:
         fifo: true
     name: split-lines
     sinks:
     - stan:
-        subject: b-c
+        subject: words
     sources:
     - stan:
-        subject: a-b
+        subject: lines
   - container:
       args:
-      - sh
+      - bash
       - -c
       - |
-        set -eu
+        set -eux -o pipefail
         i=0
-        cat /var/run/argo-dataflow/in | while read word; do
-          if [ $word = EOF ]; then
-              echo $i
-              exit 0
-          fi
+        while read word && [ $word != EOF ]; do
           i=$((i+1))
-        done | tee -a /var/run/argo-dataflow/out
+        done > /var/run/argo-dataflow/out < /var/run/argo-dataflow/in
+        echo $i
       image: debian:10.7-slim
       in:
-        fifo: true
-      out:
         fifo: true
     name: count-words
     sinks:
@@ -83,7 +71,7 @@ spec:
         topic: output-topic
     sources:
     - stan:
-        subject: b-c
+        subject: words
     terminator: true
 
 ---

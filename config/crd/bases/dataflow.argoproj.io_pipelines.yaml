@@ -65,13 +65,6 @@ spec:
                             http:
                               type: object
                           type: object
-                        out:
-                          properties:
-                            fifo:
-                              type: boolean
-                            http:
-                              type: object
-                          type: object
                         volumeMounts:
                           items:
                             description: VolumeMount describes a mounting of a Volume

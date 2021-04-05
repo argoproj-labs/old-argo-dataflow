@@ -48,11 +48,6 @@ func (in *Container) DeepCopyInto(out *Container) {
 		*out = new(Interface)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.Out != nil {
-		in, out := &in.Out, &out.Out
-		*out = new(Interface)
-		(*in).DeepCopyInto(*out)
-	}
 	if in.Command != nil {
 		in, out := &in.Command, &out.Command
 		*out = make([]string, len(*in))

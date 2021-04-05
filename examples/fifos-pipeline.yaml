@@ -27,8 +27,6 @@ spec:
       image: debian:10.7-slim
       in:
         fifo: true
-      out:
-        fifo: true
     name: main
     sinks:
     - kafka:

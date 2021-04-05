@@ -1,16 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/klogr"
 	"k8s.io/utils/strings"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
 var (
@@ -30,21 +32,25 @@ func main() {
 			}
 		}
 	}()
-	ctx := signals.SetupSignalHandler()
+
+	ctx := setupSignalsHandler()
+
+	log.Info("process", "pid", os.Getpid())
+
 	err := func() error {
 		switch os.Args[1] {
 		case "cat":
-			return Cat()
+			return Cat(ctx)
 		case "filter":
-			return Filter(os.Args[2])
+			return Filter(ctx, os.Args[2])
 		case "group":
-			return Group(os.Args[2])
+			return Group(ctx, os.Args[2])
 		case "init":
 			return Init()
 		case "kill":
 			return Kill()
 		case "map":
-			return Map(os.Args[2])
+			return Map(ctx, os.Args[2])
 		case "sidecar":
 			return Sidecar(ctx)
 		default:
@@ -57,6 +63,19 @@ func main() {
 		}
 		panic(err)
 	}
+}
+
+func setupSignalsHandler() context.Context {
+	ctx, cancel := context.WithCancel(context.Background())
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGTERM)
+	go func() {
+		for signal := range signals {
+			log.Info("received signal", "signal", signal)
+			cancel()
+		}
+	}()
+	return ctx
 }
 
 // format or redact message
