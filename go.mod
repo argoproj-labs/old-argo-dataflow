@@ -4,6 +4,9 @@ go 1.16
 
 require (
 	cloud.google.com/go v0.52.0 // indirect
+	github.com/Masterminds/goutils v1.1.1 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Shopify/sarama v1.28.0
 	github.com/antonmedv/expr v1.8.9
 	github.com/go-git/go-git/v5 v5.3.0
@@ -11,6 +14,8 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/google/uuid v1.1.2 // indirect
+	github.com/huandu/xstrings v1.3.2 // indirect
+	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/nats-io/nats-streaming-server v0.21.1 // indirect
 	github.com/nats-io/stan.go v0.8.3
 	github.com/onsi/ginkgo v1.14.1

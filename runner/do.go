@@ -38,7 +38,7 @@ func do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 				w.WriteHeader(500)
 				return
 			}
-			log.WithValues("in", short(in), "out", short(out)).Info("do")
+			log.Info("do", "in", string(in), "out", string(out))
 		}
 		w.WriteHeader(200)
 	})

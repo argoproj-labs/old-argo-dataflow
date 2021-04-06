@@ -49,7 +49,7 @@ func Sidecar(ctx context.Context) error {
 	} else {
 		replica = v
 	}
-	log.WithValues("stepName", spec.Name, "pipelineName", pipelineName, "replica", replica).Info("config")
+	log.Info("config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica)
 
 	config.ClientID = dfv1.CtrSidecar
 
@@ -75,14 +75,14 @@ func Sidecar(ctx context.Context) error {
 		for {
 			status := &dfv1.StepStatus{
 				SourceStatues: sourceStatues,
-				SinkStatues: sinkStatues,
+				SinkStatues:   sinkStatues,
 			}
 			if !reflect.DeepEqual(lastStatus, status) {
 				// we need to be careful to just patch fields we own
-				patch := dfv1.Json(map[string]interface{} {
+				patch := dfv1.Json(map[string]interface{}{
 					"status": map[string]interface{}{
 						"sourceStatuses": sourceStatues,
-						"sinkStatuses": sinkStatues,
+						"sinkStatuses":   sinkStatues,
 					},
 				})
 				log.Info("patching step status (sinks/sources)", "patch", patch)
@@ -221,6 +221,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					for {
 						if pending, _, err := sub.Pending(); err != nil {
 							log.Error(err, "failed to get pending", "subject", s.Subject)
+							sourceStatues.IncErrors(source.Name, replica)
 						} else {
 							debug.Info("setting pending", "subject", s.Subject, "pending", pending)
 							sourceStatues.SetPending(source.Name, uint64(pending))

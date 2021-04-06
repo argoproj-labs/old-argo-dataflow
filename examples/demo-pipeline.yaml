@@ -1,0 +1,31 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: demo
+spec:
+  steps:
+  - map: |
+      bytes('{"value": ' + sprig.replace("my-val-", "", string(msg)) + '}')
+    name: clean
+    sinks:
+    - stan:
+        subject: clean
+    sources:
+    - kafka:
+        topic: input-topic
+  - filter: int(object(msg).value) % 2 == 0
+    name: evens
+    sinks:
+    - stan:
+        subject: evens
+    sources:
+    - stan:
+        subject: clean
+  - map: bytes(object(msg).value * 2)
+    name: double
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - stan:
+        subject: evens

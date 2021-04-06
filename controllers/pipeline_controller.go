@@ -156,7 +156,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		ss = append(ss, "terminating")
 	}
 
-	newStatus.Message = fmt.Sprintf(strings.Join(ss, ", "))
+	newStatus.Message = strings.Join(ss, ", ")
 
 	if newStatus.Phase == dfv1.PipelineRunning {
 		newStatus.Conditions = []metav1.Condition{}

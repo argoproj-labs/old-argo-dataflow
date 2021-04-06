@@ -20,6 +20,17 @@ func (in SourceStatuses) Set(name string, replica int, short string) {
 	in[name] = x
 }
 
+func (in SourceStatuses) IncErrors(name string, replica int) {
+	x := in[name]
+	if x.Metrics == nil {
+		x.Metrics = map[string]Metrics{}
+	}
+	m := x.Metrics[strconv.Itoa(replica)]
+	m.Errors++
+	x.Metrics[strconv.Itoa(replica)] = m
+	in[name] = x
+}
+
 func (in SourceStatuses) SetPending(name string, pending uint64) {
 	x := in[name]
 	x.Pending = pending

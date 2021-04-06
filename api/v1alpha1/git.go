@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"path/filepath"
-
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -18,7 +16,7 @@ func (in *Git) getContainer(req getContainerReq) corev1.Container {
 		Name:            CtrMain,
 		Image:           in.Image,
 		ImagePullPolicy: req.imagePullPolicy,
-		Command:         []string{filepath.Join(PathWorkingDir, "entrypoint.sh")},
+		Command:         []string{"entrypoint.sh"},
 		WorkingDir:      PathWorkingDir,
 	}
 }

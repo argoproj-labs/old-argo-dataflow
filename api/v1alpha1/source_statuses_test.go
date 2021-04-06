@@ -60,6 +60,16 @@ func TestSourceStatuses_Set(t *testing.T) {
 	}
 }
 
+func TestSourceStatuses_IncErrors(t *testing.T) {
+	ss := SourceStatuses{}
+	ss.IncErrors("foo", 0)
+	assert.Equal(t, uint64(1), ss["foo"].Metrics["0"].Errors)
+	ss.IncErrors("foo", 0)
+	assert.Equal(t, uint64(2), ss["foo"].Metrics["0"].Errors)
+	ss.IncErrors("bar", 0)
+	assert.Equal(t, uint64(1), ss["bar"].Metrics["0"].Errors)
+}
+
 func TestSourceStatuses_SetPending(t *testing.T) {
 
 	ss := SourceStatuses{}

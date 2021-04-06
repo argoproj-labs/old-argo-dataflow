@@ -38,9 +38,9 @@ func Init() error {
 		}); IgnoreErrRepositoryAlreadyExists(err) != nil {
 			return fmt.Errorf("failed to clone repo: %w", err)
 		}
-		path := g.GetPath()
-		log.Info("moving checked out code", "path", path)
-		if err := os.Rename(filepath.Join(dfv1.PathCheckout, path), dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
+		path := filepath.Join(dfv1.PathCheckout, g.GetPath())
+		log.Info("moving checked out code", "path", path, "wd", dfv1.PathWorkingDir)
+		if err := os.Rename(path, dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
 	} else if h := spec.Handler; h != nil {
