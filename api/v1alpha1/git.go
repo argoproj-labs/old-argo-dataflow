@@ -16,8 +16,9 @@ func (in *Git) getContainer(req getContainerReq) corev1.Container {
 		Name:            CtrMain,
 		Image:           in.Image,
 		ImagePullPolicy: req.imagePullPolicy,
-		Command:         []string{"entrypoint.sh"},
+		Command:         []string{"./entrypoint.sh"},
 		WorkingDir:      PathWorkingDir,
+		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 	}
 }
 
