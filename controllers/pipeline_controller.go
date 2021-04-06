@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -100,7 +101,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	pending, running, succeeded, failed, total := 0, 0, 0, 0, len(steps.Items)
+	pending, running, succeeded, failed := 0, 0, 0, 0
 	newStatus := pipeline.Status.DeepCopy()
 	if newStatus == nil {
 		newStatus = &dfv1.PipelineStatus{}
@@ -112,7 +113,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		if !pipeline.Spec.HasStep(stepName) { // this happens when a pipeline changes and a step is removed
 			log.Info("deleting excess step", "stepName", stepName)
-			if err := r.Client.Delete(ctx, &step);err!=nil {
+			if err := r.Client.Delete(ctx, &step); err != nil {
 				return ctrl.Result{}, err
 			}
 			continue
@@ -140,7 +141,22 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		terminate = terminate || step.Status.Phase.Completed() && step.Spec.Terminator
 	}
 
-	newStatus.Message = fmt.Sprintf("%d pending, %d running, %d succeeded, %d failed, %d total, terminate %v", pending, running, succeeded, failed, total, terminate)
+	var ss []string
+	for n, s := range map[int]string{
+		pending:   "pending",
+		running:   "running",
+		succeeded: "succeeded",
+		failed:    "failed",
+	} {
+		if n > 0 {
+			ss = append(ss, fmt.Sprintf("%d %s", n, s))
+		}
+	}
+	if terminate {
+		ss = append(ss, "terminating")
+	}
+
+	newStatus.Message = fmt.Sprintf(strings.Join(ss, ", "))
 
 	if newStatus.Phase == dfv1.PipelineRunning {
 		newStatus.Conditions = []metav1.Condition{}
@@ -150,7 +166,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if terminate {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionTerminated, Status: metav1.ConditionTrue, Reason: dfv1.ConditionTerminated})
+		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionTerminating, Status: metav1.ConditionTrue, Reason: dfv1.ConditionTerminating})
 		pods := &corev1.PodList{}
 		selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipeline.Name)
 		if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {

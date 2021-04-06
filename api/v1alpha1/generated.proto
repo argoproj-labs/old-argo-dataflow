@@ -39,14 +39,6 @@ message Container {
   repeated string args = 7;
 }
 
-message GetContainerReq {
-  optional string runnerImage = 1;
-
-  optional string impagePolicy = 2;
-
-  optional k8s.io.api.core.v1.VolumeMount volumeMount = 3;
-}
-
 message Git {
   optional string image = 1;
 

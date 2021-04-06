@@ -2,8 +2,8 @@ package v1alpha1
 
 const (
 	// conditions
-	ConditionRunning    = "Running"
-	ConditionTerminated = "Terminated"
+	ConditionRunning     = "Running"
+	ConditionTerminating = "Terminating"
 	// container names
 	CtrInit    = "init"
 	CtrMain    = "main"
