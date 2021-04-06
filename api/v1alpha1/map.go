@@ -6,11 +6,11 @@ import (
 
 type Map string
 
-func (m Map) GetContainer(runnerImage string, policy corev1.PullPolicy) corev1.Container {
+func (m Map) getContainer(req getContainerReq) corev1.Container {
 	return corev1.Container{
 		Name:            CtrMain,
-		Image:           runnerImage,
-		ImagePullPolicy: policy,
+		Image:           req.runnerImage,
+		ImagePullPolicy: req.imagePullPolicy,
 		Args:            []string{"map", string(m)},
 	}
 }

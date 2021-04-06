@@ -11,13 +11,13 @@ type Handler struct {
 	Code    string  `json:"code" protobuf:"bytes,3,opt,name=code"`
 }
 
-func (in *Handler) GetContainer(policy corev1.PullPolicy, mnt corev1.VolumeMount) corev1.Container {
+func (in *Handler) getContainer(req getContainerReq) corev1.Container {
 	return corev1.Container{
 		Name:            CtrMain,
 		Image:           in.Runtime.GetImage(),
-		ImagePullPolicy: policy,
+		ImagePullPolicy: req.imagePullPolicy,
 		Command:         []string{"./entrypoint.sh"},
 		WorkingDir:      filepath.Join(PathRuntimes, string(in.Runtime)),
-		VolumeMounts:    []corev1.VolumeMount{mnt},
+		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 	}
 }

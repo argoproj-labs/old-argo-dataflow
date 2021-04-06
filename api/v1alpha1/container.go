@@ -11,14 +11,14 @@ type Container struct {
 	Args         []string             `json:"args,omitempty" protobuf:"bytes,7,rep,name=args"`
 }
 
-func (in *Container) GetContainer(policy corev1.PullPolicy, mnt corev1.VolumeMount) corev1.Container {
+func (in *Container) getContainer(req getContainerReq) corev1.Container {
 	ctr := corev1.Container{
 		Name:            CtrMain,
 		Image:           in.Image,
-		ImagePullPolicy: policy,
+		ImagePullPolicy: req.imagePullPolicy,
 		Command:         in.Command,
 		Args:            in.Args,
-		VolumeMounts:    append(in.VolumeMounts, mnt),
+		VolumeMounts:    append(in.VolumeMounts, req.volumeMount),
 	}
 	return ctr
 }

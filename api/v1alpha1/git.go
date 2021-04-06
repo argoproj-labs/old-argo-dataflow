@@ -13,11 +13,11 @@ type Git struct {
 	Branch string `json:"branch,omitempty" protobuf:"bytes,4,opt,name=branch"`
 }
 
-func (in *Git) GetContainer(policy corev1.PullPolicy) corev1.Container {
+func (in *Git) getContainer(req getContainerReq) corev1.Container {
 	return corev1.Container{
 		Name:            CtrMain,
 		Image:           in.Image,
-		ImagePullPolicy: policy,
+		ImagePullPolicy: req.imagePullPolicy,
 		Command:         []string{filepath.Join(PathWorkingDir, "entrypoint.sh")},
 		WorkingDir:      PathWorkingDir,
 	}

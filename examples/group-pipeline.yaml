@@ -1,0 +1,24 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This examples shows the built-in grouping.
+
+      Group are written using expression syntax and must return a string.
+
+      [Learn about expressions](../docs/EXPRESSIONS.md)
+    dataflow.argoproj.io/name: Filter messages
+  creationTimestamp: null
+  name: filter
+spec:
+  steps:
+  - group:
+      key: 'string(msg) endsWith "2" ? "even" : "odd"'
+    name: group
+    sinks:
+    - stan:
+        subject: odd-even
+    sources:
+    - kafka:
+        topic: input-topic

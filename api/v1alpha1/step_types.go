@@ -71,16 +71,26 @@ func (in *StepSpec) GetVolumes() []corev1.Volume {
 }
 
 func (in *StepSpec) GetContainer(runnerImage string, policy corev1.PullPolicy, mnt corev1.VolumeMount) corev1.Container {
-	if c := in.Container; c != nil {
-		return c.GetContainer(policy, mnt)
-	} else if h := in.Handler; h != nil {
-		return h.GetContainer(policy, mnt)
-	} else if g := in.Git; g != nil {
-		return g.GetContainer(policy)
-	} else if m := in.Map; m != "" {
-		return m.GetContainer(runnerImage, policy)
-	} else if f := in.Filter; f != "" {
-		return f.GetContainer(runnerImage, policy)
+	return in.getType().getContainer(getContainerReq{
+		runnerImage:     runnerImage,
+		imagePullPolicy: policy,
+		volumeMount:     mnt,
+	})
+}
+
+func (in *StepSpec) getType() containerSupplier {
+	if x := in.Container; x != nil {
+		return x
+	} else if x := in.Filter; x != "" {
+		return x
+	} else if x := in.Git; x != nil {
+		return x
+	} else if x := in.Group; x != nil {
+		return x
+	} else if x := in.Handler; x != nil {
+		return x
+	} else if x := in.Map; x != "" {
+		return x
 	} else {
 		panic("invalid step spec")
 	}

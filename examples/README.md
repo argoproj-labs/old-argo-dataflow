@@ -98,6 +98,19 @@ This example of Go 1.16 handler.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/go1-16-pipeline.yaml
 ```
 
+### [Filter messages](group-pipeline.yaml)
+
+This examples shows the built-in grouping.
+
+Group are written using expression syntax and must return a string.
+
+[Learn about expressions](../docs/EXPRESSIONS.md)
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/group-pipeline.yaml
+```
+
 ### [Using HTTP for input and output](http-pipeline.yaml)
 
 This examples using the `dataflow-cat` image to send and recieve messages using HTTP.
