@@ -26,6 +26,15 @@ type PipelineSpec struct {
 	Steps []StepSpec `json:"steps,omitempty" protobuf:"bytes,1,rep,name=steps"`
 }
 
+func (in *PipelineSpec) HasStep(name string) bool {
+	for _, step := range in.Steps {
+		if step.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
 type PipelineStatus struct {
 	Phase      PipelinePhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=PipelinePhase"`
 	Message    string             `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`

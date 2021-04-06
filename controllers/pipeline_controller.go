@@ -108,6 +108,16 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	newStatus.Phase = dfv1.PipelineUnknown
 	terminate := false
 	for _, step := range steps.Items {
+		stepName := step.Spec.Name
+
+		if !pipeline.Spec.HasStep(stepName) { // this happens when a pipeline changes and a step is removed
+			log.Info("deleting excess step", "stepName", stepName)
+			if err := r.Client.Delete(ctx, &step);err!=nil {
+				return ctrl.Result{}, err
+			}
+			continue
+		}
+
 		if step.Status == nil {
 			continue
 		}

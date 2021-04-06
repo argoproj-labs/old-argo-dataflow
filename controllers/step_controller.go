@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -79,6 +81,12 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
 	)
 
+	data, err := json.Marshal(step.Spec)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	specHash := string(sha256.New().Sum(data))
+
 	for replica := 0; replica < targetReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
 		log.Info("creating pod (if not exists)", "podName", podName)
@@ -100,7 +108,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Name:        podName,
 					Namespace:   step.Namespace,
 					Labels:      map[string]string{dfv1.KeyStepName: step.Spec.Name, dfv1.KeyPipelineName: pipelineName},
-					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(replica)},
+					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(replica), dfv1.KeySpecHash: specHash},
 					OwnerReferences: []metav1.OwnerReference{
 						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.GroupVersion.WithKind("Step")),
 					},
@@ -154,12 +162,19 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
 	}
 
+	deletedPods := false // we only want to delete one pod per sync
 	for _, pod := range pods.Items {
 		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= targetReplicas {
-			log.Info("deleting pod", "podName", pod.Name)
+			log.Info("deleting excess pod", "podName", pod.Name)
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, err
 			}
+		} else if specHash != pod.GetAnnotations()[dfv1.KeySpecHash] && !deletedPods {
+			log.Info("deleting pod with out of date hash", "podName", pod.Name)
+			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
+				return ctrl.Result{}, err
+			}
+			deletedPods = true
 		} else {
 			phase, message := inferPhase(pod)
 			log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
