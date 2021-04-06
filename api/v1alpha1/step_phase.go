@@ -14,14 +14,3 @@ const (
 	StepSucceeded StepPhase = "Succeeded"
 	StepFailed    StepPhase = "Failed"
 )
-
-func MinStepPhase(v ...StepPhase) StepPhase {
-	for _, p := range []StepPhase{StepFailed, StepPending, StepRunning, StepSucceeded} {
-		for _, x := range v {
-			if x == p {
-				return p
-			}
-		}
-	}
-	return StepUnknown
-}

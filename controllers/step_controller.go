@@ -161,13 +161,10 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				return ctrl.Result{}, err
 			}
 		} else {
-			phase := inferPhase(pod)
+			phase, message := inferPhase(pod)
 			log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
-			newStatus.Phase = dfv1.MinStepPhase(newStatus.Phase, phase)
-			if newStatus.Phase.Completed() && pod.Status.Message != "" {
-				newStatus.Message = pod.Status.Message
-			}
-
+			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Message), dfv1.NewStepPhaseMessage(phase, message))
+			newStatus.Phase, newStatus.Message = x.GetPhase(), x.GetMessage()
 			for _, s := range pod.Status.ContainerStatuses {
 				if s.Name != dfv1.CtrMain || s.State.Terminated == nil {
 					continue

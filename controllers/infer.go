@@ -6,44 +6,77 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-func inferPhase(pod corev1.Pod) dfv1.StepPhase {
-	phase := dfv1.StepUnknown
+type Reason = string
+
+const (
+	// Waiting
+	ContainerCreating          Reason = "ContainerCreating"
+	CrashLoopBackOff           Reason = "CrashLoopBackOff"
+	CreateContainerConfigError Reason = "CreateContainerConfigError"
+	CreateContainerError       Reason = "CreateContainerError"
+	ErrImagePull               Reason = "ErrImagePull"
+	ImagePullBackOff           Reason = "ImagePullBackOff"
+	InvalidImageName           Reason = "InvalidImageName"
+	// Terminated
+	Completed          Reason = "Completed"
+	ContainerCannotRun Reason = "ContainerCannotRun"
+	DeadlineExceeded   Reason = "DeadlineExceeded"
+	Error              Reason = "Error"
+	OOMKilled          Reason = "OOMKilled"
+)
+
+var (
+	ErrorReasons = map[Reason]bool{
+		ContainerCreating:          true,
+		CrashLoopBackOff:           true,
+		CreateContainerConfigError: true,
+		ErrImagePull:               true,
+		ImagePullBackOff:           true,
+		InvalidImageName:           true,
+		CreateContainerError:       true,
+		OOMKilled:                  true,
+		Error:                      true,
+		Completed:                  true,
+		ContainerCannotRun:         true,
+		DeadlineExceeded:           true,
+	}
+)
+
+func inferPhase(pod corev1.Pod) (dfv1.StepPhase, string) {
+	min := dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "")
 	for _, s := range pod.Status.InitContainerStatuses {
-		phase = dfv1.MinStepPhase(phase, func() dfv1.StepPhase {
-			// init containers run to completion, but pod can still be running
+		min = dfv1.MinStepPhaseMessage(min, func() dfv1.StepPhaseMessage {
 			if s.State.Running != nil {
-				return dfv1.StepRunning
+				return dfv1.NewStepPhaseMessage(dfv1.StepRunning, "")
 			} else if s.State.Waiting != nil {
-				switch s.State.Waiting.Reason {
-				case "CrashLoopBackOff":
-					return dfv1.StepFailed
-				default:
-					return dfv1.StepPending
+				if ErrorReasons[s.State.Waiting.Reason] {
+					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, s.State.Waiting.Message)
+				} else {
+					return dfv1.NewStepPhaseMessage(dfv1.StepPending, s.State.Waiting.Message)
 				}
 			}
-			return dfv1.StepUnknown
+			return dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "")
 		}())
 	}
 	for _, s := range pod.Status.ContainerStatuses {
-		phase = dfv1.MinStepPhase(phase, func() dfv1.StepPhase {
+		min = dfv1.MinStepPhaseMessage(min, func() dfv1.StepPhaseMessage {
 			if s.State.Terminated != nil {
 				if int(s.State.Terminated.ExitCode) == 0 {
-					return dfv1.StepSucceeded
+					return dfv1.NewStepPhaseMessage(dfv1.StepSucceeded, "")
 				} else {
-					return dfv1.StepFailed
+					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, s.State.Terminated.Message)
 				}
 			} else if s.State.Running != nil {
-				return dfv1.StepRunning
+				return dfv1.NewStepPhaseMessage(dfv1.StepRunning, "")
 			} else if s.State.Waiting != nil {
-				switch s.State.Waiting.Reason {
-				case "CrashLoopBackOff":
-					return dfv1.StepFailed
-				default:
-					return dfv1.StepPending
+				if ErrorReasons[s.State.Waiting.Reason] {
+					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, s.State.Waiting.Message)
+				} else {
+					return dfv1.NewStepPhaseMessage(dfv1.StepPending, s.State.Waiting.Message)
 				}
 			}
-			return dfv1.StepUnknown
+			return dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "")
 		}())
 	}
-	return phase
+	return min.GetPhase(), min.GetMessage()
 }
