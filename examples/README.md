@@ -42,22 +42,6 @@ The secret must be named `dataflow-nats-${name}`.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-stan-default-secret.yaml
 ```
 
-### [Runs to completion](demo-pipeline.yaml)
-
-This example shows a pipelne running to completion.
-
-A pipeline that run to completion (aka "terimanting") is one that will finish.
-
-For a pipeline to terminate one of two things must happen:
-
-* Every steps exits successfully (i.e. with exit code 0).
-* One step exits successfully, and is marked with `terminator: true`. When this happens, all other steps are killed.
-
-
-```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/demo-pipeline.yaml
-```
-
 ### [Using FIFOs for input and outputs](fifos-pipeline.yaml)
 
 This example use named pipe to send and receive messages.
