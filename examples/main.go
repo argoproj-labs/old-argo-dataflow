@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -15,6 +16,9 @@ func main() {
 		panic(err)
 	}
 	_, _ = fmt.Printf("### Examples\n\n")
+	sort.Slice(infos, func(i, j int) bool {
+		return strings.Compare(infos[i].Name(), infos[j].Name()) < 0
+	})
 	for _, i := range infos {
 		f := i.Name()
 		if !strings.HasSuffix(f, ".yaml") {
