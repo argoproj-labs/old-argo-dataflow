@@ -18,14 +18,14 @@ spec:
       volumeMounts:
       - mountPath: /in
         name: in
-      volumes:
-      - configMap:
-          name: pets
-        name: in
     name: read-pets
     sinks:
     - stan:
         subject: animals
+    volumes:
+    - configMap:
+        name: pets
+      name: in
   - filter: string(msg) contains "cat"
     name: filter-cats
     sinks:

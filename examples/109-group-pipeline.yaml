@@ -14,8 +14,11 @@ metadata:
 spec:
   steps:
   - group:
+      endOfGroup: string(msg) contains "excited"
+      format: JSONStringArray
       key: 'string(msg) contains "2" ? "even" : "odd"'
-      endOfGroup: 'string(msg) contains "3"'
+      storage:
+        name: groups
     name: main
     sinks:
     - stan:
@@ -23,3 +26,6 @@ spec:
     sources:
     - kafka:
         topic: input-topic
+    volumes:
+    - emptyDir: {}
+      name: groups

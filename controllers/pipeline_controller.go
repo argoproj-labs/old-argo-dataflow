@@ -79,7 +79,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				Namespace: pipeline.Namespace,
 				Labels:    matchLabels,
 				OwnerReferences: []metav1.OwnerReference{
-					*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.GroupVersion.WithKind("Pipeline")),
+					*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.PipelineGroupVersionKind),
 				},
 			},
 			Spec: step,

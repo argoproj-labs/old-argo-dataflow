@@ -22,14 +22,14 @@ spec:
       volumeMounts:
       - mountPath: /in
         name: in
-      volumes:
-      - configMap:
-          name: word-count-input
-        name: in
     name: read-text
     sinks:
     - stan:
         subject: lines
+    volumes:
+    - configMap:
+        name: word-count-input
+      name: in
   - container:
       args:
       - bash

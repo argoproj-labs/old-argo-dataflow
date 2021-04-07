@@ -19,8 +19,11 @@ build: generate manifests
 test: build
 	go test ./... -coverprofile cover.out
 
+pipeline-runner-rbac:
+	kubectl -n $(NS) apply -k config/rbac/pipeline-runner
+
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: generate install $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
+start: generate install pipeline-runner-rbac $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
 	KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092 goreman -set-ports=false -logtime=false start
 logs: $(GOBIN)/stern
 	stern --tail=3 .

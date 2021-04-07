@@ -13,6 +13,8 @@ import (
 	"k8s.io/klog/klogr"
 	"k8s.io/utils/strings"
 	ctrl "sigs.k8s.io/controller-runtime"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var (
@@ -44,7 +46,7 @@ func main() {
 		case "filter":
 			return Filter(ctx, os.Args[2])
 		case "group":
-			return Group(ctx, os.Args[2], os.Args[3])
+			return Group(ctx, os.Args[2], os.Args[3], dfv1.GroupFormat(os.Args[4]))
 		case "init":
 			return Init()
 		case "kill":

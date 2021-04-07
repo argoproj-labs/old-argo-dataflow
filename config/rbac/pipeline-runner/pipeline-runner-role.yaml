@@ -1,0 +1,11 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pipeline-runner
+rules:
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
+  - steps/status
+  verbs:
+  - patch

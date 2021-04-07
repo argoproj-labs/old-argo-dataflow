@@ -29,7 +29,7 @@ func withLock(dir string, f func() ([][]byte, error)) ([][]byte, error) {
 	return msgs, err
 }
 
-func Group(ctx context.Context, key string, endOfGroup string) error {
+func Group(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.GroupFormat) error {
 	if err := os.Mkdir(dfv1.PathGroups, 0700); IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create groups dir: %w", err)
 	}
@@ -86,11 +86,27 @@ func Group(ctx context.Context, key string, endOfGroup string) error {
 				}
 				msgs[i] = msg
 			}
-			data, err := json.Marshal(msgs)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal messages: %w", err)
+			switch groupFormat {
+			case dfv1.GroupFormatUnknown:
+			// noop - this is same as default switch branch
+			case dfv1.GroupFormatJSONBytesArray:
+				data, err := json.Marshal(msgs)
+				if err != nil {
+					return nil, fmt.Errorf("failed to marshal messages: %w", err)
+				}
+				msgs = [][]byte{data}
+			case dfv1.GroupFormatJSONStringArray:
+				stringMsgs := make([]string, len(items))
+				for i, bytes := range msgs {
+					stringMsgs[i] = string(bytes)
+				}
+				data, err := json.Marshal(stringMsgs)
+				if err != nil {
+					return nil, fmt.Errorf("failed to marshal messages: %w", err)
+				}
+				msgs = [][]byte{data}
 			}
-			return [][]byte{data}, os.RemoveAll(dir)
+			return msgs, os.RemoveAll(dir)
 		})
 	})
 }

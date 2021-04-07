@@ -5,9 +5,10 @@ import (
 )
 
 type Git struct {
-	Image  string `json:"image" protobuf:"bytes,1,opt,name=image"`
-	URL    string `json:"url" protobuf:"bytes,2,opt,name=url"`
-	Path   string `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
+	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
+	URL   string `json:"url" protobuf:"bytes,2,opt,name=url"`
+	Path  string `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
+	// +kubebuilder:default=.
 	Branch string `json:"branch,omitempty" protobuf:"bytes,4,opt,name=branch"`
 }
 
@@ -20,15 +21,4 @@ func (in *Git) getContainer(req getContainerReq) corev1.Container {
 		WorkingDir:      PathWorkingDir,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 	}
-}
-
-func (in *Git) GetPath() string {
-	if in != nil && in.Path != "" {
-		return in.Path
-	}
-	return "."
-}
-
-func (in *Git) GetBranch() string {
-	return in.Branch
 }

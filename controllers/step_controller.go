@@ -37,6 +37,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/remotecommand"
+	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -116,18 +117,17 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Labels:      map[string]string{dfv1.KeyStepName: step.Spec.Name, dfv1.KeyPipelineName: pipelineName},
 					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(replica), dfv1.KeySpecHash: specHash},
 					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.GroupVersion.WithKind("Step")),
+						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 					},
 				},
 				Spec: corev1.PodSpec{
-					RestartPolicy: step.Spec.GetRestartPolicy(),
-					Volumes:       append(step.Spec.GetVolumes(), volume),
-					// TODO must be numeric user ID, not nonroot
-					//SecurityContext: &corev1.PodSecurityContext{
-					//	RunAsNonRoot: pointer.BoolPtr(true),
-					//},
-					// TODO init container seems to need this
-					// AutomountServiceAccountToken: pointer.BoolPtr(false),
+					RestartPolicy: step.Spec.RestartPolicy,
+					Volumes:       append(step.Spec.Volumes, volume),
+					SecurityContext: &corev1.PodSecurityContext{
+						RunAsNonRoot: pointer.BoolPtr(true),
+						RunAsUser:    pointer.Int64Ptr(9653),
+					},
+					ServiceAccountName: step.Spec.ServiceAccountName,
 					InitContainers: []corev1.Container{
 						{
 							Name:            dfv1.CtrInit,

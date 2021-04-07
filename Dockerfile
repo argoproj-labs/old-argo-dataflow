@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o
 FROM gcr.io/distroless/static:nonroot AS controller
 WORKDIR /
 COPY --from=controller-builder /workspace/bin/manager .
-USER nonroot:nonroot
+USER 9653:9653
 ENTRYPOINT ["/manager"]
 
 FROM builder AS runner-builder
@@ -30,5 +30,5 @@ FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
 COPY runtimes runtimes
 COPY --from=runner-builder /workspace/bin/runner .
-USER nonroot:nonroot
+USER 9653:9653
 ENTRYPOINT ["/runner"]

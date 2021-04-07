@@ -87,7 +87,7 @@ func Sidecar(ctx context.Context) error {
 				})
 				log.Info("patching step status (sinks/sources)", "patch", patch)
 				if _, err := dynamicInterface.
-					Resource(dfv1.StepsGroupVersionResource).
+					Resource(dfv1.StepGroupVersionResource).
 					Namespace(namespace).
 					Patch(
 						ctx,
@@ -120,7 +120,7 @@ func enrichSpec(ctx context.Context) error {
 	secrets := kubernetesInterface.CoreV1().Secrets(namespace)
 	for i, source := range spec.Sources {
 		if s := source.STAN; s != nil {
-			secret, err := secrets.Get(ctx, "dataflow-stan-"+dfv1.StringOr(s.Name, "default"), metav1.GetOptions{})
+			secret, err := secrets.Get(ctx, "dataflow-stan-"+s.Name, metav1.GetOptions{})
 			if err != nil {
 				if !apierr.IsNotFound(err) {
 					return err
@@ -138,7 +138,7 @@ func enrichSpec(ctx context.Context) error {
 			}
 			source.STAN = s
 		} else if k := source.Kafka; k != nil {
-			secret, err := secrets.Get(ctx, "dataflow-kafka-"+dfv1.StringOr(k.Name, "default"), metav1.GetOptions{})
+			secret, err := secrets.Get(ctx, "dataflow-kafka-"+k.Name, metav1.GetOptions{})
 			if err != nil {
 				if !apierr.IsNotFound(err) {
 					return err
@@ -153,7 +153,7 @@ func enrichSpec(ctx context.Context) error {
 
 	for i, sink := range spec.Sinks {
 		if s := sink.STAN; s != nil {
-			secret, err := secrets.Get(ctx, "dataflow-stan-"+dfv1.StringOr(s.Name, "default"), metav1.GetOptions{})
+			secret, err := secrets.Get(ctx, "dataflow-stan-"+s.Name, metav1.GetOptions{})
 			if err != nil {
 				if !apierr.IsNotFound(err) {
 					return err
@@ -171,7 +171,7 @@ func enrichSpec(ctx context.Context) error {
 			}
 			sink.STAN = s
 		} else if k := sink.Kafka; k != nil {
-			secret, err := secrets.Get(ctx, "dataflow-kafka-"+dfv1.StringOr(k.Name, "default"), metav1.GetOptions{})
+			secret, err := secrets.Get(ctx, "dataflow-kafka-"+k.Name, metav1.GetOptions{})
 			if err != nil {
 				if !apierr.IsNotFound(err) {
 					return err

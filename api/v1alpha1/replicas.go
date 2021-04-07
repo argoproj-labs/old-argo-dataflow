@@ -11,9 +11,10 @@ package v1alpha1
 // pending=400, replicas=4
 // pending=500, replicas=4
 type Replicas struct {
-	Min   int32  `json:"min" protobuf:"varint,1,opt,name=min"`           // this is both the min, and the initial value
-	Max   *int32 `json:"max,omitempty" protobuf:"varint,2,opt,name=max"` // takes precedence over min
-	Ratio uint32 `json:"ratio,omitempty" protobuf:"bytes,3,opt,name=ratio"`
+	// +kubebuilder:default=1
+	Min   int32   `json:"min" protobuf:"varint,1,opt,name=min"`           // this is both the min, and the initial value
+	Max   *uint32 `json:"max,omitempty" protobuf:"varint,2,opt,name=max"` // takes precedence over min
+	Ratio uint32  `json:"ratio,omitempty" protobuf:"bytes,3,opt,name=ratio"`
 }
 
 func (in Replicas) Calculate(pending int) int {

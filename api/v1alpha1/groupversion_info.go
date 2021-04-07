@@ -34,6 +34,8 @@ var (
 	// AddToScheme adds the types in this group-version to the given scheme.
 	AddToScheme = SchemeBuilder.AddToScheme
 
-	PipelinesResource         = GroupVersion.WithResource("pipelines")
-	StepsGroupVersionResource = GroupVersion.WithResource("steps")
+	PipelineGroupVersionResource = GroupVersion.WithResource("pipelines")
+	PipelineGroupVersionKind     = GroupVersion.WithKind("Pipeline")
+	StepGroupVersionKind         = GroupVersion.WithKind("Step")
+	StepGroupVersionResource     = GroupVersion.WithResource("steps")
 )

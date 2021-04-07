@@ -81,8 +81,7 @@ func main() {
 }
 
 var (
-	message = flag.String("message", "my-val-%d", "message format")
-	sleep   = flag.String("sleep", "1s", "how long to sleep")
+	sleep = flag.String("sleep", "1s", "how long to sleep")
 )
 
 func pumpTopicCmd(producer sarama.AsyncProducer) error {
@@ -92,7 +91,7 @@ func pumpTopicCmd(producer sarama.AsyncProducer) error {
 	}
 	start := time.Now()
 	for i := 0; ; i++ {
-		x := fmt.Sprintf(*message, i)
+		x := fmt.Sprintf("%s-%d", FunnyAnimal(), i)
 		producer.Input() <- &sarama.ProducerMessage{
 			Topic: *topic,
 			Value: sarama.StringEncoder(x),

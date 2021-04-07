@@ -34,11 +34,11 @@ func Init() error {
 			Progress:      os.Stdout,
 			SingleBranch:  true, // checkout faster
 			Depth:         1,    // checkout faster
-			ReferenceName: plumbing.NewBranchReferenceName(g.GetBranch()),
+			ReferenceName: plumbing.NewBranchReferenceName(g.Branch),
 		}); IgnoreErrRepositoryAlreadyExists(err) != nil {
 			return fmt.Errorf("failed to clone repo: %w", err)
 		}
-		path := filepath.Join(dfv1.PathCheckout, g.GetPath())
+		path := filepath.Join(dfv1.PathCheckout, g.Path)
 		log.Info("moving checked out code", "path", path, "wd", dfv1.PathWorkingDir)
 		if err := os.Rename(path, dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)

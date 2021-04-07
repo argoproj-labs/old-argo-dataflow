@@ -28,8 +28,6 @@ option go_package = "v1alpha1";
 message Container {
   optional string image = 1;
 
-  repeated k8s.io.api.core.v1.Volume volumes = 2;
-
   repeated k8s.io.api.core.v1.VolumeMount volumeMounts = 5;
 
   optional Interface in = 3;
@@ -46,6 +44,7 @@ message Git {
 
   optional string path = 3;
 
+  // +kubebuilder:default=.
   optional string branch = 4;
 }
 
@@ -53,6 +52,10 @@ message Group {
   optional string key = 1;
 
   optional string endOfGroup = 2;
+
+  optional string format = 3;
+
+  optional Storage storage = 4;
 }
 
 message HTTP {
@@ -71,6 +74,7 @@ message Interface {
 }
 
 message Kafka {
+  // +kubebuilder:default=default
   optional string name = 1;
 
   optional string url = 2;
@@ -134,16 +138,18 @@ message PipelineStatus {
 // pending=400, replicas=4
 // pending=500, replicas=4
 message Replicas {
+  // +kubebuilder:default=1
   optional int32 min = 1;
 
   // this is both the min, and the initial value
-  optional int32 max = 2;
+  optional uint32 max = 2;
 
   // takes precedence over min
   optional uint32 ratio = 3;
 }
 
 message STAN {
+  // +kubebuilder:default=default
   optional string name = 1;
 
   optional string natsUrl = 4;
@@ -156,6 +162,7 @@ message STAN {
 }
 
 message Sink {
+  // +kubebuilder:default=default
   optional string name = 1;
 
   optional STAN stan = 2;
@@ -170,6 +177,7 @@ message SinkStatus {
 }
 
 message Source {
+  // +kubebuilder:default=default
   optional string name = 1;
 
   optional STAN stan = 2;
@@ -205,6 +213,7 @@ message StepList {
 }
 
 message StepSpec {
+  // +kubebuilder:default=default
   optional string name = 6;
 
   optional Container container = 1;
@@ -229,9 +238,17 @@ message StepSpec {
   // +patchMergeKey=name
   repeated Sink sinks = 4;
 
+  // +kubebuilder:default=OnFailure
   optional string restartPolicy = 5;
 
   optional bool terminator = 10;
+
+  // +patchStrategy=merge
+  // +patchMergeKey=name
+  repeated k8s.io.api.core.v1.Volume volumes = 13;
+
+  // +kubebuilder:default=pipeline-runner
+  optional string serviceAccountName = 14;
 }
 
 message StepStatus {
@@ -246,5 +263,12 @@ message StepStatus {
   map<string, SourceStatus> sourceStatuses = 3;
 
   map<string, SinkStatus> sinkStatuses = 4;
+}
+
+message Storage {
+  optional string name = 1;
+
+  // volume name
+  optional string subPath = 2;
 }
 

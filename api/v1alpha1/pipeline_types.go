@@ -20,27 +20,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type PipelineSpec struct {
-	// +patchStrategy=merge
-	// +patchMergeKey=name
-	Steps []StepSpec `json:"steps,omitempty" protobuf:"bytes,1,rep,name=steps"`
-}
-
-func (in *PipelineSpec) HasStep(name string) bool {
-	for _, step := range in.Steps {
-		if step.Name == name {
-			return true
-		}
-	}
-	return false
-}
-
-type PipelineStatus struct {
-	Phase      PipelinePhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=PipelinePhase"`
-	Message    string             `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
-	Conditions []metav1.Condition `json:"conditions,omitempty" protobuf:"bytes,3,rep,name=conditions"`
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=pl
 // +kubebuilder:subresource:status
