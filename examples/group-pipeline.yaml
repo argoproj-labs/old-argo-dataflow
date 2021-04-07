@@ -10,12 +10,13 @@ metadata:
       [Learn about expressions](../docs/EXPRESSIONS.md)
     dataflow.argoproj.io/name: Filter messages
   creationTimestamp: null
-  name: filter
+  name: group
 spec:
   steps:
   - group:
-      key: 'string(msg) endsWith "2" ? "even" : "odd"'
-    name: group
+      key: 'string(msg) contains "2" ? "even" : "odd"'
+      endOfGroup: 'string(msg) contains "3"'
+    name: main
     sinks:
     - stan:
         subject: odd-even

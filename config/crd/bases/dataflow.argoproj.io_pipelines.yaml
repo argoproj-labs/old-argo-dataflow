@@ -1722,9 +1722,12 @@ spec:
                       type: object
                     group:
                       properties:
+                        endOfGroup:
+                          type: string
                         key:
                           type: string
                       required:
+                      - endOfGroup
                       - key
                       type: object
                     handler:

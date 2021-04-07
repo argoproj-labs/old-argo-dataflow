@@ -51,6 +51,8 @@ message Git {
 
 message Group {
   optional string key = 1;
+
+  optional string endOfGroup = 2;
 }
 
 message HTTP {

@@ -15,13 +15,13 @@ func Filter(ctx context.Context, x string) error {
 	return do(ctx, func(msg []byte) ([][]byte, error) {
 		res, err := expr.Run(prog, exprEnv(msg))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to run program %x: %w", x, err)
 		}
-		b, ok := res.(bool)
+		accept, ok := res.(bool)
 		if !ok {
-			return nil, fmt.Errorf("must return bool")
+			return nil, fmt.Errorf("%q must return bool", x)
 		}
-		if b {
+		if accept {
 			return [][]byte{msg}, nil
 		} else {
 			return nil, nil

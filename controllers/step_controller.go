@@ -122,6 +122,12 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				Spec: corev1.PodSpec{
 					RestartPolicy: step.Spec.GetRestartPolicy(),
 					Volumes:       append(step.Spec.GetVolumes(), volume),
+					// TODO must be numeric user ID, not nonroot
+					//SecurityContext: &corev1.PodSecurityContext{
+					//	RunAsNonRoot: pointer.BoolPtr(true),
+					//},
+					// TODO init container seems to need this
+					// AutomountServiceAccountToken: pointer.BoolPtr(false),
 					InitContainers: []corev1.Container{
 						{
 							Name:            dfv1.CtrInit,

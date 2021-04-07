@@ -13,8 +13,9 @@ require (
 	github.com/go-logr/logr v0.3.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
-	github.com/google/uuid v1.1.2 // indirect
+	github.com/google/uuid v1.1.2
 	github.com/huandu/xstrings v1.3.2 // indirect
+	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/nats-io/nats-streaming-server v0.21.1 // indirect
 	github.com/nats-io/stan.go v0.8.3

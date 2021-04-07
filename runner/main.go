@@ -44,7 +44,7 @@ func main() {
 		case "filter":
 			return Filter(ctx, os.Args[2])
 		case "group":
-			return Group(ctx, os.Args[2])
+			return Group(ctx, os.Args[2], os.Args[3])
 		case "init":
 			return Init()
 		case "kill":
