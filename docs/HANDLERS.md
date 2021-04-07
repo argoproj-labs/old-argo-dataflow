@@ -4,7 +4,7 @@ Handlers are intended as a convenient way to write steps without having to build
 
 A handler is defined as:
 
-* Code to run. 
+* Code to run.
 * A runtime to build and execute the code. E.g. `go1-16` or `java16`.
 
 ## Inline

@@ -52,7 +52,7 @@ manifests: controller-gen
 
 generate: controller-gen proto
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
-	go run ./examples > examples/README.md
+	go run ./docs/examples > docs/EXAMPLES.md
 
 # not dependant on api/v1alpha1/generated.proto because it often does not change when this target runs, so results in remakes when they are not needed
 proto: api/v1alpha1/generated.pb.go
@@ -69,7 +69,7 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 lint:
 	go mod tidy
 	golangci-lint run --fix
-	kubectl apply --dry-run=server -f examples
+	kubectl apply --dry-run=server -f docs/examples
 
 .PHONY: controller
 controller:
@@ -101,7 +101,7 @@ $(GOBIN)/kafka-console-producer:
 	go install github.com/Shopify/sarama/tools/kafka-console-producer
 
 flood:
-	go run ./kafka/ -topic input-topic -message flood-%d -sleep 1ms pump-topic
+	go run ./hack/kafka/ -topic input-topic  -sleep 1ms pump-topic
 
 version:=2.3.2
 name:=darwin
@@ -119,7 +119,7 @@ kubebuilder:
 kafka:
 	kubectl get ns kafka || kubectl create ns kafka
 	kubectl -n kafka apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
-	kubectl -n $(NS) apply -f examples/dataflow-kafka-default-secret.yaml
+	kubectl -n $(NS) apply -f docs/examples/dataflow-kafka-default-secret.yaml
 kafka-9092: kafka
 	kubectl -n kafka port-forward svc/broker 9092:9092
 
@@ -128,7 +128,7 @@ stan:
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
 	kubectl -n $(NS) wait pod nats-0 --for=condition=Ready
 	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
-	kubectl -n $(NS) apply -f examples/dataflow-stan-default-secret.yaml
+	kubectl -n $(NS) apply -f docs/examples/dataflow-stan-default-secret.yaml
 
 nuke: undeploy uninstall
 	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
@@ -138,10 +138,10 @@ nuke: undeploy uninstall
 	docker image rm argoproj/dataflow-runner || true
 	docker system prune -f
 
-examples/%.yaml: /dev/null
+docs/examples/%.yaml: /dev/null
 	@kubectl delete pipeline --all --cascade=foreground > /dev/null
 	@echo " ▶ RUN $@"
 	@kubectl apply -f $@
 	@kubectl wait pipeline --all --for condition=Running
 	@echo
-test-examples: $(shell ls examples/*-pipeline.yaml | sort)
+test-examples: $(shell ls docs/examples/*-pipeline.yaml | sort)

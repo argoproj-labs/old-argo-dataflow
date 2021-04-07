@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -11,7 +12,8 @@ import (
 )
 
 func main() {
-	infos, err := ioutil.ReadDir("examples")
+	const path = "docs/examples"
+	infos, err := ioutil.ReadDir(path)
 	if err != nil {
 		panic(err)
 	}
@@ -24,8 +26,8 @@ func main() {
 		if !strings.HasSuffix(f, ".yaml") {
 			continue
 		}
-		const path = "examples/"
-		data, err := ioutil.ReadFile(path + f)
+		file := filepath.Join(path, f)
+		data, err := ioutil.ReadFile(file)
 		if err != nil {
 			panic(err)
 		}
@@ -39,7 +41,8 @@ func main() {
 				}
 				annotations := un.GetAnnotations()
 				if name, ok := annotations["dataflow.argoproj.io/name"]; ok {
-					_, _ = fmt.Printf("### [%s](%s)\n\n", name, f)
+					title := name
+					_, _ = fmt.Printf("### [%s](examples/%s)\n\n", title, f)
 					_, _ = fmt.Printf("%s\n\n", annotations["dataflow.argoproj.io/description"])
 					_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", f)
 				}
@@ -54,7 +57,7 @@ func main() {
 				formatted = append(formatted, string(data))
 			}
 		}
-		if err := ioutil.WriteFile(path+f, []byte(strings.Join(formatted, "\n---\n")), 0600); err != nil {
+		if err := ioutil.WriteFile(file, []byte(strings.Join(formatted, "\n---\n")), 0600); err != nil {
 			panic(err)
 		}
 	}
