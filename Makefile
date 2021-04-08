@@ -44,7 +44,6 @@ deploy:  config/kafka/dev-small.yaml config/nats/single-server-nats.yml config/s
 	kustomize build --load_restrictor=none config/$(CONFIG)|kubectl apply --force -f -
 	kubectl config set-context --current --namespace=argo-dataflow-system
 	kubectl get pod
-	kubectl wait pod --all --for=condition=Ready
 
 undeploy:
 	kustomize build --load_restrictor=none config/quick-start|kubectl delete --ignore-not-found -f -
