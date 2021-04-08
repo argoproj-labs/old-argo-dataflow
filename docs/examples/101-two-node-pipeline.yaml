@@ -5,11 +5,7 @@ metadata:
     dataflow.argoproj.io/description: |
       This example shows a example of having two nodes in a pipeline.
 
-      They are connected by a subject.
-
-      By convention, subjects should be the two node names with a hyphen.
-
-      If the first node is named `foo` and the second is named `bar`, then the subject should be `foo-bar`.
+      While they read from Kafka, they are connected by a NATS Streaming subject.
     dataflow.argoproj.io/name: Two nodes pipeline
   creationTimestamp: null
   name: two-node

@@ -93,7 +93,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, fmt.Errorf("failed to hash spec: %w", err)
 	}
 	specHash := base64.StdEncoding.EncodeToString(hash.Sum(nil))
-
 	for replica := 0; replica < targetReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
 		log.Info("creating pod (if not exists)", "podName", podName)
@@ -227,8 +226,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if !reflect.DeepEqual(step.Status, newStatus) {
 		log.Info("patching step status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
-			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus}))));
-			IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus})))); IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
 		}
 	}

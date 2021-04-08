@@ -3,12 +3,24 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This examples shows the built-in grouping.
+      This is an example of built-in grouping.
 
-      Group are written using expression syntax and must return a string.
+      There are four mandatory fields:
+
+      * `key` A string expression that returns the message's key
+      * `endOfGroup` A boolean expression that returns whether or not to end group and send the group messages onwards.
+      * `format` What format the grouped messages should be in.
+      * `storage` Where to store messages ready to be forwarded.
 
       [Learn about expressions](../docs/EXPRESSIONS.md)
-    dataflow.argoproj.io/name: Filter messages
+
+      ### Storage
+
+      Storage can either be:
+
+      * An ephemeral volume - you don't mind loosing some or all messages (e.g. development or pre-production).
+      * A persistent volume - you want to be to recover (e.g. production).
+    dataflow.argoproj.io/name: Group messages
   creationTimestamp: null
   name: group
 spec:

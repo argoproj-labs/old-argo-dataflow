@@ -19,3 +19,14 @@ func (in SinkStatuses) Set(name string, replica int, short string) {
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
 }
+
+func (in SinkStatuses) AnySunk() bool {
+	for _, s := range in {
+		for _, m := range s.Metrics {
+			if m.Total > 0 {
+				return true
+			}
+		}
+	}
+	return false
+}

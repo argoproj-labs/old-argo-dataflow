@@ -3,12 +3,12 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example of a pipeline using Git .
+      This example of a pipeline using Git.
 
       The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
       your code when the step starts.
 
-      [Learn about Git](../docs/GIT.md)
+      [Learn about Git steps](../docs/GIT.md)
     dataflow.argoproj.io/name: Git handler
   creationTimestamp: null
   name: git
@@ -16,8 +16,11 @@ spec:
   steps:
   - git:
       branch: main
+      env:
+      - name: GOCACHE
+        value: /go/.cache
       image: golang:1.16
-      path: examples/git
+      path: docs/examples/git
       url: https://github.com/argoproj-labs/argo-dataflow
     name: main
     sinks:

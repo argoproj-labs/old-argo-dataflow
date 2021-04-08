@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"path/filepath"
-
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -17,7 +15,8 @@ func (in *Handler) getContainer(req getContainerReq) corev1.Container {
 		Image:           in.Runtime.GetImage(),
 		ImagePullPolicy: req.imagePullPolicy,
 		Command:         []string{"./entrypoint.sh"},
-		WorkingDir:      filepath.Join(PathRuntimes, string(in.Runtime)),
+		Env:             in.Runtime.GetEnv(),
+		WorkingDir:      PathWorkingDir,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 	}
 }

@@ -18,9 +18,3 @@ make ./dist/argo DEV_BRANCH=true
 killall node
 yarn --cwd ui start
 ```
-
-Clean up:
-
-```
-make nuke
-```

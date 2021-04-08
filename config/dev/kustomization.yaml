@@ -5,7 +5,3 @@ patchesStrategicMerge:
   - controller-manager-deploy.yaml
   - argo-server-deploy.yaml
 
-images:
-  - name: alexcollinsintuit/dataflow-runner
-    newName: argoproj/dataflow-runner
-

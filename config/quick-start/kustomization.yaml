@@ -8,9 +8,5 @@ resources:
   - ../../docs/examples/101-http-pipeline.yaml
   - input-pod.yaml
 images:
-  - name: argoproj/dataflow-runner
-    newName: alexcollinsintuit/dataflow-runner
-  - name: argoproj/dataflow-controller
-    newName: alexcollinsintuit/dataflow-controller
   - name: argoproj/argocli
     newTag: dev-dataflow

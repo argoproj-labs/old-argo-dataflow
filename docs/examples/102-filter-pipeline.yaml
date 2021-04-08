@@ -3,7 +3,7 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This examples shows the built-in filtering.
+      This is an example of built-in filtering.
 
       Filters are written using expression syntax and must return a boolean.
 

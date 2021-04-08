@@ -121,9 +121,6 @@ kubebuilder:
 config/kafka/dev-small.yaml:
 	kustomize build -o config/kafka/dev-small.yaml github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
 
-kafka-9092:
-	kubectl port-forward svc/broker 9092:9092
-
 config/nats/single-server-nats.yml:
 	curl -o config/nats/single-server-nats.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-server/single-server-nats.yml
 
@@ -139,6 +136,6 @@ docs/examples/%.yaml: /dev/null
 	@kubectl delete pipeline --all --cascade=foreground > /dev/null
 	@echo " ▶ RUN $@"
 	@kubectl apply -f $@
-	@kubectl wait pipeline --all --for condition=Running
+	kubectl wait pipeline --all --for $(shell grep -o 'condition=.*' $@ || echo condition=SunkMessages)
 	@echo
 test-examples: $(shell ls docs/examples/*-pipeline.yaml | sort)

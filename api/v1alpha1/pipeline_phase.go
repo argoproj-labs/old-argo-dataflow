@@ -3,6 +3,10 @@ package v1alpha1
 // +kubebuilder:validation:Enum="";Pending;Running;Succeeded;Failed
 type PipelinePhase string
 
+func (p PipelinePhase) Completed() bool {
+	return p == PipelineSucceeded || p == PipelineFailed
+}
+
 const (
 	PipelineUnknown   PipelinePhase = ""
 	PipelinePending   PipelinePhase = "Pending"

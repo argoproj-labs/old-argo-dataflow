@@ -3,20 +3,20 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example shows a example of having multiple replicas of a single step.
+      This is an example of having multiple replicas for a single step.
 
-      This one automatically scales up depending on the number of messages pending processing.
+      Replicas are automatically scaled up and down depending on the number of messages pending processing.
 
       The ratio is defined as the number of pending messages per replica:
 
       ```
-      replica = pending / ratio
+      replicas = pending / ratio
       ```
 
       The number of replicas will not scale beyond the min/max bounds (except when *peeking*, see below):
 
       ```
-      min <= replica <= max
+      min <= replicas <= max
       ```
 
       * `min` is used as the initial number of replicas.
@@ -30,8 +30,9 @@ metadata:
       ### Scale-To-Zero and Peeking
 
       You can scale to zero by setting `min: 0`. The number of replicas will start at zero, and periodically be scaled
-      to 1  so it can "peek" the number of pending messages can be measured and the targe number of replicas re-calculated.
-    dataflow.argoproj.io/name: Using replicas to scale
+      to 1  so it can "peek" the the message queue. The number of pending messages is measured and the target number
+      of replicas re-calculated.
+    dataflow.argoproj.io/name: Using replicas and auto-scaling
   creationTimestamp: null
   name: replicas
 spec:
