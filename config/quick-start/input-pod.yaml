@@ -16,4 +16,5 @@ spec:
           cd argo-dataflow
           go run -v ./hack/kafka -topic input-topic create-topic
           go run -v ./hack/kafka -topic output-topic create-topic
-          go run -v ./hack/kafka -topic input-topic pump-topic
+          # change 1s to 10ms to flood the kafka topic
+          go run -v ./hack/kafka -topic input-topic -sleep 1s pump-topic
