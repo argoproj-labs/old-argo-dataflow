@@ -9,8 +9,8 @@ git:
   branch: main
   path: examples/git
   image: golang:1.16
-  url: https://github.com/alexec/argo-dataflow
+  url: https://github.com/argoproj-labs/argo-dataflow
 ```
 
-* [Example pipeline](../examples/git-pipeline.yaml)
-* [Source code](../examples/git)
+* [Example pipeline](examples/106-git-pipeline.yaml)
+* [Source code](examples/git)

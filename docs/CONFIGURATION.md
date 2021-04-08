@@ -30,8 +30,8 @@ source:
 
 Configuration will be taken from `secret/dataflow-kafka-${name}`, in this example `secret/dataflow-kafka-my-kafka`.
 
-* [Example Kafka secret](../examples/dataflow-kafka-default-secret.yaml)
-* [Example NATS Streaming (STAN) secret](../examples/dataflow-stan-default-secret.yaml).
+* [Example Kafka secret](examples/dataflow-kafka-default-secret.yaml)
+* [Example NATS Streaming (STAN) secret](examples/dataflow-stan-default-secret.yaml).
 
 Default:
 

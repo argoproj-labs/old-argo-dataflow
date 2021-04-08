@@ -3,4 +3,9 @@ resources:
 
 patchesStrategicMerge:
   - controller-manager-deploy.yaml
+  - argo-server-deploy.yaml
+
+images:
+  - name: alexec/dataflow-runner
+    newName: argoproj/dataflow-runner
 

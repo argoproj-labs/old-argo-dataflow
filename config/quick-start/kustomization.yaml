@@ -6,3 +6,10 @@ resources:
   - ../default
   - ../argo-server
   - input-pod.yaml
+images:
+  - name: argoproj/dataflow-runner
+    newName: alexec/dataflow-runner
+  - name: argoproj/dataflow-controller
+    newName: alexec/dataflow-controller
+  - name: argoproj/argocli
+    newName: alexec/argocli

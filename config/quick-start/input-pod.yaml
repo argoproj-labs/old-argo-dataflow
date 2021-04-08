@@ -12,7 +12,7 @@ spec:
       args:
         - |
           set -eux
-          git clone --depth 1 --single-branch https://github.com/alexec/argo-dataflow
+          git clone --depth 1 --single-branch https://github.com/argoproj-labs/argo-dataflow
           cd argo-dataflow
           go run -v ./hack/kafka -topic input-topic create-topic
           go run -v ./hack/kafka -topic output-topic create-topic

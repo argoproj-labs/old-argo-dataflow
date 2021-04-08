@@ -18,7 +18,7 @@ spec:
       branch: main
       image: golang:1.16
       path: examples/git
-      url: https://github.com/alexec/argo-dataflow
+      url: https://github.com/argoproj-labs/argo-dataflow
     name: main
     sinks:
     - kafka:
