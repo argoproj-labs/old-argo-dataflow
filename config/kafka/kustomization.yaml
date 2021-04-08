@@ -1,0 +1,3 @@
+resources:
+  - dev-small.yaml
+  - ../../docs/examples/dataflow-kafka-default-secret.yaml

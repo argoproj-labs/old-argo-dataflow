@@ -1,0 +1,28 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: input
+spec:
+  initContainers:
+    - name: wait
+      image: golang:1.16
+      command:
+        - sh
+        - -c
+      args:
+        - |
+          sleep 20s
+  containers:
+    - name: main
+      image: golang:1.16
+      command:
+        - sh
+        - -c
+      args:
+        - |
+          set -eux
+          git clone --depth 1 --single-branch https://github.com/alexec/argo-dataflow
+          cd argo-dataflow
+          go run ./hack/kafka -topic input-topic create-topic
+          go run ./hack/kafka -topic output-topic create-topic
+          go run ./hack/kafka -topic input-topic pump-topic

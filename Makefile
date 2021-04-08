@@ -1,7 +1,7 @@
 
 # Image URL to use all building/pushing image targets
 TAG ?= latest
-NS ?= $(shell kubectl config view --minify --output 'jsonpath={..namespace}')
+CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -19,31 +19,32 @@ build: generate manifests
 test: build
 	go test ./... -coverprofile cover.out
 
-pipeline-runner-rbac:
-	kubectl -n $(NS) apply -k config/rbac/pipeline-runner
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: generate install pipeline-runner-rbac $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
-	KAFKA_PEERS=kafka-0.broker.kafka.svc.cluster.local:9092 goreman -set-ports=false -logtime=false start
+start: generate install $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
+	KAFKA_PEERS=kafka:9092 goreman -set-ports=false -logtime=false start
 logs: $(GOBIN)/stern
 	stern --tail=3 .
 
 # Install CRDs into a cluster
-install: manifests
+install:
 	kustomize build config/crd | kubectl apply -f -
 
 # Uninstall CRDs from a cluster
-uninstall: manifests
-	kubectl delete --ignore-not-found pipeline --all || true
+uninstall:
 	kustomize build config/crd | kubectl delete --ignore-not-found -f -
 
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests runner controller
-	cd config/manager && kustomize edit set image argoproj/dataflow-controller=argoproj/dataflow-controller:$(TAG)
-	kustomize build config/default | kubectl apply -f -
+images: runner controller
 
-undeploy: manifests
-	kustomize build config/default | kubectl delete --ignore-not-found -f -
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy:  config/kafka/dev-small.yaml config/nats/single-server-nats.yml config/stan/single-server-stan.yml
+	kustomize build --load_restrictor=none config/$(CONFIG)|kubectl apply -f -
+	kubectl config set-context --current --namespace=argo-dataflow-system
+	kubectl get pod
+	kubectl wait pod --all --for=condition=Ready
+
+undeploy:
+	kustomize build --load_restrictor=none config/quick-start|kubectl delete --ignore-not-found -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
@@ -115,25 +116,19 @@ kubebuilder:
 	tar -zxvf kubebuilder_$(version)_$(name)_$(arch).tar.gz
 	mv kubebuilder_$(version)_$(name)_$(arch) kubebuilder && sudo mv kubebuilder /usr/local/
 
-.PHONY: kafka
-kafka:
-	kubectl get ns kafka || kubectl create ns kafka
-	kubectl -n kafka apply -k github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
-	kubectl -n $(NS) apply -f docs/examples/dataflow-kafka-default-secret.yaml
-kafka-9092: kafka
-	kubectl -n kafka port-forward svc/broker 9092:9092
+config/kafka/dev-small.yaml:
+	kustomize build -o config/kafka/dev-small.yaml github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
 
-.PHONY: stan
-stan:
-	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
-	kubectl -n $(NS) wait pod nats-0 --for=condition=Ready
-	kubectl -n $(NS) apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
-	kubectl -n $(NS) apply -f docs/examples/dataflow-stan-default-secret.yaml
+kafka-9092:
+	kubectl port-forward svc/broker 9092:9092
+
+config/nats/single-server-nats.yml:
+	curl -o config/nats/single-server-nats.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-server/single-server-nats.yml
+
+config/stan/single-server-stan.yml:
+	curl -o config/stan/single-server-stan.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-streaming-server/single-server-stan.yml
 
 nuke: undeploy uninstall
-	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
-	kubectl -n $(NS) delete --ignore-not-found -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
-	kubectl delete --ignore-not-found ns kafika
 	git clean -fxd
 	docker image rm argoproj/dataflow-runner || true
 	docker system prune -f

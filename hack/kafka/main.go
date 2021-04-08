@@ -28,7 +28,7 @@ func defaultPeers() string {
 	if env, ok := os.LookupEnv("KAFKA_PEERS"); ok {
 		return env
 	}
-	return "kafka-0.broker.kafka.svc.cluster.local:9092"
+	return "kafka:9092"
 }
 
 func main() {

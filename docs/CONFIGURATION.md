@@ -15,7 +15,7 @@ Inline:
 ```
 source:
   kafka:
-    url: kafka-0.broker.kafka.svc.cluster.local:9092
+    url: kafka:9092
     topic: my-topic
 ```
 

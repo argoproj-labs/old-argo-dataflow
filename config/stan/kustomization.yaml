@@ -1,0 +1,5 @@
+resources:
+  - single-server-stan.yml
+  - ../../docs/examples/dataflow-stan-default-secret.yaml
+patchesStrategicMerge:
+  - stan-statefulset.yaml

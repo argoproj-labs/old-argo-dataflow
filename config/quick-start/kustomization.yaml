@@ -1,0 +1,7 @@
+namespace: argo-dataflow-system
+resources:
+  - ../kafka
+  - ../nats
+  - ../stan
+  - ../default
+  - input-pod.yaml
