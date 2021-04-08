@@ -28,13 +28,13 @@ func defaultPeers() string {
 	if env, ok := os.LookupEnv("KAFKA_PEERS"); ok {
 		return env
 	}
-	return "kafka:9092"
+	return "kafka-0.broker:9092"
 }
 
 func main() {
 	flag.Parse()
 	if *brokerList == "" {
-		panic(fmt.Errorf("you have to provide -brokers as a comma-separated list, or set the KAFKA_PEERS environment variable."))
+		panic(fmt.Errorf("you have to provide -brokers as a comma-separated list, or set the KAFKA_PEERS environment variable"))
 	}
 	if *topic == "" {
 		panic(fmt.Errorf("-topic is required"))
