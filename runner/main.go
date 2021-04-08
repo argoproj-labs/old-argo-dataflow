@@ -19,7 +19,8 @@ import (
 
 var (
 	log                 = klogr.New()
-	debug               = log.V(4)
+	info                = log.V(4)
+	debug               = info.V(6)
 	closers             []func() error
 	restConfig          = ctrl.GetConfigOrDie()
 	dynamicInterface    = dynamic.NewForConfigOrDie(restConfig)
@@ -37,7 +38,7 @@ func main() {
 
 	ctx := setupSignalsHandler()
 
-	log.Info("process", "pid", os.Getpid())
+	info.Info("process", "pid", os.Getpid())
 
 	err := func() error {
 		switch os.Args[1] {
@@ -60,7 +61,7 @@ func main() {
 		}
 	}()
 	if err != nil {
-		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 0600); err != nil {
+		if err := ioutil.WriteFile("/dev/termination-info", []byte(err.Error()), 0600); err != nil {
 			panic(err)
 		}
 		panic(err)
@@ -73,7 +74,7 @@ func setupSignalsHandler() context.Context {
 	signal.Notify(signals, syscall.SIGTERM)
 	go func() {
 		for signal := range signals {
-			log.Info("received signal", "signal", signal)
+			info.Info("received signal", "signal", signal)
 			cancel()
 		}
 	}()

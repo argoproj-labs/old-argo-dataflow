@@ -1,2 +1,2 @@
 def handler(msg):
-    return msg
+    return [bytearray("hi " + str(msg))]

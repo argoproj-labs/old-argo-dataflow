@@ -116,6 +116,17 @@ This example is of the Java 16 handler.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml
 ```
 
+### [Python 3.9 handler](examples/104-python-pipeline.yaml)
+
+This example is of the Python 3.9 handler.
+
+[Learn about handlers](../docs/HANDLERS.md)
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python-pipeline.yaml
+```
+
 ### [Git handler](examples/106-git-pipeline.yaml)
 
 This example of a pipeline using Git.

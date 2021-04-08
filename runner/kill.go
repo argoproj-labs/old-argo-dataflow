@@ -10,7 +10,7 @@ func Kill() error {
 	if err != nil {
 		return err
 	}
-	log.Info("signaling pid 1 with SIGTERM")
+	info.Info("signaling pid 1 with SIGTERM")
 	if err := p.Signal(syscall.SIGTERM); err != nil {
 		return err
 	}

@@ -15,8 +15,7 @@ func (in *Handler) getContainer(req getContainerReq) corev1.Container {
 		Image:           in.Runtime.GetImage(),
 		ImagePullPolicy: req.imagePullPolicy,
 		Command:         []string{"./entrypoint.sh"},
-		Env:             in.Runtime.GetEnv(),
 		WorkingDir:      PathWorkingDir,
-		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
+		VolumeMounts:    in.Runtime.GetVolumeMounts(req.volumeMount),
 	}
 }

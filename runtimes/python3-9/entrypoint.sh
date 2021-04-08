@@ -1,4 +1,7 @@
 #!/bin/sh
 set -eux
 
-python main.py
+export PIP_DOWNLOAD_CACHE=/tmp/pip/cache
+
+pip3 install -r requirements.txt
+python3 main.py

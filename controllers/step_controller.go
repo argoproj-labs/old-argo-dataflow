@@ -18,8 +18,6 @@ package controllers
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -88,11 +86,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
-	hash := sha256.New()
-	if _, err = hash.Write(data); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to hash spec: %w", err)
-	}
-	specHash := base64.StdEncoding.EncodeToString(hash.Sum(nil))
+	specHash := dfv1.Hash(data)
+
 	for replica := 0; replica < targetReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
 		log.Info("creating pod (if not exists)", "podName", podName)

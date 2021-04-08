@@ -3,22 +3,19 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example of Go 1.16 handler.
+      This example is of the Python 3.9 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
-    dataflow.argoproj.io/name: Go 1.16 handler
+    dataflow.argoproj.io/name: Python 3.9 handler
   creationTimestamp: null
-  name: go1-16
+  name: python3-9
 spec:
   steps:
   - handler:
       code: |
-        package main
-
-        func Handler(m []byte) ([][]byte, error) {
-          return [][]byte{[]byte("hi " + string(m))}, nil
-        }
-      runtime: go1-16
+        def handler(msg):
+            return [msg]
+      runtime: python3-9
     name: main
     sinks:
     - kafka:

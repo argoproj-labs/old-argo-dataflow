@@ -16,9 +16,6 @@ spec:
   steps:
   - git:
       branch: main
-      env:
-      - name: GOCACHE
-        value: /go/.cache
       image: golang:1.16
       path: docs/examples/git
       url: https://github.com/argoproj-labs/argo-dataflow

@@ -1,6 +1,8 @@
 package v1alpha1
 
 import (
+	"path/filepath"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -8,7 +10,7 @@ type Runtime string
 
 func (r Runtime) HandlerFile() string {
 	switch r {
-	case "go1.16":
+	case "go1-16":
 		return "handler.go"
 	case "java16":
 		return "Handler.java"
@@ -21,7 +23,7 @@ func (r Runtime) HandlerFile() string {
 
 func (r Runtime) GetImage() string {
 	switch r {
-	case "go1.16":
+	case "go1-16":
 		return "golang:1.16"
 	case "java16":
 		return "openjdk:16"
@@ -32,13 +34,25 @@ func (r Runtime) GetImage() string {
 	}
 }
 
-func (r Runtime) GetEnv() []corev1.EnvVar {
+func (r Runtime) getEmptyDirs() []string {
 	switch r {
-	case "go1.16":
-		return []corev1.EnvVar{
-			{Name: "GOCACHE", Value: "/go/.cache"}, // needed be cause we are runAsNonRoot
-		}
+	case "go1-16":
+		return []string{"/.cache"}
+	case "python3-9":
+		return []string{"/.cache", "/.local"}
 	default:
-		return nil
+		panic(r)
 	}
+}
+
+func (r Runtime) GetVolumeMounts(mount corev1.VolumeMount) []corev1.VolumeMount {
+	mounts := []corev1.VolumeMount{mount}
+	for _, path := range r.getEmptyDirs() {
+		mounts = append(mounts, corev1.VolumeMount{
+			Name:      mount.Name,
+			MountPath: path,
+			SubPath:   filepath.Join(PathEmptyDirs, Hash([]byte(path))),
+		})
+	}
+	return mounts
 }

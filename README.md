@@ -53,6 +53,7 @@ spec:
 * [Configuration](docs/CONFIGURATION.md)
 * [Handlers](docs/HANDLERS.md)
 * [Git usage](docs/GIT.md)
+* [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)
 * [Reading material](docs/READING.md)
 * [Contributing](docs/CONTRIBUTING.md)

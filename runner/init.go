@@ -19,16 +19,16 @@ func Init() error {
 	if err := unmarshallSpec(); err != nil {
 		return err
 	}
-	log.Info("creating in fifo")
+	info.Info("creating in fifo")
 	if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create input FIFO: %w", err)
 	}
-	log.Info("creating out fifo")
+	info.Info("creating out fifo")
 	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0600); IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
 	if g := spec.Git; g != nil {
-		log.Info("cloning", "url", g.URL, "checkout", dfv1.PathCheckout)
+		info.Info("cloning", "url", g.URL, "checkout", dfv1.PathCheckout)
 		if _, err := git.PlainClone(dfv1.PathCheckout, false, &git.CloneOptions{
 			URL:           g.URL,
 			Progress:      os.Stdout,
@@ -42,21 +42,21 @@ func Init() error {
 		if _, err := os.Stat(path); err != nil {
 			return fmt.Errorf("failed to stat %s: %w", path, err)
 		}
-		log.Info("moving checked out code", "path", path, "wd", dfv1.PathWorkingDir)
+		info.Info("moving checked out code", "path", path, "wd", dfv1.PathWorkingDir)
 		if err := os.Rename(path, dfv1.PathWorkingDir); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
 	} else if h := spec.Handler; h != nil {
-		log.Info("setting up handler", "runtime", h.Runtime)
+		info.Info("setting up handler", "runtime", h.Runtime)
 		workingDir := dfv1.PathWorkingDir
 		if err := os.Mkdir(filepath.Dir(workingDir), 0700); IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to create runtimes dir: %w", err)
 		}
-		log.Info("moving runtime", "runtime", h.Runtime)
-		if err := copy.Copy(filepath.Join("runtimes", string(h.Runtime)), workingDir); err != nil {
+		info.Info("moving runtime", "runtime", h.Runtime)
+		if err := copy.Copy(filepath.Join(dfv1.PathRuntimes, string(h.Runtime)), workingDir); err != nil {
 			return fmt.Errorf("failed to move runtimes: %w", err)
 		}
-		log.Info("creating code file", "code", strings.ShortenString(h.Code, 32)+"...")
+		info.Info("creating code file", "code", strings.ShortenString(h.Code, 32)+"...")
 		if err := ioutil.WriteFile(filepath.Join(workingDir, h.Runtime.HandlerFile()), []byte(h.Code), 0600); err != nil {
 			return fmt.Errorf("failed to create code file: %w", err)
 		}

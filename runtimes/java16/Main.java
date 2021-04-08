@@ -17,9 +17,7 @@ public class Main {
         var server = HttpServer.create(new InetSocketAddress("localhost", 8080), 0);
         var client = HttpClient.newHttpClient();
         server.setExecutor(Executors.newSingleThreadExecutor());
-        server.createContext("/ready", httpExchange -> {
-            httpExchange.sendResponseHeaders(200, 0);
-        });
+        server.createContext("/ready", httpExchange -> httpExchange.sendResponseHeaders(200, 0));
         server.createContext("/messages", httpExchange -> {
             // read all input bytes
             var in = new InputStreamReader(httpExchange.getRequestBody(), StandardCharsets.UTF_8);

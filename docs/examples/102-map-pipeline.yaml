@@ -15,7 +15,7 @@ metadata:
   name: map
 spec:
   steps:
-  - map: bytes('hello ' + string(msg))
+  - map: bytes('hi ' + string(msg))
     name: main
     sinks:
     - kafka:
