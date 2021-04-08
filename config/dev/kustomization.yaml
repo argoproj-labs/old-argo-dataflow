@@ -6,6 +6,6 @@ patchesStrategicMerge:
   - argo-server-deploy.yaml
 
 images:
-  - name: alexec/dataflow-runner
+  - name: alexcollinsintuit/dataflow-runner
     newName: argoproj/dataflow-runner
 

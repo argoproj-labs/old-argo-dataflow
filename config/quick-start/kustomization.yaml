@@ -5,11 +5,12 @@ resources:
   - ../stan
   - ../default
   - ../argo-server
+  - ../../docs/examples/101-http-pipeline.yaml
   - input-pod.yaml
 images:
   - name: argoproj/dataflow-runner
-    newName: alexec/dataflow-runner
+    newName: alexcollinsintuit/dataflow-runner
   - name: argoproj/dataflow-controller
-    newName: alexec/dataflow-controller
+    newName: alexcollinsintuit/dataflow-controller
   - name: argoproj/argocli
-    newName: alexec/argocli
+    newTag: dev-dataflow

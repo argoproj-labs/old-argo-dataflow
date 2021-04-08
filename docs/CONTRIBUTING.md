@@ -1,14 +1,15 @@
 # Contributing
 
-Start it:
+Start:
 
 ```
 make start
 ```
 
-Create an example pipeline:
+To access the user interface, you must use Argo Workflows. 
+
+Clean up:
 
 ```
-make examples/http-pipeline.yaml
+make undeploy
 ```
-

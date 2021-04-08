@@ -21,8 +21,8 @@ test: build
 
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: generate install $(GOBIN)/kafka-console-consumer $(GOBIN)/kafka-console-producer
-	KAFKA_PEERS=kafka:9092 goreman -set-ports=false -logtime=false start
+start: generate deploy
+	goreman -set-ports=false -logtime=false start
 logs: $(GOBIN)/stern
 	stern --tail=3 .
 
@@ -35,6 +35,9 @@ uninstall:
 	kustomize build config/crd | kubectl delete --ignore-not-found -f -
 
 images: runner controller
+
+config/%.yaml: /dev/null
+	kustomize build --load_restrictor=none config/$* -o $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy:  config/kafka/dev-small.yaml config/nats/single-server-nats.yml config/stan/single-server-stan.yml

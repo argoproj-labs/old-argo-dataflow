@@ -3,11 +3,12 @@ kind: Deployment
 metadata:
   name: argo-server
 spec:
+  replicas: 1
   template:
     spec:
       containers:
         - name: argo-server
-          args: [ server , --secure=false, --namespaced=true ]
+          args: [ server , --secure=false, --namespaced=true, --auth-mode=server ]
           readinessProbe:
             httpGet:
               port: 2746
