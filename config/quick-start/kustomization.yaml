@@ -4,4 +4,5 @@ resources:
   - ../nats
   - ../stan
   - ../default
+  - ../argo-server
   - input-pod.yaml
