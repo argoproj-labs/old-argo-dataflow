@@ -54,7 +54,7 @@ undeploy:
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
-generate: controller-gen proto
+generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 	go run ./docs/examples > docs/EXAMPLES.md
 
@@ -106,9 +106,6 @@ $(GOBIN)/kafka-console-consumer:
 	go install github.com/Shopify/sarama/tools/kafka-console-consumer
 $(GOBIN)/kafka-console-producer:
 	go install github.com/Shopify/sarama/tools/kafka-console-producer
-
-flood:
-	go run ./hack/kafka/ -topic input-topic  -sleep 1ms pump-topic
 
 version:=2.3.2
 name:=darwin
