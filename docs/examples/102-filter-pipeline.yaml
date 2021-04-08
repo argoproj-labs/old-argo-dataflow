@@ -15,7 +15,7 @@ metadata:
   name: filter
 spec:
   steps:
-  - filter: string(msg) contains "val"
+  - filter: string(msg) contains "capybara"
     name: main
     sinks:
     - kafka:
