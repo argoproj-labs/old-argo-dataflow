@@ -380,6 +380,10 @@ spec:
                         code:
                           type: string
                         runtime:
+                          enum:
+                          - go1-16
+                          - java16
+                          - python3-9
                           type: string
                       required:
                       - code

@@ -6,6 +6,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// +kubebuilder:validation:Enum=go1-16;java16;python3-9
 type Runtime string
 
 func (r Runtime) HandlerFile() string {
@@ -41,7 +42,7 @@ func (r Runtime) getEmptyDirs() []string {
 	case "python3-9":
 		return []string{"/.cache", "/.local"}
 	default:
-		panic(r)
+		return nil
 	}
 }
 

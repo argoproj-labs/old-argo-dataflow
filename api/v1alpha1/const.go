@@ -3,6 +3,7 @@ package v1alpha1
 const (
 	// conditions
 	ConditionCompleted    = "Completed"    // the pipeline completed
+	ConditionErrors       = "Errors"       // added if any step encounters an error
 	ConditionRunning      = "Running"      // added if any step is currently running
 	ConditionSunkMessages = "SunkMessages" // added if any messages have been written to a sink for any step
 	ConditionTerminating  = "Terminating"  // added if any terminator step terminated
@@ -16,10 +17,11 @@ const (
 	EnvReplica      = "ARGO_DATAFLOW_REPLICA"
 	EnvStepSpec     = "ARGO_DATAFLOW_STEP_SPEC"
 	// label/annotation keys
-	KeyPipelineName = "dataflow.argoproj.io/pipeline-name"
-	KeyReplica      = "dataflow.argoproj.io/replica"
-	KeyStepName     = "dataflow.argoproj.io/step-name" // the step name without pipeline name prefix
-	KeySpecHash     = "dataflow.argoproj.io/spec-hash" // hash of the spec
+	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
+	KeyPipelineName     = "dataflow.argoproj.io/pipeline-name"
+	KeyReplica          = "dataflow.argoproj.io/replica"
+	KeyStepName         = "dataflow.argoproj.io/step-name" // the step name without pipeline name prefix
+	KeySpecHash         = "dataflow.argoproj.io/spec-hash" // hash of the spec
 	// paths
 	PathCheckout   = "/var/run/argo-dataflow/checkout"
 	PathEmptyDirs  = "empty-dirs"

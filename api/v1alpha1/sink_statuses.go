@@ -30,3 +30,12 @@ func (in SinkStatuses) AnySunk() bool {
 	}
 	return false
 }
+
+func (in SinkStatuses) AnyErrors() bool {
+	for _, s := range in {
+		if s.AnyErrors() {
+			return true
+		}
+	}
+	return false
+}

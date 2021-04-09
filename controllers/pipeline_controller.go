@@ -108,8 +108,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	newStatus.Phase = dfv1.PipelineUnknown
 	newStatus.Conditions = []metav1.Condition{}
-	terminate := false
-	sunkMessages := false
+	terminate, sunkMessages, errors := false, false, false
 	for _, step := range steps.Items {
 		stepName := step.Spec.Name
 
@@ -142,6 +141,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		terminate = terminate || step.Status.Phase.Completed() && step.Spec.Terminator
 		sunkMessages = sunkMessages || step.Status.SinkStatues.AnySunk()
+		errors = errors || step.Status.AnyErrors()
 	}
 
 	var ss []string
@@ -170,9 +170,11 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if newStatus.Phase.Completed() {
 		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionCompleted, Status: metav1.ConditionTrue, Reason: dfv1.ConditionCompleted})
 	}
-
 	if sunkMessages {
 		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionSunkMessages, Status: metav1.ConditionTrue, Reason: dfv1.ConditionSunkMessages})
+	}
+	if errors {
+		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionErrors, Status: metav1.ConditionTrue, Reason: dfv1.ConditionErrors})
 	}
 
 	if terminate {

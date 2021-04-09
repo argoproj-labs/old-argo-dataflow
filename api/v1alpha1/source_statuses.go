@@ -44,3 +44,12 @@ func (in SourceStatuses) GetPending() int {
 	}
 	return v
 }
+
+func (in SourceStatuses) AnyErrors() bool {
+	for _, s := range in {
+		if s.AnyErrors() {
+			return true
+		}
+	}
+	return false
+}

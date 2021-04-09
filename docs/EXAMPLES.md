@@ -218,6 +218,15 @@ It also shows an example of a pipelines terminates based on a single step's stat
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-word-count-pipeline.yaml
 ```
 
+### [Erroring](examples/301-erroring-pipeline.yaml)
+
+This example creates errors randomly
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml
+```
+
 ### [Default Kafka config](examples/dataflow-kafka-default-secret.yaml)
 
 This is an example of providing a namespace named Kafka configuration.

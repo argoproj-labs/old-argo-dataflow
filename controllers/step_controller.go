@@ -106,10 +106,17 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			ctx,
 			&corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:        podName,
-					Namespace:   step.Namespace,
-					Labels:      map[string]string{dfv1.KeyStepName: step.Spec.Name, dfv1.KeyPipelineName: pipelineName},
-					Annotations: map[string]string{dfv1.KeyReplica: strconv.Itoa(replica), dfv1.KeySpecHash: specHash},
+					Name:      podName,
+					Namespace: step.Namespace,
+					Labels: map[string]string{
+						dfv1.KeyStepName:     step.Spec.Name,
+						dfv1.KeyPipelineName: pipelineName,
+					},
+					Annotations: map[string]string{
+						dfv1.KeyReplica:          strconv.Itoa(replica),
+						dfv1.KeySpecHash:         specHash,
+						dfv1.KeyDefaultContainer: dfv1.CtrMain,
+					},
 					OwnerReferences: []metav1.OwnerReference{
 						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 					},

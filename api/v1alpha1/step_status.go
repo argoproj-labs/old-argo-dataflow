@@ -35,3 +35,7 @@ func (m *StepStatus) GetLastScaleTime() time.Time {
 	}
 	return m.LastScaleTime.Time
 }
+
+func (in *StepStatus) AnyErrors() bool {
+	return in.SinkStatues.AnyErrors() || in.SourceStatues.AnyErrors()
+}

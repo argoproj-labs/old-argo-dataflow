@@ -1,0 +1,22 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example creates errors randomly
+    dataflow.argoproj.io/name: Erroring
+    dataflow.argoproj.io/wait-for: condition=Errors
+  creationTimestamp: null
+  name: erroring
+spec:
+  steps:
+  - handler:
+      code: "package main\n\nimport (\n\t\"fmt\"\n\t\"math/rand\"\n)\n\nfunc Handler(m []byte) ([][]byte, error) {\n\tif rand.Int()%2 == 0 {\n\t\treturn nil, fmt.Errorf(\"random error\")\n\t}\n\treturn [][]byte{[]byte(\"hi \" + string(m))}, nil\n}\n"
+      runtime: go1-16
+    name: main
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic
