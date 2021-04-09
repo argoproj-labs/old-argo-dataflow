@@ -337,7 +337,7 @@ spec:
                       description: RestartPolicy describes how the container should be restarted. Only one of the following restart policies may be specified. If none of the following policies is specified, the default one is RestartPolicyAlways.
                       type: string
                     serviceAccountName:
-                      default: pipeline-runner
+                      default: pipeline
                       type: string
                     sinks:
                       items:
@@ -1732,7 +1732,7 @@ spec:
                 description: RestartPolicy describes how the container should be restarted. Only one of the following restart policies may be specified. If none of the following policies is specified, the default one is RestartPolicyAlways.
                 type: string
               serviceAccountName:
-                default: pipeline-runner
+                default: pipeline
                 type: string
               sinks:
                 items:
@@ -2827,13 +2827,13 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: controller-manager
+  name: manager
   namespace: argo-dataflow-system
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: pipeline-runner
+  name: pipeline
   namespace: argo-dataflow-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -2899,6 +2899,14 @@ metadata:
   namespace: argo-dataflow-system
 rules:
 - apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - get
+  - update
+- apiGroups:
   - ""
   resources:
   - configmaps
@@ -2934,6 +2942,15 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
+  - pipelines
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
   - steps
   verbs:
   - create
@@ -2941,21 +2958,50 @@ rules:
   - get
   - list
   - patch
-  - update
   - watch
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
+  - pipeline/status
+  verbs:
+  - update
 - apiGroups:
   - dataflow.argoproj.io
   resources:
   - steps/status
   verbs:
-  - get
-  - patch
   - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/exec
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: pipeline-runner
+  labels:
+    origin: github.com_Yolean_kubernetes-kafka
+  name: node-reader
+  namespace: argo-dataflow-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pipeline
   namespace: argo-dataflow-system
 rules:
 - apiGroups:
@@ -2989,20 +3035,6 @@ metadata:
 rules:
 - nonResourceURLs:
   - /metrics
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    origin: github.com_Yolean_kubernetes-kafka
-  name: node-reader
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - nodes
   verbs:
   - get
 ---
@@ -3043,6 +3075,22 @@ kind: RoleBinding
 metadata:
   labels:
     origin: github.com_Yolean_kubernetes-kafka
+  name: kafka-node-reader
+  namespace: argo-dataflow-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: node-reader
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: argo-dataflow-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    origin: github.com_Yolean_kubernetes-kafka
   name: kafka-pod-labler
   namespace: argo-dataflow-system
 roleRef:
@@ -3066,7 +3114,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: manager
-  namespace: system
+  namespace: argo-dataflow-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -3080,35 +3128,20 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: manager
-  namespace: system
+  namespace: argo-dataflow-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: pipeline-runner
+  name: pipeline
   namespace: argo-dataflow-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: pipeline-runner
+  name: pipeline
 subjects:
 - kind: ServiceAccount
-  name: pipeline-runner
-  namespace: argo-dataflow-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    origin: github.com_Yolean_kubernetes-kafka
-  name: kafka-node-reader
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: node-reader
-subjects:
-- kind: ServiceAccount
-  name: default
+  name: pipeline
   namespace: argo-dataflow-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -3122,7 +3155,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: manager
-  namespace: system
+  namespace: argo-dataflow-system
 ---
 apiVersion: v1
 data:

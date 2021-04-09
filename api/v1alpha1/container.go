@@ -8,7 +8,7 @@ type Container struct {
 	In           *Interface           `json:"in,omitempty" protobuf:"bytes,3,opt,name=in"`
 	Command      []string             `json:"command,omitempty" protobuf:"bytes,6,rep,name=command"`
 	Args         []string             `json:"args,omitempty" protobuf:"bytes,7,rep,name=args"`
-	Env          []corev1.EnvVar      `json:"env,omitempty"`
+	Env          []corev1.EnvVar      `json:"env,omitempty" protobuf:"bytes,8,rep,name=env"`
 }
 
 func (in *Container) getContainer(req getContainerReq) corev1.Container {

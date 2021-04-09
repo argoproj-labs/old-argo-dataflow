@@ -25,11 +25,12 @@ FROM builder AS runner-builder
 COPY api/ api/
 COPY runner/ runner/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner ./runner
+RUN touch /tmp/empty
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
 COPY runtimes runtimes
 COPY --from=runner-builder /workspace/bin/runner .
 USER 9653:9653
-RUN touch /dev/termination-info
+COPY --from=runner-builder /tmp/empty /dev/termination-info
 ENTRYPOINT ["/runner"]

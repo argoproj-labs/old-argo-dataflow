@@ -1,4 +1,0 @@
-resources:
-  - pipeline-runner-role.yaml
-  - pipeline-runner-sa.yaml
-  - pipeline-runner-rolebinding.yaml

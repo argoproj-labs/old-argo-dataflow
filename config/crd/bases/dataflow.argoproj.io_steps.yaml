@@ -410,7 +410,7 @@ spec:
                   RestartPolicyAlways.
                 type: string
               serviceAccountName:
-                default: pipeline-runner
+                default: pipeline
                 type: string
               sinks:
                 items:

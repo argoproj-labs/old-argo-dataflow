@@ -24,7 +24,7 @@ type StepSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	Volumes []corev1.Volume `json:"volumes,omitempty" protobuf:"bytes,13,rep,name=volumes"`
-	// +kubebuilder:default=pipeline-runner
+	// +kubebuilder:default=pipeline
 	ServiceAccountName string `json:"serviceAccountName,omitempty" protobuf:"bytes,14,opt,name=serviceAccountName"`
 }
 

@@ -8,14 +8,17 @@ import (
 )
 
 var (
-	runnerImage     = os.Getenv("RUNNER_IMAGE")
-	imagePullPolicy = corev1.PullIfNotPresent // TODO
-	log             = klogr.New()
+	runnerImage = os.Getenv("RUNNER_IMAGE")
+	pullPolicy  = corev1.PullPolicy(os.Getenv("PULL_POLICY"))
+	log         = klogr.New()
 )
 
 func init() {
 	if runnerImage == "" {
-		runnerImage = "argoproj/dataflow-runner:latest"
+		runnerImage = "quay.io/argoproj/dataflow-runner:latest"
 	}
-	log.WithValues("runnerImage", runnerImage).Info("config")
+	if pullPolicy == "" {
+		pullPolicy = corev1.PullIfNotPresent
+	}
+	log.Info("config", "runnerImage", runnerImage, "pullPolicy", pullPolicy)
 }

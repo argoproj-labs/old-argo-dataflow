@@ -77,7 +77,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	container := step.Spec.GetContainer(
 		runnerImage,
-		imagePullPolicy,
+		pullPolicy,
 		corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
 	)
 
@@ -133,7 +133,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						{
 							Name:            dfv1.CtrInit,
 							Image:           runnerImage,
-							ImagePullPolicy: imagePullPolicy,
+							ImagePullPolicy: pullPolicy,
 							Args:            []string{"init"},
 							Env:             envVars,
 							VolumeMounts:    volumeMounts,
@@ -143,7 +143,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						{
 							Name:            dfv1.CtrSidecar,
 							Image:           runnerImage,
-							ImagePullPolicy: imagePullPolicy,
+							ImagePullPolicy: pullPolicy,
 							Args:            []string{"sidecar"},
 							Env:             envVars,
 							VolumeMounts:    volumeMounts,

@@ -11,7 +11,7 @@ type Git struct {
 	Path string `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
 	// +kubebuilder:default=main
 	Branch string          `json:"branch,omitempty" protobuf:"bytes,4,opt,name=branch"`
-	Env    []corev1.EnvVar `json:"env,omitempty"`
+	Env    []corev1.EnvVar `json:"env,omitempty" protobuf:"bytes,5,rep,name=env"`
 }
 
 func (in *Git) getContainer(req getContainerReq) corev1.Container {

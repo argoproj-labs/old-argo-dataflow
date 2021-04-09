@@ -28,6 +28,7 @@ spec:
             - /manager
           args:
             - --enable-leader-election
+            - --namespace=argo-dataflow-system
           image: quay.io/argoproj/dataflow-controller:latest
           name: manager
           env:
