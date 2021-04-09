@@ -40,7 +40,7 @@ spec:
   - container:
       args:
       - cat
-      image: argoproj/dataflow-runner:latest
+      image: quay.io/argoproj/dataflow-runner:latest
       in:
         http: {}
     name: main

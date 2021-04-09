@@ -5,6 +5,14 @@ metadata:
   name: leader-election-role
 rules:
 - apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+  verbs:
+    - create
+    - get
+    - update
+- apiGroups:
   - ""
   resources:
   - configmaps

@@ -31,4 +31,5 @@ WORKDIR /
 COPY runtimes runtimes
 COPY --from=runner-builder /workspace/bin/runner .
 USER 9653:9653
+RUN touch /dev/termination-info
 ENTRYPOINT ["/runner"]

@@ -1,28 +1,48 @@
-
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: manager-role
 rules:
-- apiGroups:
-  - dataflow.argoproj.io
-  resources:
-  - steps
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - dataflow.argoproj.io
-  resources:
-  - steps/status
-  verbs:
-  - get
-  - patch
-  - update
+  - apiGroups:
+      - dataflow.argoproj.io
+    resources:
+      - pipelines
+    verbs:
+      - get
+      - list
+      - patch
+      - watch
+  - apiGroups:
+      - dataflow.argoproj.io
+    resources:
+      - steps
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - watch
+  - apiGroups:
+      - dataflow.argoproj.io
+    resources:
+      - pipeline/status
+    verbs:
+      - update
+  - apiGroups:
+      - dataflow.argoproj.io
+    resources:
+      - steps/status
+    verbs:
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/exec
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - delete

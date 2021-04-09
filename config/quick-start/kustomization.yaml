@@ -7,6 +7,3 @@ resources:
   - ../argo-server
   - ../../docs/examples/101-http-pipeline.yaml
   - input-pod.yaml
-images:
-  - name: argoproj/argocli
-    newTag: dev-dataflow

@@ -8,7 +8,8 @@ spec:
     spec:
       containers:
         - name: argo-server
-          args: [ server , --secure=false, --namespaced=true, --auth-mode=server ]
+          image: quay.io/argoproj/argocli:dev-dataflow
+          args: [ server, --secure=false, --namespaced=true, --auth-mode=server ]
           readinessProbe:
             httpGet:
               port: 2746
