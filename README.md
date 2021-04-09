@@ -1,4 +1,4 @@
-# ![Logo](docs/assets/logo.png) Argo Dataflow
+# Argo Dataflow
 
 [![Go](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml)
 ![Alpha](docs/assets/alpha.svg)
@@ -6,7 +6,7 @@
 ## Summary
 
 Argo Dataflow is intended as a cloud-native and language-agnostic platform for executing large parallel data-processing
-pipelines composed of many tasks is typically small and homogenic.
+pipelines composed of many steps which are often small and homogenic.
 
 ## Use Cases
 
