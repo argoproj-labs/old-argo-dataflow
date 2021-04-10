@@ -9,6 +9,7 @@ spec:
       containers:
         - name: argo-server
           image: quay.io/argoproj/argocli:dev-dataflow
+          imagePullPolicy: Always
           args: [ server, --secure=false, --namespaced=true, --auth-mode=server ]
           readinessProbe:
             httpGet:

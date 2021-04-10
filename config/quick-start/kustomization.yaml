@@ -4,6 +4,5 @@ resources:
   - ../nats
   - ../stan
   - ../default
-  - ../argo-server
   - ../../docs/examples/101-http-pipeline.yaml
   - input-pod.yaml
