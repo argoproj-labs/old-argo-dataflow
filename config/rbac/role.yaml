@@ -34,7 +34,7 @@ rules:
     resources:
       - steps/status
     verbs:
-      - update
+      - patch
   - apiGroups:
       - ""
     resources:
