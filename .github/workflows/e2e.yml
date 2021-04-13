@@ -16,4 +16,5 @@ jobs:
         uses: debianmaster/actions-k3s@v1.0.1
         with:
           version: v1.18.2-k3s1
+      - run: kubectl apply -k config/crd
       - run: make deploy
