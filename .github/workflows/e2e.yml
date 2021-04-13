@@ -16,4 +16,6 @@ jobs:
         uses: debianmaster/actions-k3s@v1.0.1
         with:
           version: v1.18.2-k3s1
+      - run: kubectl create ns argo-dataflow-system
+      - run: kubectl -n argo-dataflow-system create sa default
       - run: kubectl apply -f config/quick-start.yaml
