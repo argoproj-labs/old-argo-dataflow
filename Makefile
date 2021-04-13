@@ -42,13 +42,13 @@ config/%.yaml: /dev/null
 	kustomize build --load_restrictor=none config/$* -o $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: config/kafka/dev-small.yaml config/nats/single-server-nats.yml config/stan/single-server-stan.yml
-	kustomize build --load_restrictor=none config/$(CONFIG) | kubectl apply --force -f -
+deploy:
+	kubectl apply --force -f config/$(CONFIG).yaml
 	kubectl config set-context --current --namespace=argo-dataflow-system
 	kubectl get all
 
 undeploy:
-	kustomize build --load_restrictor=none config/quick-start | kubectl delete --ignore-not-found -f -
+	kubectl delete --ignore-not-found -f config/$(CONFIG).yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
