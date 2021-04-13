@@ -16,7 +16,7 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 		sourceStatues.Set(h.name, replica, short(m.Value))
 		if err := h.sourceToMain(m.Value); err != nil {
 			sourceStatues.IncErrors(h.name, replica)
-			log.Error(err, "⚠ kafka →")
+			logger.Error(err, "⚠ kafka →")
 		} else {
 			info.Info("✔ kafka →")
 			h.offset = m.Offset

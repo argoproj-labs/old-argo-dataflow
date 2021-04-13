@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	log                 = klogr.New()
-	info                = log.V(4)
-	debug               = info.V(6)
+	logger              = klogr.New()
+	info                = logger.V(4)
+	debug               = logger.V(6)
 	closers             []func() error
 	restConfig          = ctrl.GetConfigOrDie()
 	dynamicInterface    = dynamic.NewForConfigOrDie(restConfig)
@@ -31,7 +31,7 @@ func main() {
 	defer func() {
 		for i := len(closers) - 1; i >= 0; i-- {
 			if err := closers[i](); err != nil {
-				log.Error(err, "failed to close")
+				logger.Error(err, "failed to close")
 			}
 		}
 	}()
@@ -62,7 +62,7 @@ func main() {
 	}()
 	if err != nil {
 		if err := ioutil.WriteFile("/dev/termination-info", []byte(err.Error()), 0600); err != nil {
-			panic(err)
+			println(fmt.Sprintf("failed to write termination-info: %v",err))
 		}
 		panic(err)
 	}
@@ -83,5 +83,5 @@ func setupSignalsHandler() context.Context {
 
 // format or redact message
 func short(m []byte) string {
-	return strings.ShortenString(string(m), 16)
+	return strings.ShortenString(string(m), 16)+"..."
 }

@@ -6,3 +6,10 @@ func StringOr(a, b string) string {
 	}
 	return b
 }
+
+func StringsOr(a, b []string) []string {
+	if len(a) > 0 {
+		return a
+	}
+	return b
+}

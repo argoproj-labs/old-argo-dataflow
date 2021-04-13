@@ -344,12 +344,21 @@ spec:
                         properties:
                           kafka:
                             properties:
+                              brokers:
+                                items:
+                                  type: string
+                                type: array
                               name:
                                 default: default
                                 type: string
+                              net:
+                                properties:
+                                  tls:
+                                    type: object
+                                type: object
                               topic:
                                 type: string
-                              url:
+                              version:
                                 type: string
                             required:
                             - topic
@@ -385,12 +394,21 @@ spec:
                         properties:
                           kafka:
                             properties:
+                              brokers:
+                                items:
+                                  type: string
+                                type: array
                               name:
                                 default: default
                                 type: string
+                              net:
+                                properties:
+                                  tls:
+                                    type: object
+                                type: object
                               topic:
                                 type: string
-                              url:
+                              version:
                                 type: string
                             required:
                             - topic
@@ -1739,12 +1757,21 @@ spec:
                   properties:
                     kafka:
                       properties:
+                        brokers:
+                          items:
+                            type: string
+                          type: array
                         name:
                           default: default
                           type: string
+                        net:
+                          properties:
+                            tls:
+                              type: object
+                          type: object
                         topic:
                           type: string
-                        url:
+                        version:
                           type: string
                       required:
                       - topic
@@ -1780,12 +1807,21 @@ spec:
                   properties:
                     kafka:
                       properties:
+                        brokers:
+                          items:
+                            type: string
+                          type: array
                         name:
                           default: default
                           type: string
+                        net:
+                          properties:
+                            tls:
+                              type: object
+                          type: object
                         topic:
                           type: string
-                        url:
+                        version:
                           type: string
                       required:
                       - topic
@@ -3368,7 +3404,7 @@ metadata:
   name: dataflow-kafka-default
   namespace: argo-dataflow-system
 stringData:
-  url: kafka-0.broker:9092
+  brokers: kafka-0.broker:9092
 ---
 apiVersion: v1
 kind: Secret

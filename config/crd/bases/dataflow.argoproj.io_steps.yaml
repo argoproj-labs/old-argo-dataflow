@@ -417,12 +417,21 @@ spec:
                   properties:
                     kafka:
                       properties:
+                        brokers:
+                          items:
+                            type: string
+                          type: array
                         name:
                           default: default
                           type: string
+                        net:
+                          properties:
+                            tls:
+                              type: object
+                          type: object
                         topic:
                           type: string
-                        url:
+                        version:
                           type: string
                       required:
                       - topic
@@ -458,12 +467,21 @@ spec:
                   properties:
                     kafka:
                       properties:
+                        brokers:
+                          items:
+                            type: string
+                          type: array
                         name:
                           default: default
                           type: string
+                        net:
+                          properties:
+                            tls:
+                              type: object
+                          type: object
                         topic:
                           type: string
-                        url:
+                        version:
                           type: string
                       required:
                       - topic

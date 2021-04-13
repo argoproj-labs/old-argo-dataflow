@@ -11,6 +11,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -25,7 +26,6 @@ import (
 
 var (
 	updateInterval = 15 * time.Second
-	config         = sarama.NewConfig()
 	replica        = 0
 	pipelineName   = os.Getenv(dfv1.EnvPipelineName)
 	namespace      = os.Getenv(dfv1.EnvNamespace)
@@ -35,6 +35,8 @@ var (
 )
 
 func Sidecar(ctx context.Context) error {
+
+	sarama.Logger = &stdlog{Logger: logger}
 
 	if err := unmarshallSpec(); err != nil {
 		return err
@@ -50,8 +52,6 @@ func Sidecar(ctx context.Context) error {
 		replica = v
 	}
 	info.Info("config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica)
-
-	config.ClientID = dfv1.CtrSidecar
 
 	toSink, err := connectSink()
 	if err != nil {
@@ -97,7 +97,7 @@ func Sidecar(ctx context.Context) error {
 						metav1.PatchOptions{},
 						"status",
 					); err != nil {
-					log.Error(err, "failed to patch step status")
+					logger.Error(err, "failed to patch step status")
 				}
 				// once we're reported pending, it possible we won't get anymore messages for a while, so the value
 				// we have will be wrong
@@ -144,7 +144,7 @@ func enrichSpec(ctx context.Context) error {
 					return err
 				}
 			} else {
-				k.URL = dfv1.StringOr(k.URL, string(secret.Data["url"]))
+				k.Brokers = dfv1.StringsOr(k.Brokers, strings.Split(string(secret.Data["brokers"]), ","))
 			}
 			source.Kafka = k
 		}
@@ -177,7 +177,11 @@ func enrichSpec(ctx context.Context) error {
 					return err
 				}
 			} else {
-				k.URL = string(secret.Data["url"])
+				k.Brokers = dfv1.StringsOr(k.Brokers, strings.Split(string(secret.Data["brokers"]), ","))
+				k.Version = dfv1.StringOr(k.Version, string(secret.Data["version"]))
+				if _, ok := secret.Data["net.tls"]; ok {
+					k.NET = &dfv1.KafkaNET{TLS: &dfv1.TLS{}}
+				}
 			}
 			sink.Kafka = k
 		}
@@ -208,7 +212,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				info.Info("◷ stan →", "m", short(m.Data))
 				sourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
-					log.Error(err, "⚠ stan →")
+					logger.Error(err, "⚠ stan →")
 					sourceStatues.IncErrors(source.Name, replica)
 				} else {
 					debug.Info("✔ stan → ", "subject", s.Subject)
@@ -221,7 +225,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 					for {
 						if pending, _, err := sub.Pending(); err != nil {
-							log.Error(err, "failed to get pending", "subject", s.Subject)
+							logger.Error(err, "failed to get pending", "subject", s.Subject)
 						} else {
 							debug.Info("setting pending", "subject", s.Subject, "pending", pending)
 							sourceStatues.SetPending(source.Name, uint64(pending))
@@ -231,13 +235,17 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				}()
 			}
 		} else if k := source.Kafka; k != nil {
-			info.Info("connecting kafka source", "type", "kafka", "url", k.URL, "topic", k.Topic)
-			client, err := sarama.NewClient([]string{k.URL}, config) // I am not giving any configuration
+			info.Info("connecting kafka source", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic)
+			config, err := newKafkaConfig(k)
 			if err != nil {
-				return fmt.Errorf("failed to create kafka client: %w", err)
+				return err
+			}
+			client, err := sarama.NewClient(k.Brokers, config) // I am not giving any configuration
+			if err != nil {
+				return err
 			}
 			closers = append(closers, client.Close)
-			group, err := sarama.NewConsumerGroup([]string{k.URL}, pipelineName+"-"+spec.Name, config)
+			group, err := sarama.NewConsumerGroup(k.Brokers, pipelineName+"-"+spec.Name, config)
 			if err != nil {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
@@ -246,7 +254,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			go func() {
 				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 				if err := group.Consume(ctx, []string{k.Topic}, handler); err != nil {
-					log.Error(err, "failed to create kafka consumer")
+					logger.Error(err, "failed to create kafka consumer")
 				}
 			}()
 			go func() {
@@ -254,7 +262,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				for {
 					newestOffset, err := client.GetOffset(k.Topic, 0, sarama.OffsetNewest)
 					if err != nil {
-						log.Error(err, "failed to get offset", "topic", k.Topic)
+						logger.Error(err, "failed to get offset", "topic", k.Topic)
 					} else if handler.offset > 0 { // zero implies we've not processed a message yet
 						pending := uint64(newestOffset - handler.offset)
 						info.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
@@ -268,6 +276,24 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		}
 	}
 	return nil
+}
+
+func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
+	x := sarama.NewConfig()
+	x.ClientID = dfv1.CtrSidecar
+	if k.Version != "" {
+		v, err := sarama.ParseKafkaVersion(k.Version)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse kafka version %q: %w", k.Version, err)
+		}
+		x.Version = v
+	}
+	if k.NET != nil {
+		if k.NET.TLS != nil {
+			x.Net.TLS.Enable = true
+		}
+	}
+	return x, nil
 }
 
 func connectTo() (func([]byte) error, error) {
@@ -347,7 +373,7 @@ func connectOut(toSink func([]byte) error) {
 			return nil
 		}()
 		if err != nil {
-			log.Error(err, "failed to received message from FIFO")
+			logger.Error(err, "failed to received message from FIFO")
 			os.Exit(1)
 		}
 	}()
@@ -355,13 +381,13 @@ func connectOut(toSink func([]byte) error) {
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Error(err, "failed to read message body from main via HTTP")
+			logger.Error(err, "failed to read message body from main via HTTP")
 			w.WriteHeader(500)
 			return
 		}
 		debug.Info("◷ http → sink")
 		if err := toSink(data); err != nil {
-			log.Error(err, "failed to send message from main to sink")
+			logger.Error(err, "failed to send message from main to sink")
 			w.WriteHeader(500)
 			return
 		}
@@ -373,7 +399,7 @@ func connectOut(toSink func([]byte) error) {
 		info.Info("starting HTTP server")
 		err := http.ListenAndServe(":3569", nil)
 		if err != nil {
-			log.Error(err, "failed to listen-and-server")
+			logger.Error(err, "failed to listen-and-server")
 			os.Exit(1)
 		}
 	}()
@@ -396,9 +422,13 @@ func connectSink() (func([]byte) error, error) {
 				return sc.Publish(s.Subject, m)
 			})
 		} else if k := sink.Kafka; k != nil {
-			info.Info("connecting sink", "type", "kafka", "url", k.URL, "topic", k.Topic)
+			info.Info("connecting sink", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic, "version", k.Version)
+			config, err := newKafkaConfig(k)
+			if err != nil {
+				return nil, err
+			}
 			config.Producer.Return.Successes = true
-			producer, err := sarama.NewSyncProducer([]string{k.URL}, config)
+			producer, err := sarama.NewSyncProducer(k.Brokers, config)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 			}

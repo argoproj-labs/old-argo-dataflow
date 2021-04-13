@@ -82,9 +82,17 @@ message Kafka {
   // +kubebuilder:default=default
   optional string name = 1;
 
-  optional string url = 2;
+  repeated string brokers = 2;
 
   optional string topic = 3;
+
+  optional string version = 4;
+
+  optional KafkaNET net = 5;
+}
+
+message KafkaNET {
+  optional TLS tls = 1;
 }
 
 message Message {
@@ -275,5 +283,8 @@ message Storage {
 
   // volume name
   optional string subPath = 2;
+}
+
+message TLS {
 }
 

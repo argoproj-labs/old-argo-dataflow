@@ -33,7 +33,6 @@ WORKDIR /
 COPY runtimes runtimes
 COPY --from=runner-builder /workspace/bin/runner .
 USER 9653:9653
-COPY --from=runner-builder /tmp/empty /dev/termination-info
 ENTRYPOINT ["/runner"]
 
 FROM golang:1.16 AS go1-16

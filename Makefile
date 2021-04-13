@@ -19,6 +19,9 @@ build: generate manifests
 test: build
 	go test ./... -coverprofile cover.out
 
+pre-commit: codegen test lint
+
+codegen: generate manifests proto config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: generate deploy
@@ -41,8 +44,7 @@ images: controller runner runtimes
 
 config/dev.yaml:
 config/quick-start.yaml:
-.PHONY: config/%.yaml
-config/%.yaml:
+config/%.yaml: /dev/null
 	kustomize build --load_restrictor=none config/$* -o $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -59,6 +61,9 @@ manifests: controller-gen
 
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+.PHONY: docs/EXAMPLES.md
+docs/EXAMPLES.md:
 	go run ./docs/examples > docs/EXAMPLES.md
 
 # not dependant on api/v1alpha1/generated.proto because it often does not change when this target runs, so results in remakes when they are not needed

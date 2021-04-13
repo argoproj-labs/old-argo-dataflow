@@ -23,11 +23,11 @@ const (
 	KeyStepName         = "dataflow.argoproj.io/step-name" // the step name without pipeline name prefix
 	KeySpecHash         = "dataflow.argoproj.io/spec-hash" // hash of the spec
 	// paths
-	PathCheckout   = "/var/run/argo-dataflow/checkout"
-	PathFIFOIn     = "/var/run/argo-dataflow/in"
-	PathFIFOOut    = "/var/run/argo-dataflow/out"
-	PathGroups     = "/var/run/argo-dataflow/groups"
-	PathHandlerFile   = "/var/run/argo-dataflow/handler"
-	PathWorkingDir = "/var/run/argo-dataflow/wd"
-	PathVarRun     = "/var/run/argo-dataflow"
+	PathCheckout    = "/var/run/argo-dataflow/checkout"
+	PathFIFOIn      = "/var/run/argo-dataflow/in"
+	PathFIFOOut     = "/var/run/argo-dataflow/out"
+	PathGroups      = "/var/run/argo-dataflow/groups"
+	PathHandlerFile = "/var/run/argo-dataflow/handler"
+	PathWorkingDir  = "/var/run/argo-dataflow/wd"
+	PathVarRun      = "/var/run/argo-dataflow"
 )
