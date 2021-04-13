@@ -18,4 +18,5 @@ jobs:
           version: v1.18.2-k3s1
       - run: kubectl create ns argo-dataflow-system
       - run: kubectl -n argo-dataflow-system create sa default
+      - run: kubectl apply -k config/crd
       - run: kubectl apply -f config/quick-start.yaml
