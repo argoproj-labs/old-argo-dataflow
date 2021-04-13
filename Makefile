@@ -41,7 +41,8 @@ images: controller runner runtimes
 
 config/dev.yaml:
 config/quick-start.yaml:
-config/%.yaml: /dev/null
+.PHONY: config/%.yaml
+config/%.yaml:
 	kustomize build --load_restrictor=none config/$* -o $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
@@ -145,10 +146,13 @@ nuke: undeploy uninstall
 	docker image rm argoproj/dataflow-runner || true
 	docker system prune -f
 
-docs/examples/%.yaml: /dev/null
+.PHONY: docs/examples/%.yaml
+docs/examples/%.yaml:
 	@kubectl -n argo-dataflow-system delete pipeline --all --cascade=foreground > /dev/null
 	@echo " ▶ RUN $@"
 	@kubectl -n argo-dataflow-system apply -f $@
 	kubectl -n argo-dataflow-system wait pipeline --all --for $(shell grep -o 'condition=.*' $@ || echo condition=SunkMessages)
 	@echo
+
+.PHONY: test-examples
 test-examples: $(shell ls docs/examples/*-pipeline.yaml | sort)
