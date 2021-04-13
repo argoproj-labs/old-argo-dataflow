@@ -23,6 +23,9 @@ test: build
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: generate deploy
 	goreman -set-ports=false -logtime=false start
+wait:
+	kubectl get pod
+	kubectl wait pod --all --for=condition=Ready
 logs: $(GOBIN)/stern
 	stern --tail=3 .
 

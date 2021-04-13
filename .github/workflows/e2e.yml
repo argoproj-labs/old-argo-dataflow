@@ -16,5 +16,9 @@ jobs:
         uses: debianmaster/actions-k3s@v1.0.1
         with:
           version: v1.18.2-k3s1
+      - run: kubectl create sa default
       - run: make install
       - run: make deploy
+      - run: make start &
+      - run: make wait
+      - run: make test-examples
