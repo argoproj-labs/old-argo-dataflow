@@ -21,7 +21,7 @@ test: build
 
 pre-commit: codegen test lint
 
-codegen: generate manifests proto config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
+codegen: generate manifests proto config/default.yaml config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: generate deploy
