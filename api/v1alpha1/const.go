@@ -24,11 +24,10 @@ const (
 	KeySpecHash         = "dataflow.argoproj.io/spec-hash" // hash of the spec
 	// paths
 	PathCheckout   = "/var/run/argo-dataflow/checkout"
-	PathEmptyDirs  = "empty-dirs"
 	PathFIFOIn     = "/var/run/argo-dataflow/in"
 	PathFIFOOut    = "/var/run/argo-dataflow/out"
 	PathGroups     = "/var/run/argo-dataflow/groups"
-	PathRuntimes   = "runtimes"
+	PathHandlerFile   = "/var/run/argo-dataflow/handler"
 	PathWorkingDir = "/var/run/argo-dataflow/wd"
 	PathVarRun     = "/var/run/argo-dataflow"
 )

@@ -3523,7 +3523,7 @@ metadata:
   name: argo-server
   namespace: argo-dataflow-system
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: argo-server
@@ -3576,7 +3576,7 @@ metadata:
   name: controller-manager
   namespace: argo-dataflow-system
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       control-plane: controller-manager

@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/otiai10/copy"
 	"k8s.io/utils/strings"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -47,17 +46,8 @@ func Init() error {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
 	} else if h := spec.Handler; h != nil {
-		info.Info("setting up handler", "runtime", h.Runtime)
-		workingDir := dfv1.PathWorkingDir
-		if err := os.Mkdir(filepath.Dir(workingDir), 0700); IgnoreIsExist(err) != nil {
-			return fmt.Errorf("failed to create runtimes dir: %w", err)
-		}
-		info.Info("moving runtime", "runtime", h.Runtime)
-		if err := copy.Copy(filepath.Join(dfv1.PathRuntimes, string(h.Runtime)), workingDir); err != nil {
-			return fmt.Errorf("failed to move runtimes: %w", err)
-		}
-		info.Info("creating code file", "code", strings.ShortenString(h.Code, 32)+"...")
-		if err := ioutil.WriteFile(filepath.Join(workingDir, h.Runtime.HandlerFile()), []byte(h.Code), 0600); err != nil {
+		info.Info("setting up handler", "runtime", h.Runtime, "code", strings.ShortenString(h.Code, 32)+"...")
+		if err := ioutil.WriteFile(dfv1.PathHandlerFile, []byte(h.Code), 0600); err != nil {
 			return fmt.Errorf("failed to create code file: %w", err)
 		}
 	}

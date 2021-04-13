@@ -35,3 +35,26 @@ COPY --from=runner-builder /workspace/bin/runner .
 USER 9653:9653
 COPY --from=runner-builder /tmp/empty /dev/termination-info
 ENTRYPOINT ["/runner"]
+
+FROM golang:1.16 AS go1-16
+RUN mkdir /.cache
+ADD runtimes/go1-16 /workspace
+RUN chown -R 9653 /.cache /workspace
+WORKDIR /workspace
+USER 9653:9653
+ENTRYPOINT ./entrypoint.sh
+
+FROM openjdk:16 AS java16
+ADD runtimes/java16 /workspace
+RUN chown -R 9653 /workspace
+WORKDIR /workspace
+USER 9653:9653
+ENTRYPOINT ./entrypoint.sh
+
+FROM python:3.9 AS python3-9
+RUN mkdir /.cache /.local
+ADD runtimes/python3-9 /workspace
+RUN chown -R 9653 /.cache /.local /workspace
+WORKDIR /workspace
+USER 9653:9653
+ENTRYPOINT ./entrypoint.sh

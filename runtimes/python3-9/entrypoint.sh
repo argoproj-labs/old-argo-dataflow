@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eux
 
-export PIP_DOWNLOAD_CACHE=/tmp/pip/cache
+cp /var/run/argo-dataflow/handler handler.py
 
 pip3 install -r requirements.txt
 python3 main.py

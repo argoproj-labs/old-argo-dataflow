@@ -1,6 +1,8 @@
 package v1alpha1
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -12,10 +14,8 @@ type Handler struct {
 func (in *Handler) getContainer(req getContainerReq) corev1.Container {
 	return corev1.Container{
 		Name:            CtrMain,
-		Image:           in.Runtime.GetImage(),
+		Image:           fmt.Sprintf(req.imageFormat, "dataflow-"+in.Runtime),
 		ImagePullPolicy: req.imagePullPolicy,
-		Command:         []string{"./entrypoint.sh"},
-		WorkingDir:      PathWorkingDir,
-		VolumeMounts:    in.Runtime.GetVolumeMounts(req.volumeMount),
+		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 	}
 }

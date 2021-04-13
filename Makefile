@@ -34,8 +34,10 @@ install:
 uninstall:
 	kustomize build config/crd | kubectl delete --ignore-not-found -f -
 
-images: runner controller
+images: controller runner runtimes
 
+config/dev.yaml:
+config/quick-start.yaml:
 config/%.yaml: /dev/null
 	kustomize build --load_restrictor=none config/$* -o $@
 
@@ -78,11 +80,21 @@ lint:
 	kubectl apply --dry-run=server -f docs/examples
 
 .PHONY: controller
-controller:
-	docker build . --target controller --tag argoproj/dataflow-controller:$(TAG)
+controller: controller-image
+
 .PHONY: runner
-runner:
-	docker build . --target runner --tag argoproj/dataflow-runner:$(TAG)
+
+runner: runner-image
+
+.PHONY: runtimes
+runtimes: go1-16 java16 python3-9
+
+go1-16: go1-16-image
+java16: java16-image
+python3-9: python3-9-image
+
+%-image:
+	docker build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG)
 
 # find or download controller-gen
 # download controller-gen if necessary

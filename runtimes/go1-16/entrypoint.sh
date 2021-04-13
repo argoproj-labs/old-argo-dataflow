@@ -1,7 +1,9 @@
 #!/bin/sh
 set -eux
 
-export GOCACHE=/go/.cache
+pwd
+
+cp /var/run/argo-dataflow/handler handler.go
 
 go env
 go run .

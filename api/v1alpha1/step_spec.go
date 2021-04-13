@@ -42,8 +42,9 @@ func (in *StepSpec) GetIn() *Interface {
 	return DefaultInterface
 }
 
-func (in *StepSpec) GetContainer(runnerImage string, policy corev1.PullPolicy, mnt corev1.VolumeMount) corev1.Container {
+func (in *StepSpec) GetContainer(imageFormat, runnerImage string, policy corev1.PullPolicy, mnt corev1.VolumeMount) corev1.Container {
 	return in.getType().getContainer(getContainerReq{
+		imageFormat:     imageFormat,
 		runnerImage:     runnerImage,
 		imagePullPolicy: policy,
 		volumeMount:     mnt,

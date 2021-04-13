@@ -1,7 +1,9 @@
 # Argo Dataflow
 
 [![Go](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/go.yml)
-![Alpha](docs/assets/alpha.svg)
+[![Docker Image](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/docker-image.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/docker-image.yml)
+[![E2E](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/e2e.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/e2e.yml)
+[![codecov](https://codecov.io/gh/argoproj-labs/argo-dataflow/branch/main/graph/badge.svg?token=yKtOCXJu1Q)](https://codecov.io/gh/argoproj-labs/argo-dataflow)
 
 ## Summary
 

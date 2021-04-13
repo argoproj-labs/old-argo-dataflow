@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
@@ -8,17 +9,21 @@ import (
 )
 
 var (
+	imageFormat = os.Getenv("IMAGE_FORMAT")
 	runnerImage = os.Getenv("RUNNER_IMAGE")
 	pullPolicy  = corev1.PullPolicy(os.Getenv("PULL_POLICY"))
 	log         = klogr.New()
 )
 
 func init() {
+	if imageFormat == "" {
+		imageFormat = "quay.io/argoproj/%s:latest"
+	}
 	if runnerImage == "" {
-		runnerImage = "quay.io/argoproj/dataflow-runner:latest"
+		runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
 	}
 	if pullPolicy == "" {
 		pullPolicy = corev1.PullIfNotPresent
 	}
-	log.Info("config", "runnerImage", runnerImage, "pullPolicy", pullPolicy)
+	log.Info("config", "imageFormat", imageFormat, "runnerImage", runnerImage, "pullPolicy", pullPolicy)
 }

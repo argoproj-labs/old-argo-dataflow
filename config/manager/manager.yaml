@@ -32,8 +32,8 @@ spec:
           image: quay.io/argoproj/dataflow-controller:latest
           name: manager
           env:
-            - name: RUNNER_IMAGE
-              value: quay.io/argoproj/dataflow-runner:latest
+            - name: IMAGE_FORMAT
+              value: quay.io/argoproj/dataflow-%s:latest
           resources:
             limits:
               cpu: 100m

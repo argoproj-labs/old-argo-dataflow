@@ -1,12 +1,9 @@
 ignore:
-- "**/*.pb.go"
-- "**/*.pb.gw.go"
-- "**/*generated.go"
-- "**/*generated.deepcopy.go"
-- "**/*_test.go"
-- "pkg/apis/client/.*"
-- "pkg/client/.*"
-- "vendor/.*"
+  - .github
+  - config
+  - docs
+  - hack
+  - runtimes
 coverage:
   status:
     # we've found this not to be useful

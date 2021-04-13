@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
-
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 func main() {
@@ -37,10 +35,7 @@ func main() {
 		}
 		w.WriteHeader(200)
 	})
-	go func() {
-		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
-		if err := http.ListenAndServe(":8080", nil); err != nil {
-			panic(err)
-		}
-	}()
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		panic(err)
+	}
 }
