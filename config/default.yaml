@@ -3205,9 +3205,6 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        env:
-        - name: IMAGE_FORMAT
-          value: quay.io/argoproj/dataflow-%s:latest
         image: quay.io/argoproj/dataflow-controller:latest
         name: manager
         resources:

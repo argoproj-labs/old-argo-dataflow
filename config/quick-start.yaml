@@ -2827,6 +2827,12 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: input
+  namespace: argo-dataflow-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: manager
   namespace: argo-dataflow-system
 ---
@@ -3601,9 +3607,6 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        env:
-        - name: IMAGE_FORMAT
-          value: quay.io/argoproj/dataflow-%s:latest
         image: quay.io/argoproj/dataflow-controller:latest
         name: manager
         resources:
@@ -4142,3 +4145,4 @@ spec:
     - -c
     image: golang:1.16
     name: main
+  serviceAccountName: input
