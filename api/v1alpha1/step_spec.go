@@ -37,7 +37,7 @@ func (in *StepSpec) GetReplicas() Replicas {
 
 func (in *StepSpec) GetIn() *Interface {
 	if in.Container != nil {
-		return in.Container.In
+		return in.Container.GetIn()
 	}
 	return DefaultInterface
 }

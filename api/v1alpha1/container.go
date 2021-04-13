@@ -22,3 +22,10 @@ func (in *Container) getContainer(req getContainerReq) corev1.Container {
 		VolumeMounts:    append(in.VolumeMounts, req.volumeMount),
 	}
 }
+
+func (in *Container) GetIn() *Interface {
+	if in.In != nil {
+		return in.In
+	}
+	return DefaultInterface
+}
