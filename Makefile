@@ -25,7 +25,7 @@ start: generate deploy
 	goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
-	kubectl -n argo-dataflow-system wait pod --all --for=condition=Ready
+	kubectl -n argo-dataflow-system wait pod --all --for=condition=Ready --timeout=2m
 logs: $(GOBIN)/stern
 	stern --tail=3 .
 
