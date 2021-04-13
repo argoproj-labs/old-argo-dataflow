@@ -5,4 +5,5 @@ resources:
   - ../stan
   - ../default
   - ../../docs/examples/101-http-pipeline.yaml
+  - input-sa.yaml
   - input-pod.yaml

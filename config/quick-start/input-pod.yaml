@@ -3,6 +3,7 @@ apiVersion: v1
 metadata:
   name: input
 spec:
+  serviceAccountName: input
   containers:
     - name: main
       image: golang:1.16
