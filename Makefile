@@ -47,8 +47,6 @@ config/%.yaml: /dev/null
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy:
 	kubectl apply --force -f config/$(CONFIG).yaml
-	kubectl config set-context --current --namespace=argo-dataflow-system
-	kubectl get all
 
 undeploy:
 	kubectl delete --ignore-not-found -f config/$(CONFIG).yaml
