@@ -24,8 +24,8 @@ test: build
 start: generate deploy
 	goreman -set-ports=false -logtime=false start
 wait:
-	kubectl get pod
-	kubectl wait pod --all --for=condition=Ready
+	kubectl -n argo-dataflow-system get pod
+	kubectl -n argo-dataflow-system wait pod --all --for=condition=Ready
 logs: $(GOBIN)/stern
 	stern --tail=3 .
 
@@ -146,9 +146,9 @@ nuke: undeploy uninstall
 	docker system prune -f
 
 docs/examples/%.yaml: /dev/null
-	@kubectl delete pipeline --all --cascade=foreground > /dev/null
+	@kubectl -n argo-dataflow-system delete pipeline --all --cascade=foreground > /dev/null
 	@echo " ▶ RUN $@"
-	@kubectl apply -f $@
-	kubectl wait pipeline --all --for $(shell grep -o 'condition=.*' $@ || echo condition=SunkMessages)
+	@kubectl -n argo-dataflow-system apply -f $@
+	kubectl -n argo-dataflow-system wait pipeline --all --for $(shell grep -o 'condition=.*' $@ || echo condition=SunkMessages)
 	@echo
 test-examples: $(shell ls docs/examples/*-pipeline.yaml | sort)
