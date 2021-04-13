@@ -89,6 +89,7 @@ func pumpTopicCmd(producer sarama.AsyncProducer) error {
 	if err != nil {
 		return err
 	}
+	_, _ = fmt.Fprintf(os.Stdout, "topic %q sleep %v \n", *topic, duration)
 	start := time.Now()
 	for i := 0; ; i++ {
 		x := fmt.Sprintf("%s-%d", FunnyAnimal(), i)
@@ -96,7 +97,7 @@ func pumpTopicCmd(producer sarama.AsyncProducer) error {
 			Topic: *topic,
 			Value: sarama.StringEncoder(x),
 		}
-		log.Printf("sent %q (%.0f/s)\n", x, (1+float64(i))/time.Since(start).Seconds())
+		_, _ = fmt.Fprintf(os.Stdout, "sent %q (%.0f/s)\n", x, (1+float64(i))/time.Since(start).Seconds())
 		time.Sleep(duration)
 	}
 }
