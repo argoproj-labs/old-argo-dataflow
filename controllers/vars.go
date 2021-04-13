@@ -10,7 +10,7 @@ import (
 
 var (
 	imageFormat = os.Getenv("IMAGE_FORMAT")
-	runnerImage = os.Getenv("RUNNER_IMAGE")
+	runnerImage = ""
 	pullPolicy  = corev1.PullPolicy(os.Getenv("PULL_POLICY"))
 	log         = klogr.New()
 )
@@ -19,9 +19,7 @@ func init() {
 	if imageFormat == "" {
 		imageFormat = "quay.io/argoproj/%s:latest"
 	}
-	if runnerImage == "" {
-		runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
-	}
+	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
 	if pullPolicy == "" {
 		pullPolicy = corev1.PullIfNotPresent
 	}
