@@ -32,7 +32,7 @@ wait:
 	kubectl -n argo-dataflow-system get pod
 	kubectl -n argo-dataflow-system wait pod --all --for=condition=Ready --timeout=2m
 logs: $(GOBIN)/stern
-	stern --tail=3 .
+	stern -n argo-dataflow-system --tail=3 .
 
 # Install CRDs into a cluster
 install:
