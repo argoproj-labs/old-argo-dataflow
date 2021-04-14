@@ -35,7 +35,7 @@ COPY --from=runner-builder /workspace/bin/runner .
 USER 9653:9653
 ENTRYPOINT ["/runner"]
 
-FROM golang:1.16 AS go1-16
+FROM golang:1.16-alpine AS go1-16
 RUN mkdir /.cache
 ADD runtimes/go1-16 /workspace
 RUN chown -R 9653 /.cache /workspace
@@ -50,7 +50,7 @@ WORKDIR /workspace
 USER 9653:9653
 ENTRYPOINT ./entrypoint.sh
 
-FROM python:3.9 AS python3-9
+FROM python:3.9-alpine AS python3-9
 RUN mkdir /.cache /.local
 ADD runtimes/python3-9 /workspace
 RUN chown -R 9653 /.cache /.local /workspace

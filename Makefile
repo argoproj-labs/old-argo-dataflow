@@ -102,6 +102,7 @@ python3-9: python3-9-image
 
 %-image:
 	docker build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG)
+	docker scan --severity=high quay.io/argoproj/dataflow-$*:$(TAG)
 
 # find or download controller-gen
 # download controller-gen if necessary
