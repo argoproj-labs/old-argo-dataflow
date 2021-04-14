@@ -30,7 +30,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
@@ -86,7 +85,13 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		if err := r.Client.Create(ctx, obj); err != nil {
 			if apierr.IsAlreadyExists(err) {
-				if err := r.Client.Patch(ctx, obj, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(obj)))); err != nil {
+				old := &dfv1.Step{}
+				if err := r.Client.Get(ctx, client.ObjectKeyFromObject(obj), old); err != nil {
+					return ctrl.Result{}, err
+				}
+				obj.SetResourceVersion(old.GetResourceVersion())
+				obj.Status = old.Status.DeepCopy() // we must preserve the old status
+				if err := r.Client.Update(ctx, obj); err != nil {
 					return ctrl.Result{}, err
 				}
 			} else {
