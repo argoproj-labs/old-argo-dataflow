@@ -155,6 +155,7 @@ nuke: undeploy uninstall
 	docker image rm argoproj/dataflow-runner || true
 	docker system prune -f
 
+.PHONY: docs/examples/%.yaml
 docs/examples/%.yaml: /dev/null
 	@echo " ▶ RUN $@"
 	@echo
@@ -164,4 +165,4 @@ docs/examples/%.yaml: /dev/null
 	@echo
 
 .PHONY: test-examples
-test-examples: $(shell ls docs/examples/*-pipeline.yaml | sort)
+test-examples: /dev/null $(shell ls docs/examples/*-pipeline.yaml | sort)
