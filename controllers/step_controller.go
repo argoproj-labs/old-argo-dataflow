@@ -152,6 +152,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							Args:            []string{"init"},
 							Env:             envVars,
 							VolumeMounts:    volumeMounts,
+							Resources:       dfv1.DefaultResources,
 						},
 					},
 					Containers: []corev1.Container{
@@ -162,6 +163,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							Args:            []string{"sidecar"},
 							Env:             envVars,
 							VolumeMounts:    volumeMounts,
+							Resources:       dfv1.DefaultResources,
 						},
 						container,
 					},

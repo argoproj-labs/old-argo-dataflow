@@ -23,6 +23,7 @@ func (g *Group) getContainer(req getContainerReq) corev1.Container {
 		ImagePullPolicy: req.imagePullPolicy,
 		Args:            []string{"group", g.Key, g.EndOfGroup, string(g.Format)},
 		VolumeMounts:    []corev1.VolumeMount{g.getVolumeMount(req.volumeMount)},
+		Resources: DefaultResources,
 	}
 }
 
