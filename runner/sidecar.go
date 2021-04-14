@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	updateInterval = 15 * time.Second
+	updateInterval time.Duration
 	replica        = 0
 	pipelineName   = os.Getenv(dfv1.EnvPipelineName)
 	namespace      = os.Getenv(dfv1.EnvNamespace)
@@ -34,9 +34,11 @@ var (
 	sinkStatues    = dfv1.SinkStatuses{}
 )
 
-func Sidecar(ctx context.Context) error {
-
+func init() {
 	sarama.Logger = &stdlog{Logger: logger}
+}
+
+func Sidecar(ctx context.Context) error {
 
 	if err := unmarshallSpec(); err != nil {
 		return err
@@ -51,7 +53,13 @@ func Sidecar(ctx context.Context) error {
 	} else {
 		replica = v
 	}
-	info.Info("config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica)
+
+	if v, err := time.ParseDuration(os.Getenv(dfv1.EnvUpdateInterval)); err != nil {
+		return err
+	} else {
+		updateInterval = v
+	}
+	info.Info("config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval)
 
 	toSink, err := connectSink()
 	if err != nil {
@@ -60,7 +68,7 @@ func Sidecar(ctx context.Context) error {
 
 	connectOut(toSink)
 
-	toMain, err := connectTo()
+	toMain, err := connectTo(ctx)
 	if err != nil {
 		return err
 	}
@@ -296,7 +304,7 @@ func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 	return x, nil
 }
 
-func connectTo() (func([]byte) error, error) {
+func connectTo(ctx context.Context) (func([]byte) error, error) {
 	in := spec.GetIn()
 	if in == nil {
 		info.Info("no in interface configured")
@@ -324,12 +332,18 @@ func connectTo() (func([]byte) error, error) {
 	} else if in.HTTP != nil {
 		info.Info("HTTP in interface configured")
 		info.Info("waiting for HTTP in interface to be ready")
+	LOOP:
 		for {
-			if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode == 200 {
-				info.Info("HTTP in interface ready")
-				break
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode == 200 {
+					info.Info("HTTP in interface ready")
+					break LOOP
+				}
+				time.Sleep(3 * time.Second)
 			}
-			time.Sleep(3 * time.Second)
 		}
 		return func(data []byte) error {
 			debug.Info("◷ source → http")

@@ -12,10 +12,11 @@ const (
 	CtrMain    = "main"
 	CtrSidecar = "sidecar"
 	// env vars
-	EnvNamespace    = "ARGO_DATAFLOW_NAMESPACE"
-	EnvPipelineName = "ARGO_DATAFLOW_PIPELINE_NAME"
-	EnvReplica      = "ARGO_DATAFLOW_REPLICA"
-	EnvStepSpec     = "ARGO_DATAFLOW_STEP_SPEC"
+	EnvNamespace      = "ARGO_DATAFLOW_NAMESPACE"
+	EnvPipelineName   = "ARGO_DATAFLOW_PIPELINE_NAME"
+	EnvReplica        = "ARGO_DATAFLOW_REPLICA"
+	EnvStepSpec       = "ARGO_DATAFLOW_STEP_SPEC"
+	EnvUpdateInterval = "ARGO_DATAFLOW_UPDATE_INTERVAL"
 	// label/annotation keys
 	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
 	KeyPipelineName     = "dataflow.argoproj.io/pipeline-name"

@@ -42,6 +42,19 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
+var updateInterval = 15 * time.Second
+
+func init() {
+	if v, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
+		if v, err := time.ParseDuration(v); err != nil {
+			panic(err)
+		} else {
+			updateInterval = v
+		}
+	}
+	log.Info("config", "updateInterval", updateInterval)
+}
+
 // StepReconciler reconciles a Step object
 type StepReconciler struct {
 	client.Client
@@ -97,6 +110,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			{Name: dfv1.EnvNamespace, Value: step.Namespace},
 			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
 			{Name: dfv1.EnvStepSpec, Value: dfv1.Json(step.Spec)},
+			{Name: dfv1.EnvUpdateInterval, Value: updateInterval.String()},
 		}
 		volume := corev1.Volume{
 			Name:         "var-run-argo-dataflow",

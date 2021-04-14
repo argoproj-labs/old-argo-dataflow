@@ -36,7 +36,7 @@ var (
 		CreateContainerError:       true,
 		OOMKilled:                  true,
 		Error:                      true,
-		Completed:                  true,
+		Completed:                  false,
 		ContainerCannotRun:         true,
 		DeadlineExceeded:           true,
 	}

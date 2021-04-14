@@ -14,10 +14,10 @@ spec:
         - |
           set -eux
           git clone --depth 1 --single-branch https://github.com/argoproj-labs/argo-dataflow
-          cd argo-dataflow
-          # https://github.com/golang/go/issues/35702
-          go env -w GOPROXY=direct
-          go run -v ./hack/kafka -topic input-topic create-topic
-          go run -v ./hack/kafka -topic output-topic create-topic
+          cd argo-dataflow/hack/kafka
+          [ -e go.mod ] || go mod init github.com/argoproj-labs/argo-dataflow/hack/kafka
+          go mod tidy
+          go run -v . -topic input-topic create-topic
+          go run -v . -topic output-topic create-topic
           # change 1s to 10ms to flood the kafka topic
-          go run -v ./hack/kafka -topic input-topic -sleep 1s pump-topic
+          go run -v . -topic input-topic -sleep 1s pump-topic

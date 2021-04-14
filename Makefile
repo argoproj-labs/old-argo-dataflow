@@ -104,6 +104,7 @@ python3-9: python3-9-image
 
 %-image:
 	docker build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG)
+scan-%:
 	docker scan --severity=high quay.io/argoproj/dataflow-$*:$(TAG)
 
 # find or download controller-gen
@@ -155,8 +156,9 @@ nuke: undeploy uninstall
 	docker system prune -f
 
 docs/examples/%.yaml: /dev/null
-	@kubectl -n argo-dataflow-system delete pipeline --all --cascade=foreground > /dev/null
 	@echo " ▶ RUN $@"
+	@echo
+	@kubectl -n argo-dataflow-system delete pipeline --all --cascade=foreground > /dev/null
 	@kubectl -n argo-dataflow-system apply -f $@
 	kubectl -n argo-dataflow-system wait pipeline --all --for $(shell grep -o 'condition=.*' $@ || echo condition=SunkMessages)
 	@echo
