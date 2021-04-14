@@ -59,7 +59,7 @@ func Test(t *testing.T) {
 			}
 			w, err := pipelines.Watch(ctx, metav1.ListOptions{})
 			assert.NoError(t, err)
-			ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 			defer cancel()
 			logger.Info("waiting for condition")
 			for {
