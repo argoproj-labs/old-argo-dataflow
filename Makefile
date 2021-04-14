@@ -155,14 +155,6 @@ nuke: undeploy uninstall
 	docker image rm argoproj/dataflow-runner || true
 	docker system prune -f
 
-.PHONY: docs/examples/%.yaml
-docs/examples/%.yaml: /dev/null
-	@echo " ▶ RUN $@"
-	@echo
-	@kubectl -n argo-dataflow-system delete pipeline --all --cascade=foreground > /dev/null
-	@kubectl -n argo-dataflow-system apply -f $@
-	kubectl -n argo-dataflow-system wait pipeline --all --for $(shell grep -o 'condition=.*' $@ || echo condition=SunkMessages)
-	@echo
-
 .PHONY: test-examples
-test-examples: /dev/null $(shell ls docs/examples/*-pipeline.yaml | sort)
+test-examples:
+	go test -v -tags examples ./docs/examples

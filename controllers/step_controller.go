@@ -167,7 +167,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					},
 				},
 			},
-		); IgnoreAlreadyExists(err) != nil {
+		); dfv1.IgnoreAlreadyExists(err) != nil {
 			return ctrl.Result{}, err
 		}
 	}
@@ -233,7 +233,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Stdout: os.Stdout,
 					Stderr: os.Stderr,
 					Tty:    true,
-				}); IgnoreContainerNotFound(err) != nil {
+				}); dfv1.IgnoreContainerNotFound(err) != nil {
 					return ctrl.Result{}, fmt.Errorf("failed to stream %w", err)
 				}
 			}
@@ -243,7 +243,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if !reflect.DeepEqual(step.Status, newStatus) {
 		log.Info("patching step status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
-			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus})))); IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus})))); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
 		}
 	}

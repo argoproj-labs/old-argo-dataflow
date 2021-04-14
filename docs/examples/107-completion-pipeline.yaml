@@ -12,7 +12,7 @@ metadata:
       * Every steps exits successfully (i.e. with exit code 0).
       * One step exits successfully, and is marked with `terminator: true`. When this happens, all other steps are killed.
     dataflow.argoproj.io/name: Runs to completion
-    dataflow.argoproj.io/wait-for: condition=Completed
+    dataflow.argoproj.io/wait-for: Completed
   creationTimestamp: null
   name: completion
 spec:
@@ -23,5 +23,5 @@ spec:
       - -c
       - |
         exit 0
-      image: debian:10.7-slim
+      image: ubuntu:latest
     name: main

@@ -201,19 +201,19 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					Param("tty", "false").
 					Param("command", "sh").
 					Param("command", "-c").
-					Param("command", "'kill -9 -- -1").
+					Param("command", "'kill 1").
 					URL()
 				log.Info("pipeline terminated: killing container", "url", url)
 				exec, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", url)
 				if err != nil {
-					return ctrl.Result{}, fmt.Errorf("failed to exec %w", err)
+					return ctrl.Result{}, fmt.Errorf("failed to exec %s: %w", s.Name, err)
 				}
 				if err := exec.Stream(remotecommand.StreamOptions{
 					Stdout: os.Stdout,
 					Stderr: os.Stderr,
 					Tty:    true,
-				}); IgnoreContainerNotFound(err) != nil {
-					return ctrl.Result{}, fmt.Errorf("failed to stream %w", err)
+				}); dfv1.IgnoreContainerNotFound(err) != nil {
+					return ctrl.Result{}, fmt.Errorf("failed to stream %s: %w", s.Name, err)
 				}
 			}
 		}
@@ -222,7 +222,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if !reflect.DeepEqual(pipeline.Status, newStatus) {
 		log.Info("updating pipeline status", "phase", newStatus.Phase, "message", newStatus.Message)
 		pipeline.Status = newStatus
-		if err := r.Status().Update(ctx, pipeline); IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+		if err := r.Status().Update(ctx, pipeline); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}
 	}

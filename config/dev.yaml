@@ -356,9 +356,6 @@ spec:
                                   tls:
                                     type: object
                                 type: object
-                              partition:
-                                format: int32
-                                type: integer
                               topic:
                                 type: string
                               version:
@@ -409,9 +406,6 @@ spec:
                                   tls:
                                     type: object
                                 type: object
-                              partition:
-                                format: int32
-                                type: integer
                               topic:
                                 type: string
                               version:
@@ -1775,9 +1769,6 @@ spec:
                             tls:
                               type: object
                           type: object
-                        partition:
-                          format: int32
-                          type: integer
                         topic:
                           type: string
                         version:
@@ -1828,9 +1819,6 @@ spec:
                             tls:
                               type: object
                           type: object
-                        partition:
-                          format: int32
-                          type: integer
                         topic:
                           type: string
                         version:
@@ -4198,7 +4186,7 @@ spec:
       go run -v . -topic input-topic create-topic
       go run -v . -topic output-topic create-topic
       # change 1s to 10ms to flood the kafka topic
-      go run -v . -topic input-topic -sleep 1s pump-topic
+      go run -v . -topic input-topic -sleep 2s pump-topic
     command:
     - sh
     - -c

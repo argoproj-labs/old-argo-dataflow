@@ -14,7 +14,7 @@ spec:
       - -c
       - |
         cat /in/text | tee -a /var/run/argo-dataflow/out
-      image: debian:10.7-slim
+      image: ubuntu:latest
       volumeMounts:
       - mountPath: /in
         name: in

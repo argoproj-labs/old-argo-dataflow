@@ -24,7 +24,7 @@ spec:
         cat /var/run/argo-dataflow/in | while read line ; do
           echo "hi $line"
         done > /var/run/argo-dataflow/out
-      image: debian:10.7-slim
+      image: ubuntu:latest
       in:
         fifo: true
     name: main

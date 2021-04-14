@@ -16,7 +16,7 @@ spec:
       - -c
       - |
         cat /in/text | tee -a /var/run/argo-dataflow/out
-      image: debian:10.7-slim
+      image: ubuntu:latest
       volumeMounts:
       - mountPath: /in
         name: in
@@ -39,7 +39,7 @@ spec:
               echo $word
           done
         done > /var/run/argo-dataflow/out < /var/run/argo-dataflow/in
-      image: debian:10.7-slim
+      image: ubuntu:latest
       in:
         fifo: true
     name: split-lines
@@ -58,9 +58,9 @@ spec:
         i=0
         while read word && [ $word != EOF ]; do
           i=$((i+1))
-        done > /var/run/argo-dataflow/out < /var/run/argo-dataflow/in
-        echo $i
-      image: debian:10.7-slim
+        done < /var/run/argo-dataflow/in
+        echo $i > /var/run/argo-dataflow/out
+      image: ubuntu:latest
       in:
         fifo: true
     name: count-words

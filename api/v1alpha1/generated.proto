@@ -86,8 +86,6 @@ message Kafka {
 
   optional string topic = 3;
 
-  optional uint32 partition = 6;
-
   optional string version = 4;
 
   optional KafkaNET net = 5;

@@ -57,6 +57,7 @@ func Exec(ctx context.Context) error {
 			}
 		}
 	}()
+	defer patchStepStatus(context.Background()) // always patch a final status, we use a new context in case we've been SIGTERM
 
 	if v, err := util.UnmarshallSpec(); err != nil {
 		return err
@@ -105,27 +106,7 @@ func Exec(ctx context.Context) error {
 				SinkStatues:   sinkStatues,
 			}
 			if !reflect.DeepEqual(lastStatus, status) {
-				// we need to be careful to just patch fields we own
-				patch := dfv1.Json(map[string]interface{}{
-					"status": map[string]interface{}{
-						"sourceStatuses": sourceStatues,
-						"sinkStatuses":   sinkStatues,
-					},
-				})
-				logger.Info("patching step status (sinks/sources)", "patch", patch)
-				if _, err := dynamicInterface.
-					Resource(dfv1.StepGroupVersionResource).
-					Namespace(namespace).
-					Patch(
-						ctx,
-						pipelineName+"-"+spec.Name,
-						types.MergePatchType,
-						[]byte(patch),
-						metav1.PatchOptions{},
-						"status",
-					); err != nil {
-					logger.Error(err, "failed to patch step status")
-				}
+				patchStepStatus(ctx)
 				// once we're reported pending, it possible we won't get anymore messages for a while, so the value
 				// we have will be wrong
 				for i, s := range status.SourceStatues {
@@ -141,6 +122,30 @@ func Exec(ctx context.Context) error {
 	<-ctx.Done()
 	logger.Info("done")
 	return nil
+}
+
+func patchStepStatus(ctx context.Context) {
+	// we need to be careful to just patch fields we own
+	patch := dfv1.Json(map[string]interface{}{
+		"status": map[string]interface{}{
+			"sourceStatuses": sourceStatues,
+			"sinkStatuses":   sinkStatues,
+		},
+	})
+	logger.Info("patching step status (sinks/sources)", "patch", patch)
+	if _, err := dynamicInterface.
+		Resource(dfv1.StepGroupVersionResource).
+		Namespace(namespace).
+		Patch(
+			ctx,
+			pipelineName+"-"+spec.Name,
+			types.MergePatchType,
+			[]byte(patch),
+			metav1.PatchOptions{},
+			"status",
+		); err != nil {
+		logger.Error(err, "failed to patch step status")
+	}
 }
 
 func enrichSpec(ctx context.Context) error {
@@ -255,7 +260,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				}()
 			}
 		} else if k := source.Kafka; k != nil {
-			logger.Info("connecting kafka source", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic,  "partition", k.Partition)
+			logger.Info("connecting kafka source", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic)
 			config, err := newKafkaConfig(k)
 			if err != nil {
 				return err
@@ -280,12 +285,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			go func() {
 				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 				for {
-					newestOffset, err := client.GetOffset(k.Topic, int32(k.Partition), sarama.OffsetNewest)
+					newestOffset, err := client.GetOffset(k.Topic, 0, sarama.OffsetNewest)
 					if err != nil {
 						logger.Error(err, "failed to get offset", "topic", k.Topic)
 					} else if handler.offset > 0 { // zero implies we've not processed a message yet
 						pending := uint64(newestOffset - handler.offset)
-						logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "partition", k.Partition, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
+						logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
 						sourceStatues.SetPending(source.Name, pending)
 					}
 					time.Sleep(updateInterval)
@@ -448,7 +453,7 @@ func connectSink() (func([]byte) error, error) {
 				return sc.Publish(s.Subject, m)
 			})
 		} else if k := sink.Kafka; k != nil {
-			logger.Info("connecting sink", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic, "partition", k.Partition, "version", k.Version)
+			logger.Info("connecting sink", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic , "version", k.Version)
 			config, err := newKafkaConfig(k)
 			if err != nil {
 				return nil, err
@@ -461,10 +466,9 @@ func connectSink() (func([]byte) error, error) {
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
 				sinkStatues.Set(sink.Name, replica, short(m))
-				logger.Info("◷ → kafka", "topic", k.Topic, "partition", k.Partition, "m", short(m))
+				logger.Info("◷ → kafka", "topic", k.Topic,  "m", short(m))
 				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
 					Topic:     k.Topic,
-					Partition: int32(k.Partition),
 					Value:     sarama.ByteEncoder(m),
 				})
 				return err

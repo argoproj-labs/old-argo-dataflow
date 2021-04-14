@@ -24,11 +24,11 @@ func Exec() error {
 		return err
 	}
 	logger.Info("creating in fifo")
-	if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); util.IgnoreIsExist(err) != nil {
+	if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); dfv1.IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create input FIFO: %w", err)
 	}
 	logger.Info("creating out fifo")
-	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0600); util.IgnoreIsExist(err) != nil {
+	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0600); dfv1.IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
 	if g := spec.Git; g != nil {
@@ -39,7 +39,7 @@ func Exec() error {
 			SingleBranch:  true, // checkout faster
 			Depth:         1,    // checkout faster
 			ReferenceName: plumbing.NewBranchReferenceName(g.Branch),
-		}); util.IgnoreErrRepositoryAlreadyExists(err) != nil {
+		}); IgnoreErrRepositoryAlreadyExists(err) != nil {
 			return fmt.Errorf("failed to clone repo: %w", err)
 		}
 		path := filepath.Join(dfv1.PathCheckout, g.Path)
@@ -47,7 +47,7 @@ func Exec() error {
 			return fmt.Errorf("failed to stat %s: %w", path, err)
 		}
 		logger.Info("moving checked out code", "path", path, "wd", dfv1.PathWorkingDir)
-		if err := os.Rename(path, dfv1.PathWorkingDir); util.IgnoreIsExist(err) != nil {
+		if err := os.Rename(path, dfv1.PathWorkingDir); dfv1.IgnoreIsExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
 	} else if h := spec.Handler; h != nil {

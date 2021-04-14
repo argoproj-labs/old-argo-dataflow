@@ -1,10 +1,18 @@
-package controllers
+package v1alpha1
 
 import (
+	"os"
 	"strings"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 )
+
+func IgnoreIsExist(err error) error {
+	if os.IsExist(err) {
+		return nil
+	}
+	return err
+}
 
 func IgnoreAlreadyExists(err error) error {
 	if apierr.IsAlreadyExists(err) {
