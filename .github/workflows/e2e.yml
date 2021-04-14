@@ -18,7 +18,7 @@ jobs:
       - run: kubectl create sa default
       - run: make install
       - run: make deploy
-      - run: make start 2>&1 /tmp/logs &
+      - run: make logs 2>&1 /tmp/logs &
       - run: make wait
       - uses: actions/setup-go@v2
         with:
