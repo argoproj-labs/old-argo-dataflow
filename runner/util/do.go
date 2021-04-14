@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"bytes"
@@ -7,9 +7,13 @@ import (
 	"net/http"
 
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/klog/klogr"
 )
 
-func do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
+var logger = klogr.New()
+
+func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
+
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	})
@@ -38,7 +42,7 @@ func do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 				w.WriteHeader(500)
 				return
 			}
-			info.Info("do", "in", string(in), "out", string(out))
+			logger.V(6).Info("do", "in", string(in), "out", string(out))
 		}
 		w.WriteHeader(200)
 	})

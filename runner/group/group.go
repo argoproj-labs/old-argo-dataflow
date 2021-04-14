@@ -1,4 +1,4 @@
-package main
+package group
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"sort"
 
 	"github.com/antonmedv/expr"
+	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	"github.com/google/uuid"
 	"github.com/juju/fslock"
 
@@ -29,8 +30,8 @@ func withLock(dir string, f func() ([][]byte, error)) ([][]byte, error) {
 	return msgs, err
 }
 
-func Group(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.GroupFormat) error {
-	if err := os.Mkdir(dfv1.PathGroups, 0700); IgnoreIsExist(err) != nil {
+func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.GroupFormat) error {
+	if err := os.Mkdir(dfv1.PathGroups, 0700); util.IgnoreIsExist(err) != nil {
 		return fmt.Errorf("failed to create groups dir: %w", err)
 	}
 	prog, err := expr.Compile(key)
@@ -41,8 +42,8 @@ func Group(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.
 	if err != nil {
 		return fmt.Errorf("failed to compile %q: %w", endOfGroup, err)
 	}
-	return do(ctx, func(msg []byte) ([][]byte, error) {
-		res, err := expr.Run(prog, exprEnv(msg))
+	return util.Do(ctx, func(msg []byte) ([][]byte, error) {
+		res, err := expr.Run(prog, util.ExprEnv(msg))
 		if err != nil {
 			return nil, fmt.Errorf("failed to run program %q: %w", key, err)
 		}
@@ -51,7 +52,7 @@ func Group(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.
 			return nil, fmt.Errorf("key expression must return a string")
 		}
 		dir := filepath.Join(dfv1.PathGroups, group)
-		if err := os.Mkdir(dir, 0700); IgnoreIsExist(err) != nil {
+		if err := os.Mkdir(dir, 0700); util.IgnoreIsExist(err) != nil {
 			return nil, fmt.Errorf("failed to create group sub-dir: %w", err)
 		}
 		return withLock(dir, func() ([][]byte, error) {
@@ -59,7 +60,7 @@ func Group(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.
 			if err := ioutil.WriteFile(path, msg, 0600); err != nil {
 				return nil, fmt.Errorf("failed to create message file: %w", err)
 			}
-			res, err = expr.Run(endProg, exprEnv(msg))
+			res, err = expr.Run(endProg, util.ExprEnv(msg))
 			if err != nil {
 				return nil, fmt.Errorf("failed to run program %q: %w", endOfGroup, err)
 			}

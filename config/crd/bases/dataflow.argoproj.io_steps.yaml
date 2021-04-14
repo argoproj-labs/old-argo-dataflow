@@ -429,6 +429,9 @@ spec:
                             tls:
                               type: object
                           type: object
+                        partition:
+                          format: int32
+                          type: integer
                         topic:
                           type: string
                         version:
@@ -479,6 +482,9 @@ spec:
                             tls:
                               type: object
                           type: object
+                        partition:
+                          format: int32
+                          type: integer
                         topic:
                           type: string
                         version:

@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/Masterminds/sprig"
 )
 
-func exprEnv(msg []byte) map[string]interface{} {
+func ExprEnv(msg []byte) map[string]interface{} {
 	return map[string]interface{}{
 		// values
 		"msg": msg,

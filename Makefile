@@ -50,7 +50,7 @@ config/%.yaml: /dev/null
 	kustomize build --load_restrictor=none config/$* -o $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy:
+deploy: install
 	kubectl apply --force -f config/$(CONFIG).yaml
 
 undeploy:

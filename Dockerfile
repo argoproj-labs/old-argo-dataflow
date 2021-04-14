@@ -1,6 +1,6 @@
 #syntax=docker/dockerfile:1.2
 # Build the manager binary
-FROM golang:1.16.2 as builder
+FROM golang:1.16 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -8,7 +8,7 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 
 FROM builder AS controller-builder
 COPY api/ api/
@@ -23,6 +23,7 @@ USER 9653:9653
 ENTRYPOINT ["/manager"]
 
 FROM builder AS runner-builder
+ENV GOPROXY=${GOPROXY}
 COPY api/ api/
 COPY runner/ runner/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner ./runner

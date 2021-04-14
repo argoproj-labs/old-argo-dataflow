@@ -1,19 +1,20 @@
-package main
+package _map
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/antonmedv/expr"
+	"github.com/argoproj-labs/argo-dataflow/runner/util"
 )
 
-func Map(ctx context.Context, x string) error {
+func Exec(ctx context.Context, x string) error {
 	prog, err := expr.Compile(x)
 	if err != nil {
 		return fmt.Errorf("failed to compile %q: %w", x, err)
 	}
-	return do(ctx, func(msg []byte) ([][]byte, error) {
-		res, err := expr.Run(prog, exprEnv(msg))
+	return util.Do(ctx, func(msg []byte) ([][]byte, error) {
+		res, err := expr.Run(prog, util.ExprEnv(msg))
 		if err != nil {
 			return nil, err
 		}

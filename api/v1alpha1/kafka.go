@@ -6,9 +6,10 @@ type KafkaNET struct {
 
 type Kafka struct {
 	// +kubebuilder:default=default
-	Name    string    `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	Brokers []string  `json:"brokers,omitempty" protobuf:"bytes,2,opt,name=brokers"`
-	Topic   string    `json:"topic" protobuf:"bytes,3,opt,name=topic"`
-	Version string    `json:"version,omitempty" protobuf:"bytes,4,opt,name=version"`
-	NET     *KafkaNET `json:"net,omitempty" protobuf:"bytes,5,opt,name=net"`
+	Name      string    `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	Brokers   []string  `json:"brokers,omitempty" protobuf:"bytes,2,opt,name=brokers"`
+	Topic     string    `json:"topic" protobuf:"bytes,3,opt,name=topic"`
+	Partition uint32    `json:"partition,omitempty" protobuf:"varint,6,opt,name=partition"`
+	Version   string    `json:"version,omitempty" protobuf:"bytes,4,opt,name=version"`
+	NET       *KafkaNET `json:"net,omitempty" protobuf:"bytes,5,opt,name=net"`
 }
