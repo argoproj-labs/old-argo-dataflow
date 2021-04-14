@@ -9,3 +9,9 @@ rules:
   - steps/status
   verbs:
   - patch
+- apiGroups:
+    - ""
+  resources:
+    - secrets
+  verbs:
+    - get
