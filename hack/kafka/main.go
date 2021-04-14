@@ -103,7 +103,7 @@ func pumpTopicCmd(producer sarama.AsyncProducer) error {
 }
 
 func createTopicCmd(admin sarama.ClusterAdmin) error {
-	if err := admin.CreateTopic(*topic, &sarama.TopicDetail{NumPartitions: 2, ReplicationFactor: 2}, false); err != nil {
+	if err := admin.CreateTopic(*topic, &sarama.TopicDetail{NumPartitions: 2, ReplicationFactor: 1}, false); err != nil {
 		if terr, ok := err.(*sarama.TopicError); ok && terr.Err == sarama.ErrTopicAlreadyExists {
 			_, _ = fmt.Fprintf(os.Stdout, "topic %q already exists\n", *topic)
 			return nil
