@@ -3634,10 +3634,23 @@ spec:
         control-plane: controller-manager
     spec:
       containers:
-      - env:
+      - args:
+        - --metrics-addr=127.0.0.1:9090
+        - --enable-leader-election
+        command:
+        - /manager
+        env:
         - name: PULL_POLICY
           value: IfNotPresent
-        name: manage
+        image: quay.io/argoproj/dataflow-controller:latest
+        name: manager
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
       - args:
         - --secure-listen-address=0.0.0.0:8443
         - --upstream=http://127.0.0.1:9090/
@@ -3648,20 +3661,6 @@ spec:
         ports:
         - containerPort: 8443
           name: https
-      - args:
-        - --metrics-addr=127.0.0.1:9090
-        - --enable-leader-election
-        command:
-        - /manager
-        image: quay.io/argoproj/dataflow-controller:latest
-        name: manager
-        resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10
 ---

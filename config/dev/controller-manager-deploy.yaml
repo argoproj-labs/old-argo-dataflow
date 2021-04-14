@@ -8,7 +8,7 @@ spec:
   template:
     spec:
       containers:
-        - name: manage
+        - name: manager
           env:
             - name: PULL_POLICY
               value: IfNotPresent
