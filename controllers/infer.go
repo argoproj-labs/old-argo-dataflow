@@ -27,7 +27,7 @@ const (
 
 var (
 	ErrorReasons = map[Reason]bool{
-		ContainerCreating:          true,
+		ContainerCreating:          false,
 		CrashLoopBackOff:           true,
 		CreateContainerConfigError: true,
 		ErrImagePull:               true,

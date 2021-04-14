@@ -41,10 +41,10 @@ func (in *Step) GetTargetReplicas(pending int) int {
 	lastScaleTime := in.Status.GetLastScaleTime()
 	currentReplicas := in.Status.GetReplicas() // can be -1
 
-	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaleTime) > PeekQuietDuration {
+	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaleTime) > getPeekQuietDuration() {
 		targetReplicas = 1
 	}
-	if time.Since(lastScaleTime) < ScalingQuietDuration {
+	if time.Since(lastScaleTime) < getScalingQuietDuration() {
 		targetReplicas = currentReplicas
 	}
 
@@ -53,7 +53,7 @@ func (in *Step) GetTargetReplicas(pending int) int {
 
 func RequeueAfter(currentReplicas, targetReplicas int) time.Duration {
 	if currentReplicas == 0 && targetReplicas == 0 {
-		return PeekQuietDuration
+		return getPeekQuietDuration()
 	}
 	return 0
 }

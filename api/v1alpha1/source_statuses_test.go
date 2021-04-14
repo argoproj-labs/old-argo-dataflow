@@ -92,3 +92,13 @@ func TestSourceStatuses_SetPending(t *testing.T) {
 		assert.Equal(t, uint64(45), ss["bar"].Pending)
 	}
 }
+
+func TestSourceStatus_GetPending(t *testing.T) {
+	assert.Equal(t, 0, SourceStatuses{}.GetPending())
+	assert.Equal(t, 1, SourceStatuses{"0": {Pending: 1}}.GetPending())
+}
+
+func TestSourceStatus_AnyErrors(t *testing.T) {
+	assert.False(t, SourceStatuses{}.AnyErrors())
+	assert.True(t, SourceStatuses{"0": {Metrics: map[string]Metrics{"0": {Errors: 1}}}}.AnyErrors())
+}

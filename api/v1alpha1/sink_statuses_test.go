@@ -51,3 +51,17 @@ func TestSinkStatuses_Set(t *testing.T) {
 		}
 	}
 }
+
+func TestSinkStatuses_AnyErrors(t *testing.T) {
+	assert.False(t, SinkStatuses{}.AnyErrors())
+	assert.True(t, SinkStatuses{"0": {
+		Metrics: map[string]Metrics{
+			"0": {Errors: 1},
+		},
+	}}.AnyErrors())
+}
+
+func TestSinkStatuses_AnySunk(t *testing.T) {
+	assert.False(t, SinkStatuses{}.AnySunk())
+	assert.True(t, SinkStatuses{"0": {Metrics: map[string]Metrics{"0": {Total: 1}}}}.AnySunk())
+}

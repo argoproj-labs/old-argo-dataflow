@@ -18,6 +18,7 @@ func (m StepPhaseMessage) GetMessage() string {
 func NewStepPhaseMessage(p StepPhase, m string) StepPhaseMessage {
 	return StepPhaseMessage(fmt.Sprintf("%s/%s", p, m))
 }
+
 func MinStepPhaseMessage(v ...StepPhaseMessage) StepPhaseMessage {
 	for _, p := range []StepPhase{StepFailed, StepPending, StepRunning, StepSucceeded} {
 		for _, x := range v {
