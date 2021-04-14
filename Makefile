@@ -1,3 +1,5 @@
+# Disable built-in rules.
+.SUFFIXES:
 
 # Image URL to use all building/pushing image targets
 TAG ?= latest
@@ -152,8 +154,7 @@ nuke: undeploy uninstall
 	docker image rm argoproj/dataflow-runner || true
 	docker system prune -f
 
-.PHONY: docs/examples/%.yaml
-docs/examples/%.yaml:
+docs/examples/%.yaml: /dev/null
 	@kubectl -n argo-dataflow-system delete pipeline --all --cascade=foreground > /dev/null
 	@echo " ▶ RUN $@"
 	@kubectl -n argo-dataflow-system apply -f $@
