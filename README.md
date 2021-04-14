@@ -17,6 +17,10 @@ pipelines composed of many steps which are often small and homogenic.
 * Fraud detection
 * Operational (including IoT) analytics
 
+## Screenshot
+
+![Screenshot](docs/assets/screenshot.png)
+
 ## Example
 
 ```yaml
