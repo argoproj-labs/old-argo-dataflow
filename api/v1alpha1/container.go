@@ -20,7 +20,7 @@ func (in *Container) getContainer(req getContainerReq) corev1.Container {
 		Args:            in.Args,
 		Env:             in.Env,
 		VolumeMounts:    append(in.VolumeMounts, req.volumeMount),
-		Resources: DefaultResources,
+		Resources:       SmallResourceRequirements,
 	}
 }
 

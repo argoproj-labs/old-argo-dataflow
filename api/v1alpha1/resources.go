@@ -5,13 +5,25 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-var DefaultResources = corev1.ResourceRequirements{
-	Limits: corev1.ResourceList{
-		"cpu":    resource.MustParse("50m"),
-		"memory": resource.MustParse("32Mi"),
-	},
-	Requests: corev1.ResourceList{
-		"cpu":    resource.MustParse("50m"),
-		"memory": resource.MustParse("32Mi"),
-	},
-}
+var (
+	SmallResourceRequirements = corev1.ResourceRequirements{
+		Limits: corev1.ResourceList{
+			"cpu":    resource.MustParse("50m"),
+			"memory": resource.MustParse("32Mi"),
+		},
+		Requests: corev1.ResourceList{
+			"cpu":    resource.MustParse("50m"),
+			"memory": resource.MustParse("32Mi"),
+		},
+	}
+	LargeResourceRequirements = corev1.ResourceRequirements{
+		Limits: corev1.ResourceList{
+			"cpu":    resource.MustParse("100m"),
+			"memory": resource.MustParse("256Mi"),
+		},
+		Requests: corev1.ResourceList{
+			"cpu":    resource.MustParse("100m"),
+			"memory": resource.MustParse("256Mi"),
+		},
+	}
+)

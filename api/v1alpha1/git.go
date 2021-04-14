@@ -23,6 +23,6 @@ func (in *Git) getContainer(req getContainerReq) corev1.Container {
 		Env:             in.Env,
 		WorkingDir:      PathWorkingDir,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
-		Resources: DefaultResources,
+		Resources:       LargeResourceRequirements,
 	}
 }

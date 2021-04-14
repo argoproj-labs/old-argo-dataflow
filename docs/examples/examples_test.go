@@ -52,9 +52,9 @@ func Test(t *testing.T) {
 				if err := yaml.Unmarshal([]byte(text), un); err != nil {
 					panic(err)
 				}
-				kind := un.GroupVersionKind().GroupVersion().WithResource(resources[un.GetKind()])
-				logger.Info("creating resource", "kind", kind)
-				_, err = dynamicInterface.Resource(kind).Namespace(namespace).Create(ctx, un, metav1.CreateOptions{})
+				gvr := un.GroupVersionKind().GroupVersion().WithResource(resources[un.GetKind()])
+				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
+				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, un, metav1.CreateOptions{})
 				assert.NoError(t, dfv1.IgnoreAlreadyExists(err))
 			}
 			w, err := pipelines.Watch(ctx, metav1.ListOptions{})
@@ -62,20 +62,20 @@ func Test(t *testing.T) {
 			ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 			defer cancel()
 			logger.Info("waiting for condition")
-			for event := range w.ResultChan() {
+			for {
 				select {
 				case <-ctx.Done():
-					logger.Info("condition never found - timeout", )
+					logger.Info("timeout waiting for condition")
 					assert.NoError(t, ctx.Err())
 					return
-				default:
+				case event := <-w.ResultChan():
 					un := event.Object.(*unstructured.Unstructured)
 					pipeline := &dfv1.Pipeline{}
 					err := runtime.DefaultUnstructuredConverter.FromUnstructured(un.Object, pipeline)
 					assert.NoError(t, err)
 					condition := dfv1.StringOr(pipeline.GetAnnotations()["dataflow.argoproj.io/wait-for"], "SunkMessages")
-					logger.Info("checking for condition", "condition", condition)
 					if s := pipeline.Status; s != nil {
+						logger.Info("checking for condition", "condition", condition, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
 						for _, c := range s.Conditions {
 							if c.Type == condition {
 								logger.Info("condition found", "condition", condition)
