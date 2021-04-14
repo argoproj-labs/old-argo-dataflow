@@ -1,4 +1,4 @@
 runner: make runner
 runtimes: make runtimes
-controller: go run ./main.go -metrics-addr :7070
+controller: PULL_POLICY=IfNotPresent go run ./main.go -metrics-addr :7070
 logs: make logs

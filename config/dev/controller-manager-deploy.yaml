@@ -5,3 +5,10 @@ metadata:
   namespace: system
 spec:
   replicas: 0
+  template:
+    spec:
+      containers:
+        - name: manage
+          env:
+            - name: PULL_POLICY
+              value: IfNotPresent

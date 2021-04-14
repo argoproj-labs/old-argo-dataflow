@@ -3634,6 +3634,10 @@ spec:
         control-plane: controller-manager
     spec:
       containers:
+      - env:
+        - name: PULL_POLICY
+          value: IfNotPresent
+        name: manage
       - args:
         - --secure-listen-address=0.0.0.0:8443
         - --upstream=http://127.0.0.1:9090/

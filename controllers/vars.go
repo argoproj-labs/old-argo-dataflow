@@ -20,8 +20,5 @@ func init() {
 		imageFormat = "quay.io/argoproj/%s:latest"
 	}
 	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
-	if pullPolicy == "" {
-		pullPolicy = corev1.PullIfNotPresent
-	}
 	log.Info("config", "imageFormat", imageFormat, "runnerImage", runnerImage, "pullPolicy", pullPolicy)
 }
