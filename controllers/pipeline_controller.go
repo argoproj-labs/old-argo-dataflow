@@ -89,7 +89,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				if err := r.Client.Get(ctx, client.ObjectKeyFromObject(obj), old); err != nil {
 					return ctrl.Result{}, err
 				}
-				if dfv1.Hash(step) != dfv1.Hash(old.Spec) {
+				if !reflect.DeepEqual(step, old.Spec) {
 					log.Info("updating step due to changed spec")
 					old.Spec = step
 					if err := r.Client.Update(ctx, old); dfv1.IgnoreConflict(err) != nil { // ignore conflicts, we will be reconciling again shortly if this happens

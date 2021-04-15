@@ -48,6 +48,8 @@ func Test(t *testing.T) {
 			data, err := ioutil.ReadFile(f.Name())
 			assert.NoError(t, err)
 			var pipelineName string
+			condition := "SunkMessages"
+			timeout := time.Minute // typically actually about 30s
 			for _, text := range strings.Split(string(data), "---") {
 				un := &unstructured.Unstructured{}
 				if err := yaml.Unmarshal([]byte(text), un); err != nil {
@@ -55,6 +57,16 @@ func Test(t *testing.T) {
 				}
 				if un.GetKind() == "Pipeline" {
 					pipelineName = un.GetName()
+					if v := un.GetAnnotations()["dataflow.argoproj.io/wait-for"]; v != "" {
+						condition = v
+					}
+					if v := un.GetAnnotations()["dataflow.argoproj.io/timeout"]; v != "" {
+						if v, err := time.ParseDuration(v); err != nil {
+							panic(err)
+						} else {
+							timeout = v
+						}
+					}
 				}
 				gvr := un.GroupVersionKind().GroupVersion().WithResource(resources[un.GetKind()])
 				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
@@ -63,9 +75,10 @@ func Test(t *testing.T) {
 			}
 			w, err := pipelines.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.name=" + pipelineName})
 			assert.NoError(t, err)
-			ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+			logger.Info("wait for", "condition", condition, "timeout", timeout.String())
+			ctx, cancel := context.WithTimeout(ctx, timeout)
 			defer cancel()
-			logger.Info("waiting for condition")
+			start:=time.Now()
 			for {
 				select {
 				case <-ctx.Done():
@@ -77,15 +90,14 @@ func Test(t *testing.T) {
 					pipeline := &dfv1.Pipeline{}
 					err := runtime.DefaultUnstructuredConverter.FromUnstructured(un.Object, pipeline)
 					assert.NoError(t, err)
-					condition := dfv1.StringOr(pipeline.GetAnnotations()["dataflow.argoproj.io/wait-for"], "SunkMessages")
 					if s := pipeline.Status; s != nil {
 						conditions := make(map[string]bool)
 						for _, c := range s.Conditions {
 							conditions[c.Type] = true
 						}
-						logger.Info("checking", "condition", condition, "conditions", conditions, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
+						logger.Info("changed", "condition", conditions, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
 						if conditions[condition] {
-							logger.Info("condition found", "condition", condition)
+							logger.Info("condition found", "after", time.Since(start).Truncate(time.Second).String())
 							return
 						}
 					}

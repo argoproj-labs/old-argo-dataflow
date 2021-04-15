@@ -55,7 +55,7 @@ config/%.yaml: /dev/null
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: install
-	grep -o 'image: .*' config/$(CONFIG).yaml | sort -u | cut -c 8- | xargs -L 1
+	grep -o 'image: .*' config/$(CONFIG).yaml | grep -v dataflow | sort -u | cut -c 8- | xargs -L 1
 	kubectl apply --force -f config/$(CONFIG).yaml
 
 undeploy:
