@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -95,12 +94,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
 	)
 
-	data, err := json.Marshal(step.Spec)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
-	specHash := dfv1.Hash(data)
+	specHash := dfv1.Hash(step.Spec)
 
 	for replica := 0; replica < targetReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
