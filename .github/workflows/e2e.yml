@@ -18,15 +18,9 @@ jobs:
       - run: kubectl create sa default
       - run: make install
       - run: make deploy
-      - run: make start 2>&1 /tmp/logs &
+      - run: make start
       - run: make wait
       - uses: actions/setup-go@v2
         with:
           go-version: "1.16.2"
       - run: make test-examples
-      - name: Upload logs
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v1
-        with:
-          name: logs
-          path: /tmp/logs
