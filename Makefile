@@ -25,8 +25,11 @@ pre-commit: codegen test lint
 
 codegen: generate manifests proto config/default.yaml config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
 
+$(GOBIN)/goreman:
+	go install github.com/mattn/goreman@v0.3.7
+
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: generate deploy
+start: generate deploy $(GOBIN)/goreman
 	goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
