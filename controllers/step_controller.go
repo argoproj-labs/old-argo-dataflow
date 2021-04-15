@@ -194,14 +194,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				return ctrl.Result{}, err
 			}
 		} else if specHash != pod.GetAnnotations()[dfv1.KeySpecHash] && !deletedPods {
-			log.Info("deleting pod with out of date hash", "podName", pod.Name)
+			log.Info("deleting pod with out-of-date hash", "podName", pod.Name)
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, err
 			}
 			deletedPods = true
 		} else {
 			phase, message := inferPhase(pod)
-			log.Info("inspecting pod", "name", pod.Name, "phase", phase, "message", pod.Status.Message)
+			log.Info("pod", "name", pod.Name, "phase", phase, "message", message)
 			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Message), dfv1.NewStepPhaseMessage(phase, message))
 			newStatus.Phase, newStatus.Message = x.GetPhase(), x.GetMessage()
 			for _, s := range pod.Status.ContainerStatuses {

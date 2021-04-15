@@ -45,3 +45,10 @@ rules:
       - list
       - watch
       - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
