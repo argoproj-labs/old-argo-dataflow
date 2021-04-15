@@ -165,4 +165,4 @@ nuke: undeploy uninstall
 
 .PHONY: test-examples
 test-examples:
-	go test -v -tags examples ./docs/examples
+	go test -timeout 20m -v -tags examples ./docs/examples
