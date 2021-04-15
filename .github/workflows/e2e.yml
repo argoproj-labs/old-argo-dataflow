@@ -24,6 +24,9 @@ jobs:
       - run: make wait
       - run: make test-examples
         timeout-minutes: 3
+      - name: list pods
+        if: ${{ failure() }}
+        run: kubectl -n argo-dataflow-system get pod
       - name: controller logs
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system logs deploy/controller-manager -c manager
