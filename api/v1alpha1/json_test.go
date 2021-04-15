@@ -7,5 +7,5 @@ import (
 )
 
 func TestJson(t *testing.T) {
-	assert.Equal(t, "1", Json(1))
+	assert.Equal(t, "1", MustJson(1))
 }

@@ -126,7 +126,7 @@ func Exec(ctx context.Context) error {
 
 func patchStepStatus(ctx context.Context) {
 	// we need to be careful to just patch fields we own
-	patch := dfv1.Json(map[string]interface{}{
+	patch := dfv1.MustJson(map[string]interface{}{
 		"status": map[string]interface{}{
 			"sourceStatuses": sourceStatues,
 			"sinkStatuses":   sinkStatues,

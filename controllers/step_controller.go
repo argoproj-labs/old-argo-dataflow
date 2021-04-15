@@ -109,7 +109,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			{Name: dfv1.EnvPipelineName, Value: pipelineName},
 			{Name: dfv1.EnvNamespace, Value: step.Namespace},
 			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
-			{Name: dfv1.EnvStepSpec, Value: dfv1.Json(step.Spec)},
+			{Name: dfv1.EnvStepSpec, Value: dfv1.MustJson(step.Spec)},
 			{Name: dfv1.EnvUpdateInterval, Value: updateInterval.String()},
 		}
 		volume := corev1.Volume{
@@ -245,7 +245,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if !reflect.DeepEqual(step.Status, newStatus) {
 		log.Info("patching step status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
-			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.Json(&dfv1.Step{Status: newStatus})))); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.MustJson(&dfv1.Step{Status: newStatus})))); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
 		}
 	}

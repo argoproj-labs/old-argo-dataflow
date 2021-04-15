@@ -2982,7 +2982,6 @@ rules:
   verbs:
   - get
   - list
-  - patch
   - watch
 - apiGroups:
   - dataflow.argoproj.io
@@ -2993,7 +2992,7 @@ rules:
   - delete
   - get
   - list
-  - patch
+  - update
   - watch
 - apiGroups:
   - dataflow.argoproj.io
