@@ -23,7 +23,7 @@ test: build
 
 pre-commit: codegen test lint
 
-codegen: generate manifests proto config/default.yaml config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
+codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
 
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7

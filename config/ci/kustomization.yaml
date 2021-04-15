@@ -1,0 +1,6 @@
+resources:
+  - ../dev
+
+patchesStrategicMerge:
+  - controller-manager-deploy.yaml
+

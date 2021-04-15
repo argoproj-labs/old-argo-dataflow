@@ -20,9 +20,9 @@ jobs:
           go-version: "1.16.2"
       - run: make images
       - run: make install
-      - run: make deploy CONFIG=quick-start
+      - run: make deploy CONFIG=ci
       - run: make wait
       - run: make test-examples
       - name: controller logs
         if: ${{ failure() }}
-        run: kubectl -n argo-dataflow-system logs delpoy/controller-manager
+        run: kubectl -n argo-dataflow-system logs delpoy/controller-manager -c manager

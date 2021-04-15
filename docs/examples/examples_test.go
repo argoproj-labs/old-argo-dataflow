@@ -75,12 +75,14 @@ func Test(t *testing.T) {
 					assert.NoError(t, err)
 					condition := dfv1.StringOr(pipeline.GetAnnotations()["dataflow.argoproj.io/wait-for"], "SunkMessages")
 					if s := pipeline.Status; s != nil {
-						logger.Info("checking for condition", "condition", condition, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
+						conditions := make(map[string]bool)
 						for _, c := range s.Conditions {
-							if c.Type == condition {
-								logger.Info("condition found", "condition", condition)
-								return
-							}
+							conditions[c.Type] = true
+						}
+						logger.Info("checking", "condition", condition, "conditions", conditions, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
+						if conditions[condition] {
+							logger.Info("condition found", "condition", condition)
+							return
 						}
 					}
 				}
