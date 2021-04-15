@@ -15,12 +15,12 @@ jobs:
         uses: debianmaster/actions-k3s@v1.0.1
         with:
           version: v1.18.2-k3s1
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.2"
       - run: kubectl create sa default
       - run: make install
       - run: make deploy
       - run: make start
       - run: make wait
-      - uses: actions/setup-go@v2
-        with:
-          go-version: "1.16.2"
       - run: make test-examples
