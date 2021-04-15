@@ -47,17 +47,21 @@ func Test(t *testing.T) {
 			assert.NoError(t, err)
 			data, err := ioutil.ReadFile(f.Name())
 			assert.NoError(t, err)
+			var pipelineName string
 			for _, text := range strings.Split(string(data), "---") {
 				un := &unstructured.Unstructured{}
 				if err := yaml.Unmarshal([]byte(text), un); err != nil {
 					panic(err)
+				}
+				if un.GetKind() == "Pipeline" {
+					pipelineName = un.GetName()
 				}
 				gvr := un.GroupVersionKind().GroupVersion().WithResource(resources[un.GetKind()])
 				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
 				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, un, metav1.CreateOptions{})
 				assert.NoError(t, dfv1.IgnoreAlreadyExists(err))
 			}
-			w, err := pipelines.Watch(ctx, metav1.ListOptions{})
+			w, err := pipelines.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.name=" + pipelineName})
 			assert.NoError(t, err)
 			ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 			defer cancel()

@@ -6,6 +6,7 @@ TAG ?= latest
 CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
+K3D ?= false
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -107,6 +108,9 @@ python3-9: python3-9-image
 
 %-image:
 	docker build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG)
+ifeq ($(K3D),true)
+	k3d image import quay.io/argoproj/dataflow-$*:$(TAG)
+endif
 scan-%:
 	docker scan --severity=high quay.io/argoproj/dataflow-$*:$(TAG)
 
