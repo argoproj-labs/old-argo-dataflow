@@ -21,7 +21,7 @@ build: generate manifests
 test: build
 	go test ./... -coverprofile cover.out
 
-pre-commit: codegen test lint
+pre-commit: codegen test install lint
 
 codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
 

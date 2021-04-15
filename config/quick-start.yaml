@@ -3649,6 +3649,9 @@ spec:
         - --enable-leader-election
         command:
         - /manager
+        env:
+        - name: ARGO_DATAFLOW_NAMESPACE
+          value: argo-dataflow-system
         image: quay.io/argoproj/dataflow-controller:latest
         name: manager
         resources:
