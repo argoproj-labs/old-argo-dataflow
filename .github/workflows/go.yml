@@ -21,7 +21,6 @@ jobs:
       - run: go mod tidy
       - run: make kubebuilder name=linux
       - run: make test
-      - run: env
       - run: bash <(curl -s https://codecov.io/bash)
       - run: git diff --exit-code
 
