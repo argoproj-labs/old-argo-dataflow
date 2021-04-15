@@ -23,6 +23,7 @@ jobs:
       - run: make deploy CONFIG=ci
       - run: make wait
       - run: make test-examples
+        timeout-minutes: 3
       - name: controller logs
         if: ${{ failure() }}
-        run: kubectl -n argo-dataflow-system logs delpoy/controller-manager -c manager
+        run: kubectl -n argo-dataflow-system logs deploy/controller-manager -c manager
