@@ -299,7 +299,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						}
 						if newestOffset > 0 && handler.offset > 0 { // zero implies we've not processed a message yet
 							if pending := uint64(newestOffset - handler.offset); pending > 0 {
-								logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
+								logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending)
 								sourceStatues.SetPending(source.Name, pending)
 							}
 						}
