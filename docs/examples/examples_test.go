@@ -4,89 +4,68 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/argoproj-labs/argo-dataflow/api/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/klog/klogr"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/yaml"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
-	logger           = klogr.New()
+	logger           = zap.New()
 	restConfig       = ctrl.GetConfigOrDie()
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
-	resources        = map[string]string{
-		"Pipeline":  "pipelines",
-		"ConfigMap": "configmaps",
-	}
-	namespace = "argo-dataflow-system"
+	namespace        = "argo-dataflow-system"
 )
 
 func Test(t *testing.T) {
 	ctx := context.Background()
-	dir, err := os.ReadDir(".")
+	infos, err := util.ReadDir(".")
 	assert.NoError(t, err)
-	for _, f := range dir {
-		if !strings.HasSuffix(f.Name(), "-pipeline.yaml") {
+	for _, info := range infos {
+		pipeline := info.Items[0]
+		if pipeline.GetAnnotations()["dataflow.argoproj.io/test"] != "true" {
 			continue
 		}
-		t.Run(f.Name(), func(t *testing.T) {
-			data, err := ioutil.ReadFile(f.Name())
-			assert.NoError(t, err)
-			var pipelineName string
-			condition := "SunkMessages"
-			timeout := time.Minute // typically actually about 30s
-			test:= false
-			var resources []*unstructured.Unstructured{}
-			for _, text := range strings.Split(string(data), "---") {
-				un := &unstructured.Unstructured{}
-				if err := yaml.Unmarshal([]byte(text), un); err != nil {
-					panic(err)
-				}
-				if un.GetKind() == "Pipeline" {
-					pipelineName = un.GetName()
-					test = un.GetAnnotations()["dataflow.argoproj.io/test"] == "true"
-					if v := un.GetAnnotations()["dataflow.argoproj.io/wait-for"]; v != "" {
-						condition = v
-					}
-					if v := un.GetAnnotations()["dataflow.argoproj.io/timeout"]; v != "" {
-						if v, err := time.ParseDuration(v); err != nil {
-							panic(err)
-						} else {
-							timeout = v
-						}
-					}
-				}
-				resources = append(resources, un)
-			}
-			if !test {
-				t.SkipNow()
-			}
+		t.Run(info.Name(), func(t *testing.T) {
+			// set-up
 			logger.Info("deleting pipelines")
 			pipelines := dynamicInterface.Resource(dfv1.PipelineGroupVersionResource).Namespace(namespace)
 			assert.NoError(t, pipelines.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{}))
-			for _, un := range resources {
-				gvr := un.GroupVersionKind().GroupVersion().WithResource(un.GetKind())
+			condition := "SunkMessages"
+			timeout := time.Minute // typically actually about 30s
+			pipelineName := pipeline.GetName()
+			if v := pipeline.GetAnnotations()["dataflow.argoproj.io/wait-for"]; v != "" {
+				condition = v
+			}
+			if v := pipeline.GetAnnotations()["dataflow.argoproj.io/timeout"]; v != "" {
+				if v, err := time.ParseDuration(v); err != nil {
+					panic(err)
+				} else {
+					timeout = v
+				}
+			}
+			// act
+			for _, un := range info.Items {
+				gvr := un.GroupVersionKind().GroupVersion().WithResource(util.Resource(un.GetKind()))
 				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
-				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, un, metav1.CreateOptions{})
+				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, &un, metav1.CreateOptions{})
 				assert.NoError(t, dfv1.IgnoreAlreadyExists(err))
 			}
-			w, err := pipelines.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.name=" + pipelineName})
+			// assert
+			w, err := pipelines.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.namespace=" + namespace + ",metadata.name=" + pipelineName})
 			assert.NoError(t, err)
 			logger.Info("wait for", "condition", condition, "timeout", timeout.String())
 			ctx, cancel := context.WithTimeout(ctx, timeout)
 			defer cancel()
-			start:=time.Now()
+			start := time.Now()
 			for {
 				select {
 				case <-ctx.Done():

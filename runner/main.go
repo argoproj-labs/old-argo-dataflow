@@ -16,10 +16,11 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/kill"
 	_map "github.com/argoproj-labs/argo-dataflow/runner/map"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
-	"k8s.io/klog/klogr"
+	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-var logger = klogr.New()
+var logger = zap.New()
 
 func main() {
 
@@ -43,6 +44,8 @@ func main() {
 			return _map.Exec(ctx, os.Args[2])
 		case "sidecar":
 			return sidecar.Exec(ctx)
+		case "sleep":
+			return sleep.Exec(os.Args[2])
 		default:
 			return fmt.Errorf("unknown comand")
 		}

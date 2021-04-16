@@ -23,6 +23,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/argoproj-labs/argo-dataflow/controllers/stan"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -51,8 +52,27 @@ type PipelineReconciler struct {
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;watch;list;create
+// +kubebuilder:rbac:groups=,resources=configmaps,verbs=create;get;delete
+// +kubebuilder:rbac:groups=,resources=services,verbs=create;get;delete
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=create;get;delete
+// +kubebuilder:rbac:groups=,resources=secrets,verbs=create;get;delete
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
+
+	if installer {
+		list := &dfv1.PipelineList{}
+		if err := r.Client.List(ctx, list, &client.ListOptions{Namespace: req.Namespace}); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to list pipelines: %w", err)
+		}
+		switch len(list.Items) {
+		case 0:
+			stan.UninstallAfter(ctx, req.Namespace, uninstallAfter)
+		case 1:
+			if err := stan.Install(ctx, req.Namespace); err != nil {
+				return ctrl.Result{}, fmt.Errorf("failed to install stan: %w", err)
+			}
+		}
+	}
 
 	pipeline := &dfv1.Pipeline{}
 	if err := r.Get(ctx, req.NamespacedName, pipeline); err != nil {
@@ -97,15 +117,15 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 					}
 				}
 			} else {
-				return ctrl.Result{}, err
+				return ctrl.Result{}, fmt.Errorf("failed to created step %s: %w", obj.GetName(), err)
 			}
 		}
 	}
 
 	steps := &dfv1.StepList{}
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipeline.Name)
-	if err := r.Client.List(ctx, steps, &client.ListOptions{LabelSelector: selector}); err != nil {
-		return ctrl.Result{}, err
+	if err := r.Client.List(ctx, steps, &client.ListOptions{Namespace: pipeline.Namespace, LabelSelector: selector}); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to list steps: %w", err)
 	}
 
 	pending, running, succeeded, failed := 0, 0, 0, 0
@@ -122,7 +142,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if !pipeline.Spec.HasStep(stepName) { // this happens when a pipeline changes and a step is removed
 			log.Info("deleting excess step", "stepName", stepName)
 			if err := r.Client.Delete(ctx, &step); err != nil {
-				return ctrl.Result{}, err
+				return ctrl.Result{}, fmt.Errorf("failed to delete excess step %s: %w", step.GetName(), err)
 			}
 			continue
 		}
@@ -188,8 +208,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionTerminating, Status: metav1.ConditionTrue, Reason: dfv1.ConditionTerminating})
 		pods := &corev1.PodList{}
 		selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipeline.Name)
-		if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
-			return ctrl.Result{}, err
+		if err := r.Client.List(ctx, pods, &client.ListOptions{Namespace: pipeline.Namespace, LabelSelector: selector}); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
 		}
 
 		for _, pod := range pods.Items {

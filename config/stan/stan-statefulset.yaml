@@ -8,10 +8,7 @@ spec:
       # stan depends on nats, and will go into CrashloopBackoff if nats is not ready
       initContainers:
         - name: wait
-          image: golang:1.16
-          command:
-            - sh
-            - -c
+          image: quay.io/argoproj/dataflow-runner:latest
           args:
-            - |
-              sleep 10s
+            - wait
+            - 10s

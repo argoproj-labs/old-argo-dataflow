@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/klog/klogr"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-var logger = klogr.New()
+var logger = zap.New()
 
 func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 

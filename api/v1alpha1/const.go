@@ -22,7 +22,7 @@ const (
 	KeyPipelineName     = "dataflow.argoproj.io/pipeline-name"
 	KeyReplica          = "dataflow.argoproj.io/replica"
 	KeyStepName         = "dataflow.argoproj.io/step-name" // the step name without pipeline name prefix
-	KeySpecHash         = "dataflow.argoproj.io/spec-hash" // hash of the spec
+	KeyHash             = "dataflow.argoproj.io/hash"      // hash of the object
 	// paths
 	PathCheckout    = "/var/run/argo-dataflow/checkout"
 	PathFIFOIn      = "/var/run/argo-dataflow/in"

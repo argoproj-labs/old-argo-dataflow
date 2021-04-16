@@ -2937,6 +2937,80 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  name: installer
+  namespace: argo-dataflow-system
+rules:
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
+  - pipelines
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
+  - steps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
+  - pipelines/status
+  verbs:
+  - update
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
+  - steps/status
+  verbs:
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/exec
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - statefulset
+  verbs:
+  - create
+  - delete
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
   name: leader-election-role
   namespace: argo-dataflow-system
 rules:
@@ -3121,6 +3195,20 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: argo-server
+  namespace: argo-dataflow-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: installed
+  namespace: argo-dataflow-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: installer
+subjects:
+- kind: ServiceAccount
+  name: manager
   namespace: argo-dataflow-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -3332,33 +3420,6 @@ metadata:
 ---
 apiVersion: v1
 data:
-  nats.conf: |
-    pid_file: "/var/run/nats/nats.pid"
-    http: 8222
-kind: ConfigMap
-metadata:
-  name: nats-config
-  namespace: argo-dataflow-system
----
-apiVersion: v1
-data:
-  stan.conf: |
-    port: 4222
-    http: 8222
-
-    streaming {
-     ns: "nats://nats:4222"
-     id: stan
-     store: file
-     dir: /data/stan/store
-    }
-kind: ConfigMap
-metadata:
-  name: stan-config
-  namespace: argo-dataflow-system
----
-apiVersion: v1
-data:
   init.sh: |-
     #!/bin/bash
     set -e
@@ -3419,24 +3480,6 @@ stringData:
   brokers: kafka-0.broker:9092
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  annotations:
-    dataflow.argoproj.io/description: |
-      This is an example of providing a namespace named NATS Streaming configuration.
-
-      The secret must be named `dataflow-nats-${name}`.
-
-      [Learn about configuration](../docs/CONFIGURATION.md)
-    dataflow.argoproj.io/name: Default NATS Streaming (STAN) configuration
-  name: dataflow-stan-default
-  namespace: argo-dataflow-system
-stringData:
-  clusterId: stan
-  natsUrl: nats
-  subjectPrefix: NamespacedPipelineName
----
-apiVersion: v1
 kind: Service
 metadata:
   name: argo-server
@@ -3490,31 +3533,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: nats
-  name: nats
-  namespace: argo-dataflow-system
-spec:
-  clusterIP: None
-  ports:
-  - name: client
-    port: 4222
-  - name: cluster
-    port: 6222
-  - name: monitor
-    port: 8222
-  - name: metrics
-    port: 7777
-  - name: leafnodes
-    port: 7422
-  - name: gateways
-    port: 7522
-  selector:
-    app: nats
----
-apiVersion: v1
-kind: Service
-metadata:
   name: pzoo
   namespace: argo-dataflow-system
 spec:
@@ -3527,21 +3545,6 @@ spec:
   selector:
     app: zookeeper
     storage: persistent
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: stan
-  name: stan
-  namespace: argo-dataflow-system
-spec:
-  clusterIP: None
-  ports:
-  - name: metrics
-    port: 7777
-  selector:
-    app: stan
 ---
 apiVersion: v1
 kind: Service
@@ -3648,6 +3651,8 @@ spec:
         env:
         - name: PULL_POLICY
           value: Never
+        - name: INSTALLER
+          value: "true"
         - name: ARGO_DATAFLOW_NAMESPACE
           value: argo-dataflow-system
         image: quay.io/argoproj/dataflow-controller:latest
@@ -3797,88 +3802,6 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  labels:
-    app: nats
-  name: nats
-  namespace: argo-dataflow-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: nats
-  serviceName: nats
-  template:
-    metadata:
-      labels:
-        app: nats
-    spec:
-      containers:
-      - command:
-        - nats-server
-        - --config
-        - /etc/nats-config/nats.conf
-        env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: CLUSTER_ADVERTISE
-          value: $(POD_NAME).nats.$(POD_NAMESPACE).svc
-        image: nats:2.1.7-alpine3.11
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - /nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 8222
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
-        name: nats
-        ports:
-        - containerPort: 4222
-          hostPort: 4222
-          name: client
-        - containerPort: 7422
-          hostPort: 7422
-          name: leafnodes
-        - containerPort: 6222
-          name: cluster
-        - containerPort: 8222
-          name: monitor
-        - containerPort: 7777
-          name: metrics
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 8222
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
-        volumeMounts:
-        - mountPath: /etc/nats-config
-          name: config-volume
-        - mountPath: /var/run/nats
-          name: pid
-      shareProcessNamespace: true
-      terminationGracePeriodSeconds: 60
-      volumes:
-      - configMap:
-          name: nats-config
-        name: config-volume
-      - emptyDir: {}
-        name: pid
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
   name: pzoo
   namespace: argo-dataflow-system
 spec:
@@ -3965,92 +3888,6 @@ spec:
   updateStrategy:
     type: RollingUpdate
   volumeClaimTemplates: []
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  labels:
-    app: stan
-  name: stan
-  namespace: argo-dataflow-system
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: stan
-  serviceName: stan
-  template:
-    metadata:
-      labels:
-        app: stan
-    spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - stan
-            topologyKey: kubernetes.io/hostname
-      containers:
-      - args:
-        - -sc
-        - /etc/stan-config/stan.conf
-        env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        image: nats-streaming:0.16.2
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 8222
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
-        name: stan
-        ports:
-        - containerPort: 8222
-          name: monitor
-        - containerPort: 7777
-          name: metrics
-        resources:
-          requests:
-            cpu: 0
-        volumeMounts:
-        - mountPath: /etc/stan-config
-          name: config-volume
-        - mountPath: /data/stan
-          name: stan-sts-vol
-      initContainers:
-      - args:
-        - |
-          sleep 10s
-        command:
-        - sh
-        - -c
-        image: golang:1.16
-        name: wait
-      volumes:
-      - configMap:
-          name: stan-config
-        name: config-volume
-  volumeClaimTemplates:
-  - metadata:
-      name: stan-sts-vol
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 1Gi
-      volumeMode: Filesystem
 ---
 apiVersion: apps/v1
 kind: StatefulSet

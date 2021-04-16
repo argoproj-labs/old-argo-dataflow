@@ -4,10 +4,10 @@ import (
 	"os"
 	"syscall"
 
-	"k8s.io/klog/klogr"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-var logger = klogr.New()
+var logger = zap.New()
 
 func Exec() error {
 	p, err := os.FindProcess(1)

@@ -20,6 +20,12 @@ func IgnoreAlreadyExists(err error) error {
 	}
 	return err
 }
+func IgnoreNotFound(err error) error {
+	if apierr.IsNotFound(err) {
+		return nil
+	}
+	return err
+}
 
 func IgnoreContainerNotFound(err error) error {
 	if err != nil && strings.Contains(err.Error(), "container not found") {

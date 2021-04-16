@@ -1,8 +1,8 @@
-package v1alpha1
+package util
 
 import "encoding/json"
 
-func MustJson(in interface{}) string {
+func MustJSON(in interface{}) string {
 	if data, err := json.Marshal(in); err != nil {
 		panic(err)
 	} else {

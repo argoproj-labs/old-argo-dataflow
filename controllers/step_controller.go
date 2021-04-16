@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/argoproj-labs/argo-dataflow/api/util"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,7 +52,7 @@ func init() {
 			updateInterval = v
 		}
 	}
-	log.Info("config", "updateInterval", updateInterval)
+	logger.Info("config", "updateInterval", updateInterval.String())
 }
 
 // StepReconciler reconciles a Step object
@@ -94,7 +95,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
 	)
 
-	specHash := dfv1.Hash(step.Spec)
+	hash := util.MustHash(step.Spec)
 
 	for replica := 0; replica < targetReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
@@ -103,7 +104,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			{Name: dfv1.EnvPipelineName, Value: pipelineName},
 			{Name: dfv1.EnvNamespace, Value: step.Namespace},
 			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
-			{Name: dfv1.EnvStepSpec, Value: dfv1.MustJson(step.Spec)},
+			{Name: dfv1.EnvStepSpec, Value: util.MustJSON(step.Spec)},
 			{Name: dfv1.EnvUpdateInterval, Value: updateInterval.String()},
 		}
 		volume := corev1.Volume{
@@ -123,7 +124,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					},
 					Annotations: map[string]string{
 						dfv1.KeyReplica:          strconv.Itoa(replica),
-						dfv1.KeySpecHash:         specHash,
+						dfv1.KeyHash:             hash,
 						dfv1.KeyDefaultContainer: dfv1.CtrMain,
 					},
 					OwnerReferences: []metav1.OwnerReference{
@@ -164,14 +165,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 			},
 		); dfv1.IgnoreAlreadyExists(err) != nil {
-			return ctrl.Result{}, err
+			return ctrl.Result{}, fmt.Errorf("failed to create pod %s: %w", podName, err)
 		}
 	}
 
 	pods := &corev1.PodList{}
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + step.Spec.Name)
-	if err := r.Client.List(ctx, pods, &client.ListOptions{LabelSelector: selector}); err != nil {
-		return ctrl.Result{}, err
+	if err := r.Client.List(ctx, pods, &client.ListOptions{Namespace: step.Namespace, LabelSelector: selector}); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
 	}
 
 	newStatus := step.Status.DeepCopy()
@@ -191,12 +192,12 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= targetReplicas {
 			log.Info("deleting excess pod", "podName", pod.Name)
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
-				return ctrl.Result{}, err
+				return ctrl.Result{}, fmt.Errorf("failed to delete excess pod %s: %w", pod.Name, err)
 			}
-		} else if specHash != pod.GetAnnotations()[dfv1.KeySpecHash] && !deletedPods {
+		} else if hash != pod.GetAnnotations()[dfv1.KeyHash] && !deletedPods {
 			log.Info("deleting pod with out-of-date hash", "podName", pod.Name)
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
-				return ctrl.Result{}, err
+				return ctrl.Result{}, fmt.Errorf("failed to delete out-of-date pod %s: %w", pod.Name, err)
 			}
 			deletedPods = true
 		} else {
@@ -239,7 +240,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if !reflect.DeepEqual(step.Status, newStatus) {
 		log.Info("patching step status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
-			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(dfv1.MustJson(&dfv1.Step{Status: newStatus})))); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(util.MustJSON(&dfv1.Step{Status: newStatus})))); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
 		}
 	}

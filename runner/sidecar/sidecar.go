@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	apiutil "github.com/argoproj-labs/argo-dataflow/api/util"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	"github.com/nats-io/stan.go"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -22,15 +23,16 @@ import (
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/klog/klogr"
 	stringsutils "k8s.io/utils/strings"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var (
-	logger              = klogr.New()
+	logger              = zap.New()
+	debug               = logger.V(6)
 	closers             []func() error
 	restConfig          = ctrl.GetConfigOrDie()
 	dynamicInterface    = dynamic.NewForConfigOrDie(restConfig)
@@ -79,7 +81,7 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	logger.Info("config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval)
+	logger.Info("config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
 
 	toSink, err := connectSink()
 	if err != nil {
@@ -126,7 +128,7 @@ func Exec(ctx context.Context) error {
 
 func patchStepStatus(ctx context.Context) {
 	// we need to be careful to just patch fields we own
-	patch := dfv1.MustJson(map[string]interface{}{
+	patch := apiutil.MustJSON(map[string]interface{}{
 		"status": map[string]interface{}{
 			"sourceStatuses": sourceStatues,
 			"sinkStatuses":   sinkStatues,
@@ -234,13 +236,13 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			}
 			closers = append(closers, sc.Close)
 			if sub, err := sc.QueueSubscribe(s.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
-				logger.Info("◷ stan →", "m", short(m.Data))
+				debug.Info("◷ stan →", "m", short(m.Data))
 				sourceStatues.Set(source.Name, replica, short(m.Data))
 				if err := toMain(m.Data); err != nil {
 					logger.Error(err, "⚠ stan →")
 					sourceStatues.IncErrors(source.Name, replica)
 				} else {
-					logger.V(6).Info("✔ stan → ", "subject", s.Subject)
+					debug.Info("✔ stan → ", "subject", s.Subject)
 				}
 			}, stan.DeliverAllAvailable(), stan.DurableName(clientID)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
@@ -252,7 +254,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						if pending, _, err := sub.Pending(); err != nil {
 							logger.Error(err, "failed to get pending", "subject", s.Subject)
 						} else {
-							logger.V(6).Info("setting pending", "subject", s.Subject, "pending", pending)
+							debug.Info("setting pending", "subject", s.Subject, "pending", pending)
 							sourceStatues.SetPending(source.Name, uint64(pending))
 						}
 						time.Sleep(updateInterval)
@@ -299,7 +301,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						}
 						if newestOffset > 0 && handler.offset > 0 { // zero implies we've not processed a message yet
 							if pending := uint64(newestOffset - handler.offset); pending > 0 {
-								logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending)
+								debug.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending)
 								sourceStatues.SetPending(source.Name, pending)
 							}
 						}
@@ -347,14 +349,14 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 		}
 		closers = append(closers, fifo.Close)
 		return func(data []byte) error {
-			logger.V(6).Info("◷ source → fifo")
+			debug.Info("◷ source → fifo")
 			if _, err := fifo.Write(data); err != nil {
 				return fmt.Errorf("failed to write message from source to main via FIFO: %w", err)
 			}
 			if _, err := fifo.Write([]byte("\n")); err != nil {
 				return fmt.Errorf("failed to write new line from source to main via FIFO: %w", err)
 			}
-			logger.V(6).Info("✔ source → fifo")
+			debug.Info("✔ source → fifo")
 			return nil
 		}, nil
 	} else if in.HTTP != nil {
@@ -374,7 +376,7 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 			}
 		}
 		return func(data []byte) error {
-			logger.V(6).Info("◷ source → http")
+			debug.Info("◷ source → http")
 			resp, err := http.Post("http://localhost:8080/messages", "application/json", bytes.NewBuffer(data))
 			if err != nil {
 				return fmt.Errorf("failed to sent message from source to main via HTTP: %w", err)
@@ -382,7 +384,7 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 			if resp.StatusCode >= 300 {
 				return fmt.Errorf("failed to sent message from source to main via HTTP: %s", resp.Status)
 			}
-			logger.V(6).Info("✔ source → http")
+			debug.Info("✔ source → http")
 			return nil
 		}, nil
 	} else {
@@ -403,11 +405,11 @@ func connectOut(toSink func([]byte) error) {
 			logger.Info("opened output FIFO")
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
-				logger.V(6).Info("◷ fifo → sink")
+				debug.Info("◷ fifo → sink")
 				if err := toSink(scanner.Bytes()); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)
 				}
-				logger.V(6).Info("✔ fifo → sink")
+				debug.Info("✔ fifo → sink")
 			}
 			if err = scanner.Err(); err != nil {
 				return fmt.Errorf("scanner error: %w", err)
@@ -427,13 +429,13 @@ func connectOut(toSink func([]byte) error) {
 			w.WriteHeader(500)
 			return
 		}
-		logger.V(6).Info("◷ http → sink")
+		debug.Info("◷ http → sink")
 		if err := toSink(data); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
 			w.WriteHeader(500)
 			return
 		}
-		logger.V(6).Info("✔ http → sink")
+		debug.Info("✔ http → sink")
 		w.WriteHeader(200)
 	})
 	go func() {
@@ -460,7 +462,7 @@ func connectSink() (func([]byte) error, error) {
 			closers = append(closers, sc.Close)
 			toSinks = append(toSinks, func(m []byte) error {
 				sinkStatues.Set(sink.Name, replica, short(m))
-				logger.Info("◷ → stan", "subject", s.Subject, "m", short(m))
+				debug.Info("◷ → stan", "subject", s.Subject, "m", short(m))
 				return sc.Publish(s.Subject, m)
 			})
 		} else if k := sink.Kafka; k != nil {
@@ -477,7 +479,7 @@ func connectSink() (func([]byte) error, error) {
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
 				sinkStatues.Set(sink.Name, replica, short(m))
-				logger.Info("◷ → kafka", "topic", k.Topic, "m", short(m))
+				debug.Info("◷ → kafka", "topic", k.Topic, "m", short(m))
 				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
 					Topic: k.Topic,
 					Value: sarama.ByteEncoder(m),

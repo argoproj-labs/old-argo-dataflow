@@ -10,13 +10,13 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"k8s.io/klog/klogr"
 	"k8s.io/utils/strings"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-var logger = klogr.New()
+var logger = zap.New()
 
 func Exec() error {
 	spec, err := util.UnmarshallSpec()

@@ -1,8 +1,10 @@
 namespace: argo-dataflow-system
 resources:
   - ../kafka
-  - ../nats
-  - ../stan
   - ../default
   - input-sa.yaml
   - input-pod.yaml
+  - ../rbac/installer-role.yaml
+  - ../rbac/installer-rolebinding.yaml
+patchesStrategicMerge:
+  - controller-manager-deploy.yaml
