@@ -74,10 +74,9 @@ func Test(t *testing.T) {
 			}
 			logger.Info("deleting pipelines")
 			pipelines := dynamicInterface.Resource(dfv1.PipelineGroupVersionResource).Namespace(namespace)
-			err := pipelines.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{})
-			assert.NoError(t, err)
+			assert.NoError(t, pipelines.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{}))
 			for _, un := range resources {
-				gvr := un.GroupVersionKind().GroupVersion().WithResource(resources[un.GetKind()])
+				gvr := un.GroupVersionKind().GroupVersion().WithResource(un.GetKind())
 				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
 				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, un, metav1.CreateOptions{})
 				assert.NoError(t, dfv1.IgnoreAlreadyExists(err))
