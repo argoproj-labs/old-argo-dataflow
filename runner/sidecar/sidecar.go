@@ -289,9 +289,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					if err != nil {
 						logger.Error(err, "failed to get offset", "topic", k.Topic)
 					} else if handler.offset > 0 { // zero implies we've not processed a message yet
-						pending := uint64(newestOffset - handler.offset)
-						logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
-						sourceStatues.SetPending(source.Name, pending)
+						if pending := uint64(newestOffset - handler.offset); pending > 0 {
+							logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
+							sourceStatues.SetPending(source.Name, pending)
+						}
 					}
 					time.Sleep(updateInterval)
 				}
@@ -453,7 +454,7 @@ func connectSink() (func([]byte) error, error) {
 				return sc.Publish(s.Subject, m)
 			})
 		} else if k := sink.Kafka; k != nil {
-			logger.Info("connecting sink", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic , "version", k.Version)
+			logger.Info("connecting sink", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic, "version", k.Version)
 			config, err := newKafkaConfig(k)
 			if err != nil {
 				return nil, err
@@ -466,10 +467,10 @@ func connectSink() (func([]byte) error, error) {
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
 				sinkStatues.Set(sink.Name, replica, short(m))
-				logger.Info("◷ → kafka", "topic", k.Topic,  "m", short(m))
+				logger.Info("◷ → kafka", "topic", k.Topic, "m", short(m))
 				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
-					Topic:     k.Topic,
-					Value:     sarama.ByteEncoder(m),
+					Topic: k.Topic,
+					Value: sarama.ByteEncoder(m),
 				})
 				return err
 			})
