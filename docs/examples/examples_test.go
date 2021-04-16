@@ -41,16 +41,13 @@ func Test(t *testing.T) {
 			continue
 		}
 		t.Run(f.Name(), func(t *testing.T) {
-			logger.Info("deleting pipelines")
-			pipelines := dynamicInterface.Resource(dfv1.PipelineGroupVersionResource).Namespace(namespace)
-			err := pipelines.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{})
-			assert.NoError(t, err)
 			data, err := ioutil.ReadFile(f.Name())
 			assert.NoError(t, err)
 			var pipelineName string
 			condition := "SunkMessages"
 			timeout := time.Minute // typically actually about 30s
 			test:= false
+			var resources []*unstructured.Unstructured{}
 			for _, text := range strings.Split(string(data), "---") {
 				un := &unstructured.Unstructured{}
 				if err := yaml.Unmarshal([]byte(text), un); err != nil {
@@ -70,13 +67,20 @@ func Test(t *testing.T) {
 						}
 					}
 				}
+				resources = append(resources, un)
+			}
+			if !test {
+				t.SkipNow()
+			}
+			logger.Info("deleting pipelines")
+			pipelines := dynamicInterface.Resource(dfv1.PipelineGroupVersionResource).Namespace(namespace)
+			err := pipelines.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{})
+			assert.NoError(t, err)
+			for _, un := range resources {
 				gvr := un.GroupVersionKind().GroupVersion().WithResource(resources[un.GetKind()])
 				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
 				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, un, metav1.CreateOptions{})
 				assert.NoError(t, dfv1.IgnoreAlreadyExists(err))
-			}
-			if !test {
-				t.SkipNow()
 			}
 			w, err := pipelines.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.name=" + pipelineName})
 			assert.NoError(t, err)
