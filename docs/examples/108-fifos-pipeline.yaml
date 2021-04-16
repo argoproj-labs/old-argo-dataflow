@@ -12,6 +12,7 @@ metadata:
 
       You MUST escape new lines.
     dataflow.argoproj.io/name: Using FIFOs for input and outputs
+    dataflow.argoproj.io/test: "true"
   creationTimestamp: null
   name: fifos
 spec:

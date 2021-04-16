@@ -50,6 +50,7 @@ func Test(t *testing.T) {
 			var pipelineName string
 			condition := "SunkMessages"
 			timeout := time.Minute // typically actually about 30s
+			test:= false
 			for _, text := range strings.Split(string(data), "---") {
 				un := &unstructured.Unstructured{}
 				if err := yaml.Unmarshal([]byte(text), un); err != nil {
@@ -57,6 +58,7 @@ func Test(t *testing.T) {
 				}
 				if un.GetKind() == "Pipeline" {
 					pipelineName = un.GetName()
+					test = un.GetAnnotations()["dataflow.argoproj.io/test"] == "true"
 					if v := un.GetAnnotations()["dataflow.argoproj.io/wait-for"]; v != "" {
 						condition = v
 					}
@@ -72,6 +74,9 @@ func Test(t *testing.T) {
 				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
 				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, un, metav1.CreateOptions{})
 				assert.NoError(t, dfv1.IgnoreAlreadyExists(err))
+			}
+			if !test {
+				t.SkipNow()
 			}
 			w, err := pipelines.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.name=" + pipelineName})
 			assert.NoError(t, err)

@@ -10,6 +10,7 @@ metadata:
 
       [Learn about Git steps](../docs/GIT.md)
     dataflow.argoproj.io/name: Git handler
+    dataflow.argoproj.io/test: "true"
   creationTimestamp: null
   name: git
 spec:
