@@ -285,13 +285,23 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			go func() {
 				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
 				for {
-					newestOffset, err := client.GetOffset(k.Topic, 0, sarama.OffsetNewest)
-					if err != nil {
+					if partitions, err := client.Partitions(k.Topic); err != nil {
 						logger.Error(err, "failed to get offset", "topic", k.Topic)
-					} else if handler.offset > 0 { // zero implies we've not processed a message yet
-						if pending := uint64(newestOffset - handler.offset); pending > 0 {
-							logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
-							sourceStatues.SetPending(source.Name, pending)
+					} else {
+						var newestOffset int64
+						for _, p := range partitions {
+							v, err := client.GetOffset(k.Topic, p, sarama.OffsetNewest)
+							if err != nil {
+								logger.Error(err, "failed to get offset", "topic", k.Topic)
+							} else if v > newestOffset {
+								newestOffset = v
+							}
+						}
+						if newestOffset > 0 && handler.offset > 0 { // zero implies we've not processed a message yet
+							if pending := uint64(newestOffset - handler.offset); pending > 0 {
+								logger.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending, "newestOffset", newestOffset, "offset", handler.offset)
+								sourceStatues.SetPending(source.Name, pending)
+							}
 						}
 					}
 					time.Sleep(updateInterval)
