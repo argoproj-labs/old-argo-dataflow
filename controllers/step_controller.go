@@ -182,7 +182,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	newStatus.Phase = dfv1.StepUnknown
 
 	if currentReplicas != targetReplicas {
-		newStatus.LastScaleTime = &metav1.Time{Time: time.Now()}
+		newStatus.LastScaledAt = &metav1.Time{Time: time.Now()}
 		newStatus.Replicas = uint32(targetReplicas)
 		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
 	}

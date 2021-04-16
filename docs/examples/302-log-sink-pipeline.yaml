@@ -1,0 +1,18 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example uses a log sink to debug messages
+    dataflow.argoproj.io/name: Log sink
+  creationTimestamp: null
+  name: log-sink
+spec:
+  steps:
+  - map: msg
+    name: main
+    sinks:
+    - log: {}
+    sources:
+    - kafka:
+        topic: input-topic

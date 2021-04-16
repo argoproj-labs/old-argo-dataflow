@@ -33,6 +33,7 @@ import (
 var (
 	logger              = zap.New()
 	debug               = logger.V(6)
+	trace               = logger.V(8)
 	closers             []func() error
 	restConfig          = ctrl.GetConfigOrDie()
 	dynamicInterface    = dynamic.NewForConfigOrDie(restConfig)
@@ -267,6 +268,8 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			if err != nil {
 				return err
 			}
+			config.Consumer.Return.Errors = true
+			config.Consumer.Offsets.Initial = sarama.OffsetNewest
 			client, err := sarama.NewClient(k.Brokers, config) // I am not giving any configuration
 			if err != nil {
 				return err
@@ -349,14 +352,14 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 		}
 		closers = append(closers, fifo.Close)
 		return func(data []byte) error {
-			debug.Info("◷ source → fifo")
+			trace.Info("◷ source → fifo")
 			if _, err := fifo.Write(data); err != nil {
 				return fmt.Errorf("failed to write message from source to main via FIFO: %w", err)
 			}
 			if _, err := fifo.Write([]byte("\n")); err != nil {
 				return fmt.Errorf("failed to write new line from source to main via FIFO: %w", err)
 			}
-			debug.Info("✔ source → fifo")
+			trace.Info("✔ source → fifo")
 			return nil
 		}, nil
 	} else if in.HTTP != nil {
@@ -376,7 +379,7 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 			}
 		}
 		return func(data []byte) error {
-			debug.Info("◷ source → http")
+			trace.Info("◷ source → http")
 			resp, err := http.Post("http://localhost:8080/messages", "application/json", bytes.NewBuffer(data))
 			if err != nil {
 				return fmt.Errorf("failed to sent message from source to main via HTTP: %w", err)
@@ -384,7 +387,7 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 			if resp.StatusCode >= 300 {
 				return fmt.Errorf("failed to sent message from source to main via HTTP: %s", resp.Status)
 			}
-			debug.Info("✔ source → http")
+			trace.Info("✔ source → http")
 			return nil
 		}, nil
 	} else {
@@ -405,11 +408,11 @@ func connectOut(toSink func([]byte) error) {
 			logger.Info("opened output FIFO")
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
-				debug.Info("◷ fifo → sink")
+				trace.Info("◷ fifo → sink")
 				if err := toSink(scanner.Bytes()); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)
 				}
-				debug.Info("✔ fifo → sink")
+				trace.Info("✔ fifo → sink")
 			}
 			if err = scanner.Err(); err != nil {
 				return fmt.Errorf("scanner error: %w", err)
@@ -429,13 +432,13 @@ func connectOut(toSink func([]byte) error) {
 			w.WriteHeader(500)
 			return
 		}
-		debug.Info("◷ http → sink")
+		trace.Info("◷ http → sink")
 		if err := toSink(data); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
 			w.WriteHeader(500)
 			return
 		}
-		debug.Info("✔ http → sink")
+		trace.Info("✔ http → sink")
 		w.WriteHeader(200)
 	})
 	go func() {
@@ -485,6 +488,13 @@ func connectSink() (func([]byte) error, error) {
 					Value: sarama.ByteEncoder(m),
 				})
 				return err
+			})
+		} else if l := sink.Log; l != nil {
+			logger.Info("connecting sink", "type", "log")
+			toSinks = append(toSinks, func(m []byte) error {
+				sinkStatues.Set(sink.Name, replica, short(m))
+				logger.Info(string(m))
+				return nil
 			})
 		} else {
 			return nil, fmt.Errorf("sink misconfigured")

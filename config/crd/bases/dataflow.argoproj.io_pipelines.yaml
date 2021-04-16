@@ -448,6 +448,8 @@ spec:
                             required:
                             - topic
                             type: object
+                          log:
+                            type: object
                           name:
                             default: default
                             type: string

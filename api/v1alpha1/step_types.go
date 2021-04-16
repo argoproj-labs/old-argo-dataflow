@@ -38,13 +38,13 @@ type Step struct {
 func (in *Step) GetTargetReplicas(pending int) int {
 
 	targetReplicas := in.Spec.GetReplicas().Calculate(pending)
-	lastScaleTime := in.Status.GetLastScaleTime()
+	lastScaledAt := in.Status.GetLastScaledAt()
 	currentReplicas := in.Status.GetReplicas() // can be -1
 
-	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaleTime) > getPeekQuietDuration() {
+	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaledAt) > getPeekQuietDuration() {
 		targetReplicas = 1
 	}
-	if time.Since(lastScaleTime) < getScalingQuietDuration() {
+	if time.Since(lastScaledAt) < getScalingQuietDuration() {
 		targetReplicas = currentReplicas
 	}
 

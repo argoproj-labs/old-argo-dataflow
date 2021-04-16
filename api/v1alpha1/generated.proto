@@ -95,6 +95,9 @@ message KafkaNET {
   optional TLS tls = 1;
 }
 
+message Log {
+}
+
 message Message {
   optional string data = 1;
 
@@ -181,6 +184,8 @@ message Sink {
   optional STAN stan = 2;
 
   optional Kafka kafka = 3;
+
+  optional Log log = 4;
 }
 
 message SinkStatus {
