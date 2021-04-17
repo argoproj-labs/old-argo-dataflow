@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -108,7 +107,7 @@ func Exec(ctx context.Context) error {
 				SourceStatues: sourceStatues,
 				SinkStatues:   sinkStatues,
 			}
-			if !reflect.DeepEqual(lastStatus, status) {
+			if apiutil.NotEqual(lastStatus, status) {
 				patchStepStatus(ctx)
 				// once we're reported pending, it possible we won't get anymore messages for a while, so the value
 				// we have will be wrong

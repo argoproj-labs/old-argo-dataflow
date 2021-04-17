@@ -3,7 +3,6 @@ apiVersion: v1
 metadata:
   name: input
 spec:
-  serviceAccountName: input
   containers:
     - name: main
       image: golang:1.16
@@ -12,12 +11,13 @@ spec:
         - -c
       args:
         - |
-          set -eux
+          set -x
           git clone --depth 1 --single-branch https://github.com/argoproj-labs/argo-dataflow
           cd argo-dataflow/hack/kafka
           [ -e go.mod ] || go mod init github.com/argoproj-labs/argo-dataflow/hack/kafka
-          go mod tidy
-          go run -v . -topic input-topic create-topic
-          go run -v . -topic output-topic create-topic
-          # change 1s to 10ms to flood the kafka topic
-          go run -v . -topic input-topic -sleep 2s pump-topic
+          while true; do
+            go run -v . -topic input-topic create-topic
+            go run -v . -topic output-topic create-topic
+            # change sleep to 10ms to flood the topic
+            go run -v . -topic input-topic -sleep 2s pump-topic
+          done

@@ -25,6 +25,7 @@ test: build
 pre-commit: codegen test install lint
 
 codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
+	go generate ./...
 
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
@@ -158,10 +159,18 @@ config/nats/single-server-nats.yml:
 config/stan/single-server-stan.yml:
 	curl -o config/stan/single-server-stan.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-streaming-server/single-server-stan.yml
 
-nuke: undeploy uninstall
-	git clean -fxd
-	docker image rm argoproj/dataflow-runner || true
+nuke: undeploy uninstall remove-runner remove-controller remove-go1-16 remove-java16 remove-python3-9
+	git clean -fxd -e .idea -e *.iml
 	docker system prune -f
+
+remove-runner:
+remove-controller:
+remove-go1-16:
+remove-java16:
+remove-python3-9:
+
+remove-%:
+	docker image rm quay.io/argoproj/dataflow-$* || true
 
 .PHONY: test-examples
 test-examples:

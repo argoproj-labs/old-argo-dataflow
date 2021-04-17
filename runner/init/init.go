@@ -23,9 +23,11 @@ func Exec() error {
 	if err != nil {
 		return err
 	}
-	logger.Info("creating in fifo")
-	if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); dfv1.IgnoreIsExist(err) != nil {
-		return fmt.Errorf("failed to create input FIFO: %w", err)
+	if spec.GetIn().FIFO {
+		logger.Info("creating in fifo")
+		if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); dfv1.IgnoreIsExist(err) != nil {
+			return fmt.Errorf("failed to create input FIFO: %w", err)
+		}
 	}
 	logger.Info("creating out fifo")
 	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0600); dfv1.IgnoreIsExist(err) != nil {

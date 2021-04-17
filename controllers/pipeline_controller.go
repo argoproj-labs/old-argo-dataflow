@@ -20,10 +20,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"reflect"
 	"strings"
 
-	"github.com/argoproj-labs/argo-dataflow/controllers/stan"
+	"github.com/argoproj-labs/argo-dataflow/api/util"
+	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -59,21 +59,6 @@ type PipelineReconciler struct {
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("pipeline", req.NamespacedName)
 
-	if installer {
-		list := &dfv1.PipelineList{}
-		if err := r.Client.List(ctx, list, &client.ListOptions{Namespace: req.Namespace}); err != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to list pipelines: %w", err)
-		}
-		switch len(list.Items) {
-		case 0:
-			stan.UninstallAfter(ctx, req.Namespace, uninstallAfter)
-		case 1:
-			if err := stan.Install(ctx, req.Namespace); err != nil {
-				return ctrl.Result{}, fmt.Errorf("failed to install stan: %w", err)
-			}
-		}
-	}
-
 	pipeline := &dfv1.Pipeline{}
 	if err := r.Get(ctx, req.NamespacedName, pipeline); err != nil {
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -84,6 +69,22 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if pipeline.GetDeletionTimestamp() != nil {
 		return ctrl.Result{}, nil
+	}
+
+	if installer && pipeline.Status == nil {
+		for _, step := range pipeline.Spec.Steps {
+			for _, x := range step.Sources {
+				if y := x.Kafka; y != nil {
+					if err := bus.Install(ctx, "kafka-"+y.Name, req.Namespace); err != nil {
+						return ctrl.Result{}, fmt.Errorf("failed to install kafka: %w", err)
+					}
+				} else if y := x.STAN; y != nil {
+					if err := bus.Install(ctx, "stan-"+y.Name, req.Namespace); err != nil {
+						return ctrl.Result{}, fmt.Errorf("failed to install stan: %w", err)
+					}
+				}
+			}
+		}
 	}
 
 	log.Info("reconciling", "steps", len(pipeline.Spec.Steps))
@@ -109,7 +110,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				if err := r.Client.Get(ctx, client.ObjectKeyFromObject(obj), old); err != nil {
 					return ctrl.Result{}, err
 				}
-				if !reflect.DeepEqual(step, old.Spec) {
+				if util.NotEqual(step, old.Spec) {
 					log.Info("updating step due to changed spec")
 					old.Spec = step
 					if err := r.Client.Update(ctx, old); dfv1.IgnoreConflict(err) != nil { // ignore conflicts, we will be reconciling again shortly if this happens
@@ -134,7 +135,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		newStatus = &dfv1.PipelineStatus{}
 	}
 	newStatus.Phase = dfv1.PipelineUnknown
-	newStatus.Conditions = []metav1.Condition{}
 	terminate, sunkMessages, errors := false, false, false
 	for _, step := range steps.Items {
 		stepName := step.Spec.Name
@@ -246,7 +246,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	if !reflect.DeepEqual(pipeline.Status, newStatus) {
+	if util.NotEqual(pipeline.Status, newStatus) {
 		log.Info("updating pipeline status", "phase", newStatus.Phase, "message", newStatus.Message)
 		pipeline.Status = newStatus
 		if err := r.Status().Update(ctx, pipeline); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon

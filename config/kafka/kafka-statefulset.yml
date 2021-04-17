@@ -1,11 +1,12 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: stan
+  name: kafka
+  namespace: kafka
 spec:
   template:
     spec:
-      # stan depends on nats, and will go into CrashloopBackoff if that is not ready
+      # kafka depends on pzoo, and will go into CrashloopBackoff if it is not ready
       initContainers:
         - name: wait
           image: quay.io/argoproj/dataflow-runner:latest

@@ -1958,7 +1958,7 @@ spec:
             type: object
           status:
             properties:
-              lastScaleTime:
+              lastScaledAt:
                 format: date-time
                 type: string
               message:

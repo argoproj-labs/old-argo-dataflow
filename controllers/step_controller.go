@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -175,10 +174,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
 	}
 
-	newStatus := step.Status.DeepCopy()
-	if newStatus == nil {
-		newStatus = &dfv1.StepStatus{}
+	oldStatus := step.Status.DeepCopy()
+	if oldStatus == nil {
+		oldStatus = &dfv1.StepStatus{}
 	}
+	// we need to delete the fields we do not own and should now be allowed in update
+	oldStatus.SinkStatues = nil
+	oldStatus.SourceStatues = nil
+	newStatus := oldStatus.DeepCopy()
 	newStatus.Phase = dfv1.StepUnknown
 
 	if currentReplicas != targetReplicas {
@@ -237,7 +240,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	if !reflect.DeepEqual(step.Status, newStatus) {
+	if util.NotEqual(step.Status, newStatus) {
 		log.Info("patching step status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
 			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(util.MustJSON(&dfv1.Step{Status: newStatus})))); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon

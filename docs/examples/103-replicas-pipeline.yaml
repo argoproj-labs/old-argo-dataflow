@@ -41,8 +41,6 @@ spec:
       args:
       - cat
       image: quay.io/argoproj/dataflow-runner:latest
-      in:
-        http: {}
     name: main
     replicas:
       max: 4

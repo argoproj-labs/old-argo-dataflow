@@ -27,7 +27,6 @@ ENV GOPROXY=${GOPROXY}
 COPY api/ api/
 COPY runner/ runner/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner ./runner
-RUN touch /tmp/empty
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
