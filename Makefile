@@ -20,8 +20,8 @@ build: generate manifests
 	go build ./...
 
 # Run tests
-test: build
-	go test ./... -coverprofile cover.out
+test:
+	go test -v ./... -coverprofile cover.out
 
 pre-commit: codegen test install lint
 
