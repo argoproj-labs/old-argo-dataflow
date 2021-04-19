@@ -1,0 +1,36 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example demostrates having a terminator step, and then terminating other steps
+      using different terminations strategies.
+    dataflow.argoproj.io/name: Terminator
+    dataflow.argoproj.io/test: "true"
+    dataflow.argoproj.io/wait-for: Completed
+  creationTimestamp: null
+  name: terminator
+spec:
+  steps:
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        cat
+      image: ubuntu:latest
+    name: ubuntu
+  - container:
+      args:
+      - cat
+      image: quay.io/argoproj/dataflow-runner:latest
+    name: runner
+  - container:
+      args:
+      - sh
+      - -c
+      - |
+        exit 0
+      image: ubuntu:latest
+    name: terminator
+    terminator: true

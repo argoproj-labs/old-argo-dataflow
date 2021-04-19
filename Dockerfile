@@ -23,15 +23,17 @@ USER 9653:9653
 ENTRYPOINT ["/manager"]
 
 FROM builder AS runner-builder
-ENV GOPROXY=${GOPROXY}
 COPY api/ api/
 COPY runner/ runner/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner ./runner
+COPY kill/ kill/
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/kill ./kill
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
 COPY runtimes runtimes
 COPY --from=runner-builder /workspace/bin/runner .
+COPY --from=runner-builder /workspace/bin/kill /bin/kill
 USER 9653:9653
 ENTRYPOINT ["/runner"]
 

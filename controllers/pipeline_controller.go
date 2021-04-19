@@ -19,7 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
+	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	"strings"
 
 	"github.com/argoproj-labs/argo-dataflow/api/util"
@@ -33,7 +33,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/remotecommand"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -43,10 +42,11 @@ import (
 // PipelineReconciler reconciles a Pipeline object
 type PipelineReconciler struct {
 	client.Client
-	Log        logr.Logger
-	Scheme     *runtime.Scheme
-	RESTConfig *rest.Config
-	Kubernetes kubernetes.Interface
+	Log             logr.Logger
+	Scheme          *runtime.Scheme
+	RESTConfig      *rest.Config
+	Kubernetes      kubernetes.Interface
+	ContainerKiller containerkiller.Interface
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
@@ -91,12 +91,12 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	for _, step := range pipeline.Spec.Steps {
 		stepFullName := pipeline.Name + "-" + step.Name
-		log.Info("creating step (if not exists)", "stepName", step.Name, "stepFullName", stepFullName)
+		log.Info("applying step", "stepName", step.Name, "stepFullName", stepFullName)
 		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: step.Name}
 		obj := &dfv1.Step{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      stepFullName,
 				Namespace: pipeline.Namespace,
+				Name:      stepFullName,
 				Labels:    matchLabels,
 				OwnerReferences: []metav1.OwnerReference{
 					*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.PipelineGroupVersionKind),
@@ -146,7 +146,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			}
 			continue
 		}
-
 		if step.Status == nil {
 			continue
 		}
@@ -211,36 +210,12 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.Client.List(ctx, pods, &client.ListOptions{Namespace: pipeline.Namespace, LabelSelector: selector}); err != nil {
 			return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
 		}
-
 		for _, pod := range pods.Items {
 			for _, s := range pod.Status.ContainerStatuses {
-				if s.Name != dfv1.CtrMain || s.State.Running == nil {
-					continue
-				}
-				url := r.Kubernetes.CoreV1().RESTClient().Post().
-					Resource("pods").
-					Name(pod.Name).
-					Namespace(pod.Namespace).
-					SubResource("exec").
-					Param("container", s.Name).
-					Param("stdout", "true").
-					Param("stderr", "true").
-					Param("tty", "false").
-					Param("command", "sh").
-					Param("command", "-c").
-					Param("command", "'kill 1").
-					URL()
-				log.Info("pipeline terminated: killing container", "url", url)
-				exec, err := remotecommand.NewSPDYExecutor(r.RESTConfig, "POST", url)
-				if err != nil {
-					return ctrl.Result{}, fmt.Errorf("failed to exec %s: %w", s.Name, err)
-				}
-				if err := exec.Stream(remotecommand.StreamOptions{
-					Stdout: os.Stdout,
-					Stderr: os.Stderr,
-					Tty:    true,
-				}); dfv1.IgnoreContainerNotFound(err) != nil {
-					return ctrl.Result{}, fmt.Errorf("failed to stream %s: %w", s.Name, err)
+				if s.Name == dfv1.CtrMain && s.State.Running != nil {
+					if err := r.ContainerKiller.KillContainer(pod.Namespace, pod.Name, s.Name, s.Image); err != nil {
+						log.Error(err, "failed to kill container", "pod", pod.Name, "container", s.Name)
+					}
 				}
 			}
 		}

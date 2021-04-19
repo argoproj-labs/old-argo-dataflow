@@ -157,6 +157,16 @@ For a pipeline to terminate one of two things must happen:
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-completion-pipeline.yaml
 ```
 
+### [Terminator](examples/107-terminator-pipeline.yaml)
+
+This example demostrates having a terminator step, and then terminating other steps
+using different terminations strategies.
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-terminator-pipeline.yaml
+```
+
 ### [Using FIFOs for input and outputs](examples/108-fifos-pipeline.yaml)
 
 This example use named pipe to send and receive messages.

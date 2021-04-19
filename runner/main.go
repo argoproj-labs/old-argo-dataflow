@@ -13,7 +13,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/filter"
 	"github.com/argoproj-labs/argo-dataflow/runner/group"
 	_init "github.com/argoproj-labs/argo-dataflow/runner/init"
-	"github.com/argoproj-labs/argo-dataflow/runner/kill"
 	_map "github.com/argoproj-labs/argo-dataflow/runner/map"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
 	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
@@ -38,8 +37,6 @@ func main() {
 			return group.Exec(ctx, os.Args[2], os.Args[3], dfv1.GroupFormat(os.Args[4]))
 		case "init":
 			return _init.Exec()
-		case "kill":
-			return kill.Exec()
 		case "map":
 			return _map.Exec(ctx, os.Args[2])
 		case "sidecar":

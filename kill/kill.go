@@ -1,20 +1,22 @@
-package kill
+package main
 
 import (
 	"os"
 	"syscall"
-
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-var logger = zap.New()
+func main() {
+	if err := mainE(); err != nil {
+		panic(err)
+	}
+}
 
-func Exec() error {
+func mainE() error {
 	p, err := os.FindProcess(1)
 	if err != nil {
 		return err
 	}
-	logger.Info("signaling pid 1 with SIGTERM")
+	println("signaling pid 1 with SIGTERM")
 	if err := p.Signal(syscall.SIGTERM); err != nil {
 		return err
 	}

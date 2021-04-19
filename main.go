@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -70,24 +71,27 @@ func main() {
 	}
 
 	k := kubernetes.NewForConfigOrDie(restConfig)
+	ck := containerkiller.New(k, restConfig)
 	if err = (&controllers.PipelineReconciler{
-		Client:     mgr.GetClient(),
-		Log:        ctrl.Log.WithName("controllers").WithName("Pipeline"),
-		Scheme:     mgr.GetScheme(),
-		RESTConfig: restConfig,
-		Kubernetes: k,
+		Client:          mgr.GetClient(),
+		Log:             ctrl.Log.WithName("controllers").WithName("Pipeline"),
+		Scheme:          mgr.GetScheme(),
+		RESTConfig:      restConfig,
+		Kubernetes:      k,
+		ContainerKiller: ck,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
 
 	if err = (&controllers.StepReconciler{
-		Client:     mgr.GetClient(),
-		Log:        ctrl.Log.WithName("controllers").WithName("Step"),
-		Scheme:     mgr.GetScheme(),
-		Recorder:   mgr.GetEventRecorderFor("step-reconciler"),
-		RESTConfig: restConfig,
-		Kubernetes: k,
+		Client:          mgr.GetClient(),
+		Log:             ctrl.Log.WithName("controllers").WithName("Step"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("step-reconciler"),
+		RESTConfig:      restConfig,
+		Kubernetes:      k,
+		ContainerKiller: ck,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Step")
 		os.Exit(1)
