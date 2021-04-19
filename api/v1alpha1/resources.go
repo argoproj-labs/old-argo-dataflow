@@ -9,11 +9,11 @@ var (
 	SmallResourceRequirements = corev1.ResourceRequirements{
 		Limits: corev1.ResourceList{
 			"cpu":    resource.MustParse("50m"),
-			"memory": resource.MustParse("32Mi"),
+			"memory": resource.MustParse("256Mi"),
 		},
 		Requests: corev1.ResourceList{
 			"cpu":    resource.MustParse("50m"),
-			"memory": resource.MustParse("32Mi"),
+			"memory": resource.MustParse("64Mi"),
 		},
 	}
 	LargeResourceRequirements = corev1.ResourceRequirements{

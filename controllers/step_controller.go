@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
-	"os"
 	"strconv"
 	"time"
 
@@ -40,19 +39,6 @@ import (
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
-
-var updateInterval = 15 * time.Second
-
-func init() {
-	if v, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
-		if v, err := time.ParseDuration(v); err != nil {
-			panic(err)
-		} else {
-			updateInterval = v
-		}
-	}
-	logger.Info("config", "updateInterval", updateInterval.String())
-}
 
 // StepReconciler reconciles a Step object
 type StepReconciler struct {
@@ -97,75 +83,77 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	hash := util.MustHash(step.Spec)
 
-	for replica := 0; replica < targetReplicas; replica++ {
-		podName := fmt.Sprintf("%s-%d", step.Name, replica)
-		log.Info("applying pod", "podName", podName)
-		envVars := []corev1.EnvVar{
-			{Name: dfv1.EnvPipelineName, Value: pipelineName},
-			{Name: dfv1.EnvNamespace, Value: step.Namespace},
-			{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
-			{Name: dfv1.EnvStepSpec, Value: util.MustJSON(step.Spec)},
-			{Name: dfv1.EnvUpdateInterval, Value: updateInterval.String()},
-		}
-		volume := corev1.Volume{
-			Name:         "var-run-argo-dataflow",
-			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
-		}
-		volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: dfv1.PathVarRun}}
-		if err := r.Client.Create(
-			ctx,
-			&corev1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: step.Namespace,
-					Name:      podName,
-					Labels: map[string]string{
-						dfv1.KeyStepName:     step.Spec.Name,
-						dfv1.KeyPipelineName: pipelineName,
-					},
-					Annotations: map[string]string{
-						dfv1.KeyReplica:          strconv.Itoa(replica),
-						dfv1.KeyHash:             hash,
-						dfv1.KeyDefaultContainer: dfv1.CtrMain,
-					},
-					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
-					},
-				},
-				Spec: corev1.PodSpec{
-					RestartPolicy: step.Spec.RestartPolicy,
-					Volumes:       append(step.Spec.Volumes, volume),
-					SecurityContext: &corev1.PodSecurityContext{
-						RunAsNonRoot: pointer.BoolPtr(true),
-						RunAsUser:    pointer.Int64Ptr(9653),
-					},
-					ServiceAccountName: step.Spec.ServiceAccountName,
-					InitContainers: []corev1.Container{
-						{
-							Name:            dfv1.CtrInit,
-							Image:           runnerImage,
-							ImagePullPolicy: pullPolicy,
-							Args:            []string{"init"},
-							Env:             envVars,
-							VolumeMounts:    volumeMounts,
-							Resources:       dfv1.SmallResourceRequirements,
+	if step.Status == nil || !step.Status.Phase.Completed() { // once a step is completed, we do not schedule or create pods
+		for replica := 0; replica < targetReplicas; replica++ {
+			podName := fmt.Sprintf("%s-%d", step.Name, replica)
+			log.Info("applying pod", "podName", podName)
+			envVars := []corev1.EnvVar{
+				{Name: dfv1.EnvPipelineName, Value: pipelineName},
+				{Name: dfv1.EnvNamespace, Value: step.Namespace},
+				{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
+				{Name: dfv1.EnvStepSpec, Value: util.MustJSON(step.Spec)},
+				{Name: dfv1.EnvUpdateInterval, Value: updateInterval.String()},
+			}
+			volume := corev1.Volume{
+				Name:         "var-run-argo-dataflow",
+				VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+			}
+			volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: dfv1.PathVarRun}}
+			if err := r.Client.Create(
+				ctx,
+				&corev1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: step.Namespace,
+						Name:      podName,
+						Labels: map[string]string{
+							dfv1.KeyStepName:     step.Spec.Name,
+							dfv1.KeyPipelineName: pipelineName,
+						},
+						Annotations: map[string]string{
+							dfv1.KeyReplica:          strconv.Itoa(replica),
+							dfv1.KeyHash:             hash,
+							dfv1.KeyDefaultContainer: dfv1.CtrMain,
+						},
+						OwnerReferences: []metav1.OwnerReference{
+							*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 						},
 					},
-					Containers: []corev1.Container{
-						{
-							Name:            dfv1.CtrSidecar,
-							Image:           runnerImage,
-							ImagePullPolicy: pullPolicy,
-							Args:            []string{"sidecar"},
-							Env:             envVars,
-							VolumeMounts:    volumeMounts,
-							Resources:       dfv1.SmallResourceRequirements,
+					Spec: corev1.PodSpec{
+						RestartPolicy: step.Spec.RestartPolicy,
+						Volumes:       append(step.Spec.Volumes, volume),
+						SecurityContext: &corev1.PodSecurityContext{
+							RunAsNonRoot: pointer.BoolPtr(true),
+							RunAsUser:    pointer.Int64Ptr(9653),
 						},
-						container,
+						ServiceAccountName: step.Spec.ServiceAccountName,
+						InitContainers: []corev1.Container{
+							{
+								Name:            dfv1.CtrInit,
+								Image:           runnerImage,
+								ImagePullPolicy: pullPolicy,
+								Args:            []string{"init"},
+								Env:             envVars,
+								VolumeMounts:    volumeMounts,
+								Resources:       dfv1.SmallResourceRequirements,
+							},
+						},
+						Containers: []corev1.Container{
+							{
+								Name:            dfv1.CtrSidecar,
+								Image:           runnerImage,
+								ImagePullPolicy: pullPolicy,
+								Args:            []string{"sidecar"},
+								Env:             envVars,
+								VolumeMounts:    volumeMounts,
+								Resources:       dfv1.SmallResourceRequirements,
+							},
+							container,
+						},
 					},
 				},
-			},
-		); dfv1.IgnoreAlreadyExists(err) != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to create pod %s: %w", podName, err)
+			); dfv1.IgnoreAlreadyExists(err) != nil {
+				return ctrl.Result{}, fmt.Errorf("failed to create pod %s: %w", podName, err)
+			}
 		}
 	}
 

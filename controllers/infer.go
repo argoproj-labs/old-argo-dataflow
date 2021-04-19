@@ -6,39 +6,22 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-type Reason = string
-
-const (
-	// Waiting
-	ContainerCreating          Reason = "ContainerCreating"
-	CrashLoopBackOff           Reason = "CrashLoopBackOff"
-	CreateContainerConfigError Reason = "CreateContainerConfigError"
-	CreateContainerError       Reason = "CreateContainerError"
-	ErrImagePull               Reason = "ErrImagePull"
-	ImagePullBackOff           Reason = "ImagePullBackOff"
-	InvalidImageName           Reason = "InvalidImageName"
-	// Terminated
-	Completed          Reason = "Completed"
-	ContainerCannotRun Reason = "ContainerCannotRun"
-	DeadlineExceeded   Reason = "DeadlineExceeded"
-	Error              Reason = "Error"
-	OOMKilled          Reason = "OOMKilled"
-)
-
 var (
-	ErrorReasons = map[Reason]bool{
-		ContainerCreating:          false,
-		CrashLoopBackOff:           true,
-		CreateContainerConfigError: true,
-		ErrImagePull:               true,
-		ImagePullBackOff:           true,
-		InvalidImageName:           true,
-		CreateContainerError:       true,
-		OOMKilled:                  true,
-		Error:                      true,
-		Completed:                  false,
-		ContainerCannotRun:         true,
-		DeadlineExceeded:           true,
+	ErrorReasons = map[string]bool{
+		// Waiting
+		"ContainerCreating":          false,
+		"CrashLoopBackOff":           true,
+		"CreateContainerConfigError": true,
+		"CreateContainerError":       true,
+		"ErrImagePull":               true,
+		"ImagePullBackOff":           true,
+		"InvalidImageName":           true,
+		// Terminated
+		"Completed":          false,
+		"ContainerCannotRun": true,
+		"DeadlineExceeded":   true,
+		"Error":              true,
+		"OOMKilled":          true,
 	}
 )
 

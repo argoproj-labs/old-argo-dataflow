@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"os"
 	"time"
 
@@ -14,6 +15,7 @@ var (
 	imageFormat    = os.Getenv("IMAGE_FORMAT")
 	runnerImage    = ""
 	pullPolicy     = corev1.PullPolicy(os.Getenv("PULL_POLICY"))
+	updateInterval = 15 * time.Second
 	uninstallAfter = 5 * time.Minute
 	installer      = os.Getenv("INSTALLER") == "true"
 )
@@ -30,5 +32,18 @@ func init() {
 			uninstallAfter = v
 		}
 	}
-	logger.Info("config", "imageFormat", imageFormat, "runnerImage", runnerImage, "pullPolicy", pullPolicy, "uninstallAfter", uninstallAfter.String(), "installer", installer)
+	if v, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
+		if v, err := time.ParseDuration(v); err != nil {
+			panic(err)
+		} else {
+			updateInterval = v
+		}
+	}
+	logger.Info("config",
+		"imageFormat", imageFormat,
+		"runnerImage", runnerImage,
+		"pullPolicy", pullPolicy,
+		"installer", installer,
+		"uninstallAfter", uninstallAfter.String(),
+		"updateInterval", updateInterval.String())
 }
