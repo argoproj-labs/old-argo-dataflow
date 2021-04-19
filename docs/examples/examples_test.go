@@ -40,7 +40,7 @@ func Test(t *testing.T) {
 			pipelines := dynamicInterface.Resource(dfv1.PipelineGroupVersionResource).Namespace(namespace)
 			assert.NoError(t, pipelines.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{}))
 			condition := "SunkMessages"
-			timeout := time.Minute // typically actually about 30s
+			timeout := 3 * time.Minute // typically actually about 30s
 			pipelineName := pipeline.GetName()
 			if v := pipeline.GetAnnotations()["dataflow.argoproj.io/wait-for"]; v != "" {
 				condition = v
