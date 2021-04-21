@@ -20,4 +20,5 @@ spec:
             go run -v . -topic output-topic create-topic
             # change sleep to 10ms to flood the topic
             go run -v . -topic input-topic -sleep 2s pump-topic
+            sleep 5s
           done

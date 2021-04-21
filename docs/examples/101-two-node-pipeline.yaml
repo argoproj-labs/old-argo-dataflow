@@ -12,10 +12,7 @@ metadata:
   name: two-node
 spec:
   steps:
-  - container:
-      args:
-      - cat
-      image: quay.io/argoproj/dataflow-runner:latest
+  - cat: {}
     name: a
     sinks:
     - stan:
@@ -23,10 +20,7 @@ spec:
     sources:
     - kafka:
         topic: input-topic
-  - container:
-      args:
-      - cat
-      image: quay.io/argoproj/dataflow-runner:latest
+  - cat: {}
     name: b
     sinks:
     - kafka:

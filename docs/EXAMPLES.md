@@ -1,19 +1,14 @@
 ### Examples
 
-### [Using HTTP for input and output](examples/101-http-pipeline.yaml)
+### [Hello](examples/101-hello-pipeline.yaml)
 
-This is an example of send and receive messages using HTTP.
+This is the hello world of pipelines.
 
-To receive a message, you must expose a HTTP endpoint on http://localhost:8080/messages. Each message will
-be passed as the body of a single HTTP POST request.
-
-To send a message, send a HTTP post to http://localhost:3569/messages.
-
-The image `argoproj/dataflow-runner` has a convenience `cat` sub-command that just copies the input to the output.
+It uses a cron schedule as a source and then just cat the message to a log
 
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-http-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-hello-pipeline.yaml
 ```
 
 ### [Two nodes pipeline](examples/101-two-node-pipeline.yaml)

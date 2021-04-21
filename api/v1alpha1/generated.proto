@@ -25,6 +25,9 @@ import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 // Package-wide variables from generator "generated".
 option go_package = "v1alpha1";
 
+message Cat {
+}
+
 message Container {
   optional string image = 1;
 
@@ -37,6 +40,10 @@ message Container {
   repeated string args = 7;
 
   repeated k8s.io.api.core.v1.EnvVar env = 8;
+}
+
+message Cron {
+  optional string schedule = 1;
 }
 
 message Git {
@@ -198,9 +205,11 @@ message Source {
   // +kubebuilder:default=default
   optional string name = 1;
 
-  optional STAN stan = 2;
+  optional Cron cron = 2;
 
-  optional Kafka kafka = 3;
+  optional STAN stan = 3;
+
+  optional Kafka kafka = 4;
 }
 
 message SourceStatus {
@@ -233,6 +242,8 @@ message StepList {
 message StepSpec {
   // +kubebuilder:default=default
   optional string name = 6;
+
+  optional Cat cat = 15;
 
   optional Container container = 1;
 

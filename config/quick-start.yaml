@@ -47,6 +47,8 @@ spec:
               steps:
                 items:
                   properties:
+                    cat:
+                      type: object
                     container:
                       properties:
                         args:
@@ -394,6 +396,13 @@ spec:
                     sources:
                       items:
                         properties:
+                          cron:
+                            properties:
+                              schedule:
+                                type: string
+                            required:
+                            - schedule
+                            type: object
                           kafka:
                             properties:
                               brokers:
@@ -1462,6 +1471,8 @@ spec:
             type: object
           spec:
             properties:
+              cat:
+                type: object
               container:
                 properties:
                   args:
@@ -1809,6 +1820,13 @@ spec:
               sources:
                 items:
                   properties:
+                    cron:
+                      properties:
+                        schedule:
+                          type: string
+                      required:
+                      - schedule
+                      type: object
                     kafka:
                       properties:
                         brokers:
@@ -3388,6 +3406,7 @@ spec:
         go run -v . -topic output-topic create-topic
         # change sleep to 10ms to flood the topic
         go run -v . -topic input-topic -sleep 2s pump-topic
+        sleep 5s
       done
     command:
     - sh

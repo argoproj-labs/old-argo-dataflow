@@ -1,0 +1,20 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This is the hello world of pipelines.
+
+      It uses a cron schedule as a source and then just cat the message to a log
+    dataflow.argoproj.io/name: Hello
+  creationTimestamp: null
+  name: hello
+spec:
+  steps:
+  - cat: {}
+    name: main
+    sinks:
+    - log: {}
+    sources:
+    - cron:
+        schedule: '*/3 * * * * *'

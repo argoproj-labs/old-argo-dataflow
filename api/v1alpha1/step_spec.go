@@ -5,6 +5,7 @@ import corev1 "k8s.io/api/core/v1"
 type StepSpec struct {
 	// +kubebuilder:default=default
 	Name      string     `json:"name" protobuf:"bytes,6,opt,name=name"`
+	Cat       *Cat       `json:"cat,omitempty" protobuf:"bytes,15,opt,name=cat"`
 	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`
 	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
 	Git       *Git       `json:"git,omitempty" protobuf:"bytes,12,opt,name=git"`
@@ -52,7 +53,9 @@ func (in *StepSpec) GetContainer(imageFormat, runnerImage string, policy corev1.
 }
 
 func (in *StepSpec) getType() containerSupplier {
-	if x := in.Container; x != nil {
+	if x := in.Cat; x != nil {
+		return x
+	} else if x := in.Container; x != nil {
 		return x
 	} else if x := in.Filter; x != "" {
 		return x

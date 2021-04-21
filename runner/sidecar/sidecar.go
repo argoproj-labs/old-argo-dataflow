@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/robfig/cron/v3"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -226,8 +227,32 @@ func enrichSpec(ctx context.Context) error {
 }
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
+	x := cron.New(
+		cron.WithParser(cron.NewParser(cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
+		cron.WithChain(cron.Recover(logger)),
+	)
+	go x.Run()
+	closers = append(closers, func() error {
+		_ = x.Stop()
+		return nil
+	})
 	for i, source := range spec.Sources {
-		if s := source.STAN; s != nil {
+		if c := source.Cron; c != nil {
+			_, err := x.AddFunc(c.Schedule, func() {
+				data := []byte(time.Now().String())
+				debug.Info("◷ cron →", "m", short(data))
+				sourceStatues.Set(source.Name, replica, short(data))
+				if err := toMain(data); err != nil {
+					logger.Error(err, "⚠ cron →")
+					sourceStatues.IncErrors(source.Name, replica)
+				} else {
+					debug.Info("✔ cron → ", "schedule", c.Schedule)
+				}
+			})
+			if err != nil {
+				return fmt.Errorf("failed to schedule cron %q: %w", c.Schedule, err)
+			}
+		} else if s := source.STAN; s != nil {
 			clientID := fmt.Sprintf("%s-%s-%d-source-%d", pipelineName, spec.Name, replica, i)
 			logger.Info("connecting to source", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", clientID, "subject", s.Subject)
 			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))

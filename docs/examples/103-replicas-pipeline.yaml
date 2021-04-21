@@ -37,10 +37,7 @@ metadata:
   name: replicas
 spec:
   steps:
-  - container:
-      args:
-      - cat
-      image: quay.io/argoproj/dataflow-runner:latest
+  - cat: {}
     name: main
     replicas:
       max: 4

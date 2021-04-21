@@ -46,6 +46,8 @@ spec:
               steps:
                 items:
                   properties:
+                    cat:
+                      type: object
                     container:
                       properties:
                         args:
@@ -479,6 +481,13 @@ spec:
                     sources:
                       items:
                         properties:
+                          cron:
+                            properties:
+                              schedule:
+                                type: string
+                            required:
+                            - schedule
+                            type: object
                           kafka:
                             properties:
                               brokers:
