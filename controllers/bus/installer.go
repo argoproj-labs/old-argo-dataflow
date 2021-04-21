@@ -47,7 +47,7 @@ func init() {
 		panic(fmt.Errorf("failed to unmarshall %q: %w", v, err))
 	}
 
-	logger.Info("images", "images", images)
+	logger.Info("installer config", "images", images)
 }
 
 func imageName(x string) (string, error) {
