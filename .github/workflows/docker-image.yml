@@ -21,5 +21,5 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
-      - run: docker build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:latest
+      - run: docker buildx  build  . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:latest
       - run: docker push quay.io/argoproj/dataflow-${{matrix.target}}:latest
