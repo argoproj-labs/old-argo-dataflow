@@ -223,7 +223,7 @@ spec:
       initContainers:
       - args:
         - sleep
-        - 10s
+        - 20s
         image: quay.io/argoproj/dataflow-runner:latest
         imagePullPolicy: IfNotPresent
         name: wait

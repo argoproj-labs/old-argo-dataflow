@@ -3,8 +3,10 @@ package bus
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	appsv1 "k8s.io/api/apps/v1"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +27,48 @@ var (
 	logger           = zap.New()
 	restConfig       = ctrl.GetConfigOrDie()
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
+	images           = make(map[string]string)
 )
+
+func init() {
+	v := os.Getenv("INSTALL_IMAGES")
+	if v == "" {
+		v = `
+{
+  "nats-streaming": "docker.io/nats-streaming",
+  "nats": "docker.io/nats",
+  "quay.io/argoproj/dataflow-runner:latest": "quay.io/argoproj/dataflow-runner:latest",
+  "solsson/kafka-initutils": "docker.io/solsson/kafka-initutils",
+  "solsson/kafka": "docker.io/solsson/kafka"
+}
+`
+	}
+	if err := json.Unmarshal([]byte(v), &images); err != nil {
+		panic(fmt.Errorf("failed to unmarshall %q: %w", v, err))
+	}
+
+	logger.Info("images", "images", images)
+}
+
+func imageName(x string) (string, error) {
+	parts := strings.SplitN(x, ":", 2)
+	if len(parts) != 2 {
+		return "", fmt.Errorf("expected format image:name, got %q", x)
+	}
+	name := parts[0]
+	tag := parts[1]
+	if y, ok := images[name]; ok {
+		parts := strings.SplitN(y, ":", 2)
+		newName := parts[0]
+		newTag := tag
+		if len(parts) == 2 {
+			newTag = parts[1]
+		}
+		return newName + ":" + newTag, nil
+	} else {
+		return x, nil
+	}
+}
 
 func Install(ctx context.Context, name, namespace string) error {
 	filename := filepath.Join("config", name+".yaml")
@@ -80,6 +123,24 @@ func apply(ctx context.Context, namespace string, item *unstructured.Unstructure
 		}
 		for _, s := range x.Subjects {
 			s.Namespace = namespace
+		}
+		if v, err := runtime.DefaultUnstructuredConverter.ToUnstructured(x); err != nil {
+			return fmt.Errorf("failed to convert to unstructured: %w", err)
+		} else {
+			item.Object = v
+		}
+	case "StatefulSet":
+		x := &appsv1.StatefulSet{}
+		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(item.Object, x); err != nil {
+			return fmt.Errorf("failed to convert from unstructured: %w", err)
+		}
+		for i, c := range x.Spec.Template.Spec.Containers {
+			if v, err := imageName(c.Image); err != nil {
+				return err
+			} else {
+				c.Image = v
+			}
+			x.Spec.Template.Spec.Containers[i] = c
 		}
 		if v, err := runtime.DefaultUnstructuredConverter.ToUnstructured(x); err != nil {
 			return fmt.Errorf("failed to convert to unstructured: %w", err)
