@@ -25,7 +25,7 @@ test:
 
 pre-commit: codegen test install lint
 
-codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/quick-start.yaml docs/EXAMPLES.md
+codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml docs/EXAMPLES.md
 	go generate ./...
 
 $(GOBIN)/goreman:
@@ -50,8 +50,12 @@ uninstall:
 
 images: controller runner runtimes
 
+config/ci.yaml:
+config/default.yaml:
 config/dev.yaml:
+config/kafka-default.yaml:
 config/quick-start.yaml:
+config/stan-default.yaml:
 config/%.yaml: /dev/null
 	kustomize build --load_restrictor=none config/$* -o $@
 

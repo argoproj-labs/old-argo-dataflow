@@ -2,9 +2,9 @@ package bus
 
 import (
 	"context"
-	"embed"
 	_ "embed"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,12 +21,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-//go:generate kustomize build --load_restrictor=none ../../config/kafka -o manifests/kafka-default.yaml
-//go:generate kustomize build --load_restrictor=none ../../config/stan -o manifests/stan-default.yaml
-
-//go:embed manifests
-var manifests embed.FS
-
 var (
 	logger           = zap.New()
 	restConfig       = ctrl.GetConfigOrDie()
@@ -34,13 +28,13 @@ var (
 )
 
 func Install(ctx context.Context, name, namespace string) error {
-	v, err := readManifests(name)
-	if err != nil {
-		panic(err.Error())
-	}
+	filename := filepath.Join("config", name+".yaml")
+	v, err := ioutil.ReadFile(filename)
 	if os.IsNotExist(err) {
 		logger.Info("bus not found", "name", name)
 		return nil
+	} else if err != nil {
+		return fmt.Errorf("failed to read file %s: %w", filename, err)
 	}
 	logger.Info("installing", "name", name, "namespace", namespace)
 	list, err := util.SplitYAML(v)
@@ -53,10 +47,6 @@ func Install(ctx context.Context, name, namespace string) error {
 		}
 	}
 	return nil
-}
-
-func readManifests(name string) ([]byte, error) {
-	return manifests.ReadFile(filepath.Join("manifests", name+".yaml"))
 }
 
 func apply(ctx context.Context, namespace string, item *unstructured.Unstructured) error {
@@ -135,9 +125,12 @@ func resourceInterface(item *unstructured.Unstructured, namespace string) dynami
 }
 
 func Uninstall(ctx context.Context, name, namespace string) error {
-	v, err := readManifests(name)
+	filename := filepath.Join("config", name+".yaml")
+	v, err := ioutil.ReadFile(filename)
 	if os.IsNotExist(err) {
 		return nil
+	} else if err != nil {
+		return fmt.Errorf("failed to read file %s: %w", filename, err)
 	}
 	logger.Info("un-installing", "name", name, "namespace", namespace)
 	list, err := util.SplitYAML(v)

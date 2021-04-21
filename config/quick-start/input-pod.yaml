@@ -12,13 +12,11 @@ spec:
       args:
         - |
           set -x
-          git clone --depth 1 --single-branch https://github.com/argoproj-labs/argo-dataflow
-          cd argo-dataflow/hack/kafka
-          [ -e go.mod ] || go mod init github.com/argoproj-labs/argo-dataflow/hack/kafka
+          go install github.com/argoproj-labs/argo-dataflow/hack/kafka@main
           while true; do
-            go run -v . -topic input-topic create-topic
-            go run -v . -topic output-topic create-topic
+            kafka -topic input-topic create-topic
+            kafka -topic output-topic create-topic
             # change sleep to 10ms to flood the topic
-            go run -v . -topic input-topic -sleep 2s pump-topic
+            kafka -topic input-topic -sleep 2s pump-topic
             sleep 5s
           done
