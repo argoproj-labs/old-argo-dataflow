@@ -37,7 +37,7 @@ func init() {
 {
   "nats-streaming": "docker.io/nats-streaming",
   "nats": "docker.io/nats",
-  "quay.io/argoproj/dataflow-runner:latest": "quay.io/argoproj/dataflow-runner:latest",
+  "quay.io/argoproj/dataflow-runner": "quay.io/argoproj/dataflow-runner",
   "solsson/kafka-initutils": "docker.io/solsson/kafka-initutils",
   "solsson/kafka": "docker.io/solsson/kafka"
 }
