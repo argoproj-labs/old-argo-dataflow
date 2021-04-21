@@ -238,6 +238,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 	})
 	for i, source := range spec.Sources {
 		if c := source.Cron; c != nil {
+			logger.Info("connecting to source", "type", "cron", "schedule", c.Schedule)
 			_, err := x.AddFunc(c.Schedule, func() {
 				data := []byte(time.Now().String())
 				debug.Info("◷ cron →", "m", short(data))

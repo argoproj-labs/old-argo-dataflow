@@ -72,6 +72,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if installer && pipeline.Status == nil {
+		r.Log.Info("first reconciliation, installing requisite buses")
 		for _, step := range pipeline.Spec.Steps {
 			for _, x := range step.Sources {
 				if y := x.Kafka; y != nil {

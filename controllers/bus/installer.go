@@ -39,6 +39,7 @@ func Install(ctx context.Context, name, namespace string) error {
 		panic(err.Error())
 	}
 	if os.IsNotExist(err) {
+		logger.Info("bus not found", "name", name)
 		return nil
 	}
 	logger.Info("installing", "name", name, "namespace", namespace)
