@@ -1,5 +1,3 @@
-// +build controller_tests
-
 package controllers
 
 import (

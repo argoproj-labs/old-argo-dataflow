@@ -20,6 +20,7 @@ jobs:
 
       - run: go mod tidy
       - run: make kubebuilder name=linux
+      - run: go test -v ./controllers/...
       - run: make test
       - run: bash <(curl -s https://codecov.io/bash)
       - run: git diff --exit-code
