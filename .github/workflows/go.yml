@@ -18,7 +18,8 @@ jobs:
         with:
           go-version: 1.16
 
-      - run: go mod tidy
+      - run: go version
+      - run: go env
       - run: make kubebuilder name=linux
       - run: go mod download
       - run: go build ./...
