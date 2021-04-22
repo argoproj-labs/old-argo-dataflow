@@ -44,7 +44,6 @@ func init() {
 `
 	}
 	if err := json.Unmarshal([]byte(v), &images); err != nil {
-		logger.Error(err, "failed to unmarshall", "v", v)
 		panic(fmt.Errorf("failed to unmarshall %q: %w", v, err))
 	}
 

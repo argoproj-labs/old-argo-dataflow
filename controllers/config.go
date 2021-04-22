@@ -26,7 +26,6 @@ func init() {
 	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
 	if text, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
 		if v, err := time.ParseDuration(text); err != nil {
-			logger.Error(err, "failed to parse duration", "text", text)
 			panic(fmt.Errorf("failed to parse duration %q: %w", text, err))
 		} else {
 			updateInterval = v
