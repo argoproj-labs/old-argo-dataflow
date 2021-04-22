@@ -20,6 +20,8 @@ jobs:
 
       - run: go mod tidy
       - run: make kubebuilder name=linux
+      - run: go mod download
+      - run: go build ./...
       - run: go run -x ./main.go
       - run: make test
       - run: bash <(curl -s https://codecov.io/bash)
