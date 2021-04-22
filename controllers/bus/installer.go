@@ -3,7 +3,6 @@ package bus
 import (
 	"context"
 	_ "embed"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
@@ -29,26 +28,6 @@ var (
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	images           = make(map[string]string)
 )
-
-func init() {
-	v := os.Getenv("INSTALL_IMAGES")
-	if v == "" {
-		v = `
-{
-  "nats-streaming": "docker.io/nats-streaming",
-  "nats": "docker.io/nats",
-  "quay.io/argoproj/dataflow-runner": "quay.io/argoproj/dataflow-runner",
-  "solsson/kafka-initutils": "docker.io/solsson/kafka-initutils",
-  "solsson/kafka": "docker.io/solsson/kafka"
-}
-`
-	}
-	if err := json.Unmarshal([]byte(v), &images); err != nil {
-		panic(fmt.Errorf("failed to unmarshall %q: %w", v, err))
-	}
-
-	logger.Info("installer config", "images", images)
-}
 
 func imageName(x string) (string, error) {
 	parts := strings.SplitN(x, ":", 2)
