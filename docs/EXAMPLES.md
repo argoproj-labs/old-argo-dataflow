@@ -140,7 +140,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 This example shows a pipelne running to completion.
 
-A pipeline that run to completion (aka "terimanting") is one that will finish.
+A pipeline that run to completion (aka "termianting") is one that will finish.
 
 For a pipeline to terminate one of two things must happen:
 

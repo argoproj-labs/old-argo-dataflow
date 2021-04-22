@@ -44,16 +44,16 @@ spec:
       in:
         fifo: true
     name: split-lines
+    replicas:
+      max: 1
+      min: 0
+      ratio: 1
     sinks:
     - stan:
         subject: words
     sources:
     - stan:
         subject: lines
-    replicas:
-      min: 0
-      max: 1
-      ratio: 1
   - container:
       args:
       - bash
