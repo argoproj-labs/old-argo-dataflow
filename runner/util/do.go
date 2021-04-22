@@ -31,7 +31,7 @@ func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 			return
 		}
 		for _, out := range msgs {
-			resp, err := http.Post("http://localhost:3569/messages", "application/json", bytes.NewBuffer(out))
+			resp, err := http.Post("http://localhost:3569/messages", "application/octet-stream", bytes.NewBuffer(out))
 			if err != nil {
 				logger.Error(err, "failed to post message")
 				w.WriteHeader(500)

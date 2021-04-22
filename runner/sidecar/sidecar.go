@@ -405,7 +405,7 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 		}
 		return func(data []byte) error {
 			trace.Info("◷ source → http")
-			resp, err := http.Post("http://localhost:8080/messages", "application/json", bytes.NewBuffer(data))
+			resp, err := http.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data))
 			if err != nil {
 				return fmt.Errorf("failed to sent message from source to main via HTTP: %w", err)
 			}

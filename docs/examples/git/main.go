@@ -24,7 +24,7 @@ func main() {
 			return
 		}
 		for _, msg := range msgs {
-			resp, err := http.Post("http://localhost:3569/messages", "application/json", bytes.NewBuffer(msg))
+			resp, err := http.Post("http://localhost:3569/messages", "application/octet-stream", bytes.NewBuffer(msg))
 			if err != nil {
 				println(err, "failed to post message")
 				w.WriteHeader(500)
