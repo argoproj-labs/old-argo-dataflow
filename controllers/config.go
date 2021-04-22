@@ -16,7 +16,6 @@ var (
 	runnerImage    = ""
 	pullPolicy     = corev1.PullPolicy(os.Getenv("PULL_POLICY"))
 	updateInterval = 15 * time.Second
-	uninstallAfter = 5 * time.Minute
 	installer      = os.Getenv("INSTALLER") == "true"
 )
 
@@ -25,13 +24,6 @@ func init() {
 		imageFormat = "quay.io/argoproj/%s:latest"
 	}
 	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
-	if v, ok := os.LookupEnv("UNINSTALL_AFTER"); ok {
-		if v, err := time.ParseDuration(v); err != nil {
-			panic(err)
-		} else {
-			uninstallAfter = v
-		}
-	}
 	if v, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
 		if v, err := time.ParseDuration(v); err != nil {
 			panic(err)
@@ -44,6 +36,5 @@ func init() {
 		"runnerImage", runnerImage,
 		"pullPolicy", pullPolicy,
 		"installer", installer,
-		"uninstallAfter", uninstallAfter.String(),
 		"updateInterval", updateInterval.String())
 }
