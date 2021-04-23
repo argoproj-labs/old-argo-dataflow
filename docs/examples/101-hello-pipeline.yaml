@@ -7,6 +7,7 @@ metadata:
 
       It uses a cron schedule as a source and then just cat the message to a log
     dataflow.argoproj.io/name: Hello
+    dataflow.argoproj.io/test: "true"
   creationTimestamp: null
   name: hello
 spec:

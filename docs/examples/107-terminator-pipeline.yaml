@@ -6,7 +6,6 @@ metadata:
       This example demostrates having a terminator step, and then terminating other steps
       using different terminations strategies.
     dataflow.argoproj.io/name: Terminator
-    dataflow.argoproj.io/test: "true"
     dataflow.argoproj.io/wait-for: Completed
   creationTimestamp: null
   name: terminator

@@ -7,7 +7,6 @@ metadata:
 
       While they read from Kafka, they are connected by a NATS Streaming subject.
     dataflow.argoproj.io/name: Two nodes pipeline
-    dataflow.argoproj.io/test: "true"
   creationTimestamp: null
   name: two-node
 spec:
