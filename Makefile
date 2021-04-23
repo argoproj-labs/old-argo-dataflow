@@ -138,11 +138,6 @@ else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
-$(GOBIN)/kafka-console-consumer:
-	go install github.com/Shopify/sarama/tools/kafka-console-consumer
-$(GOBIN)/kafka-console-producer:
-	go install github.com/Shopify/sarama/tools/kafka-console-producer
-
 version:=2.3.2
 name:=darwin
 arch:=amd64
