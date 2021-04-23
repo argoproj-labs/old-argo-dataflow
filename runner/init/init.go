@@ -8,10 +8,6 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/argoproj-labs/argo-dataflow/runner/util"
-
-	"github.com/argoproj-labs/argo-dataflow/runner/util"
-
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"k8s.io/utils/strings"
