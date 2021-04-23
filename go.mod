@@ -19,8 +19,6 @@ require (
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/nats-io/nats-streaming-server v0.21.1 // indirect
 	github.com/nats-io/stan.go v0.8.3
-	github.com/onsi/ginkgo v1.14.1
-	github.com/onsi/gomega v1.10.2
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
