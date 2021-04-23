@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -28,7 +27,6 @@ import (
 
 	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
 )
 
 // PipelineReconciler reconciles a Pipeline object
@@ -61,23 +59,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if pipeline.GetDeletionTimestamp() != nil {
 		return ctrl.Result{}, nil
-	}
-
-	if installer && pipeline.Status == nil {
-		r.Log.Info("first reconciliation, installing requisite buses")
-		for _, step := range pipeline.Spec.Steps {
-			for _, x := range step.Sources {
-				if y := x.Kafka; y != nil {
-					if err := bus.Install(ctx, "kafka-"+y.Name, req.Namespace); err != nil {
-						return ctrl.Result{}, fmt.Errorf("failed to install kafka: %w", err)
-					}
-				} else if y := x.STAN; y != nil {
-					if err := bus.Install(ctx, "stan-"+y.Name, req.Namespace); err != nil {
-						return ctrl.Result{}, fmt.Errorf("failed to install stan: %w", err)
-					}
-				}
-			}
-		}
 	}
 
 	return ctrl.Result{}, nil
