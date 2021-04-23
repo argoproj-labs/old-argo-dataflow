@@ -23,6 +23,7 @@ jobs:
       - run: make kubebuilder name=linux
       - run: go mod download
       - run: go test -v ./controllers/bus
+      - run: go test -v ./controllers/
       - run: go build -o bin/manager main.go
       - run: ./bin/manager
       - run: make test
