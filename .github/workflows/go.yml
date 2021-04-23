@@ -22,8 +22,8 @@ jobs:
       - run: go env
       - run: make kubebuilder name=linux
       - run: go mod download
-      - run: go build ./...
-      - run: go run -x ./main.go
+      - run: go build -o bin/manager main.go
+      - run: ./bin/manager
       - run: make test
       - run: bash <(curl -s https://codecov.io/bash)
       - run: git diff --exit-code
