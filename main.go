@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	"os"
 
@@ -66,8 +67,7 @@ func main() {
 		Namespace:          os.Getenv(dataflowv1alpha1.EnvNamespace),
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
-		os.Exit(1)
+		panic(fmt.Errorf("unable to start manager: %w", err))
 	}
 
 	k := kubernetes.NewForConfigOrDie(restConfig)
@@ -80,8 +80,7 @@ func main() {
 		Kubernetes:      k,
 		ContainerKiller: ck,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
-		os.Exit(1)
+		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
 
 	if err = (&controllers.StepReconciler{
@@ -93,14 +92,12 @@ func main() {
 		Kubernetes:      k,
 		ContainerKiller: ck,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Step")
-		os.Exit(1)
+		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
-		os.Exit(1)
+		panic(fmt.Errorf("problem running manager: %w", err))
 	}
 }
