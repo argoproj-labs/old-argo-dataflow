@@ -25,7 +25,6 @@ jobs:
       - run: go test -v ./controllers/
       - run: make test
       - run: bash <(curl -s https://codecov.io/bash)
-      - run: git diff --exit-code
 
   lint:
     runs-on: ubuntu-latest
