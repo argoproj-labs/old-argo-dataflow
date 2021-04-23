@@ -179,7 +179,7 @@ remove-%:
 
 .PHONY: test-examples
 test-examples:
-	go test -timeout 20m -v -tags examples ./docs/examples
+	go test -timeout 20m -v -tags examples -count 1 ./docs/examples
 
 argocli:
 	cd ../../argoproj/argo-workflows && git checkout dev-dataflow && make ./dist/argo DEV_BRANCH=true && ./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system
