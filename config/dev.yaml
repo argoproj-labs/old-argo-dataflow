@@ -2994,6 +2994,12 @@ rules:
   - create
   - delete
   - get
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - bind
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

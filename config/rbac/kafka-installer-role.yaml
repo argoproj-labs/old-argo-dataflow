@@ -39,3 +39,9 @@ rules:
       - create
       - delete
       - get
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - bind
