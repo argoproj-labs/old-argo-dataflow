@@ -2,7 +2,6 @@ package bus
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -43,10 +42,7 @@ func init() {
 }
 `
 	}
-	if err := json.Unmarshal([]byte(v), &images); err != nil {
-		panic(fmt.Errorf("failed to unmarshall %q: %w", v, err))
-	}
-
+	util.MustUnJSON(v, &images)
 	logger.Info("installer config", "images", images)
 }
 
