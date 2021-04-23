@@ -1,5 +1,7 @@
 package v1alpha1
 
+import "fmt"
+
 const (
 	// conditions
 	ConditionCompleted    = "Completed"    // the pipeline completed
@@ -29,6 +31,13 @@ const (
 	PathFIFOOut     = "/var/run/argo-dataflow/out"
 	PathGroups      = "/var/run/argo-dataflow/groups"
 	PathHandlerFile = "/var/run/argo-dataflow/handler"
+	PathKill        = "/var/run/argo-dataflow/kill"
 	PathWorkingDir  = "/var/run/argo-dataflow/wd"
 	PathVarRun      = "/var/run/argo-dataflow"
+)
+
+var (
+	KeyKillCmd = func(x string) string {
+		return fmt.Sprintf("dataflow.argoproj.io/kill-cmd.%s", x)
+	}
 )

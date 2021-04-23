@@ -2,21 +2,29 @@ package main
 
 import (
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"strconv"
 	"syscall"
 )
 
+var logger = zap.New()
+
 func main() {
-	if err := mainE(); err != nil {
+	pid, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
+	if err := mainE(pid); err != nil {
 		panic(err)
 	}
 }
 
-func mainE() error {
-	p, err := os.FindProcess(1)
+func mainE(pid int) error {
+	p, err := os.FindProcess(pid)
 	if err != nil {
 		return err
 	}
-	println("signaling pid 1 with SIGTERM")
+	logger.Info("signaling pid with SIGTERM", "pid", pid)
 	if err := p.Signal(syscall.SIGTERM); err != nil {
 		return err
 	}

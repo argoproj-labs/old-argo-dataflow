@@ -213,8 +213,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		for _, pod := range pods.Items {
 			for _, s := range pod.Status.ContainerStatuses {
-				if s.Name == dfv1.CtrMain && s.State.Running != nil {
-					if err := r.ContainerKiller.KillContainer(pod.Namespace, pod.Name, s.Name, s.Image); err != nil {
+				if s.Name == dfv1.CtrMain {
+					if err := r.ContainerKiller.KillContainer(pod, s.Name); err != nil {
 						log.Error(err, "failed to kill container", "pod", pod.Name, "container", s.Name)
 					}
 				}

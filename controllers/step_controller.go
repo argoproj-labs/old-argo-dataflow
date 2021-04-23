@@ -110,9 +110,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							dfv1.KeyPipelineName: pipelineName,
 						},
 						Annotations: map[string]string{
-							dfv1.KeyReplica:          strconv.Itoa(replica),
-							dfv1.KeyHash:             hash,
-							dfv1.KeyDefaultContainer: dfv1.CtrMain,
+							dfv1.KeyReplica:                  strconv.Itoa(replica),
+							dfv1.KeyHash:                     hash,
+							dfv1.KeyDefaultContainer:         dfv1.CtrMain,
+							dfv1.KeyKillCmd(dfv1.CtrMain):    util.MustJSON([]string{dfv1.PathKill, "1"}),
+							dfv1.KeyKillCmd(dfv1.CtrSidecar): util.MustJSON([]string{dfv1.PathKill, "1"}),
 						},
 						OwnerReferences: []metav1.OwnerReference{
 							*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
@@ -199,8 +201,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			}
 			if mainCtrTerminated {
 				for _, s := range pod.Status.ContainerStatuses {
-					if s.Name != dfv1.CtrMain && s.State.Running != nil {
-						if err := r.ContainerKiller.KillContainer(pod.Namespace, pod.Name, s.Name, s.Image); err != nil {
+					if s.Name != dfv1.CtrMain {
+						if err := r.ContainerKiller.KillContainer(pod, s.Name); err != nil {
 							return ctrl.Result{}, fmt.Errorf("failed to kill container %s/%s: %w", pod.Name, s.Name, err)
 						}
 					}
