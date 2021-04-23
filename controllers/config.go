@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"fmt"
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"os"
 	"time"
-
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var (
@@ -20,6 +20,7 @@ var (
 )
 
 func init() {
+	logger.Info("init config")
 	if imageFormat == "" {
 		imageFormat = "quay.io/argoproj/%s:latest"
 	}

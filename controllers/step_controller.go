@@ -19,11 +19,12 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	"strconv"
 	"time"
 
-	"github.com/argoproj-labs/argo-dataflow/api/util"
+	"strconv"
+	"time"
+
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,6 +38,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/argoproj-labs/argo-dataflow/api/util"
+	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 

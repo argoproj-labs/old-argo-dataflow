@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/antonmedv/expr"
+
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 )
 

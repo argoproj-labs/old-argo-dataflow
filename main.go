@@ -19,7 +19,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,9 +28,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/controllers"
-	// +kubebuilder:scaffold:imports
 )
 
 var (

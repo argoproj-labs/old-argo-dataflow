@@ -2,14 +2,18 @@ package containerkiller
 
 import (
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/api/util"
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"os"
+
+	"os"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	"github.com/argoproj-labs/argo-dataflow/api/util"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var logger = zap.New()

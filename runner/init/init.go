@@ -9,12 +9,16 @@ import (
 	"syscall"
 
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
+
+	"github.com/argoproj-labs/argo-dataflow/runner/util"
+
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"k8s.io/utils/strings"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/util"
 )
 
 var logger = zap.New()

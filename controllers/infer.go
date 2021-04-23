@@ -6,24 +6,22 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-var (
-	ErrorReasons = map[string]bool{
-		// Waiting
-		"ContainerCreating":          false,
-		"CrashLoopBackOff":           true,
-		"CreateContainerConfigError": true,
-		"CreateContainerError":       true,
-		"ErrImagePull":               true,
-		"ImagePullBackOff":           true,
-		"InvalidImageName":           true,
-		// Terminated
-		"Completed":          false,
-		"ContainerCannotRun": true,
-		"DeadlineExceeded":   true,
-		"Error":              true,
-		"OOMKilled":          true,
-	}
-)
+var ErrorReasons = map[string]bool{
+	// Waiting
+	"ContainerCreating":          false,
+	"CrashLoopBackOff":           true,
+	"CreateContainerConfigError": true,
+	"CreateContainerError":       true,
+	"ErrImagePull":               true,
+	"ImagePullBackOff":           true,
+	"InvalidImageName":           true,
+	// Terminated
+	"Completed":          false,
+	"ContainerCannotRun": true,
+	"DeadlineExceeded":   true,
+	"Error":              true,
+	"OOMKilled":          true,
+}
 
 func inferPhase(pod corev1.Pod) (dfv1.StepPhase, string) {
 	min := dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "")

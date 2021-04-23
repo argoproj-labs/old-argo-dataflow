@@ -80,9 +80,7 @@ func main() {
 	}
 }
 
-var (
-	sleep = flag.String("sleep", "1s", "how long to sleep")
-)
+var sleep = flag.String("sleep", "1s", "how long to sleep")
 
 func pumpTopicCmd(producer sarama.AsyncProducer) error {
 	duration, err := time.ParseDuration(*sleep)

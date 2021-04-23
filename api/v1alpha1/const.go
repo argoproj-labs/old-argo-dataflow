@@ -36,8 +36,6 @@ const (
 	PathVarRun      = "/var/run/argo-dataflow"
 )
 
-var (
-	KeyKillCmd = func(x string) string {
-		return fmt.Sprintf("dataflow.argoproj.io/kill-cmd.%s", x)
-	}
-)
+var KeyKillCmd = func(x string) string {
+	return fmt.Sprintf("dataflow.argoproj.io/kill-cmd.%s", x)
+}

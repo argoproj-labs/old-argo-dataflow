@@ -13,7 +13,6 @@ import (
 var logger = zap.New()
 
 func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
-
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	})

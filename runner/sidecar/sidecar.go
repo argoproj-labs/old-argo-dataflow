@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/robfig/cron/v3"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -14,9 +13,8 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	apiutil "github.com/argoproj-labs/argo-dataflow/api/util"
-	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	"github.com/nats-io/stan.go"
+	"github.com/robfig/cron/v3"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,7 +25,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	apiutil "github.com/argoproj-labs/argo-dataflow/api/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/util"
 )
 
 var (
@@ -52,7 +52,6 @@ func init() {
 }
 
 func Exec(ctx context.Context) error {
-
 	defer func() {
 		for i := len(closers) - 1; i >= 0; i-- {
 			if err := closers[i](); err != nil {

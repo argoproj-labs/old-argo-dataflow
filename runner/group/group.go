@@ -10,11 +10,9 @@ import (
 	"sort"
 
 	"github.com/antonmedv/expr"
-	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	"github.com/google/uuid"
 	"github.com/juju/fslock"
 
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 func withLock(dir string, f func() ([][]byte, error)) ([][]byte, error) {

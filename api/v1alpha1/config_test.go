@@ -19,4 +19,3 @@ func Test_getEnvDuration(t *testing.T) {
 		_ = getEnvDuration("FOO", 0)()
 	})
 }
-

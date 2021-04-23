@@ -2,9 +2,10 @@ package main
 
 import (
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"strconv"
 	"syscall"
+
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var logger = zap.New()

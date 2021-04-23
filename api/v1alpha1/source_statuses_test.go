@@ -7,7 +7,6 @@ import (
 )
 
 func TestSourceStatuses_Set(t *testing.T) {
-
 	ss := SourceStatuses{}
 
 	ss.Set("bar", 1, "foo")
@@ -71,7 +70,6 @@ func TestSourceStatuses_IncErrors(t *testing.T) {
 }
 
 func TestSourceStatuses_SetPending(t *testing.T) {
-
 	ss := SourceStatuses{}
 
 	ss.SetPending("bar", 23)

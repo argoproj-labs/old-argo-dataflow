@@ -36,7 +36,6 @@ type Step struct {
 }
 
 func (in *Step) GetTargetReplicas(pending int) int {
-
 	targetReplicas := in.Spec.GetReplicas().Calculate(pending)
 	lastScaledAt := in.Status.GetLastScaledAt()
 	currentReplicas := in.Status.GetReplicas() // can be -1

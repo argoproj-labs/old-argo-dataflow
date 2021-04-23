@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/cat"
 	"github.com/argoproj-labs/argo-dataflow/runner/filter"
@@ -16,13 +18,11 @@ import (
 	_map "github.com/argoproj-labs/argo-dataflow/runner/map"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
 	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var logger = zap.New()
 
 func main() {
-
 	ctx := setupSignalsHandler(context.Background())
 
 	logger.Info("process", "pid", os.Getpid())

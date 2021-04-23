@@ -7,7 +7,6 @@ import (
 )
 
 func TestSinkStatuses_Set(t *testing.T) {
-
 	ss := SinkStatuses{}
 
 	ss.Set("bar", 1, "foo")

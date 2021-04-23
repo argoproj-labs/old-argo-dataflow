@@ -19,11 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	"strings"
 
-	"github.com/argoproj-labs/argo-dataflow/api/util"
-	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -36,7 +33,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/argoproj-labs/argo-dataflow/api/util"
+	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
 )
 
 // PipelineReconciler reconciles a Pipeline object

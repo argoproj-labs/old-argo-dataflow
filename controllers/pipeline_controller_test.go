@@ -10,12 +10,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	// +kubebuilder:scaffold:imports
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var _ = Describe("Pipeline controller", func() {
-
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
 		Name      = "my-pipeline"
