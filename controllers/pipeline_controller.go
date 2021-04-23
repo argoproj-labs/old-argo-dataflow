@@ -23,7 +23,6 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
-	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -83,39 +82,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	log.Info("reconciling", "steps", len(pipeline.Spec.Steps))
 
-	for _, step := range pipeline.Spec.Steps {
-		stepFullName := pipeline.Name + "-" + step.Name
-		log.Info("applying step", "stepName", step.Name, "stepFullName", stepFullName)
-		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: step.Name}
-		obj := &dfv1.Step{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: pipeline.Namespace,
-				Name:      stepFullName,
-				Labels:    matchLabels,
-				OwnerReferences: []metav1.OwnerReference{
-					*metav1.NewControllerRef(pipeline.GetObjectMeta(), dfv1.PipelineGroupVersionKind),
-				},
-			},
-			Spec: step,
-		}
-		if err := r.Client.Create(ctx, obj); err != nil {
-			if apierr.IsAlreadyExists(err) {
-				old := &dfv1.Step{}
-				if err := r.Client.Get(ctx, client.ObjectKeyFromObject(obj), old); err != nil {
-					return ctrl.Result{}, err
-				}
-				if util.NotEqual(step, old.Spec) {
-					log.Info("updating step due to changed spec")
-					old.Spec = step
-					if err := r.Client.Update(ctx, old); dfv1.IgnoreConflict(err) != nil { // ignore conflicts, we will be reconciling again shortly if this happens
-						return ctrl.Result{}, err
-					}
-				}
-			} else {
-				return ctrl.Result{}, fmt.Errorf("failed to created step %s: %w", obj.GetName(), err)
-			}
-		}
-	}
 
 	steps := &dfv1.StepList{}
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipeline.Name)
@@ -130,39 +96,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	newStatus.Phase = dfv1.PipelineUnknown
 	terminate, sunkMessages, errors := false, false, false
-	for _, step := range steps.Items {
-		stepName := step.Spec.Name
-
-		if !pipeline.Spec.HasStep(stepName) { // this happens when a pipeline changes and a step is removed
-			log.Info("deleting excess step", "stepName", stepName)
-			if err := r.Client.Delete(ctx, &step); err != nil {
-				return ctrl.Result{}, fmt.Errorf("failed to delete excess step %s: %w", step.GetName(), err)
-			}
-			continue
-		}
-		if step.Status == nil {
-			continue
-		}
-		switch step.Status.Phase {
-		case dfv1.StepUnknown, dfv1.StepPending:
-			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelinePending)
-			pending++
-		case dfv1.StepRunning:
-			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineRunning)
-			running++
-		case dfv1.StepSucceeded:
-			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineSucceeded)
-			succeeded++
-		case dfv1.StepFailed:
-			newStatus.Phase = dfv1.MinPipelinePhase(newStatus.Phase, dfv1.PipelineFailed)
-			failed++
-		default:
-			panic("should never happen")
-		}
-		terminate = terminate || step.Status.Phase.Completed() && step.Spec.Terminator
-		sunkMessages = sunkMessages || step.Status.SinkStatues.AnySunk()
-		errors = errors || step.Status.AnyErrors()
-	}
 
 	var ss []string
 	for n, s := range map[int]string{
