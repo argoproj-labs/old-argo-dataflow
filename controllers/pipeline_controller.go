@@ -72,7 +72,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 
-	if r.Installer!=nil && pipeline.Status == nil {
+	if r.Installer != nil && pipeline.Status == nil {
 		r.Log.Info("first reconciliation, installing requisite buses")
 		for _, step := range pipeline.Spec.Steps {
 			for _, x := range step.Sources {

@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"k8s.io/client-go/rest"
 
 	"github.com/argoproj-labs/argo-dataflow/api/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"

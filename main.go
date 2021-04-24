@@ -19,8 +19,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
 	"os"
+
+	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -35,8 +36,8 @@ import (
 )
 
 var (
-	scheme    = runtime.NewScheme()
-	setupLog  = ctrl.Log.WithName("setup")
+	scheme   = runtime.NewScheme()
+	setupLog = ctrl.Log.WithName("setup")
 )
 
 func init() {

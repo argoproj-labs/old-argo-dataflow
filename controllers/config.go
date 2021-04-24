@@ -36,6 +36,5 @@ func init() {
 		"imageFormat", imageFormat,
 		"runnerImage", runnerImage,
 		"pullPolicy", pullPolicy,
-		"installer", installer,
 		"updateInterval", updateInterval.String())
 }
