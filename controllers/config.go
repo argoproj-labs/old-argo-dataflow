@@ -17,7 +17,6 @@ var (
 	runnerImage    = ""
 	pullPolicy     = corev1.PullPolicy(os.Getenv("PULL_POLICY"))
 	updateInterval = 15 * time.Second
-	installer      = os.Getenv("INSTALLER") == "true"
 )
 
 func init() {

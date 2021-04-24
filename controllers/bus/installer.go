@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,11 +24,30 @@ import (
 )
 
 var (
-	logger           = zap.New()
-	restConfig       = ctrl.GetConfigOrDie()
-	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
-	images           = make(map[string]string)
+	logger  = zap.New()
+	images  = make(map[string]string)
+	enabled = os.Getenv("INSTALLER") == "true"
 )
+
+type Installer interface {
+	Install(ctx context.Context, name, namespace string) error
+}
+
+func NewInstaller() Installer {
+	if enabled {
+		restConfig := ctrl.GetConfigOrDie()
+		return &installer{
+			restConfig:       restConfig,
+			dynamicInterface: dynamic.NewForConfigOrDie(restConfig),
+		}
+	}
+	return nil
+}
+
+type installer struct {
+	restConfig       *rest.Config
+	dynamicInterface dynamic.Interface
+}
 
 func init() {
 	v := os.Getenv("INSTALL_IMAGES")
@@ -66,7 +86,7 @@ func imageName(x string) (string, error) {
 	}
 }
 
-func Install(ctx context.Context, name, namespace string) error {
+func (i installer) Install(ctx context.Context, name, namespace string) error {
 	filename := filepath.Join("config", name+".yaml")
 	v, err := ioutil.ReadFile(filename)
 	if os.IsNotExist(err) {
@@ -81,14 +101,14 @@ func Install(ctx context.Context, name, namespace string) error {
 		return fmt.Errorf("failed to split YAML: %w", err)
 	}
 	for _, item := range list.Items {
-		if err := apply(ctx, namespace, &item); err != nil {
+		if err := i.apply(ctx, namespace, &item); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func apply(ctx context.Context, namespace string, item *unstructured.Unstructured) error {
+func (i installer) apply(ctx context.Context, namespace string, item *unstructured.Unstructured) error {
 	if item.GetAnnotations() == nil {
 		item.SetAnnotations(map[string]string{})
 	}
@@ -144,7 +164,7 @@ func apply(ctx context.Context, namespace string, item *unstructured.Unstructure
 		}
 	}
 
-	resourceInterface := resourceInterface(item, namespace)
+	resourceInterface := i.resourceInterface(item, namespace)
 	if _, err := resourceInterface.Create(ctx, item, metav1.CreateOptions{}); err != nil {
 		if apierr.IsAlreadyExists(err) {
 			old, err := resourceInterface.Get(ctx, item.GetName(), metav1.GetOptions{})
@@ -169,18 +189,18 @@ func apply(ctx context.Context, namespace string, item *unstructured.Unstructure
 	return nil
 }
 
-func resourceInterface(item *unstructured.Unstructured, namespace string) dynamic.ResourceInterface {
+func (i installer) resourceInterface(item *unstructured.Unstructured, namespace string) dynamic.ResourceInterface {
 	gvr := item.GroupVersionKind().GroupVersion().WithResource(util.Resource(item.GetKind()))
 	var resourceInterface dynamic.ResourceInterface
 	if strings.HasPrefix(item.GetKind(), "Cluster") {
-		resourceInterface = dynamicInterface.Resource(gvr)
+		resourceInterface = i.dynamicInterface.Resource(gvr)
 	} else {
-		resourceInterface = dynamicInterface.Resource(gvr).Namespace(namespace)
+		resourceInterface = i.dynamicInterface.Resource(gvr).Namespace(namespace)
 	}
 	return resourceInterface
 }
 
-func Uninstall(ctx context.Context, name, namespace string) error {
+func (i installer) Uninstall(ctx context.Context, name, namespace string) error {
 	filename := filepath.Join("config", name+".yaml")
 	v, err := ioutil.ReadFile(filename)
 	if os.IsNotExist(err) {
@@ -194,15 +214,15 @@ func Uninstall(ctx context.Context, name, namespace string) error {
 		return fmt.Errorf("failed to split YAML: %w", err)
 	}
 	for _, item := range list.Items {
-		if err := _delete(ctx, namespace, &item); err != nil {
+		if err := i._delete(ctx, namespace, &item); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func _delete(ctx context.Context, namespace string, item *unstructured.Unstructured) error {
-	resourceInterface := resourceInterface(item, namespace)
+func (i installer) _delete(ctx context.Context, namespace string, item *unstructured.Unstructured) error {
+	resourceInterface := i.resourceInterface(item, namespace)
 	if err := resourceInterface.Delete(ctx, item.GetName(), metav1.DeleteOptions{}); err != nil {
 		if dfv1.IgnoreNotFound(err) != nil {
 			return fmt.Errorf("failed to delete %s/%s: %w", item.GetKind(), item.GetName(), err)

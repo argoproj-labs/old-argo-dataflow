@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -34,8 +35,8 @@ import (
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme    = runtime.NewScheme()
+	setupLog  = ctrl.Log.WithName("setup")
 )
 
 func init() {
@@ -78,6 +79,7 @@ func main() {
 		RESTConfig:      restConfig,
 		Kubernetes:      k,
 		ContainerKiller: ck,
+		Installer:       bus.NewInstaller(),
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
