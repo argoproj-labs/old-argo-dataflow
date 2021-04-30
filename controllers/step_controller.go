@@ -102,10 +102,10 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			_labels := map[string]string{}
 			annotations := map[string]string{}
 			if x := step.Spec.Metadata; x != nil {
-				for k, v := range x.GetAnnotations() {
+				for k, v := range x.Annotations {
 					annotations[k] = v
 				}
-				for k, v := range x.GetLabels() {
+				for k, v := range x.Labels {
 					_labels[k] = v
 				}
 			}
@@ -116,6 +116,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			annotations[dfv1.KeyDefaultContainer] = dfv1.CtrMain
 			annotations[dfv1.KeyKillCmd(dfv1.CtrMain)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 			annotations[dfv1.KeyKillCmd(dfv1.CtrSidecar)] = util.MustJSON([]string{dfv1.PathKill, "1"})
+
+			println(util.MustJSON(annotations))
+
 			if err := r.Client.Create(
 				ctx,
 				&corev1.Pod{
