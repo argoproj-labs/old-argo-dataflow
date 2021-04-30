@@ -99,27 +99,35 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 			}
 			volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: dfv1.PathVarRun}}
+			_labels := map[string]string{}
+			annotations := map[string]string{}
+			if x := step.Spec.Metadata; x != nil {
+				for k, v := range x.GetAnnotations() {
+					annotations[k] = v
+				}
+				for k, v := range x.GetLabels() {
+					_labels[k] = v
+				}
+			}
+			_labels[dfv1.KeyStepName] = step.Spec.Name
+			_labels[dfv1.KeyPipelineName] = pipelineName
+			annotations[dfv1.KeyReplica] = strconv.Itoa(replica)
+			annotations[dfv1.KeyHash] = hash
+			annotations[dfv1.KeyDefaultContainer] = dfv1.CtrMain
+			annotations[dfv1.KeyKillCmd(dfv1.CtrMain)] = util.MustJSON([]string{dfv1.PathKill, "1"})
+			annotations[dfv1.KeyKillCmd(dfv1.CtrSidecar)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 			if err := r.Client.Create(
 				ctx,
 				&corev1.Pod{
-					ObjectMeta: metav1.ObjectMeta{
-						Namespace: step.Namespace,
-						Name:      podName,
-						Labels: map[string]string{
-							dfv1.KeyStepName:     step.Spec.Name,
-							dfv1.KeyPipelineName: pipelineName,
-						},
-						Annotations: map[string]string{
-							dfv1.KeyReplica:                  strconv.Itoa(replica),
-							dfv1.KeyHash:                     hash,
-							dfv1.KeyDefaultContainer:         dfv1.CtrMain,
-							dfv1.KeyKillCmd(dfv1.CtrMain):    util.MustJSON([]string{dfv1.PathKill, "1"}),
-							dfv1.KeyKillCmd(dfv1.CtrSidecar): util.MustJSON([]string{dfv1.PathKill, "1"}),
-						},
+					ObjectMeta: (metav1.ObjectMeta{
+						Namespace:   step.Namespace,
+						Name:        podName,
+						Labels:      _labels,
+						Annotations: annotations,
 						OwnerReferences: []metav1.OwnerReference{
 							*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 						},
-					},
+					}),
 					Spec: corev1.PodSpec{
 						RestartPolicy: step.Spec.RestartPolicy,
 						Volumes:       append(step.Spec.Volumes, volume),

@@ -1,6 +1,9 @@
 package v1alpha1
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 type StepSpec struct {
 	// +kubebuilder:default=default
@@ -26,7 +29,8 @@ type StepSpec struct {
 	// +patchMergeKey=name
 	Volumes []corev1.Volume `json:"volumes,omitempty" protobuf:"bytes,13,rep,name=volumes"`
 	// +kubebuilder:default=pipeline
-	ServiceAccountName string `json:"serviceAccountName,omitempty" protobuf:"bytes,14,opt,name=serviceAccountName"`
+	ServiceAccountName string             `json:"serviceAccountName,omitempty" protobuf:"bytes,14,opt,name=serviceAccountName"`
+	Metadata           *metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,16,opt,name=metadata"`
 }
 
 func (in *StepSpec) GetReplicas() Replicas {

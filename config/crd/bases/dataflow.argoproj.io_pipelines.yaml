@@ -393,6 +393,8 @@ spec:
                       type: object
                     map:
                       type: string
+                    metadata:
+                      type: object
                     name:
                       default: default
                       type: string

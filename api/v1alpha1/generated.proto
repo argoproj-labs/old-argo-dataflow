@@ -278,6 +278,8 @@ message StepSpec {
 
   // +kubebuilder:default=pipeline
   optional string serviceAccountName = 14;
+
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 16;
 }
 
 message StepStatus {
