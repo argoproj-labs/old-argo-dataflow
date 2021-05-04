@@ -112,7 +112,7 @@ func Exec(ctx context.Context) error {
 				// once we're reported pending, it possible we won't get anymore messages for a while, so the value
 				// we have will be wrong
 				for i, s := range status.SourceStatues {
-					s.Pending = 0
+					s.Pending = nil
 					status.SourceStatues[i] = s
 				}
 				lastStatus = status.DeepCopy()
@@ -327,7 +327,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							}
 						}
 						if newestOffset > 0 && handler.offset > 0 { // zero implies we've not processed a message yet
-							if pending := uint64(newestOffset - handler.offset); pending > 0 {
+							if pending := uint64(newestOffset - handler.offset); pending >= 0 {
 								debug.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending)
 								sourceStatues.SetPending(source.Name, pending)
 							}

@@ -33,14 +33,16 @@ func (in SourceStatuses) IncErrors(name string, replica int) {
 
 func (in SourceStatuses) SetPending(name string, pending uint64) {
 	x := in[name]
-	x.Pending = pending
+	x.Pending = &pending
 	in[name] = x
 }
 
 func (in SourceStatuses) GetPending() int {
 	v := 0
 	for _, s := range in {
-		v += int(s.Pending)
+		if s.Pending != nil {
+			v += int(*s.Pending)
+		}
 	}
 	return v
 }

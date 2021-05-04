@@ -570,6 +570,11 @@ func (in *SourceStatus) DeepCopyInto(out *SourceStatus) {
 		*out = new(Message)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Pending != nil {
+		in, out := &in.Pending, &out.Pending
+		*out = new(uint64)
+		**out = **in
+	}
 	if in.Metrics != nil {
 		in, out := &in.Metrics, &out.Metrics
 		*out = make(map[string]Metrics, len(*in))
