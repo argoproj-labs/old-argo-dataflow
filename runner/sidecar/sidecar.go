@@ -517,7 +517,7 @@ func connectSink() (func([]byte) error, error) {
 			logger.Info("connecting sink", "type", "log")
 			toSinks = append(toSinks, func(m []byte) error {
 				sinkStatues.Set(sink.Name, replica, short(m))
-				logger.Info(string(m))
+				logger.Info(string(m), "type", "log")
 				return nil
 			})
 		} else {
