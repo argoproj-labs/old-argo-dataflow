@@ -194,9 +194,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	} else if meta.FindStatusCondition(newStatus.Conditions, dfv1.ConditionRunning) != nil { // guard only needed because RemoveStatusCondition panics on zero length conditions
 		meta.RemoveStatusCondition(&newStatus.Conditions, dfv1.ConditionRunning)
 	}
-
 	if newStatus.Phase.Completed() {
 		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionCompleted, Status: metav1.ConditionTrue, Reason: dfv1.ConditionCompleted})
+	} else if meta.FindStatusCondition(newStatus.Conditions, dfv1.ConditionCompleted) != nil {
+		meta.RemoveStatusCondition(&newStatus.Conditions, dfv1.ConditionCompleted)
 	}
 	if sunkMessages {
 		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionSunkMessages, Status: metav1.ConditionTrue, Reason: dfv1.ConditionSunkMessages})
