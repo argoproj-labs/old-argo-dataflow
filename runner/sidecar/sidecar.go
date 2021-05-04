@@ -326,11 +326,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 								newestOffset = v
 							}
 						}
-						if newestOffset > 0 && handler.offset > 0 { // zero implies we've not processed a message yet
-							if pending := uint64(newestOffset - handler.offset); pending >= 0 {
-								debug.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending)
-								sourceStatues.SetPending(source.Name, pending)
-							}
+						if newestOffset > handler.offset && handler.offset > 0 { // zero implies we've not processed a message yet
+							pending := uint64(newestOffset - handler.offset)
+							debug.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending)
+							sourceStatues.SetPending(source.Name, pending)
 						}
 					}
 					time.Sleep(updateInterval)

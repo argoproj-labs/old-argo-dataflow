@@ -20,9 +20,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"strconv"
 	"time"
+
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
