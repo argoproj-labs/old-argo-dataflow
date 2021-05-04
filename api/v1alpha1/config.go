@@ -3,8 +3,9 @@ package v1alpha1
 import (
 	"fmt"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"time"
+
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
