@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"strconv"
 	"time"
 
@@ -39,6 +41,33 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
+
+var (
+	logger         = zap.New()
+	imageFormat    = os.Getenv("IMAGE_FORMAT")
+	runnerImage    = ""
+	pullPolicy     = corev1.PullPolicy(os.Getenv("PULL_POLICY"))
+	updateInterval = 15 * time.Second
+)
+
+func init() {
+	if imageFormat == "" {
+		imageFormat = "quay.io/argoproj/%s:latest"
+	}
+	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
+	if text, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
+		if v, err := time.ParseDuration(text); err != nil {
+			panic(fmt.Errorf("failed to parse duration %q: %w", text, err))
+		} else {
+			updateInterval = v
+		}
+	}
+	logger.Info("step reconciller config",
+		"imageFormat", imageFormat,
+		"runnerImage", runnerImage,
+		"pullPolicy", pullPolicy,
+		"updateInterval", updateInterval.String())
+}
 
 // StepReconciler reconciles a Step object
 type StepReconciler struct {

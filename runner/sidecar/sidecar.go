@@ -81,7 +81,7 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	logger.Info("config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
+	logger.Info("sidecar config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
 
 	toSink, err := connectSink()
 	if err != nil {
