@@ -109,12 +109,6 @@ func Exec(ctx context.Context) error {
 			}
 			if apiutil.NotEqual(lastStatus, status) {
 				patchStepStatus(ctx)
-				// once we're reported pending, it possible we won't get anymore messages for a while, so the value
-				// we have will be wrong
-				for i, s := range status.SourceStatues {
-					s.Pending = nil
-					status.SourceStatues[i] = s
-				}
 				lastStatus = status.DeepCopy()
 			}
 			time.Sleep(updateInterval)
