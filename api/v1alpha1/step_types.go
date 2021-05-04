@@ -36,15 +36,18 @@ type Step struct {
 }
 
 func (in *Step) GetTargetReplicas(pending int) int {
-	targetReplicas := in.Spec.GetReplicas().Calculate(pending)
 	lastScaledAt := in.Status.GetLastScaledAt()
 	currentReplicas := in.Status.GetReplicas() // can be -1
 
-	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaledAt) > getPeekQuietDuration() {
-		targetReplicas = 1
+	if time.Since(lastScaledAt) < getScalingDelay() {
+		return currentReplicas
 	}
-	if time.Since(lastScaledAt) < getScalingQuietDuration() {
-		targetReplicas = currentReplicas
+
+	targetReplicas := in.Spec.GetReplicas().Calculate(pending)
+
+	// do we need to peek? currentReplicas and targetReplicas must both be zero
+	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaledAt) > getPeekDelay() {
+		return 1
 	}
 
 	return targetReplicas
@@ -52,7 +55,7 @@ func (in *Step) GetTargetReplicas(pending int) int {
 
 func RequeueAfter(currentReplicas, targetReplicas int) time.Duration {
 	if currentReplicas == 0 && targetReplicas == 0 {
-		return getPeekQuietDuration()
+		return getScalingDelay()
 	}
 	return 0
 }

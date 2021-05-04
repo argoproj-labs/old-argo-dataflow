@@ -12,8 +12,8 @@ spec:
       args:
         - |
           set -x
-          go install github.com/argoproj-labs/argo-dataflow/hack/kafka@main
           while true; do
+            go install github.com/argoproj-labs/argo-dataflow/hack/kafka@main
             kafka -topic input-topic create-topic
             kafka -topic output-topic create-topic
             # change sleep to 10ms to flood the topic

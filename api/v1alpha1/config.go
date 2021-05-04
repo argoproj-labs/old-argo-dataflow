@@ -7,8 +7,10 @@ import (
 )
 
 var (
-	getScalingQuietDuration = getEnvDuration("ARGO_DATAFLOW_SCALING_QUIET_DURATION", time.Minute)
-	getPeekQuietDuration    = getEnvDuration("ARGO_DATAFLOW_PEEK_QUIET_DURATION", time.Minute)
+	// how long to wait between any scaling events (including peeking)
+	getScalingDelay = getEnvDuration("ARGO_DATAFLOW_SCALING_DELAY", time.Minute)
+	// how long between peeking
+	getPeekDelay = getEnvDuration("ARGO_DATAFLOW_PEEK_DELAY", 4*time.Minute)
 )
 
 func getEnvDuration(key string, def time.Duration) func() time.Duration {
