@@ -35,7 +35,7 @@ type Step struct {
 	Status *StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
-func (in *Step) GetTargetReplicas(pending int) int {
+func (in *Step) GetTargetReplicas() int {
 	lastScaledAt := in.Status.GetLastScaledAt()
 	currentReplicas := in.Status.GetReplicas() // can be -1
 
@@ -43,6 +43,7 @@ func (in *Step) GetTargetReplicas(pending int) int {
 		return currentReplicas
 	}
 
+	pending := in.Status.GetSourceStatues().GetPending()
 	targetReplicas := in.Spec.GetReplicas().Calculate(pending)
 
 	// do we need to peek? currentReplicas and targetReplicas must both be zero

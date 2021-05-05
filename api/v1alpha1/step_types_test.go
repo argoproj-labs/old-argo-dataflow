@@ -15,67 +15,67 @@ func TestStep_GetTargetReplicas(t *testing.T) {
 	t.Run("Init", func(t *testing.T) {
 		t.Run("Min=0", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{Min: 0}}}
-			assert.Equal(t, 0, s.GetTargetReplicas(0))
+			assert.Equal(t, 0, s.GetTargetReplicas())
 		})
 		t.Run("Min=1", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{Min: 1}}}
-			assert.Equal(t, 1, s.GetTargetReplicas(0))
+			assert.Equal(t, 1, s.GetTargetReplicas())
 		})
 	})
 	t.Run("ScalingUp", func(t *testing.T) {
 		t.Run("Min=2,Replicas=1,LastScaledAt=old", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{Min: 2}}, Status: &StepStatus{Replicas: 1, LastScaledAt: old}}
-			assert.Equal(t, 2, s.GetTargetReplicas(0))
+			assert.Equal(t, 2, s.GetTargetReplicas())
 		})
 		t.Run("Min=2,Replicas=1,LastScaledAt=recent", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{Min: 2}}, Status: &StepStatus{Replicas: 1, LastScaledAt: recent}}
-			assert.Equal(t, 2, s.GetTargetReplicas(0))
+			assert.Equal(t, 2, s.GetTargetReplicas())
 		})
 		t.Run("Min=2,Replicas=1,LastScaledAt=now", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{Min: 2}}, Status: &StepStatus{Replicas: 1, LastScaledAt: now}}
-			assert.Equal(t, 1, s.GetTargetReplicas(0))
+			assert.Equal(t, 1, s.GetTargetReplicas())
 		})
 	})
 	t.Run("ScalingDown", func(t *testing.T) {
 		t.Run("Min=1,Replicas=2,LastScaledAt=old", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{Min: 1}}, Status: &StepStatus{Replicas: 2, LastScaledAt: old}}
-			assert.Equal(t, 1, s.GetTargetReplicas(0))
+			assert.Equal(t, 1, s.GetTargetReplicas())
 		})
 		t.Run("Min=1,Replicas=2,LastScaledAt=recent", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{Min: 1}}, Status: &StepStatus{Replicas: 2, LastScaledAt: recent}}
-			assert.Equal(t, 1, s.GetTargetReplicas(0))
+			assert.Equal(t, 1, s.GetTargetReplicas())
 		})
 		t.Run("Min=1,Replicas=2,LastScaledAt=now", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{Min: 1}}, Status: &StepStatus{Replicas: 2, LastScaledAt: now}}
-			assert.Equal(t, 2, s.GetTargetReplicas(0))
+			assert.Equal(t, 2, s.GetTargetReplicas())
 		})
 	})
 	t.Run("ScaleToZero", func(t *testing.T) {
 		t.Run("Min=0,Replicas=1,LastScaledAt=old", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{}}, Status: &StepStatus{Replicas: 1, LastScaledAt: old}}
-			assert.Equal(t, 0, s.GetTargetReplicas(0))
+			assert.Equal(t, 0, s.GetTargetReplicas())
 		})
 		t.Run("Min=0,Replicas=1,LastScaledAt=recent", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{}}, Status: &StepStatus{Replicas: 1, LastScaledAt: recent}}
-			assert.Equal(t, 0, s.GetTargetReplicas(0))
+			assert.Equal(t, 0, s.GetTargetReplicas())
 		})
 		t.Run("Min=0,Replicas=1,LastScaledAt=now", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{}}, Status: &StepStatus{Replicas: 1, LastScaledAt: now}}
-			assert.Equal(t, 1, s.GetTargetReplicas(0))
+			assert.Equal(t, 1, s.GetTargetReplicas())
 		})
 	})
 	t.Run("Peek", func(t *testing.T) {
 		t.Run("Min=0,Replicas=0,LastScaledAt=old", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{}}, Status: &StepStatus{Replicas: 0, LastScaledAt: old}}
-			assert.Equal(t, 1, s.GetTargetReplicas(0))
+			assert.Equal(t, 1, s.GetTargetReplicas())
 		})
 		t.Run("Min=0,Replicas=0,LastScaledAt=recent", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{}}, Status: &StepStatus{Replicas: 0, LastScaledAt: now}}
-			assert.Equal(t, 0, s.GetTargetReplicas(0))
+			assert.Equal(t, 0, s.GetTargetReplicas())
 		})
 		t.Run("Min=0,Replicas=0,LastScaledAt=now", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Replicas: &Replicas{}}, Status: &StepStatus{Replicas: 0, LastScaledAt: now}}
-			assert.Equal(t, 0, s.GetTargetReplicas(0))
+			assert.Equal(t, 0, s.GetTargetReplicas())
 		})
 	})
 }

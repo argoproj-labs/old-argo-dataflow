@@ -98,11 +98,10 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	pipelineName := step.GetLabels()[dfv1.KeyPipelineName]
-	pending := step.Status.GetSourceStatues().GetPending()
 	currentReplicas := step.Status.GetReplicas()
-	targetReplicas := step.GetTargetReplicas(pending)
+	targetReplicas := step.GetTargetReplicas()
 
-	log.Info("reconciling", "pending", pending, "currentReplicas", currentReplicas, "targetReplicas", targetReplicas, "pipelineName", pipelineName)
+	log.Info("reconciling", "currentReplicas", currentReplicas, "targetReplicas", targetReplicas, "pipelineName", pipelineName)
 
 	container := step.Spec.GetContainer(
 		imageFormat,
