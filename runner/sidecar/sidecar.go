@@ -489,7 +489,7 @@ func connectSink() (func([]byte) error, error) {
 			}
 			closers = append(closers, sc.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				sinkStatues.Set(sink.Name, replica, short(m))
+				withLock(func() {sinkStatues.Set(sink.Name, replica, short(m))})
 				debug.Info("◷ → stan", "subject", s.Subject, "m", short(m))
 				return sc.Publish(s.Subject, m)
 			})
