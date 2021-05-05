@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -45,7 +46,14 @@ var (
 	spec                *dfv1.StepSpec
 	sourceStatues       = dfv1.SourceStatuses{}
 	sinkStatues         = dfv1.SinkStatuses{}
+	mu                  = sync.RWMutex{}
 )
+
+func withLock(f func()) {
+	mu.Lock()
+	defer mu.Unlock()
+	f()
+}
 
 func init() {
 	sarama.Logger = util.NewSaramaStdLogger(logger)
@@ -235,10 +243,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			_, err := x.AddFunc(c.Schedule, func() {
 				data := []byte(time.Now().Format(time.RFC3339))
 				debug.Info("◷ cron →", "m", short(data))
-				sourceStatues.Set(source.Name, replica, short(data))
+				withLock(func() { sourceStatues.Set(source.Name, replica, short(data)) })
 				if err := toMain(data); err != nil {
 					logger.Error(err, "⚠ cron →")
-					sourceStatues.IncErrors(source.Name, replica)
+					withLock(func() { sourceStatues.IncErrors(source.Name, replica) })
 				} else {
 					debug.Info("✔ cron → ", "schedule", c.Schedule)
 				}
@@ -256,10 +264,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			closers = append(closers, sc.Close)
 			if sub, err := sc.QueueSubscribe(s.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
 				debug.Info("◷ stan →", "m", short(m.Data))
-				sourceStatues.Set(source.Name, replica, short(m.Data))
+				withLock(func() { sourceStatues.Set(source.Name, replica, short(m.Data)) })
 				if err := toMain(m.Data); err != nil {
 					logger.Error(err, "⚠ stan →")
-					sourceStatues.IncErrors(source.Name, replica)
+					withLock(func() { sourceStatues.IncErrors(source.Name, replica) })
 				} else {
 					debug.Info("✔ stan → ", "subject", s.Subject)
 				}
@@ -274,7 +282,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							logger.Error(err, "failed to get pending", "subject", s.Subject)
 						} else {
 							debug.Info("setting pending", "subject", s.Subject, "pending", pending)
-							sourceStatues.SetPending(source.Name, uint64(pending))
+							withLock(func() { sourceStatues.SetPending(source.Name, uint64(pending)) })
 						}
 						time.Sleep(updateInterval)
 					}
@@ -323,7 +331,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						if newestOffset > handler.offset && handler.offset > 0 { // zero implies we've not processed a message yet
 							pending := uint64(newestOffset - handler.offset)
 							debug.Info("setting pending", "type", "kafka", "topic", k.Topic, "pending", pending)
-							sourceStatues.SetPending(source.Name, pending)
+							withLock(func() { sourceStatues.SetPending(source.Name, pending) })
 						}
 					}
 					time.Sleep(updateInterval)
@@ -498,7 +506,7 @@ func connectSink() (func([]byte) error, error) {
 			}
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				sinkStatues.Set(sink.Name, replica, short(m))
+				withLock(func() { sinkStatues.Set(sink.Name, replica, short(m)) })
 				debug.Info("◷ → kafka", "topic", k.Topic, "m", short(m))
 				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
 					Topic: k.Topic,
@@ -509,7 +517,7 @@ func connectSink() (func([]byte) error, error) {
 		} else if l := sink.Log; l != nil {
 			logger.Info("connecting sink", "type", "log")
 			toSinks = append(toSinks, func(m []byte) error {
-				sinkStatues.Set(sink.Name, replica, short(m))
+				withLock(func() { sinkStatues.Set(sink.Name, replica, short(m)) })
 				logger.Info(string(m), "type", "log")
 				return nil
 			})

@@ -15,9 +15,9 @@ func (*handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for m := range claim.Messages() {
 		debug.Info("◷ kafka →", "m", short(m.Value), "offset", m.Offset)
-		sourceStatues.Set(h.name, replica, short(m.Value))
+		withLock(func() { sourceStatues.Set(h.name, replica, short(m.Value)) })
 		if err := h.sourceToMain(m.Value); err != nil {
-			sourceStatues.IncErrors(h.name, replica)
+			withLock(func() { sourceStatues.IncErrors(h.name, replica) })
 			debug.Error(err, "⚠ kafka →")
 		} else {
 			debug.Info("✔ kafka →")
