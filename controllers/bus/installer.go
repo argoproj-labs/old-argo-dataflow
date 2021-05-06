@@ -113,9 +113,18 @@ func (i installer) apply(ctx context.Context, namespace string, item *unstructur
 	if item.GetAnnotations() == nil {
 		item.SetAnnotations(map[string]string{})
 	}
-	x := item.GetAnnotations()
-	x[dfv1.KeyHash] = util.MustHash(item)
-	item.SetAnnotations(x)
+	if item.GetLabels() == nil {
+		item.SetLabels(map[string]string{})
+	}
+	annotations := item.GetAnnotations()
+	annotations[dfv1.KeyHash] = util.MustHash(item)
+	item.SetAnnotations(annotations)
+
+	labels := item.GetLabels()
+	labels["app.kubernetes.io/managed-by"] = "argo-dataflow"
+	labels["app.kubernetes.io/created-by"] = "controller-manager"
+	item.SetLabels(labels)
+
 	item.SetNamespace(namespace)
 
 	switch item.GetKind() {
