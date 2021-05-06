@@ -173,7 +173,7 @@ func (i installer) apply(ctx context.Context, namespace string, item *unstructur
 				return fmt.Errorf("failed to get %s/%s: %w", item.GetKind(), item.GetName(), err)
 			}
 			if old.GetAnnotations()[dfv1.KeyHash] != item.GetAnnotations()[dfv1.KeyHash] {
-				logger.Info("resource already exists, but hash has changed, deleting and re-creating")
+				logger.Info("resource already exists, but hash has changed, deleting and re-creating", "kind", item.GetKind(), "name", item.GetName())
 				if err := resourceInterface.Delete(ctx, item.GetName(), metav1.DeleteOptions{}); err != nil {
 					return fmt.Errorf("failed to delete changed %s/%s: %w", item.GetKind(), item.GetName(), err)
 				}
