@@ -537,5 +537,5 @@ func connectSink() (func([]byte) error, error) {
 
 // format or redact message
 func short(m []byte) string {
-	return stringsutils.ShortenString(string(m), 16) + "..."
+	return apiutil.Printable(stringsutils.ShortenString(string(m), 16)) + "..."
 }
