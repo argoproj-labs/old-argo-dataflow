@@ -1,2 +1,4 @@
 resources:
   - single-server-nats.yml
+patchesStrategicMerge:
+  - nats-statefulset.yaml
