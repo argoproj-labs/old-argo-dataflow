@@ -36,9 +36,8 @@ var (
 	debug               = logger.V(6)
 	trace               = logger.V(8)
 	closers             []func() error
-	restConfig          = ctrl.GetConfigOrDie()
-	dynamicInterface    = dynamic.NewForConfigOrDie(restConfig)
-	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
+	dynamicInterface    dynamic.Interface
+	kubernetesInterface kubernetes.Interface
 	updateInterval      time.Duration
 	replica             = 0
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
@@ -68,6 +67,10 @@ func Exec(ctx context.Context) error {
 		}
 	}()
 	defer patchStepStatus(context.Background()) // always patch a final status, we use a new context in case we've been SIGTERM
+
+	restConfig := ctrl.GetConfigOrDie()
+	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
+	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 
 	if v, err := util.UnmarshallSpec(); err != nil {
 		return err
