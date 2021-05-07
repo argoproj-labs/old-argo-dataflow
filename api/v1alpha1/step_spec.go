@@ -1,8 +1,41 @@
 package v1alpha1
 
 import (
+	"fmt"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/argoproj-labs/argo-dataflow/api/util"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/pointer"
 )
+
+var (
+	imageFormat    = os.Getenv(EnvImageFormat)
+	runnerImage    = ""
+	pullPolicy     = corev1.PullPolicy(os.Getenv(EnvPullPolicy))
+	updateInterval = 15 * time.Second
+)
+
+func init() {
+	if imageFormat == "" {
+		imageFormat = "quay.io/argoproj/%s:latest"
+	}
+	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
+	if text, ok := os.LookupEnv(EnvUpdateInterval); ok {
+		if v, err := time.ParseDuration(text); err != nil {
+			panic(fmt.Errorf("failed to parse duration %q: %w", text, err))
+		} else {
+			updateInterval = v
+		}
+	}
+	logger.Info("step config",
+		"imageFormat", imageFormat,
+		"runnerImage", runnerImage,
+		"pullPolicy", pullPolicy,
+		"updateInterval", updateInterval.String())
+}
 
 type StepSpec struct {
 	// +kubebuilder:default=default
@@ -28,8 +61,66 @@ type StepSpec struct {
 	// +patchMergeKey=name
 	Volumes []corev1.Volume `json:"volumes,omitempty" protobuf:"bytes,13,rep,name=volumes"`
 	// +kubebuilder:default=pipeline
-	ServiceAccountName string    `json:"serviceAccountName,omitempty" protobuf:"bytes,14,opt,name=serviceAccountName"`
-	Metadata           *Metadata `json:"metadata,omitempty" protobuf:"bytes,16,opt,name=metadata"`
+	ServiceAccountName string              `json:"serviceAccountName,omitempty" protobuf:"bytes,14,opt,name=serviceAccountName"`
+	Metadata           *Metadata           `json:"metadata,omitempty" protobuf:"bytes,16,opt,name=metadata"`
+	NodeSelector       map[string]string   `json:"nodeSelector,omitempty" protobuf:"bytes,17,rep,name=nodeSelector"`
+	Affinity           *corev1.Affinity    `json:"affinity,omitempty" protobuf:"bytes,18,opt,name=affinity"`
+	Tolerations        []corev1.Toleration `json:"tolerations,omitempty" protobuf:"bytes,19,rep,name=tolerations"`
+}
+
+func (in *StepSpec) GetPodSpec(pipelineName, namespace string, replica int) corev1.PodSpec {
+	volume := corev1.Volume{
+		Name:         "var-run-argo-dataflow",
+		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+	}
+	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
+	envVars := []corev1.EnvVar{
+		{Name: EnvPipelineName, Value: pipelineName},
+		{Name: EnvNamespace, Value: namespace},
+		{Name: EnvReplica, Value: strconv.Itoa(replica)},
+		{Name: EnvStepSpec, Value: util.MustJSON(in)},
+		{Name: EnvUpdateInterval, Value: updateInterval.String()},
+	}
+	return corev1.PodSpec{
+		Volumes:            append(in.Volumes, volume),
+		RestartPolicy:      in.RestartPolicy,
+		NodeSelector:       in.NodeSelector,
+		ServiceAccountName: in.ServiceAccountName,
+		SecurityContext: &corev1.PodSecurityContext{
+			RunAsNonRoot: pointer.BoolPtr(true),
+			RunAsUser:    pointer.Int64Ptr(9653),
+		},
+		Affinity:    in.Affinity,
+		Tolerations: in.Tolerations,
+		InitContainers: []corev1.Container{
+			{
+				Name:            CtrInit,
+				Image:           runnerImage,
+				ImagePullPolicy: pullPolicy,
+				Args:            []string{"init"},
+				Env:             envVars,
+				VolumeMounts:    volumeMounts,
+				Resources:       SmallResourceRequirements,
+			},
+		},
+		Containers: []corev1.Container{
+			{
+				Name:            CtrSidecar,
+				Image:           runnerImage,
+				ImagePullPolicy: pullPolicy,
+				Args:            []string{"sidecar"},
+				Env:             envVars,
+				VolumeMounts:    volumeMounts,
+				Resources:       SmallResourceRequirements,
+			},
+			in.GetContainer(
+				imageFormat,
+				runnerImage,
+				pullPolicy,
+				corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
+			),
+		},
+	}
 }
 
 func (in *StepSpec) GetReplicas() Replicas {

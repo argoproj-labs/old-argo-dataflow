@@ -14,11 +14,25 @@ const (
 	CtrMain    = "main"
 	CtrSidecar = "sidecar"
 	// env vars
-	EnvNamespace      = "ARGO_DATAFLOW_NAMESPACE"
-	EnvPipelineName   = "ARGO_DATAFLOW_PIPELINE_NAME"
-	EnvReplica        = "ARGO_DATAFLOW_REPLICA"
-	EnvStepSpec       = "ARGO_DATAFLOW_STEP_SPEC"
-	EnvUpdateInterval = "ARGO_DATAFLOW_UPDATE_INTERVAL"
+	EnvImageFormat = "ARGO_DATAFLOW_IMAGE_FORMAT" // default "quay.io/argoproj/%s:latest"
+	EnvInstaller   = "ARGO_DATAFLOW_INSTALLER"    // default "true"
+	/*
+		default
+		{
+		  "nats-streaming": "docker.io/nats-streaming",
+		  "nats": "docker.io/nats",
+		  "quay.io/argoproj/dataflow-runner": "quay.io/argoproj/dataflow-runner",
+		  "solsson/kafka-initutils": "docker.io/solsson/kafka-initutils",
+		  "solsson/kafka": "docker.io/solsson/kafka"
+		}
+	*/
+	EnvInstallerImages = "ARGO_DATAFLOW_INSTALLER_IMAGES"
+	EnvNamespace       = "ARGO_DATAFLOW_NAMESPACE"
+	EnvPipelineName    = "ARGO_DATAFLOW_PIPELINE_NAME"
+	EnvReplica         = "ARGO_DATAFLOW_REPLICA"
+	EnvStepSpec        = "ARGO_DATAFLOW_STEP_SPEC"
+	EnvPullPolicy      = "ARGO_DATAFLOW_PULL_POLICY"     // default ""
+	EnvUpdateInterval  = "ARGO_DATAFLOW_UPDATE_INTERVAL" // default "15s"
 	// label/annotation keys
 	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
 	KeyPipelineName     = "dataflow.argoproj.io/pipeline-name"

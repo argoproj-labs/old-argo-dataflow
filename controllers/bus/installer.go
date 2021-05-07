@@ -27,7 +27,7 @@ import (
 var (
 	logger  = zap.New()
 	images  = make(map[string]string)
-	enabled = os.Getenv("INSTALLER") == "true"
+	enabled = os.Getenv(dfv1.EnvInstaller) == "true"
 )
 
 type Installer interface {
@@ -51,7 +51,7 @@ type installer struct {
 }
 
 func init() {
-	v := os.Getenv("INSTALL_IMAGES")
+	v := os.Getenv(dfv1.EnvInstallerImages)
 	if v == "" {
 		v = `
 {
@@ -64,7 +64,10 @@ func init() {
 `
 	}
 	util.MustUnJSON(v, &images)
-	logger.Info("installer config", "images", images)
+	logger.Info("installer config",
+		"enabled", enabled,
+		"images", images,
+	)
 }
 
 func imageName(x string) (string, error) {

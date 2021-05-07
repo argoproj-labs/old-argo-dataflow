@@ -19,11 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
-
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -34,7 +31,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -42,33 +38,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
-
-var (
-	logger         = zap.New()
-	imageFormat    = os.Getenv("IMAGE_FORMAT")
-	runnerImage    = ""
-	pullPolicy     = corev1.PullPolicy(os.Getenv("PULL_POLICY"))
-	updateInterval = 15 * time.Second
-)
-
-func init() {
-	if imageFormat == "" {
-		imageFormat = "quay.io/argoproj/%s:latest"
-	}
-	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
-	if text, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
-		if v, err := time.ParseDuration(text); err != nil {
-			panic(fmt.Errorf("failed to parse duration %q: %w", text, err))
-		} else {
-			updateInterval = v
-		}
-	}
-	logger.Info("step reconciller config",
-		"imageFormat", imageFormat,
-		"runnerImage", runnerImage,
-		"pullPolicy", pullPolicy,
-		"updateInterval", updateInterval.String())
-}
 
 // StepReconciler reconciles a Step object
 type StepReconciler struct {
@@ -103,31 +72,12 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	log.Info("reconciling", "currentReplicas", currentReplicas, "targetReplicas", targetReplicas, "pipelineName", pipelineName)
 
-	container := step.Spec.GetContainer(
-		imageFormat,
-		runnerImage,
-		pullPolicy,
-		corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
-	)
-
 	hash := util.MustHash(step.Spec)
 
 	if step.Status == nil || !step.Status.Phase.Completed() { // once a step is completed, we do not schedule or create pods
 		for replica := 0; replica < targetReplicas; replica++ {
 			podName := fmt.Sprintf("%s-%d", step.Name, replica)
 			log.Info("applying pod", "podName", podName)
-			envVars := []corev1.EnvVar{
-				{Name: dfv1.EnvPipelineName, Value: pipelineName},
-				{Name: dfv1.EnvNamespace, Value: step.Namespace},
-				{Name: dfv1.EnvReplica, Value: strconv.Itoa(replica)},
-				{Name: dfv1.EnvStepSpec, Value: util.MustJSON(step.Spec)},
-				{Name: dfv1.EnvUpdateInterval, Value: updateInterval.String()},
-			}
-			volume := corev1.Volume{
-				Name:         "var-run-argo-dataflow",
-				VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
-			}
-			volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: dfv1.PathVarRun}}
 			_labels := map[string]string{}
 			annotations := map[string]string{}
 			if x := step.Spec.Metadata; x != nil {
@@ -157,38 +107,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 						},
 					}),
-					Spec: corev1.PodSpec{
-						RestartPolicy: step.Spec.RestartPolicy,
-						Volumes:       append(step.Spec.Volumes, volume),
-						SecurityContext: &corev1.PodSecurityContext{
-							RunAsNonRoot: pointer.BoolPtr(true),
-							RunAsUser:    pointer.Int64Ptr(9653),
-						},
-						ServiceAccountName: step.Spec.ServiceAccountName,
-						InitContainers: []corev1.Container{
-							{
-								Name:            dfv1.CtrInit,
-								Image:           runnerImage,
-								ImagePullPolicy: pullPolicy,
-								Args:            []string{"init"},
-								Env:             envVars,
-								VolumeMounts:    volumeMounts,
-								Resources:       dfv1.SmallResourceRequirements,
-							},
-						},
-						Containers: []corev1.Container{
-							{
-								Name:            dfv1.CtrSidecar,
-								Image:           runnerImage,
-								ImagePullPolicy: pullPolicy,
-								Args:            []string{"sidecar"},
-								Env:             envVars,
-								VolumeMounts:    volumeMounts,
-								Resources:       dfv1.SmallResourceRequirements,
-							},
-							container,
-						},
-					},
+					Spec: step.Spec.GetPodSpec(pipelineName, step.Namespace, replica),
 				},
 			); dfv1.IgnoreAlreadyExists(err) != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to create pod %s: %w", podName, err)
