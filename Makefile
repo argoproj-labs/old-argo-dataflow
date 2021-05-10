@@ -161,6 +161,7 @@ remove-%:
 
 .PHONY: test-examples
 test-examples:
+	go generate ./api/util/version.go
 	go test -timeout 20m -v -tags examples -count 1 ./docs/examples
 
 argocli:
