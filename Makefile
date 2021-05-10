@@ -74,7 +74,7 @@ manifests: $(GOBIN)/controller-gen
 
 generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
-	go generate ./api/v1alpha1/version.go
+	go generate ./api/util/version.go
 
 .PHONY: docs/EXAMPLES.md
 docs/EXAMPLES.md:

@@ -15,7 +15,7 @@ COPY .git/ .git/
 COPY api/ api/
 COPY controllers/ controllers/
 COPY main.go .
-RUN go generate ./api/v1alpha1/version.go
+RUN go generate ./api/util/version.go
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/manager main.go
 
 FROM gcr.io/distroless/static:nonroot AS controller
@@ -30,7 +30,7 @@ FROM builder AS runner-builder
 COPY .git/ .git/
 COPY api/ api/
 COPY runner/ runner/
-RUN go generate ./api/v1alpha1/version.go
+RUN go generate ./api/util/version.go
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner ./runner
 COPY kill/ kill/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/kill ./kill
