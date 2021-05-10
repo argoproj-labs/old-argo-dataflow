@@ -25,8 +25,6 @@ var logger = zap.New()
 func main() {
 	ctx := setupSignalsHandler(context.Background())
 
-	logger.Info("process", "pid", os.Getpid())
-
 	err := func() error {
 		switch os.Args[1] {
 		case "cat":

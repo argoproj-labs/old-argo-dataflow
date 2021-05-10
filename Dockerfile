@@ -11,9 +11,11 @@ COPY go.sum go.sum
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 
 FROM builder AS controller-builder
+COPY .git/ .git/
 COPY api/ api/
 COPY controllers/ controllers/
 COPY main.go .
+RUN go generate ./api/v1alpha1/version.go
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/manager main.go
 
 FROM gcr.io/distroless/static:nonroot AS controller
@@ -25,8 +27,10 @@ USER 9653:9653
 ENTRYPOINT ["/manager"]
 
 FROM builder AS runner-builder
+COPY .git/ .git/
 COPY api/ api/
 COPY runner/ runner/
+RUN go generate ./api/v1alpha1/version.go
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/runner ./runner
 COPY kill/ kill/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/kill ./kill

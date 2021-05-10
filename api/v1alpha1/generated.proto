@@ -49,6 +49,8 @@ message Cron {
 message Git {
   optional string image = 1;
 
+  repeated string command = 6;
+
   optional string url = 2;
 
   // +kubebuilder:default=.
@@ -56,8 +58,6 @@ message Git {
 
   // +kubebuilder:default=main
   optional string branch = 4;
-
-  repeated string command = 6;
 
   repeated k8s.io.api.core.v1.EnvVar env = 5;
 }
