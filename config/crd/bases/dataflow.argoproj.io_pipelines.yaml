@@ -855,6 +855,10 @@ spec:
                         branch:
                           default: main
                           type: string
+                        command:
+                          items:
+                            type: string
+                          type: array
                         env:
                           items:
                             description: EnvVar represents an environment variable

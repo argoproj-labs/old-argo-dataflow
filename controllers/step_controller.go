@@ -103,6 +103,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						Name:        podName,
 						Labels:      _labels,
 						Annotations: annotations,
+
 						OwnerReferences: []metav1.OwnerReference{
 							*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 						},

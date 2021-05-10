@@ -57,6 +57,8 @@ message Git {
   // +kubebuilder:default=main
   optional string branch = 4;
 
+  repeated string command = 6;
+
   repeated k8s.io.api.core.v1.EnvVar env = 5;
 }
 
@@ -273,20 +275,19 @@ message StepSpec {
   // +patchMergeKey=name
   repeated Sink sinks = 4;
 
+  // +kubebuilder:default=OnFailure
+  optional string restartPolicy = 5;
+
   optional bool terminator = 10;
-
-  // if this step terminates, terminate all steps in the pipeline
-  optional Metadata metadata = 16;
-
-  // +kubebuilder:default=pipeline
-  optional string serviceAccountName = 14;
 
   // +patchStrategy=merge
   // +patchMergeKey=name
   repeated k8s.io.api.core.v1.Volume volumes = 13;
 
-  // +kubebuilder:default=OnFailure
-  optional string restartPolicy = 5;
+  // +kubebuilder:default=pipeline
+  optional string serviceAccountName = 14;
+
+  optional Metadata metadata = 16;
 
   map<string, string> nodeSelector = 17;
 

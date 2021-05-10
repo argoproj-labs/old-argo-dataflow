@@ -5,8 +5,9 @@ import (
 )
 
 type Git struct {
-	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
-	URL   string `json:"url" protobuf:"bytes,2,opt,name=url"`
+	Image   string   `json:"image" protobuf:"bytes,1,opt,name=image"`
+	Command []string `json:"command,omitempty" protobuf:"bytes,6,rep,name=command"`
+	URL     string   `json:"url" protobuf:"bytes,2,opt,name=url"`
 	// +kubebuilder:default=.
 	Path string `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
 	// +kubebuilder:default=main
@@ -19,7 +20,7 @@ func (in *Git) getContainer(req getContainerReq) corev1.Container {
 		Name:            CtrMain,
 		Image:           in.Image,
 		ImagePullPolicy: req.imagePullPolicy,
-		Command:         []string{"./entrypoint.sh"},
+		Command:         in.Command,
 		Env:             in.Env,
 		WorkingDir:      PathWorkingDir,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
