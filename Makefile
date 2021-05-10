@@ -20,7 +20,8 @@ build: generate manifests
 	go build ./...
 
 # Run tests
-test: generate
+test:
+	go generate ./api/util/version.go
 	go test -v ./... -coverprofile cover.out
 
 pre-commit: codegen test install lint
@@ -74,7 +75,6 @@ manifests: $(GOBIN)/controller-gen
 
 generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
-	go generate ./api/util/version.go
 
 .PHONY: docs/EXAMPLES.md
 docs/EXAMPLES.md:
