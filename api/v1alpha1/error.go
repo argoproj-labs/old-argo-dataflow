@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"errors"
 	"os"
 	"strings"
 
@@ -8,14 +9,14 @@ import (
 )
 
 func IgnorePermission(err error) error {
-	if os.IsPermission(err) {
+	if errors.Is(err, os.ErrPermission) {
 		return nil
 	}
 	return err
 }
 
 func IgnoreExist(err error) error {
-	if os.IsExist(err) {
+	if errors.Is(err, os.ErrExist) {
 		return nil
 	}
 	return err
