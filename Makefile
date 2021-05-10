@@ -97,7 +97,7 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 lint:
 	go mod tidy
 	golangci-lint run --fix
-	kubectl apply --dry-run=server -f docs/examples
+	kubectl apply --dry-run=client -f docs/examples
 
 .PHONY: controller
 controller: controller-image

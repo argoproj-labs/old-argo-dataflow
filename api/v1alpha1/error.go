@@ -13,6 +13,7 @@ func IgnorePermission(err error) error {
 	}
 	return err
 }
+
 func IgnoreExist(err error) error {
 	if os.IsExist(err) {
 		return nil
