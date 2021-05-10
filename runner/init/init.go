@@ -29,10 +29,10 @@ func Exec() error {
 			return fmt.Errorf("failed to open /bin/kill: %w", err)
 		}
 		dst, err := os.OpenFile(dfv1.PathKill, os.O_RDWR|os.O_CREATE, 0o500)
-		if dfv1.IgnoreIsExist(err) != nil {
+		if dfv1.IgnorePermission(dfv1.IgnoreExist(err)) != nil {
 			return fmt.Errorf("failed to open %s: %w", dfv1.PathKill, err)
 		} else if err == nil {
-			if _, err := io.Copy(dst, src); dfv1.IgnoreIsExist(err) != nil {
+			if _, err := io.Copy(dst, src); dfv1.IgnoreExist(err) != nil {
 				return fmt.Errorf("failed to create input FIFO: %w", err)
 			}
 		}
@@ -43,12 +43,12 @@ func Exec() error {
 	}
 	if spec.GetIn().FIFO {
 		logger.Info("creating in fifo")
-		if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); dfv1.IgnoreIsExist(err) != nil {
+		if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); dfv1.IgnoreExist(err) != nil {
 			return fmt.Errorf("failed to create input FIFO: %w", err)
 		}
 	}
 	logger.Info("creating out fifo")
-	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0600); dfv1.IgnoreIsExist(err) != nil {
+	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0600); dfv1.IgnoreExist(err) != nil {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
 	if g := spec.Git; g != nil {
@@ -67,7 +67,7 @@ func Exec() error {
 			return fmt.Errorf("failed to stat %s: %w", path, err)
 		}
 		logger.Info("moving checked out code", "path", path, "wd", dfv1.PathWorkingDir)
-		if err := os.Rename(path, dfv1.PathWorkingDir); dfv1.IgnoreIsExist(err) != nil {
+		if err := os.Rename(path, dfv1.PathWorkingDir); dfv1.IgnoreExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
 	} else if h := spec.Handler; h != nil {

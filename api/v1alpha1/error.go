@@ -7,7 +7,13 @@ import (
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 )
 
-func IgnoreIsExist(err error) error {
+func IgnorePermission(err error) error {
+	if os.IsPermission(err) {
+		return nil
+	}
+	return err
+}
+func IgnoreExist(err error) error {
 	if os.IsExist(err) {
 		return nil
 	}
