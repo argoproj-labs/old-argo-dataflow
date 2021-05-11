@@ -102,6 +102,7 @@ jobs:
           prerelease: ${{ startsWith(github.ref, 'refs/tags/v0') || contains(github.ref, 'rc') }}
           body_path: changelog
           files: |
-            config/*.yaml
+            config/default.yaml
+            config/quick-start.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
