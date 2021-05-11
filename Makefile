@@ -96,6 +96,7 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 	go mod tidy
 
 lint:
+	touch api/util/message
 	go mod tidy
 	golangci-lint run --fix
 	kubectl apply --dry-run=client -f docs/examples
