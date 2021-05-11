@@ -75,8 +75,6 @@ var _ = BeforeSuite(func(done Done) {
 		Client:          k8sClient,
 		Scheme:          k8sManager.GetScheme(),
 		Log:             ctrl.Log.WithName("controllers").WithName("Pipeline"),
-		RESTConfig:      cfg,
-		Kubernetes:      k,
 		ContainerKiller: ck,
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
@@ -85,8 +83,6 @@ var _ = BeforeSuite(func(done Done) {
 		Client:          k8sClient,
 		Scheme:          k8sManager.GetScheme(),
 		Log:             ctrl.Log.WithName("controllers").WithName("Step"),
-		RESTConfig:      cfg,
-		Kubernetes:      k,
 		ContainerKiller: ck,
 		Recorder:        record.NewFakeRecorder(1),
 	}).SetupWithManager(k8sManager)
