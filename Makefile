@@ -21,7 +21,7 @@ build: generate manifests
 
 # Run tests
 test:
-	touch api/util/version
+	touch api/util/message
 	go test -v ./... -coverprofile cover.out
 
 pre-commit: codegen test install lint
@@ -161,7 +161,7 @@ remove-%:
 
 .PHONY: test-examples
 test-examples:
-	touch api/util/version
+	touch api/util/message
 	go test -timeout 20m -v -tags examples -count 1 ./docs/examples
 
 argocli:
