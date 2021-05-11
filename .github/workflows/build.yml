@@ -110,11 +110,11 @@ jobs:
           echo "##[set-output name=tag;]$tag"
         id: tag
       - name: Generate release artifacts
-        run: make manifests changelog TAG=${{ github.tag.inputs.tag }}
+        run: make manifests changelog TAG=${{ github.tag.outputs.tag }}
       - name: Draft release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.tag.inputs.tag }}
+          tag_name: ${{ github.tag.outputs.tag }}
           draft: true
           prerelease: true
           body_path: changelog
