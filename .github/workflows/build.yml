@@ -81,7 +81,7 @@ jobs:
       - name: docker build + push
         run: |
           tag=$(basename $GITHUB_REF)
-          if [ $tag = "master" ]; then
+          if [ $tag = "main" ]; then
             tag="latest"
           fi
           docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:$tag --push
@@ -103,7 +103,7 @@ jobs:
       - name: Get tag
         run: |
           tag=$(basename $GITHUB_REF)
-          if [ $tag = "master" ]; then
+          if [ $tag = "main" ]; then
             tag="latest"
           fi
           echo "##[set-output name=tag;]$tag"
