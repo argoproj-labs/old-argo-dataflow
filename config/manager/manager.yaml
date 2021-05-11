@@ -33,6 +33,8 @@ spec:
           env:
             - name: ARGO_DATAFLOW_NAMESPACE
               value: argo-dataflow-system
+            - name: ARGO_DATAFLOW_IMAGE_FORMAT
+              value: quay.io/argoproj/%s:latest
           resources:
             limits:
               cpu: 100m

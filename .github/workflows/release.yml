@@ -28,3 +28,34 @@ jobs:
             tag="latest"
           fi
           docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:$tag --push
+
+  draft-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # 0 indicates all history for all branches and tags.
+          fetch-depth: 0
+      # https://stackoverflow.com/questions/58033366/how-to-get-current-branch-within-github-actions
+      - name: Get tag
+        run: |
+          tag=$(basename $GITHUB_REF)
+          if [ $tag = "master" ]; then
+            tag="latest"
+          fi
+          echo "##[set-output name=tag;]$tag"
+        id: tag
+      - name: Generate release artifacts
+        run: make manifests TAG=${{ github.event.inputs.tag }}
+      - name: Draft release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          draft: true
+          prerelease: true
+          files: |
+            config/*.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
