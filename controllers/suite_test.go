@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
-	"k8s.io/client-go/kubernetes"
 	"path/filepath"
 	"testing"
+
+	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
+	"k8s.io/client-go/kubernetes"
 
 	"k8s.io/client-go/tools/record"
 
