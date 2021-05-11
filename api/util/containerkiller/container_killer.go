@@ -25,6 +25,14 @@ type containerKiller struct {
 	*rest.Config
 }
 
+type fake struct{}
+
+func (f fake) KillContainer(pod corev1.Pod, container string) error {
+	return nil
+}
+
+var Fake Interface = fake{}
+
 func New(k kubernetes.Interface, r *rest.Config) Interface {
 	return &containerKiller{Interface: k, Config: r}
 }

@@ -1,8 +1,12 @@
 package controllers
 
 import (
+	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
+	"k8s.io/client-go/kubernetes"
 	"path/filepath"
 	"testing"
+
+	"k8s.io/client-go/tools/record"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -50,6 +54,10 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
+	k, err := kubernetes.NewForConfig(cfg)
+	Expect(err).ToNot(HaveOccurred())
+	ck := containerkiller.New(k, cfg)
+
 	err = dataflowv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 	// +kubebuilder:scaffold:scheme
@@ -64,16 +72,23 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 
 	err = (&PipelineReconciler{
-		Client: k8sClient,
-		Scheme: k8sManager.GetScheme(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Pipeline"),
+		Client:          k8sClient,
+		Scheme:          k8sManager.GetScheme(),
+		Log:             ctrl.Log.WithName("controllers").WithName("Pipeline"),
+		RESTConfig:      cfg,
+		Kubernetes:      k,
+		ContainerKiller: ck,
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 
 	err = (&StepReconciler{
-		Client: k8sClient,
-		Scheme: k8sManager.GetScheme(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Step"),
+		Client:          k8sClient,
+		Scheme:          k8sManager.GetScheme(),
+		Log:             ctrl.Log.WithName("controllers").WithName("Step"),
+		RESTConfig:      cfg,
+		Kubernetes:      k,
+		ContainerKiller: ck,
+		Recorder:        record.NewFakeRecorder(1),
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 
