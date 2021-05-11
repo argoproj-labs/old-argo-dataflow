@@ -6,7 +6,7 @@ TAG ?= latest
 CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
-K3D ?= $(shell [ `command -v kubectl` != '' ] && [ `kubectl config current-context` = k3d-k3s-default ] && echo true || echo false)
+K3D ?= $(shell [ "`command -v kubectl`" != '' ] && [ `kubectl config current-context` = k3d-k3s-default ] && echo true || echo false)
 
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -20,8 +20,7 @@ build: generate manifests
 	go build ./...
 
 # Run tests
-test:
-	touch api/util/message
+test: api/util/message
 	go test -v ./... -coverprofile cover.out
 
 pre-commit: codegen test install lint
@@ -96,8 +95,7 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 	mv api/v1alpha1/groupversion_info.go.0 api/v1alpha1/groupversion_info.go
 	go mod tidy
 
-lint:
-	touch api/util/message
+lint: api/util/message
 	go mod tidy
 	golangci-lint run --fix
 	kubectl apply --dry-run=client -f docs/examples
@@ -124,8 +122,11 @@ endif
 scan-%:
 	docker scan --severity=high quay.io/argoproj/dataflow-$*:$(TAG)
 
-$(GOBIN)/controller-gen:
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1 ;\
+changelog:
+	git log --oneline -n10 > changelog
+
+$(GOBIN)/controller-gen: api/util/message
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
 
 version:=2.3.2
 name:=darwin
@@ -148,9 +149,11 @@ config/nats/single-server-nats.yml:
 config/stan/single-server-stan.yml:
 	curl -o config/stan/single-server-stan.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-streaming-server/single-server-stan.yml
 
-.PHONY: test-examples
-test-examples:
+api/util/message:
 	touch api/util/message
+
+.PHONY: test-examples
+test-examples: api/util/message
 	go test -timeout 20m -v -tags examples -count 1 ./docs/examples
 
 argocli:
