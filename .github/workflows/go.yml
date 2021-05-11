@@ -30,6 +30,7 @@ jobs:
     needs: [ build ]
     steps:
       - uses: actions/checkout@v2
+      - run: touch api/util/version
       - uses: golangci/golangci-lint-action@v2
         with:
           version: v1.36.0
