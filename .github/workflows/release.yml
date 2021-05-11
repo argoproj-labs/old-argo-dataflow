@@ -2,8 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
+    tags: [ v* ]
     branches: [ main ]
 
 jobs:
