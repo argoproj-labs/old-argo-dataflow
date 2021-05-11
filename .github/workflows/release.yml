@@ -22,4 +22,9 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
       - name: docker build + push
-        run: docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:latest --push
+        run: |
+          tag=$(basename $GITHUB_REF)
+          if [ $tag = "master" ]; then
+            tag="latest"
+          fi
+          docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:$tag --push
