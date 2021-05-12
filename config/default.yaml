@@ -3975,7 +3975,6 @@ spec:
       containers:
       - args:
         - server
-        - --secure=false
         - --namespaced=true
         - --auth-mode=server
         image: quay.io/argoproj/argocli:dev-dataflow
@@ -3988,7 +3987,7 @@ spec:
           httpGet:
             path: /
             port: 2746
-            scheme: HTTP
+            scheme: HTTPS
           initialDelaySeconds: 10
           periodSeconds: 20
         securityContext:
