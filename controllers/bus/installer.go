@@ -119,9 +119,6 @@ func (i installer) apply(ctx context.Context, namespace string, item *unstructur
 	if item.GetLabels() == nil {
 		item.SetLabels(map[string]string{})
 	}
-	annotations := item.GetAnnotations()
-	annotations[dfv1.KeyHash] = util.MustHash(item)
-	item.SetAnnotations(annotations)
 
 	labels := item.GetLabels()
 	labels["app.kubernetes.io/managed-by"] = "argo-dataflow"
@@ -176,6 +173,10 @@ func (i installer) apply(ctx context.Context, namespace string, item *unstructur
 			item.Object = v
 		}
 	}
+
+	annotations := item.GetAnnotations()
+	annotations[dfv1.KeyHash] = util.MustHash(item)
+	item.SetAnnotations(annotations)
 
 	resourceInterface := i.resourceInterface(item, namespace)
 	if _, err := resourceInterface.Create(ctx, item, metav1.CreateOptions{}); err != nil {
