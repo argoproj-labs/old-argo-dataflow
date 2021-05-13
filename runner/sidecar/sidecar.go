@@ -25,9 +25,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	apiutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
+	apiutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
 var (

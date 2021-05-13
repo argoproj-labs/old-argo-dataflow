@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"sort"
 
-	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
+	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
 
 	"github.com/antonmedv/expr"
 	"github.com/google/uuid"

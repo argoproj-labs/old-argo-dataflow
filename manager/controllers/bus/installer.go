@@ -10,8 +10,8 @@ import (
 
 	"k8s.io/client-go/rest"
 
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 
 	appsv1 "k8s.io/api/apps/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
