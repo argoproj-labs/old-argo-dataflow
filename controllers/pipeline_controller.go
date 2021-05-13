@@ -111,7 +111,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				if util.NotEqual(step, old.Spec) {
 					log.Info("updating step due to changed spec")
 					old.Spec = step
-					if err := r.Client.Update(ctx, old); dfv1.IgnoreConflict(err) != nil { // ignore conflicts, we will be reconciling again shortly if this happens
+					if err := r.Client.Update(ctx, old); util.IgnoreConflict(err) != nil { // ignore conflicts, we will be reconciling again shortly if this happens
 						return ctrl.Result{}, err
 					}
 				}
@@ -223,7 +223,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if util.NotEqual(pipeline.Status, newStatus) {
 		log.Info("updating pipeline status", "phase", newStatus.Phase, "message", newStatus.Message)
 		pipeline.Status = newStatus
-		if err := r.Status().Update(ctx, pipeline); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+		if err := r.Status().Update(ctx, pipeline); util.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}
 	}

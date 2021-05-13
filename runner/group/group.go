@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	util2 "github.com/argoproj-labs/argo-dataflow/api/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 
@@ -31,7 +32,7 @@ func withLock(dir string, f func() ([][]byte, error)) ([][]byte, error) {
 }
 
 func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.GroupFormat) error {
-	if err := os.Mkdir(dfv1.PathGroups, 0700); dfv1.IgnoreExist(err) != nil {
+	if err := os.Mkdir(dfv1.PathGroups, 0700); util2.IgnoreExist(err) != nil {
 		return fmt.Errorf("failed to create groups dir: %w", err)
 	}
 	prog, err := expr.Compile(key)
@@ -52,7 +53,7 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 			return nil, fmt.Errorf("key expression must return a string")
 		}
 		dir := filepath.Join(dfv1.PathGroups, group)
-		if err := os.Mkdir(dir, 0700); dfv1.IgnoreExist(err) != nil {
+		if err := os.Mkdir(dir, 0700); util2.IgnoreExist(err) != nil {
 			return nil, fmt.Errorf("failed to create group sub-dir: %w", err)
 		}
 		return withLock(dir, func() ([][]byte, error) {

@@ -22,7 +22,6 @@ import (
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	stringsutils "k8s.io/utils/strings"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
@@ -245,11 +244,11 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			logger.Info("connecting to source", "type", "cron", "schedule", c.Schedule)
 			_, err := x.AddFunc(c.Schedule, func() {
 				data := []byte(time.Now().Format(time.RFC3339))
-				debug.Info("◷ cron →", "m", short(data))
-				withLock(func() { sourceStatues.Set(source.Name, replica, short(data)) })
+				debug.Info("◷ cron →", "m", printable(data))
+				withLock(func() { sourceStatues.Set(source.Name, replica, printable(data)) })
 				if err := toMain(data); err != nil {
 					logger.Error(err, "⚠ cron →")
-					withLock(func() { sourceStatues.IncErrors(source.Name, replica) })
+					withLock(func() { sourceStatues.IncErrors(source.Name, replica, err) })
 				} else {
 					debug.Info("✔ cron → ", "schedule", c.Schedule)
 				}
@@ -266,11 +265,11 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			}
 			closers = append(closers, sc.Close)
 			if sub, err := sc.QueueSubscribe(s.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
-				debug.Info("◷ stan →", "m", short(m.Data))
-				withLock(func() { sourceStatues.Set(source.Name, replica, short(m.Data)) })
+				debug.Info("◷ stan →", "m", printable(m.Data))
+				withLock(func() { sourceStatues.Set(source.Name, replica, printable(m.Data)) })
 				if err := toMain(m.Data); err != nil {
 					logger.Error(err, "⚠ stan →")
-					withLock(func() { sourceStatues.IncErrors(source.Name, replica) })
+					withLock(func() { sourceStatues.IncErrors(source.Name, replica, err) })
 				} else {
 					debug.Info("✔ stan → ", "subject", s.Subject)
 				}
@@ -492,8 +491,8 @@ func connectSink() (func([]byte) error, error) {
 			}
 			closers = append(closers, sc.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				withLock(func() { sinkStatues.Set(sink.Name, replica, short(m)) })
-				debug.Info("◷ → stan", "subject", s.Subject, "m", short(m))
+				withLock(func() { sinkStatues.Set(sink.Name, replica, printable(m)) })
+				debug.Info("◷ → stan", "subject", s.Subject, "m", printable(m))
 				return sc.Publish(s.Subject, m)
 			})
 		} else if k := sink.Kafka; k != nil {
@@ -509,8 +508,8 @@ func connectSink() (func([]byte) error, error) {
 			}
 			closers = append(closers, producer.Close)
 			toSinks = append(toSinks, func(m []byte) error {
-				withLock(func() { sinkStatues.Set(sink.Name, replica, short(m)) })
-				debug.Info("◷ → kafka", "topic", k.Topic, "m", short(m))
+				withLock(func() { sinkStatues.Set(sink.Name, replica, printable(m)) })
+				debug.Info("◷ → kafka", "topic", k.Topic, "m", printable(m))
 				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
 					Topic: k.Topic,
 					Value: sarama.ByteEncoder(m),
@@ -520,7 +519,7 @@ func connectSink() (func([]byte) error, error) {
 		} else if l := sink.Log; l != nil {
 			logger.Info("connecting sink", "type", "log")
 			toSinks = append(toSinks, func(m []byte) error {
-				withLock(func() { sinkStatues.Set(sink.Name, replica, short(m)) })
+				withLock(func() { sinkStatues.Set(sink.Name, replica, printable(m)) })
 				logger.Info(string(m), "type", "log")
 				return nil
 			})
@@ -539,6 +538,6 @@ func connectSink() (func([]byte) error, error) {
 }
 
 // format or redact message
-func short(m []byte) string {
-	return apiutil.Printable(stringsutils.ShortenString(string(m), 16)) + "..."
+func printable(m []byte) string {
+	return apiutil.Printable(string(m))
 }

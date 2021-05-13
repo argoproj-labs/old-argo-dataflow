@@ -46,6 +46,13 @@ message Cron {
   optional string schedule = 1;
 }
 
+message Error {
+  // +kubebuilder:validation:MaxLength=32
+  optional string message = 1;
+
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time time = 2;
+}
+
 message Git {
   optional string image = 1;
 
@@ -108,6 +115,7 @@ message Log {
 }
 
 message Message {
+  // +kubebuilder:validation:MaxLength=32
   optional string data = 1;
 
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time time = 2;
@@ -158,6 +166,23 @@ message PipelineStatus {
   repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 3;
 }
 
+// +kubebuilder:skipversion
+message PodSpecReq {
+  optional string pipelineName = 1;
+
+  optional string namespace = 2;
+
+  optional int32 replica = 3;
+
+  optional string imageFormat = 4;
+
+  optional string runnerImage = 5;
+
+  optional string pullPolicy = 6;
+
+  optional int64 updateInterval = 7;
+}
+
 // Used to calculate the number of replicas.
 // min(r.max, max(r.min, pending/ratio))
 // Example:
@@ -206,6 +231,8 @@ message Sink {
 message SinkStatus {
   optional Message lastMessage = 2;
 
+  optional Error error = 4;
+
   map<string, Metrics> metrics = 3;
 }
 
@@ -222,6 +249,8 @@ message Source {
 
 message SourceStatus {
   optional Message lastMessage = 2;
+
+  optional Error error = 5;
 
   optional uint64 pending = 3;
 

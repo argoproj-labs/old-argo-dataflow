@@ -57,7 +57,7 @@ func Test(t *testing.T) {
 				gvr := un.GroupVersionKind().GroupVersion().WithResource(util.Resource(un.GetKind()))
 				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
 				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, &un, metav1.CreateOptions{})
-				assert.NoError(t, dfv1.IgnoreAlreadyExists(err))
+				assert.NoError(t, util.IgnoreAlreadyExists(err))
 			}
 			// assert
 			w, err := pipelines.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.namespace=" + namespace + ",metadata.name=" + pipelineName})

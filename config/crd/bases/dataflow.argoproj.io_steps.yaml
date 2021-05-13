@@ -2635,9 +2635,22 @@ spec:
               sinkStatuses:
                 additionalProperties:
                   properties:
+                    error:
+                      properties:
+                        message:
+                          maxLength: 32
+                          type: string
+                        time:
+                          format: date-time
+                          type: string
+                      required:
+                      - message
+                      - time
+                      type: object
                     lastMessage:
                       properties:
                         data:
+                          maxLength: 32
                           type: string
                         time:
                           format: date-time
@@ -2662,9 +2675,22 @@ spec:
               sourceStatuses:
                 additionalProperties:
                   properties:
+                    error:
+                      properties:
+                        message:
+                          maxLength: 32
+                          type: string
+                        time:
+                          format: date-time
+                          type: string
+                      required:
+                      - message
+                      - time
+                      type: object
                     lastMessage:
                       properties:
                         data:
+                          maxLength: 32
                           type: string
                         time:
                           format: date-time

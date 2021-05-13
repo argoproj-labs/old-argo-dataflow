@@ -8,9 +8,9 @@ import (
 
 type SourceStatuses map[string]SourceStatus
 
-func (in SourceStatuses) Set(name string, replica int, short string) {
+func (in SourceStatuses) Set(name string, replica int, msg string) {
 	x := in[name]
-	x.LastMessage = &Message{Data: short, Time: metav1.Now()}
+	x.LastMessage = &Message{Data: trunc(msg), Time: metav1.Now()}
 	if x.Metrics == nil {
 		x.Metrics = map[string]Metrics{}
 	}
@@ -20,8 +20,10 @@ func (in SourceStatuses) Set(name string, replica int, short string) {
 	in[name] = x
 }
 
-func (in SourceStatuses) IncErrors(name string, replica int) {
+func (in SourceStatuses) IncErrors(name string, replica int, err error) {
 	x := in[name]
+	msg := err.Error()
+	x.LastError = &Error{Message: trunc(msg), Time: metav1.Now()}
 	if x.Metrics == nil {
 		x.Metrics = map[string]Metrics{}
 	}

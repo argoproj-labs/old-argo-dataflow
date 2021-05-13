@@ -64,7 +64,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	pipelineName := step.GetLabels()[dfv1.KeyPipelineName]
 	currentReplicas := step.Status.GetReplicas()
-	targetReplicas := step.GetTargetReplicas()
+	targetReplicas := step.GetTargetReplicas(scalingDelay, peekDelay)
 
 	log.Info("reconciling", "currentReplicas", currentReplicas, "targetReplicas", targetReplicas, "pipelineName", pipelineName)
 
@@ -104,9 +104,19 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 						},
 					}),
-					Spec: step.Spec.GetPodSpec(pipelineName, step.Namespace, replica),
+					Spec: step.Spec.GetPodSpec(
+						dfv1.GetPodSpecReq{
+							PipelineName:   pipelineName,
+							Namespace:      step.Namespace,
+							Replica:        int32(replica),
+							ImageFormat:    imageFormat,
+							RunnerImage:    runnerImage,
+							PullPolicy:     pullPolicy,
+							UpdateInterval: updateInterval,
+						},
+					),
 				},
-			); dfv1.IgnoreAlreadyExists(err) != nil {
+			); util.IgnoreAlreadyExists(err) != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to create pod %s: %w", podName, err)
 			}
 		}
@@ -167,13 +177,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if util.NotEqual(oldStatus, newStatus) {
 		log.Info("patching step status (phase/message)", "phase", newStatus.Phase)
 		if err := r.Status().
-			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(util.MustJSON(&dfv1.Step{Status: newStatus})))); dfv1.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
+			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(util.MustJSON(&dfv1.Step{Status: newStatus})))); util.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
 		}
 	}
 
 	return ctrl.Result{
-		RequeueAfter: dfv1.RequeueAfter(currentReplicas, targetReplicas),
+		RequeueAfter: dfv1.RequeueAfter(currentReplicas, targetReplicas, scalingDelay),
 	}, nil
 }
 

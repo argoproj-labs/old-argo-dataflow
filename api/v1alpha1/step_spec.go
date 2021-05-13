@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"fmt"
-	"os"
 	"strconv"
 	"time"
 
@@ -10,32 +8,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 )
-
-var (
-	imageFormat    = os.Getenv(EnvImageFormat)
-	runnerImage    = ""
-	pullPolicy     = corev1.PullPolicy(os.Getenv(EnvPullPolicy))
-	updateInterval = 15 * time.Second
-)
-
-func init() {
-	if imageFormat == "" {
-		imageFormat = "quay.io/argoproj/%s:latest"
-	}
-	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
-	if text, ok := os.LookupEnv(EnvUpdateInterval); ok {
-		if v, err := time.ParseDuration(text); err != nil {
-			panic(fmt.Errorf("failed to parse duration %q: %w", text, err))
-		} else {
-			updateInterval = v
-		}
-	}
-	logger.Info("step config",
-		"imageFormat", imageFormat,
-		"runnerImage", runnerImage,
-		"pullPolicy", pullPolicy,
-		"updateInterval", updateInterval.String())
-}
 
 type StepSpec struct {
 	// +kubebuilder:default=default
@@ -68,18 +40,29 @@ type StepSpec struct {
 	Tolerations        []corev1.Toleration `json:"tolerations,omitempty" protobuf:"bytes,19,rep,name=tolerations"`
 }
 
-func (in *StepSpec) GetPodSpec(pipelineName, namespace string, replica int) corev1.PodSpec {
+// +kubebuilder:skipversion
+type GetPodSpecReq struct {
+	PipelineName   string            `protobuf:"bytes,1,opt,name=pipelineName"`
+	Namespace      string            `protobuf:"bytes,2,opt,name=namespace"`
+	Replica        int32             `protobuf:"varint,3,opt,name=replica"`
+	ImageFormat    string            `protobuf:"bytes,4,opt,name=imageFormat"`
+	RunnerImage    string            `protobuf:"bytes,5,opt,name=runnerImage"`
+	PullPolicy     corev1.PullPolicy `protobuf:"bytes,6,opt,name=pullPolicy,casttype=k8s.io/api/core/v1.PullPolicy"`
+	UpdateInterval time.Duration     `protobuf:"varint,7,opt,name=updateInterval,casttype=time.Duration"`
+}
+
+func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	volume := corev1.Volume{
 		Name:         "var-run-argo-dataflow",
 		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 	}
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
 	envVars := []corev1.EnvVar{
-		{Name: EnvPipelineName, Value: pipelineName},
-		{Name: EnvNamespace, Value: namespace},
-		{Name: EnvReplica, Value: strconv.Itoa(replica)},
+		{Name: EnvPipelineName, Value: req.PipelineName},
+		{Name: EnvNamespace, Value: req.Namespace},
+		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
 		{Name: EnvStepSpec, Value: util.MustJSON(in)},
-		{Name: EnvUpdateInterval, Value: updateInterval.String()},
+		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 	}
 	return corev1.PodSpec{
 		Volumes:            append(in.Volumes, volume),
@@ -95,8 +78,8 @@ func (in *StepSpec) GetPodSpec(pipelineName, namespace string, replica int) core
 		InitContainers: []corev1.Container{
 			{
 				Name:            CtrInit,
-				Image:           runnerImage,
-				ImagePullPolicy: pullPolicy,
+				Image:           req.RunnerImage,
+				ImagePullPolicy: req.PullPolicy,
 				Args:            []string{"init"},
 				Env:             envVars,
 				VolumeMounts:    volumeMounts,
@@ -106,17 +89,17 @@ func (in *StepSpec) GetPodSpec(pipelineName, namespace string, replica int) core
 		Containers: []corev1.Container{
 			{
 				Name:            CtrSidecar,
-				Image:           runnerImage,
-				ImagePullPolicy: pullPolicy,
+				Image:           req.RunnerImage,
+				ImagePullPolicy: req.PullPolicy,
 				Args:            []string{"sidecar"},
 				Env:             envVars,
 				VolumeMounts:    volumeMounts,
 				Resources:       SmallResourceRequirements,
 			},
 			in.GetContainer(
-				imageFormat,
-				runnerImage,
-				pullPolicy,
+				req.ImageFormat,
+				req.RunnerImage,
+				req.PullPolicy,
 				corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
 			),
 		},

@@ -8,14 +8,26 @@ import (
 
 type SinkStatuses map[string]SinkStatus
 
-func (in SinkStatuses) Set(name string, replica int, short string) {
+func (in SinkStatuses) Set(name string, replica int, msg string) {
 	x := in[name]
-	x.LastMessage = &Message{Data: short, Time: metav1.Now()}
+	x.LastMessage = &Message{Data: msg, Time: metav1.Now()}
 	if x.Metrics == nil {
 		x.Metrics = map[string]Metrics{}
 	}
 	m := x.Metrics[strconv.Itoa(replica)]
 	m.Total++
+	x.Metrics[strconv.Itoa(replica)] = m
+	in[name] = x
+}
+
+func (in SinkStatuses) IncErrors(name string, replica int, err error) {
+	x := in[name]
+	x.LastError = &Error{Message: err.Error(), Time: metav1.Now()}
+	if x.Metrics == nil {
+		x.Metrics = map[string]Metrics{}
+	}
+	m := x.Metrics[strconv.Itoa(replica)]
+	m.Errors++
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
 }

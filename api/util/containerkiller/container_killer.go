@@ -60,7 +60,7 @@ func (k *containerKiller) killContainer(namespace, pod, container string, comman
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
 		Tty:    true,
-	}); dfv1.IgnoreNotFound(dfv1.IgnoreContainerNotFound(err)) != nil {
+	}); util.IgnoreNotFound(util.IgnoreContainerNotFound(err)) != nil {
 		return fmt.Errorf("failed to stream: %w", err)
 	}
 	return nil

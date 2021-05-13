@@ -35,7 +35,7 @@ type Step struct {
 	Status *StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
-func (in *Step) GetTargetReplicas() int {
+func (in *Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
 	lastScaledAt := in.Status.GetLastScaledAt()
 	currentReplicas := in.Status.GetReplicas() // can be -1
 
@@ -54,7 +54,7 @@ func (in *Step) GetTargetReplicas() int {
 	return targetReplicas
 }
 
-func RequeueAfter(currentReplicas, targetReplicas int) time.Duration {
+func RequeueAfter(currentReplicas, targetReplicas int, scalingDelay time.Duration) time.Duration {
 	if currentReplicas == 0 && targetReplicas == 0 {
 		return scalingDelay
 	}

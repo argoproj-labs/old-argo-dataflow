@@ -113,20 +113,6 @@ func (i installer) Install(ctx context.Context, name, namespace string) error {
 }
 
 func (i installer) apply(ctx context.Context, namespace string, item *unstructured.Unstructured) error {
-	if item.GetAnnotations() == nil {
-		item.SetAnnotations(map[string]string{})
-	}
-	if item.GetLabels() == nil {
-		item.SetLabels(map[string]string{})
-	}
-
-	labels := item.GetLabels()
-	labels["app.kubernetes.io/managed-by"] = "argo-dataflow"
-	labels["app.kubernetes.io/created-by"] = "controller-manager"
-	item.SetLabels(labels)
-
-	item.SetNamespace(namespace)
-
 	switch item.GetKind() {
 	case "ClusterRoleBinding":
 		x := &rbacv1.ClusterRoleBinding{}
@@ -173,6 +159,20 @@ func (i installer) apply(ctx context.Context, namespace string, item *unstructur
 			item.Object = v
 		}
 	}
+
+	if item.GetAnnotations() == nil {
+		item.SetAnnotations(map[string]string{})
+	}
+	if item.GetLabels() == nil {
+		item.SetLabels(map[string]string{})
+	}
+
+	labels := item.GetLabels()
+	labels["app.kubernetes.io/managed-by"] = "argo-dataflow"
+	labels["app.kubernetes.io/created-by"] = "controller-manager"
+	item.SetLabels(labels)
+
+	item.SetNamespace(namespace)
 
 	annotations := item.GetAnnotations()
 	annotations[dfv1.KeyHash] = util.MustHash(item)
@@ -238,7 +238,7 @@ func (i installer) Uninstall(ctx context.Context, name, namespace string) error 
 func (i installer) _delete(ctx context.Context, namespace string, item *unstructured.Unstructured) error {
 	resourceInterface := i.resourceInterface(item, namespace)
 	if err := resourceInterface.Delete(ctx, item.GetName(), metav1.DeleteOptions{}); err != nil {
-		if dfv1.IgnoreNotFound(err) != nil {
+		if util.IgnoreNotFound(err) != nil {
 			return fmt.Errorf("failed to delete %s/%s: %w", item.GetKind(), item.GetName(), err)
 		}
 	} else {

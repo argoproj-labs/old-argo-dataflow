@@ -1,6 +1,8 @@
 package v1alpha1
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,12 +11,12 @@ import (
 func TestSourceStatuses_Set(t *testing.T) {
 	ss := SourceStatuses{}
 
-	ss.Set("bar", 1, "foo")
+	ss.Set("bar", 1, strings.Repeat("x", 33))
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
 		if assert.NotNil(t, s.LastMessage) {
-			assert.Equal(t, "foo", s.LastMessage.Data)
+			assert.Equal(t, strings.Repeat("x", 32), s.LastMessage.Data)
 		}
 		if assert.Len(t, s.Metrics, 1) {
 			assert.Equal(t, uint64(1), s.Metrics["1"].Total)
@@ -61,11 +63,14 @@ func TestSourceStatuses_Set(t *testing.T) {
 
 func TestSourceStatuses_IncErrors(t *testing.T) {
 	ss := SourceStatuses{}
-	ss.IncErrors("foo", 0)
+	err := errors.New(strings.Repeat("x", 33))
+	ss.IncErrors("foo", 0, err)
 	assert.Equal(t, uint64(1), ss["foo"].Metrics["0"].Errors)
-	ss.IncErrors("foo", 0)
+	assert.Equal(t, strings.Repeat("x", 32), ss["foo"].LastError.Message)
+	assert.NotEmpty(t, ss["foo"].LastError.Time)
+	ss.IncErrors("foo", 0, err)
 	assert.Equal(t, uint64(2), ss["foo"].Metrics["0"].Errors)
-	ss.IncErrors("bar", 0)
+	ss.IncErrors("bar", 0, err)
 	assert.Equal(t, uint64(1), ss["bar"].Metrics["0"].Errors)
 }
 
