@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/api/util"
 	"os"
 	"time"
+
+	"github.com/argoproj-labs/argo-dataflow/api/util"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
