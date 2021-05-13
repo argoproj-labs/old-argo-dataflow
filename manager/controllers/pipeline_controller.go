@@ -34,7 +34,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/api/util"
 	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers/bus"
 )
 
 // PipelineReconciler reconciles a Pipeline object

@@ -13,7 +13,6 @@ RUN --mount=type=cache,target=/go/pkg/mod go mod download
 FROM builder AS controller-builder
 COPY .git/ .git/
 COPY api/ api/
-COPY controllers/ controllers/
 COPY manager/ manager/
 RUN go generate ./api/util/version.go
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/manager ./manager

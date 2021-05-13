@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/argoproj-labs/argo-dataflow/controllers/bus"
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers/bus"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -31,7 +31,7 @@ import (
 
 	"github.com/argoproj-labs/argo-dataflow/api/util/containerkiller"
 	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/controllers"
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers"
 )
 
 var (
