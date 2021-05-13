@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/argoproj-labs/argo-dataflow/api/util"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 

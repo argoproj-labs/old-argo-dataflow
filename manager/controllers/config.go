@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/argoproj-labs/argo-dataflow/api/util"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"

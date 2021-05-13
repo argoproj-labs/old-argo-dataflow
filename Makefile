@@ -20,7 +20,7 @@ build: generate manifests
 	go build ./...
 
 # Run tests
-test: api/util/message
+test: shared/util/message
 	go test -v ./... -coverprofile cover.out
 
 pre-commit: codegen test install lint
@@ -96,7 +96,7 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 	mv api/v1alpha1/groupversion_info.go.0 api/v1alpha1/groupversion_info.go
 	go mod tidy
 
-lint: api/util/message
+lint: shared/util/message
 	go mod tidy
 	golangci-lint run --fix
 	kubectl apply --dry-run=client -f docs/examples
@@ -126,7 +126,7 @@ scan-%:
 changelog:
 	git log --oneline -n10 > changelog
 
-$(GOBIN)/controller-gen: api/util/message
+$(GOBIN)/controller-gen: shared/util/message
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
 
 version:=2.3.2
@@ -150,11 +150,11 @@ config/nats/single-server-nats.yml:
 config/stan/single-server-stan.yml:
 	curl -o config/stan/single-server-stan.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-streaming-server/single-server-stan.yml
 
-api/util/message:
-	touch api/util/message
+shared/util/message:
+	touch shared/util/message
 
 .PHONY: test-examples
-test-examples: api/util/message
+test-examples: shared/util/message
 	go test -timeout 20m -v -tags examples -count 1 ./docs/examples
 
 argocli:

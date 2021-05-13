@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	util2 "github.com/argoproj-labs/argo-dataflow/api/util"
+	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"

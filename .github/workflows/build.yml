@@ -27,7 +27,7 @@ jobs:
     needs: [ test ]
     steps:
       - uses: actions/checkout@v2
-      - run: touch api/util/message
+      - run: touch shared/util/message
       - uses: golangci/golangci-lint-action@v2
         with:
           version: v1.36.0

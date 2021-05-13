@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/argoproj-labs/argo-dataflow/api/util"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 )
