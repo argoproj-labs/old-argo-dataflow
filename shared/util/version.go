@@ -6,12 +6,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-//go:generate sh -c "git log -n1 --oneline > message"
-//go:embed message
-var message string
-
-var logger = zap.New()
+var (
+	message string
+	logger  = zap.New()
+)
 
 func init() {
-	logger.Info("git", "message", message)
+	logger.Info("version", "message", message)
 }
