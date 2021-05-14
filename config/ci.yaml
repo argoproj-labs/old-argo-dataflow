@@ -3568,7 +3568,7 @@ spec:
               sinkStatuses:
                 additionalProperties:
                   properties:
-                    error:
+                    lastError:
                       properties:
                         message:
                           maxLength: 32
@@ -3608,7 +3608,7 @@ spec:
               sourceStatuses:
                 additionalProperties:
                   properties:
-                    error:
+                    lastError:
                       properties:
                         message:
                           maxLength: 32
