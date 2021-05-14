@@ -21,11 +21,8 @@ import (
 	"fmt"
 	"os"
 
-	"k8s.io/client-go/kubernetes"
-
-	"github.com/argoproj-labs/argo-dataflow/manager/controllers/bus"
-
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -79,7 +76,6 @@ func main() {
 		Log:             ctrl.Log.WithName("controllers").WithName("Pipeline"),
 		Scheme:          mgr.GetScheme(),
 		ContainerKiller: containerKiller,
-		Installer:       bus.NewInstaller(),
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}

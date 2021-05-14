@@ -21,8 +21,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -l
 FROM gcr.io/distroless/static:nonroot AS controller
 WORKDIR /
 COPY --from=controller-builder /workspace/bin/manager .
-COPY config/kafka-default.yaml /config/
-COPY config/stan-default.yaml /config/
 USER 9653:9653
 ENTRYPOINT ["/manager"]
 

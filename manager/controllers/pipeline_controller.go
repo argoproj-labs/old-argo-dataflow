@@ -32,7 +32,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/manager/controllers/bus"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
 )
@@ -43,7 +42,6 @@ type PipelineReconciler struct {
 	Log             logr.Logger
 	Scheme          *runtime.Scheme
 	ContainerKiller containerkiller.Interface
-	Installer       bus.Installer
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
@@ -66,23 +64,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if pipeline.GetDeletionTimestamp() != nil {
 		return ctrl.Result{}, nil
-	}
-
-	if r.Installer != nil && pipeline.Status == nil {
-		r.Log.Info("first reconciliation, installing requisite buses")
-		for _, step := range pipeline.Spec.Steps {
-			for _, x := range step.Sources {
-				if y := x.Kafka; y != nil {
-					if err := r.Installer.Install(ctx, "kafka-"+y.Name, req.Namespace); err != nil {
-						return ctrl.Result{}, fmt.Errorf("failed to install kafka: %w", err)
-					}
-				} else if y := x.STAN; y != nil {
-					if err := r.Installer.Install(ctx, "stan-"+y.Name, req.Namespace); err != nil {
-						return ctrl.Result{}, fmt.Errorf("failed to install stan: %w", err)
-					}
-				}
-			}
-		}
 	}
 
 	log.Info("reconciling", "steps", len(pipeline.Spec.Steps))
