@@ -235,9 +235,6 @@ spec:
   - metadata:
       name: stan-sts-vol
     spec:
-      accessModes:
-      - ReadWriteOnce
       resources:
         requests:
-          storage: 1Gi
-      volumeMode: Filesystem
+          storage: 16Gi

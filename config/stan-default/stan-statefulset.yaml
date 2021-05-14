@@ -13,3 +13,10 @@ spec:
           args:
             - sleep
             - 20s
+  volumeClaimTemplates:
+    - metadata:
+        name: stan-sts-vol
+      spec:
+        resources:
+          requests:
+            storage: 16Gi
