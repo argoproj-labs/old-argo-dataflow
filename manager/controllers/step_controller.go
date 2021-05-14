@@ -144,17 +144,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
 	}
 
-	deletedPods := false // we only want to delete one pod per sync
 	for _, pod := range pods.Items {
-		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); (i >= targetReplicas || hash != pod.GetAnnotations()[dfv1.KeyHash]) && !deletedPods {
+		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= targetReplicas || hash != pod.GetAnnotations()[dfv1.KeyHash] {
 			log.Info("deleting excess pod", "podName", pod.Name)
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to delete excess pod %s: %w", pod.Name, err)
 			}
-			deletedPods = true
 		} else {
 			phase, message := inferPhase(pod)
-			log.Info("pod", "name", pod.Name, "phase", phase, "message", message)
 			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Message), dfv1.NewStepPhaseMessage(phase, message))
 			newStatus.Phase, newStatus.Message = x.GetPhase(), x.GetMessage()
 			// if the main container has terminated, kill all sidecars
@@ -162,6 +159,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			for _, s := range pod.Status.ContainerStatuses {
 				mainCtrTerminated = mainCtrTerminated || (s.Name == dfv1.CtrMain && s.State.Terminated != nil)
 			}
+			log.Info("pod", "name", pod.Name, "phase", phase, "message", message, "mainCtrTerminated", mainCtrTerminated)
 			if mainCtrTerminated {
 				for _, s := range pod.Status.ContainerStatuses {
 					if s.Name != dfv1.CtrMain {

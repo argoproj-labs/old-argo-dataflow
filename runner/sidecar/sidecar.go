@@ -495,7 +495,7 @@ func connectSink() (func([]byte) error, error) {
 				debug.Info("◷ → stan", "subject", s.Subject, "m", printable(m))
 				err := sc.Publish(s.Subject, m)
 				if err != nil {
-					withLock(func() {sinkStatues.IncErrors(sink.Name, replica, err)})
+					withLock(func() { sinkStatues.IncErrors(sink.Name, replica, err) })
 				}
 				return err
 			})

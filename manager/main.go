@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"os"
 
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers/bus"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -70,11 +72,13 @@ func main() {
 		panic(fmt.Errorf("unable to start manager: %w", err))
 	}
 
+	clientset := kubernetes.NewForConfigOrDie(restConfig)
+	containerKiller := containerkiller.New(clientset, restConfig)
 	if err = (&controllers.PipelineReconciler{
 		Client:          mgr.GetClient(),
 		Log:             ctrl.Log.WithName("controllers").WithName("Pipeline"),
 		Scheme:          mgr.GetScheme(),
-		ContainerKiller: containerkiller.Fake,
+		ContainerKiller: containerKiller,
 		Installer:       bus.NewInstaller(),
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
@@ -85,7 +89,7 @@ func main() {
 		Log:             ctrl.Log.WithName("controllers").WithName("Step"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("step-reconciler"),
-		ContainerKiller: containerkiller.Fake,
+		ContainerKiller: containerKiller,
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}

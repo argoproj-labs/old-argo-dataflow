@@ -232,15 +232,6 @@ This example creates errors randomly
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml
 ```
 
-### [Log sink](examples/302-log-sink-pipeline.yaml)
-
-This example uses a log sink to debug messages
-
-
-```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/302-log-sink-pipeline.yaml
-```
-
 ### [Default Kafka config](examples/dataflow-kafka-default-secret.yaml)
 
 This is an example of providing a namespace named Kafka configuration.
