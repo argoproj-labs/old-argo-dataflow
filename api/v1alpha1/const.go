@@ -15,18 +15,6 @@ const (
 	CtrSidecar = "sidecar"
 	// env vars
 	EnvImageFormat = "ARGO_DATAFLOW_IMAGE_FORMAT" // default "quay.io/argoproj/%s:latest"
-	EnvInstaller   = "ARGO_DATAFLOW_INSTALLER"    // default "true"
-	/*
-		default
-		{
-		  "nats-streaming": "docker.io/nats-streaming",
-		  "nats": "docker.io/nats",
-		  "quay.io/argoproj/dataflow-runner": "quay.io/argoproj/dataflow-runner",
-		  "solsson/kafka-initutils": "docker.io/solsson/kafka-initutils",
-		  "solsson/kafka": "docker.io/solsson/kafka"
-		}
-	*/
-	EnvInstallerImages = "ARGO_DATAFLOW_INSTALLER_IMAGES"
 	EnvNamespace       = "ARGO_DATAFLOW_NAMESPACE"
 	EnvPipelineName    = "ARGO_DATAFLOW_PIPELINE_NAME"
 	EnvReplica         = "ARGO_DATAFLOW_REPLICA"
