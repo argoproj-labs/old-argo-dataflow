@@ -493,7 +493,11 @@ func connectSink() (func([]byte) error, error) {
 			toSinks = append(toSinks, func(m []byte) error {
 				withLock(func() { sinkStatues.Set(sink.Name, replica, printable(m)) })
 				debug.Info("◷ → stan", "subject", s.Subject, "m", printable(m))
-				return sc.Publish(s.Subject, m)
+				err := sc.Publish(s.Subject, m)
+				if err != nil {
+					withLock(func() {sinkStatues.IncErrors(sink.Name, replica, err)})
+				}
+				return err
 			})
 		} else if k := sink.Kafka; k != nil {
 			logger.Info("connecting sink", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic, "version", k.Version)
@@ -514,6 +518,9 @@ func connectSink() (func([]byte) error, error) {
 					Topic: k.Topic,
 					Value: sarama.ByteEncoder(m),
 				})
+				if err != nil {
+					withLock(func() { sinkStatues.IncErrors(sink.Name, replica, err) })
+				}
 				return err
 			})
 		} else if l := sink.Log; l != nil {
