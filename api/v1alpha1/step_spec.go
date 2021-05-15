@@ -1,10 +1,10 @@
 package v1alpha1
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 )
@@ -56,12 +56,13 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		Name:         "var-run-argo-dataflow",
 		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 	}
+	data, _ := json.Marshal(in)
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
 	envVars := []corev1.EnvVar{
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvNamespace, Value: req.Namespace},
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
-		{Name: EnvStepSpec, Value: util.MustJSON(in)},
+		{Name: EnvStepSpec, Value: string(data)},
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 	}
 	return corev1.PodSpec{
