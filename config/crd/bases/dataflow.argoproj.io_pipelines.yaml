@@ -1023,6 +1023,9 @@ spec:
                       type: object
                     map:
                       type: string
+                    maxReplicas:
+                      format: int32
+                      type: integer
                     metadata:
                       properties:
                         annotations:
@@ -1034,6 +1037,10 @@ spec:
                             type: string
                           type: object
                       type: object
+                    minReplicas:
+                      default: 1
+                      format: int32
+                      type: integer
                     name:
                       default: default
                       type: string
@@ -1041,26 +1048,9 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
-                    replicas:
-                      description: 'Used to calculate the number of replicas. min(r.max,
-                        max(r.min, pending/ratio)) Example: min=1, max=4, ratio=100
-                        pending=0, replicas=1 pending=100, replicas=1 pending=200,
-                        replicas=2 pending=300, replicas=3 pending=400, replicas=4
-                        pending=500, replicas=4'
-                      properties:
-                        max:
-                          format: int32
-                          type: integer
-                        min:
-                          default: 1
-                          format: int32
-                          type: integer
-                        ratio:
-                          format: int32
-                          type: integer
-                      required:
-                      - min
-                      type: object
+                    replicaRatio:
+                      format: int32
+                      type: integer
                     restartPolicy:
                       default: OnFailure
                       description: RestartPolicy describes how the container should
@@ -2747,6 +2737,7 @@ spec:
                         type: object
                       type: array
                   required:
+                  - minReplicas
                   - name
                   type: object
                 type: array

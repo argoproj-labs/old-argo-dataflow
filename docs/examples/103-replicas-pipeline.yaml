@@ -29,7 +29,7 @@ metadata:
 
       ### Scale-To-Zero and Peeking
 
-      You can scale to zero by setting `min: 0`. The number of replicas will start at zero, and periodically be scaled
+      You can scale to zero by setting `minReplicas: 0`. The number of replicas will start at zero, and periodically be scaled
       to 1  so it can "peek" the the message queue. The number of pending messages is measured and the target number
       of replicas re-calculated.
     dataflow.argoproj.io/name: Using replicas and auto-scaling
@@ -38,11 +38,10 @@ metadata:
 spec:
   steps:
   - cat: {}
+    maxReplicas: 4
+    minReplicas: 0
     name: main
-    replicas:
-      max: 4
-      min: 0
-      ratio: 1000
+    replicaRatio: 1000
     sinks:
     - kafka:
         topic: output-topic

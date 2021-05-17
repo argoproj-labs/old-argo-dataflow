@@ -80,7 +80,7 @@ min <= replicas <= max
 
 ### Scale-To-Zero and Peeking
 
-You can scale to zero by setting `min: 0`. The number of replicas will start at zero, and periodically be scaled
+You can scale to zero by setting `minReplicas: 0`. The number of replicas will start at zero, and periodically be scaled
 to 1  so it can "peek" the the message queue. The number of pending messages is measured and the target number
 of replicas re-calculated.
 

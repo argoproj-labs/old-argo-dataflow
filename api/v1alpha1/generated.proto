@@ -183,27 +183,6 @@ message PipelineStatus {
   repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 3;
 }
 
-// Used to calculate the number of replicas.
-// min(r.max, max(r.min, pending/ratio))
-// Example:
-// min=1, max=4, ratio=100
-// pending=0, replicas=1
-// pending=100, replicas=1
-// pending=200, replicas=2
-// pending=300, replicas=3
-// pending=400, replicas=4
-// pending=500, replicas=4
-message Replicas {
-  // +kubebuilder:default=1
-  optional int32 min = 1;
-
-  // this is both the min, and the initial value
-  optional uint32 max = 2;
-
-  // takes precedence over min
-  optional uint32 ratio = 3;
-}
-
 message STAN {
   // +kubebuilder:default=default
   optional string name = 1;
@@ -294,7 +273,14 @@ message StepSpec {
 
   optional Group group = 11;
 
-  optional Replicas replicas = 2;
+  // +kubebuilder:default=1
+  optional int32 minReplicas = 20;
+
+  // this is both the min, and the initial value
+  optional uint32 maxReplicas = 21;
+
+  // takes precedence over min
+  optional uint32 replicaRatio = 22;
 
   // +patchStrategy=merge
   // +patchMergeKey=name

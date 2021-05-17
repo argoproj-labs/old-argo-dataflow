@@ -41,11 +41,8 @@ var _ = Describe("Pipeline controller", func() {
 						{
 							Name: "my-step",
 							Container: &dfv1.Container{
-								Image: "docker/whalesay:latest",
+								Image: "docker/whalesay",
 							},
-							Replicas: &dfv1.Replicas{Min: 2},
-							Sources:  []dfv1.Source{{}},
-							Sinks:    []dfv1.Sink{{}},
 						},
 					},
 				},
