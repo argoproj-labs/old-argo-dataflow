@@ -37,6 +37,15 @@ They have a single variable, `msg`, which is a byte array.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-filter-pipeline.yaml
 ```
 
+### [Flatten and expand](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-flatten-expand-pipeline.yaml)
+
+This is an example of built-in flattening and expanding.
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-flatten-expand-pipeline.yaml
+```
+
 ### [Map messages](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-map-pipeline.yaml)
 
 This is an example of built-in mapping.

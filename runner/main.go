@@ -8,6 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/argoproj-labs/argo-dataflow/runner/expand"
+	"github.com/argoproj-labs/argo-dataflow/runner/flatten"
+
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -29,8 +32,12 @@ func main() {
 		switch os.Args[1] {
 		case "cat":
 			return cat.Exec(ctx)
+		case "expand":
+			return expand.Exec(ctx)
 		case "filter":
 			return filter.Exec(ctx, os.Args[2])
+		case "flatten":
+			return flatten.Exec(ctx)
 		case "group":
 			return group.Exec(ctx, os.Args[2], os.Args[3], dfv1.GroupFormat(os.Args[4]))
 		case "init":

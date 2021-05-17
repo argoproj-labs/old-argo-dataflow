@@ -19,6 +19,8 @@ type StepSpec struct {
 	Filter    Filter     `json:"filter,omitempty" protobuf:"bytes,8,opt,name=filter,casttype=Filter"`
 	Map       Map        `json:"map,omitempty" protobuf:"bytes,9,opt,name=map,casttype=Map"`
 	Group     *Group     `json:"group,omitempty" protobuf:"bytes,11,opt,name=group"`
+	Flatten   *Flatten   `json:"flatten,omitempty" protobuf:"bytes,25,opt,name=flatten"`
+	Expand    *Expand    `json:"expand,omitempty" protobuf:"bytes,26,opt,name=expand"`
 
 	Replicas *uint32 `json:"replicas,omitempty" protobuf:"varint,23,opt,name=replicas"`
 	Scale    *Scale  `json:"scale,omitempty" protobuf:"bytes,24,opt,name=scale"`
@@ -130,7 +132,11 @@ func (in *StepSpec) getType() containerSupplier {
 		return x
 	} else if x := in.Container; x != nil {
 		return x
+	} else if x := in.Expand; x != nil {
+		return x
 	} else if x := in.Filter; x != "" {
+		return x
+	} else if x := in.Flatten; x != nil {
 		return x
 	} else if x := in.Git; x != nil {
 		return x

@@ -56,6 +56,12 @@ message Error {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time time = 2;
 }
 
+message Expand {
+}
+
+message Flatten {
+}
+
 // +kubebuilder:skipversion
 message GetPodSpecReq {
   optional string pipelineName = 1;
@@ -286,6 +292,10 @@ message StepSpec {
   optional string map = 9;
 
   optional Group group = 11;
+
+  optional Flatten flatten = 25;
+
+  optional Expand expand = 26;
 
   optional uint32 replicas = 23;
 

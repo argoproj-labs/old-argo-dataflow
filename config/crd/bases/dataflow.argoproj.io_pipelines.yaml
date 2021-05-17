@@ -848,8 +848,12 @@ spec:
                       required:
                       - image
                       type: object
+                    expand:
+                      type: object
                     filter:
                       type: string
+                    flatten:
+                      type: object
                     git:
                       properties:
                         branch:
