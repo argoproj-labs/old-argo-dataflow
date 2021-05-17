@@ -243,7 +243,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		if c := source.Cron; c != nil {
 			logger.Info("connecting to source", "type", "cron", "schedule", c.Schedule)
 			_, err := x.AddFunc(c.Schedule, func() {
-				data := []byte(time.Now().Format(time.RFC3339))
+				data := []byte(time.Now().Format(c.Layout))
 				debug.Info("◷ cron →", "m", printable(data))
 				withLock(func() { sourceStatues.Set(source.Name, replica, printable(data)) })
 				if err := toMain(data); err != nil {

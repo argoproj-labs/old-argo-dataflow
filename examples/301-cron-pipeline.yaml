@@ -1,0 +1,23 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example uses a cron source.
+
+      You can format dates using a "layout":
+
+      https://golang.org/pkg/time/#Time.Format
+
+      By deafult, the layout is RFC3339.
+    dataflow.argoproj.io/name: Cron
+  creationTimestamp: null
+  name: cron
+spec:
+  steps:
+  - cat: {}
+    name: main
+    sources:
+    - cron:
+        layout: "15:04:05"
+        schedule: '*/3 * * * * *'

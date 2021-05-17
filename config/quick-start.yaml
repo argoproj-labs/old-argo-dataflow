@@ -757,6 +757,9 @@ spec:
                         properties:
                           cron:
                             properties:
+                              layout:
+                                default: 2006-01-02T15:04:05Z07:00
+                                type: string
                               schedule:
                                 type: string
                             required:
@@ -2565,6 +2568,9 @@ spec:
                   properties:
                     cron:
                       properties:
+                        layout:
+                          default: 2006-01-02T15:04:05Z07:00
+                          type: string
                         schedule:
                           type: string
                       required:

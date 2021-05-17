@@ -223,6 +223,21 @@ It also shows an example of a pipelines terminates based on a single step's stat
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-word-count-pipeline.yaml
 ```
 
+### [Cron](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-pipeline.yaml)
+
+This example uses a cron source.
+
+You can format dates using a "layout":
+
+https://golang.org/pkg/time/#Time.Format
+
+By deafult, the layout is RFC3339.
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-pipeline.yaml
+```
+
 ### [Erroring](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml)
 
 This example creates errors randomly
