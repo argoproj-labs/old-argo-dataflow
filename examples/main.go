@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	const dirname = "docs/examples"
+	const dirname = "examples"
 	files, err := util.ReadDir(dirname)
 	if err != nil {
 		panic(err)
@@ -19,13 +19,13 @@ func main() {
 	_, _ = fmt.Printf("### Examples\n\n")
 	for _, info := range files {
 		println(info.Name())
-		formatted :=make([]string,len(info.Items))
+		formatted := make([]string, len(info.Items))
 		for i, un := range info.Items {
 			if i == 0 {
 				annotations := un.GetAnnotations()
 				if name, ok := annotations["dataflow.argoproj.io/name"]; ok {
 					title := name
-					_, _ = fmt.Printf("### [%s](examples/%s)\n\n", title, info.Name())
+					_, _ = fmt.Printf("### [%s](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/%s)\n\n", title, info.Name())
 					_, _ = fmt.Printf("%s\n\n", annotations["dataflow.argoproj.io/description"])
 					_, _ = fmt.Printf("```\nkubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/%s\n```\n\n", info.Name())
 				}

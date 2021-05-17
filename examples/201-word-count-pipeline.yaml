@@ -43,10 +43,11 @@ spec:
       image: ubuntu:latest
       in:
         fifo: true
-    maxReplicas: 1
-    minReplicas: 0
     name: split-lines
-    replicaRatio: 1
+    scale:
+      maxReplicas: 1
+      minReplicas: 0
+      replicaRatio: 1
     sinks:
     - stan:
         subject: words

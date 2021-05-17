@@ -1,15 +1,17 @@
 ignore:
   - .github
-  - shared/util/containerkiller/container_killer.go
   - api/v1alpha1/generated.pb.go
   - api/v1alpha1/zz_generated.deepcopy.go
+  - bin
   - config
   - docs
+  - examples
   - hack
   - kill
   - manager
   - runner
   - runtimes
+  - shared/containerkiller
 coverage:
   status:
     # we've found this not to be useful

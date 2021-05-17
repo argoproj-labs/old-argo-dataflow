@@ -89,8 +89,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				if err := r.Client.Get(ctx, client.ObjectKeyFromObject(obj), old); err != nil {
 					return ctrl.Result{}, err
 				}
-				if util.NotEqual(step, old.Spec) {
-					log.Info("updating step due to changed spec")
+				old.Spec.Replicas = nil // nil this field as it can be user/HPA modified
+				if notEqual, patch := util.NotEqual(step, old.Spec); notEqual {
+					log.Info("updating step due to changed spec", "patch", patch)
 					old.Spec = step
 					if err := r.Client.Update(ctx, old); util.IgnoreConflict(err) != nil { // ignore conflicts, we will be reconciling again shortly if this happens
 						return ctrl.Result{}, err
@@ -166,25 +167,21 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	newStatus.Message = strings.Join(ss, ", ")
 
-	if newStatus.Phase == dfv1.PipelineRunning {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionRunning, Status: metav1.ConditionTrue, Reason: dfv1.ConditionRunning})
-	} else if meta.FindStatusCondition(newStatus.Conditions, dfv1.ConditionRunning) != nil { // guard only needed because RemoveStatusCondition panics on zero length conditions
-		meta.RemoveStatusCondition(&newStatus.Conditions, dfv1.ConditionRunning)
-	}
-	if newStatus.Phase.Completed() {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionCompleted, Status: metav1.ConditionTrue, Reason: dfv1.ConditionCompleted})
-	} else if meta.FindStatusCondition(newStatus.Conditions, dfv1.ConditionCompleted) != nil {
-		meta.RemoveStatusCondition(&newStatus.Conditions, dfv1.ConditionCompleted)
-	}
-	if sunkMessages {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionSunkMessages, Status: metav1.ConditionTrue, Reason: dfv1.ConditionSunkMessages})
-	}
-	if errors {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionErrors, Status: metav1.ConditionTrue, Reason: dfv1.ConditionErrors})
+	for ok, c := range map[bool]string{
+		newStatus.Phase == dfv1.PipelineRunning: dfv1.ConditionRunning,
+		newStatus.Phase.Completed():             dfv1.ConditionCompleted,
+		sunkMessages:                            dfv1.ConditionSunkMessages,
+		errors:                                  dfv1.ConditionErrors,
+		terminate:                               dfv1.ConditionTerminating,
+	} {
+		if ok {
+			meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: c, Status: metav1.ConditionTrue, Reason: c})
+		} else if meta.FindStatusCondition(newStatus.Conditions, c) != nil { // guard only needed because RemoveStatusCondition panics on zero length conditions
+			meta.RemoveStatusCondition(&newStatus.Conditions, c)
+		}
 	}
 
 	if terminate {
-		meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: dfv1.ConditionTerminating, Status: metav1.ConditionTrue, Reason: dfv1.ConditionTerminating})
 		pods := &corev1.PodList{}
 		selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipeline.Name)
 		if err := r.Client.List(ctx, pods, &client.ListOptions{Namespace: pipeline.Namespace, LabelSelector: selector}); err != nil {
@@ -201,8 +198,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	if util.NotEqual(pipeline.Status, newStatus) {
-		log.Info("updating pipeline status", "phase", newStatus.Phase, "message", newStatus.Message)
+	if notEqual, patch := util.NotEqual(pipeline.Status, newStatus); notEqual {
+		log.Info("updating pipeline status", "phase", newStatus.Phase, "message", newStatus.Message, "patch", patch)
 		pipeline.Status = newStatus
 		if err := r.Status().Update(ctx, pipeline); util.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)

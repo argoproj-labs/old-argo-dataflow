@@ -23,11 +23,11 @@ build: generate manifests
 test:
 	go test -v ./... -coverprofile cover.out
 
-pre-commit: codegen test install lint
+pre-commit: codegen test install lint start
 
-codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml docs/EXAMPLES.md
+codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml docs/EXAMPLES.md CHANGELOG.md
 	go generate ./...
-	./hack/changelog.sh > CHANGELOG.md
+
 
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
@@ -78,8 +78,12 @@ generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: docs/EXAMPLES.md
-docs/EXAMPLES.md:
-	go run ./docs/examples > docs/EXAMPLES.md
+docs/EXAMPLES.md: /dev/null
+	go run ./examples > docs/EXAMPLES.md
+
+.PHONY: CHANGELOG.md
+CHANGELOG.md: /dev/null
+	./hack/changelog.sh > CHANGELOG.md
 
 # not dependant on api/v1alpha1/generated.proto because it often does not change when this target runs, so results in remakes when they are not needed
 proto: api/v1alpha1/generated.pb.go
@@ -100,7 +104,7 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 lint:
 	go mod tidy
 	golangci-lint run --fix
-	kubectl apply --dry-run=client -f docs/examples
+	kubectl apply --dry-run=client -f examples
 
 .PHONY: controller
 controller: controller-image
@@ -153,7 +157,7 @@ config/stan/single-server-stan.yml:
 
 .PHONY: test-examples
 test-examples:
-	go test -timeout 20m -v -tags examples -count 1 ./docs/examples
+	go test -timeout 20m -v -count 1 ./examples
 
 argocli:
 	cd ../../argoproj/argo-workflows && git checkout dev-dataflow && make ./dist/argo DEV_BRANCH=true && ./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system

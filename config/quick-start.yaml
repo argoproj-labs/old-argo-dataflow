@@ -660,9 +660,6 @@ spec:
                       type: object
                     map:
                       type: string
-                    maxReplicas:
-                      format: int32
-                      type: integer
                     metadata:
                       properties:
                         annotations:
@@ -674,10 +671,6 @@ spec:
                             type: string
                           type: object
                       type: object
-                    minReplicas:
-                      default: 1
-                      format: int32
-                      type: integer
                     name:
                       default: default
                       type: string
@@ -685,13 +678,25 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
-                    replicaRatio:
+                    replicas:
                       format: int32
                       type: integer
                     restartPolicy:
                       default: OnFailure
                       description: RestartPolicy describes how the container should be restarted. Only one of the following restart policies may be specified. If none of the following policies is specified, the default one is RestartPolicyAlways.
                       type: string
+                    scale:
+                      properties:
+                        maxReplicas:
+                          format: int32
+                          type: integer
+                        minReplicas:
+                          format: int32
+                          type: integer
+                        replicaRatio:
+                          format: int32
+                          type: integer
+                      type: object
                     serviceAccountName:
                       default: pipeline
                       type: string
@@ -1733,7 +1738,6 @@ spec:
                         type: object
                       type: array
                   required:
-                  - minReplicas
                   - name
                   type: object
                 type: array
@@ -1831,8 +1835,11 @@ spec:
     - jsonPath: .status.message
       name: Message
       type: string
+    - jsonPath: .spec.replicas
+      name: Desired
+      type: string
     - jsonPath: .status.replicas
-      name: Replicas
+      name: Current
       type: string
     name: v1alpha1
     schema:
@@ -2461,9 +2468,6 @@ spec:
                 type: object
               map:
                 type: string
-              maxReplicas:
-                format: int32
-                type: integer
               metadata:
                 properties:
                   annotations:
@@ -2475,10 +2479,6 @@ spec:
                       type: string
                     type: object
                 type: object
-              minReplicas:
-                default: 1
-                format: int32
-                type: integer
               name:
                 default: default
                 type: string
@@ -2486,13 +2486,25 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
-              replicaRatio:
+              replicas:
                 format: int32
                 type: integer
               restartPolicy:
                 default: OnFailure
                 description: RestartPolicy describes how the container should be restarted. Only one of the following restart policies may be specified. If none of the following policies is specified, the default one is RestartPolicyAlways.
                 type: string
+              scale:
+                properties:
+                  maxReplicas:
+                    format: int32
+                    type: integer
+                  minReplicas:
+                    format: int32
+                    type: integer
+                  replicaRatio:
+                    format: int32
+                    type: integer
+                type: object
               serviceAccountName:
                 default: pipeline
                 type: string
@@ -3534,7 +3546,6 @@ spec:
                   type: object
                 type: array
             required:
-            - minReplicas
             - name
             type: object
           status:
@@ -3555,6 +3566,8 @@ spec:
               replicas:
                 format: int32
                 type: integer
+              selector:
+                type: string
               sinkStatuses:
                 additionalProperties:
                   properties:
@@ -3638,9 +3651,6 @@ spec:
                       type: integer
                   type: object
                 type: object
-            required:
-            - phase
-            - replicas
             type: object
         required:
         - spec
@@ -3648,6 +3658,10 @@ spec:
     served: true
     storage: true
     subresources:
+      scale:
+        labelSelectorPath: .status.selector
+        specReplicasPath: .spec.replicas
+        statusReplicasPath: .status.replicas
       status: {}
 status:
   acceptedNames:
@@ -3731,55 +3745,6 @@ rules:
   - list
   - watch
   - delete
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: kafka-installer
-  namespace: argo-dataflow-system
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  - secrets
-  - services
-  verbs:
-  - create
-  - delete
-  - get
-- apiGroups:
-  - apps
-  resources:
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - roles
-  - rolebindings
-  - clusterroles
-  - clusterrolebindings
-  verbs:
-  - create
-  - delete
-  - get
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - bind
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -3898,31 +3863,6 @@ rules:
   - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: stan-installer
-  namespace: argo-dataflow-system
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  - secrets
-  - services
-  verbs:
-  - create
-  - delete
-  - get
-- apiGroups:
-  - apps
-  resources:
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: metrics-reader
@@ -3967,20 +3907,6 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: kafka-installer
-  namespace: argo-dataflow-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: kafka-installer
-subjects:
-- kind: ServiceAccount
-  name: manager
-  namespace: argo-dataflow-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
   name: leader-election-rolebinding
   namespace: argo-dataflow-system
 roleRef:
@@ -4018,20 +3944,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: pipeline
-  namespace: argo-dataflow-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: stan-installer
-  namespace: argo-dataflow-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: stan-installer
-subjects:
-- kind: ServiceAccount
-  name: manager
   namespace: argo-dataflow-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -4176,27 +4088,3 @@ spec:
           name: https
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: input
-  namespace: argo-dataflow-system
-spec:
-  containers:
-  - args:
-    - |
-      set -x
-      while true; do
-        go install github.com/argoproj-labs/argo-dataflow/hack/kafka@main
-        kafka -topic input-topic create-topic
-        kafka -topic output-topic create-topic
-        # change sleep to 10ms to flood the topic
-        kafka -topic input-topic -sleep 2s pump-topic
-        sleep 5s
-      done
-    command:
-    - sh
-    - -c
-    image: golang:1.16
-    name: main

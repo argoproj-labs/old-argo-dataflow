@@ -23,8 +23,11 @@ spec:
     - jsonPath: .status.message
       name: Message
       type: string
+    - jsonPath: .spec.replicas
+      name: Desired
+      type: string
     - jsonPath: .status.replicas
-      name: Replicas
+      name: Current
       type: string
     name: v1alpha1
     schema:
@@ -977,9 +980,6 @@ spec:
                 type: object
               map:
                 type: string
-              maxReplicas:
-                format: int32
-                type: integer
               metadata:
                 properties:
                   annotations:
@@ -991,10 +991,6 @@ spec:
                       type: string
                     type: object
                 type: object
-              minReplicas:
-                default: 1
-                format: int32
-                type: integer
               name:
                 default: default
                 type: string
@@ -1002,7 +998,7 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
-              replicaRatio:
+              replicas:
                 format: int32
                 type: integer
               restartPolicy:
@@ -1012,6 +1008,18 @@ spec:
                   none of the following policies is specified, the default one is
                   RestartPolicyAlways.
                 type: string
+              scale:
+                properties:
+                  maxReplicas:
+                    format: int32
+                    type: integer
+                  minReplicas:
+                    format: int32
+                    type: integer
+                  replicaRatio:
+                    format: int32
+                    type: integer
+                type: object
               serviceAccountName:
                 default: pipeline
                 type: string
@@ -2603,7 +2611,6 @@ spec:
                   type: object
                 type: array
             required:
-            - minReplicas
             - name
             type: object
           status:
@@ -2624,6 +2631,8 @@ spec:
               replicas:
                 format: int32
                 type: integer
+              selector:
+                type: string
               sinkStatuses:
                 additionalProperties:
                   properties:
@@ -2707,9 +2716,6 @@ spec:
                       type: integer
                   type: object
                 type: object
-            required:
-            - phase
-            - replicas
             type: object
         required:
         - spec
@@ -2717,6 +2723,10 @@ spec:
     served: true
     storage: true
     subresources:
+      scale:
+        labelSelectorPath: .status.selector
+        specReplicasPath: .spec.replicas
+        statusReplicasPath: .status.replicas
       status: {}
 status:
   acceptedNames:

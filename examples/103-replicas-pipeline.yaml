@@ -38,10 +38,11 @@ metadata:
 spec:
   steps:
   - cat: {}
-    maxReplicas: 4
-    minReplicas: 0
     name: main
-    replicaRatio: 1000
+    scale:
+      maxReplicas: 4
+      minReplicas: 0
+      replicaRatio: 1000
     sinks:
     - kafka:
         topic: output-topic

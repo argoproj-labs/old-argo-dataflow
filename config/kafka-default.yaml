@@ -4,7 +4,7 @@ metadata:
   labels:
     origin: github.com_Yolean_kubernetes-kafka
   name: pod-labler
-  namespace: kafka
+  namespace: argo-dataflow-system
 rules:
 - apiGroups:
   - ""
@@ -35,7 +35,7 @@ metadata:
   labels:
     origin: github.com_Yolean_kubernetes-kafka
   name: kafka-pod-labler
-  namespace: kafka
+  namespace: argo-dataflow-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -43,7 +43,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: kafka
+  namespace: argo-dataflow-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -58,7 +58,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: kafka
+  namespace: argo-dataflow-system
 ---
 apiVersion: v1
 data:
@@ -179,7 +179,7 @@ data:
 kind: ConfigMap
 metadata:
   name: broker-config
-  namespace: kafka
+  namespace: argo-dataflow-system
 ---
 apiVersion: v1
 data:
@@ -224,7 +224,7 @@ data:
 kind: ConfigMap
 metadata:
   name: zookeeper-config
-  namespace: kafka
+  namespace: argo-dataflow-system
 ---
 apiVersion: v1
 kind: Secret
@@ -238,6 +238,7 @@ metadata:
       [Learn about configuration](../docs/CONFIGURATION.md)
     dataflow.argoproj.io/name: Default Kafka config
   name: dataflow-kafka-default
+  namespace: argo-dataflow-system
 stringData:
   brokers: kafka-0.broker:9092
 ---
@@ -245,7 +246,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: bootstrap
-  namespace: kafka
+  namespace: argo-dataflow-system
 spec:
   ports:
   - port: 9092
@@ -256,7 +257,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: broker
-  namespace: kafka
+  namespace: argo-dataflow-system
 spec:
   clusterIP: None
   ports:
@@ -268,7 +269,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pzoo
-  namespace: kafka
+  namespace: argo-dataflow-system
 spec:
   clusterIP: None
   ports:
@@ -284,7 +285,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: zoo
-  namespace: kafka
+  namespace: argo-dataflow-system
 spec:
   clusterIP: None
   ports:
@@ -300,7 +301,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: zookeeper
-  namespace: kafka
+  namespace: argo-dataflow-system
 spec:
   ports:
   - name: client
@@ -312,7 +313,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: kafka
-  namespace: kafka
+  namespace: argo-dataflow-system
 spec:
   podManagementPolicy: Parallel
   replicas: 1
@@ -440,7 +441,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: pzoo
-  namespace: kafka
+  namespace: argo-dataflow-system
 spec:
   podManagementPolicy: Parallel
   replicas: 1
@@ -530,7 +531,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: zoo
-  namespace: kafka
+  namespace: argo-dataflow-system
 spec:
   podManagementPolicy: Parallel
   replicas: 0

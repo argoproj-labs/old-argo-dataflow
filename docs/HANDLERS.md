@@ -30,6 +30,6 @@ Handler(msg []byte) -> ([][]byte, error)
 
 Examples:
 
-* [Go 1.16 pipeline](examples/104-go1-16-pipeline.yaml)
-* [Java 16 pipeline](examples/104-java16-pipeline.yaml)
+* [Go 1.16 pipeline](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-go1-16-pipeline.yaml)
+* [Java 16 pipeline](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml)
 

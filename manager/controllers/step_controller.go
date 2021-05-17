@@ -141,6 +141,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if currentReplicas != targetReplicas {
 		newStatus.LastScaledAt = &metav1.Time{Time: time.Now()}
 		newStatus.Replicas = uint32(targetReplicas)
+		newStatus.Selector = fmt.Sprintf("%s=%s,%s=%s", dfv1.KeyPipelineName, pipelineName, dfv1.KeyStepName, step.Name)
 		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
 	}
 
@@ -172,8 +173,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	if util.NotEqual(oldStatus, newStatus) {
-		log.Info("patching step status (phase/message)", "phase", newStatus.Phase)
+	if notEqual, patch := util.NotEqual(oldStatus, newStatus); notEqual {
+		log.Info("patching step status (phase/message)", "phase", newStatus.Phase, "patch", patch)
 		if err := r.Status().
 			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(util.MustJSON(&dfv1.Step{Status: newStatus})))); util.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)

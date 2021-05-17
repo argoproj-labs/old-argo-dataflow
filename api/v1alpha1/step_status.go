@@ -7,9 +7,10 @@ import (
 )
 
 type StepStatus struct {
-	Phase         StepPhase      `json:"phase" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
+	Phase         StepPhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
 	Message       string         `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
-	Replicas      uint32         `json:"replicas" protobuf:"varint,5,opt,name=replicas"`
+	Replicas      uint32         `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
+	Selector      string         `json:"selector,omitempty" protobuf:"bytes,7,opt,name=selector"`
 	LastScaledAt  *metav1.Time   `json:"lastScaledAt,omitempty" protobuf:"bytes,6,opt,name=lastScaledAt"`
 	SourceStatues SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
 	SinkStatues   SinkStatuses   `json:"sinkStatuses,omitempty" protobuf:"bytes,4,rep,name=sinkStatuses"`

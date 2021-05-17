@@ -1,5 +1,8 @@
 resources:
   - ../quick-start
+  - ../kafka-default
+  - ../stan-default
+  - input-pod.yaml
 
 patchesStrategicMerge:
   - controller-manager-deploy.yaml

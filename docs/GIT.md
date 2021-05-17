@@ -10,12 +10,15 @@ git:
   path: examples/git
   image: golang:1.16
   url: https://github.com/argoproj-labs/argo-dataflow
-  command: 
+  command:
     - sh
     - -c
     - |
       go run .
 ```
 
-* [Example pipeline](examples/106-git-pipeline.yaml)
-* [Source code](examples/git)
+* [Example pipeline](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-pipeline.yaml)
+* [Source code](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/git)
+
+To use this type of step, you'll need to ensure your pods can read from your Git repository, which maybe prevented by
+ingress and egress rules.

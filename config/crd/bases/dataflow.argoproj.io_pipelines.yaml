@@ -1023,9 +1023,6 @@ spec:
                       type: object
                     map:
                       type: string
-                    maxReplicas:
-                      format: int32
-                      type: integer
                     metadata:
                       properties:
                         annotations:
@@ -1037,10 +1034,6 @@ spec:
                             type: string
                           type: object
                       type: object
-                    minReplicas:
-                      default: 1
-                      format: int32
-                      type: integer
                     name:
                       default: default
                       type: string
@@ -1048,7 +1041,7 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
-                    replicaRatio:
+                    replicas:
                       format: int32
                       type: integer
                     restartPolicy:
@@ -1058,6 +1051,18 @@ spec:
                         be specified. If none of the following policies is specified,
                         the default one is RestartPolicyAlways.
                       type: string
+                    scale:
+                      properties:
+                        maxReplicas:
+                          format: int32
+                          type: integer
+                        minReplicas:
+                          format: int32
+                          type: integer
+                        replicaRatio:
+                          format: int32
+                          type: integer
+                      type: object
                     serviceAccountName:
                       default: pipeline
                       type: string
@@ -2737,7 +2742,6 @@ spec:
                         type: object
                       type: array
                   required:
-                  - minReplicas
                   - name
                   type: object
                 type: array

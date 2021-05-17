@@ -20,11 +20,8 @@ type StepSpec struct {
 	Map       Map        `json:"map,omitempty" protobuf:"bytes,9,opt,name=map,casttype=Map"`
 	Group     *Group     `json:"group,omitempty" protobuf:"bytes,11,opt,name=group"`
 
-	// +kubebuilder:default=1
-	MinReplicas  int32   `json:"minReplicas" protobuf:"varint,20,opt,name=minReplicas"`           // this is both the min, and the initial value
-	MaxReplicas  *uint32 `json:"maxReplicas,omitempty" protobuf:"varint,21,opt,name=maxReplicas"` // takes precedence over min
-	ReplicaRatio uint32  `json:"replicaRatio,omitempty" protobuf:"varint,22,opt,name=replicaRatio"`
-
+	Replicas *uint32 `json:"replicas,omitempty" protobuf:"varint,23,opt,name=replicas"`
+	Scale    *Scale  `json:"scale,omitempty" protobuf:"bytes,24,opt,name=scale"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	Sources []Source `json:"sources,omitempty" protobuf:"bytes,3,rep,name=sources"`
@@ -148,26 +145,12 @@ func (in *StepSpec) getType() containerSupplier {
 	}
 }
 
-// Used to calculate the number of replicas.
-// min(r.max, max(r.min, pending/ratio))
-// Example:
-// min=1, max=4, ratio=100
-// pending=0, replicas=1
-// pending=100, replicas=1
-// pending=200, replicas=2
-// pending=300, replicas=3
-// pending=400, replicas=4
-// pending=500, replicas=4
 func (in *StepSpec) CalculateReplicas(pending int) int {
-	n := 0
-	if in.ReplicaRatio > 0 {
-		n = pending / int(in.ReplicaRatio)
+	if in.Replicas != nil {
+		return int(*in.Replicas)
 	}
-	if n < int(in.MinReplicas) {
-		n = int(in.MinReplicas)
+	if in.Scale == nil {
+		return 1
 	}
-	if in.MaxReplicas != nil && n > int(*in.MaxReplicas) {
-		n = int(*in.MaxReplicas)
-	}
-	return n
+	return in.Scale.Calculate(pending)
 }

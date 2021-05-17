@@ -17,7 +17,7 @@ spec:
   - git:
       branch: main
       image: quay.io/argoproj/dataflow-go1-16:latest
-      path: docs/examples/git
+      path: examples/git
       url: https://github.com/argoproj-labs/argo-dataflow
     name: main
     sinks:

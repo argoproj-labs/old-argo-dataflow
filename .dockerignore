@@ -1,5 +1,6 @@
 *.iml
 .github
 .idea
+bin
 docs
 examples

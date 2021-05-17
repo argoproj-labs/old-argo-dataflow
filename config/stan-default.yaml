@@ -6,6 +6,7 @@ data:
 kind: ConfigMap
 metadata:
   name: nats-config
+  namespace: argo-dataflow-system
 ---
 apiVersion: v1
 data:
@@ -22,6 +23,7 @@ data:
 kind: ConfigMap
 metadata:
   name: stan-config
+  namespace: argo-dataflow-system
 ---
 apiVersion: v1
 kind: Secret
@@ -35,6 +37,7 @@ metadata:
       [Learn about configuration](../docs/CONFIGURATION.md)
     dataflow.argoproj.io/name: Default NATS Streaming (STAN) configuration
   name: dataflow-stan-default
+  namespace: argo-dataflow-system
 stringData:
   clusterId: stan
   natsUrl: nats
@@ -46,6 +49,7 @@ metadata:
   labels:
     app: nats
   name: nats
+  namespace: argo-dataflow-system
 spec:
   clusterIP: None
   ports:
@@ -70,6 +74,7 @@ metadata:
   labels:
     app: stan
   name: stan
+  namespace: argo-dataflow-system
 spec:
   clusterIP: None
   ports:
@@ -84,6 +89,7 @@ metadata:
   labels:
     app: nats
   name: nats
+  namespace: argo-dataflow-system
 spec:
   replicas: 1
   selector:
@@ -165,6 +171,7 @@ metadata:
   labels:
     app: stan
   name: stan
+  namespace: argo-dataflow-system
 spec:
   replicas: 1
   selector:

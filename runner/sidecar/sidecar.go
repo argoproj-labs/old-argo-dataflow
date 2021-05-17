@@ -27,7 +27,7 @@ import (
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
-	apiutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
 var (
@@ -117,7 +117,7 @@ func Exec(ctx context.Context) error {
 				SourceStatues: sourceStatues,
 				SinkStatues:   sinkStatues,
 			}
-			if apiutil.NotEqual(lastStatus, status) {
+			if notEqual, _ := util2.NotEqual(lastStatus, status); notEqual {
 				patchStepStatus(ctx)
 				lastStatus = status.DeepCopy()
 			}
@@ -132,7 +132,7 @@ func Exec(ctx context.Context) error {
 
 func patchStepStatus(ctx context.Context) {
 	// we need to be careful to just patch fields we own
-	patch := apiutil.MustJSON(map[string]interface{}{
+	patch := util2.MustJSON(map[string]interface{}{
 		"status": map[string]interface{}{
 			"sourceStatuses": sourceStatues,
 			"sinkStatuses":   sinkStatues,
@@ -546,5 +546,5 @@ func connectSink() (func([]byte) error, error) {
 
 // format or redact message
 func printable(m []byte) string {
-	return apiutil.Printable(string(m))
+	return util2.Printable(string(m))
 }

@@ -196,6 +196,15 @@ message STAN {
   optional string subjectPrefix = 6;
 }
 
+message Scale {
+  optional int32 minReplicas = 1;
+
+  optional uint32 maxReplicas = 2;
+
+  // takes precedence over min
+  optional uint32 replicaRatio = 3;
+}
+
 message Sink {
   // +kubebuilder:default=default
   optional string name = 1;
@@ -238,9 +247,11 @@ message SourceStatus {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 // +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Message",type=string,JSONPath=`.status.message`
-// +kubebuilder:printcolumn:name="Replicas",type=string,JSONPath=`.status.replicas`
+// +kubebuilder:printcolumn:name="Desired",type=string,JSONPath=`.spec.replicas`
+// +kubebuilder:printcolumn:name="Current",type=string,JSONPath=`.status.replicas`
 message Step {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -273,14 +284,9 @@ message StepSpec {
 
   optional Group group = 11;
 
-  // +kubebuilder:default=1
-  optional int32 minReplicas = 20;
+  optional uint32 replicas = 23;
 
-  // this is both the min, and the initial value
-  optional uint32 maxReplicas = 21;
-
-  // takes precedence over min
-  optional uint32 replicaRatio = 22;
+  optional Scale scale = 24;
 
   // +patchStrategy=merge
   // +patchMergeKey=name
@@ -317,6 +323,8 @@ message StepStatus {
   optional string message = 2;
 
   optional uint32 replicas = 5;
+
+  optional string selector = 7;
 
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastScaledAt = 6;
 

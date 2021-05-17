@@ -10,7 +10,7 @@ type SinkStatuses map[string]SinkStatus
 
 func (in SinkStatuses) Set(name string, replica int, msg string) {
 	x := in[name]
-	x.LastMessage = &Message{Data: msg, Time: metav1.Now()}
+	x.LastMessage = &Message{Data: trunc(msg), Time: metav1.Now()}
 	if x.Metrics == nil {
 		x.Metrics = map[string]Metrics{}
 	}
@@ -22,7 +22,7 @@ func (in SinkStatuses) Set(name string, replica int, msg string) {
 
 func (in SinkStatuses) IncErrors(name string, replica int, err error) {
 	x := in[name]
-	x.LastError = &Error{Message: err.Error(), Time: metav1.Now()}
+	x.LastError = &Error{Message: trunc(err.Error()), Time: metav1.Now()}
 	if x.Metrics == nil {
 		x.Metrics = map[string]Metrics{}
 	}
