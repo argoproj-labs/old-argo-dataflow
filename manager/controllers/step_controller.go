@@ -188,7 +188,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			// if the main container has terminated, kill all sidecars
 			mainCtrTerminated := false
 			for _, s := range pod.Status.ContainerStatuses {
-				mainCtrTerminated = mainCtrTerminated || (s.Name == dfv1.CtrMain && s.State.Terminated != nil)
+				mainCtrTerminated = mainCtrTerminated || (s.Name == dfv1.CtrMain && s.State.Terminated != nil && s.State.Terminated.ExitCode == 0)
 			}
 			log.Info("pod", "name", pod.Name, "phase", phase, "message", message, "mainCtrTerminated", mainCtrTerminated)
 			if mainCtrTerminated {
