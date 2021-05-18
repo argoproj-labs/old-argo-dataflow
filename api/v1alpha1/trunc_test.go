@@ -18,7 +18,7 @@ func Test_trunc(t *testing.T) {
 		assert.Len(t, x, 32)
 		assert.Equal(t, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", x)
 	})
-	t.Run("32", func(t *testing.T) {
+	t.Run("33", func(t *testing.T) {
 		x := trunc(strings.Repeat("x", 33))
 		assert.Len(t, x, 32)
 		assert.Equal(t, "xxxxxxxxxxxxxxx...xxxxxxxxxxxxxx", x)

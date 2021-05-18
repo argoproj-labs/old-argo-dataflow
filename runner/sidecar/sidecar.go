@@ -341,11 +341,13 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			}()
 		} else if x := source.HTTP; x != nil {
 			logger.Info("connecting source", "type", "http")
-			http.HandleFunc("/source", func(w http.ResponseWriter, r *http.Request) {
+			http.HandleFunc("/sources/"+source.Name, func(w http.ResponseWriter, r *http.Request) {
+				println("host", r.Host)
 				data, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					logger.Error(err, "⚠ http →")
 					w.WriteHeader(500)
+					withLock(func() { sourceStatues.IncErrors(source.Name, replica, err) })
 					return
 				}
 				debug.Info("◷ http →", "m", printable(data))

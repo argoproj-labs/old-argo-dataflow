@@ -260,9 +260,9 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 This example uses a HTTP sources and sinks.
 
-HTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your messages
-between steps. Unfortunately, it is possible for some or all of your messages to not get delivered. Also, this is
-sync, no async, so it can be slow. 
+HTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your
+messages between steps. Unfortunately, it is possible for some or all of your messages to not get delivered.
+Also, this is sync, not async, so it can be slow due to the time taken to deliver messages.
 
 
 ```
