@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.11 (2021-05-18)
+
+ * [b22e9fd](https://github.com/argoproj/argo-workflows/commit/b22e9fd986499a6f92bb417e246f2fe8eeaed98c) fix: correct changelog order
+ * [b487a16](https://github.com/argoproj/argo-workflows/commit/b487a1633b005c1084e79282665e1a7340c15580) chore: make HTTP sinks unique
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.10 (2021-05-18)
 
  * [dd8efe3](https://github.com/argoproj/argo-workflows/commit/dd8efe31cccc613fd15490c7ab9922fd8f1e3896) feat: and support for stateless sources and sinks with HTTP
