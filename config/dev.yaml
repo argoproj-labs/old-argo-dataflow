@@ -3870,6 +3870,15 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - services
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - events
   verbs:
   - create
