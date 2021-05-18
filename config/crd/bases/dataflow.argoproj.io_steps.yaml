@@ -1030,6 +1030,13 @@ spec:
               sinks:
                 items:
                   properties:
+                    http:
+                      properties:
+                        url:
+                          type: string
+                      required:
+                      - url
+                      type: object
                     kafka:
                       properties:
                         brokers:
@@ -1091,6 +1098,8 @@ spec:
                           type: string
                       required:
                       - schedule
+                      type: object
+                    http:
                       type: object
                     kafka:
                       properties:

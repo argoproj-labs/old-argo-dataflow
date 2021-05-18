@@ -26,7 +26,7 @@ type StepSpec struct {
 	Scale    *Scale  `json:"scale,omitempty" protobuf:"bytes,24,opt,name=scale"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
-	Sources []Source `json:"sources,omitempty" protobuf:"bytes,3,rep,name=sources"`
+	Sources Sources `json:"sources,omitempty" protobuf:"bytes,3,rep,name=sources"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	Sinks []Sink `json:"sinks,omitempty" protobuf:"bytes,4,rep,name=sinks"`
@@ -100,6 +100,9 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				Env:             envVars,
 				VolumeMounts:    volumeMounts,
 				Resources:       SmallResourceRequirements,
+				Ports: []corev1.ContainerPort{
+					{ContainerPort: 3569},
+				},
 			},
 			in.GetContainer(
 				req.ImageFormat,

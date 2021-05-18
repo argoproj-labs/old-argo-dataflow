@@ -22,6 +22,8 @@ import (
 	"strconv"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,6 +51,7 @@ type StepReconciler struct {
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=,resources=pods,verbs=get;watch;list;create
+// +kubebuilder:rbac:groups=,resources=services,verbs=get;watch;list;create
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("step", req.NamespacedName)
@@ -70,6 +73,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	hash := util.MustHash(step.Spec)
 
+	stepName := step.Spec.Name
 	if step.Status == nil || !step.Status.Phase.Completed() { // once a step is completed, we do not schedule or create pods
 		for replica := 0; replica < targetReplicas; replica++ {
 			podName := fmt.Sprintf("%s-%d", step.Name, replica)
@@ -84,7 +88,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					_labels[k] = v
 				}
 			}
-			_labels[dfv1.KeyStepName] = step.Spec.Name
+			_labels[dfv1.KeyStepName] = stepName
 			_labels[dfv1.KeyPipelineName] = pipelineName
 			annotations[dfv1.KeyReplica] = strconv.Itoa(replica)
 			annotations[dfv1.KeyHash] = hash
@@ -122,8 +126,34 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
+	if step.Spec.Sources.Any(func(s dfv1.Source) bool { return s.HTTP != nil }) {
+		if err := r.Client.Create(
+			ctx,
+			&corev1.Service{
+				ObjectMeta: (metav1.ObjectMeta{
+					Namespace: step.Namespace,
+					Name:      step.Name,
+					OwnerReferences: []metav1.OwnerReference{
+						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
+					},
+				}),
+				Spec: corev1.ServiceSpec{
+					Ports: []corev1.ServicePort{
+						{Port: 80, TargetPort: intstr.FromInt(3569)},
+					},
+					Selector: map[string]string{
+						dfv1.KeyPipelineName: pipelineName,
+						dfv1.KeyStepName:     stepName,
+					},
+				},
+			},
+		); util.IgnoreAlreadyExists(err) != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to create service %s: %w", step.Name, err)
+		}
+	}
+
 	pods := &corev1.PodList{}
-	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + step.Spec.Name)
+	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
 	if err := r.Client.List(ctx, pods, &client.ListOptions{Namespace: step.Namespace, LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
 	}
@@ -198,5 +228,6 @@ func (r *StepReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dfv1.Step{}).
 		Owns(&corev1.Pod{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
 }

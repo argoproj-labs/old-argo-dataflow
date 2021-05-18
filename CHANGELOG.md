@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.9 (2021-05-17)
+
+ * [940632a](https://github.com/argoproj/argo-workflows/commit/940632a82a7e43ff8eed63cb6a69949dbec85372) feat: and 1st-class support for expand and flatten
+ * [9e6ab3d](https://github.com/argoproj/argo-workflows/commit/9e6ab3dfbd0713f443700bc9997384143a74264b) feat: support layout of cron source messages
+ * [290cde4](https://github.com/argoproj/argo-workflows/commit/290cde40f84371707e9bb46b55fe2ba09791788d) feat: support HPA
+ * [bb32570](https://github.com/argoproj/argo-workflows/commit/bb32570b14a9756713eee63bf3f5a46f4055e901) docs: add CHANGELOG.md
+ * [d6920cf](https://github.com/argoproj/argo-workflows/commit/d6920cff0727ca96c80bb225ca5f9bc4f38f62ba) refactor: move replicas to top level
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.8 (2021-05-14)
 
  * [1e57f5c](https://github.com/argoproj/argo-workflows/commit/1e57f5c59a9e7cf0aec3526a58b5add4c8cd5018) chore: break dependency on util

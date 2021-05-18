@@ -1,0 +1,25 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: "This example uses a HTTP sources and sinks.\n\nHTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your messages\nbetween steps. Unfortunately, it is possible for some or all of your messages to not get delivered. Also, this is\nsync, no async, so it can be slow. \n"
+    dataflow.argoproj.io/name: HTTP
+  creationTimestamp: null
+  name: http
+spec:
+  steps:
+  - cat: {}
+    name: cron
+    sinks:
+    - http:
+        url: http://http-main/source
+    sources:
+    - cron:
+        layout: "15:04:05"
+        schedule: '*/3 * * * * *'
+  - cat: {}
+    name: main
+    sinks:
+    - log: {}
+    sources:
+    - http: {}

@@ -339,6 +339,26 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					time.Sleep(updateInterval)
 				}
 			}()
+		} else if x := source.HTTP; x != nil {
+			logger.Info("connecting source", "type", "http")
+			http.HandleFunc("/source", func(w http.ResponseWriter, r *http.Request) {
+				data, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					logger.Error(err, "⚠ http →")
+					w.WriteHeader(500)
+					return
+				}
+				debug.Info("◷ http →", "m", printable(data))
+				withLock(func() { sourceStatues.Set(source.Name, replica, printable(data)) })
+				if err := toMain(data); err != nil {
+					logger.Error(err, "⚠ http →")
+					w.WriteHeader(500)
+					withLock(func() { sourceStatues.IncErrors(source.Name, replica, err) })
+				} else {
+					debug.Info("✔ http ")
+					w.WriteHeader(200)
+				}
+			})
 		} else {
 			return fmt.Errorf("source misconfigured")
 		}
@@ -409,10 +429,10 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 			trace.Info("◷ source → http")
 			resp, err := http.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data))
 			if err != nil {
-				return fmt.Errorf("failed to sent message from source to main via HTTP: %w", err)
+				return fmt.Errorf("failed to send message to main via HTTP: %w", err)
 			}
 			if resp.StatusCode >= 300 {
-				return fmt.Errorf("failed to sent message from source to main via HTTP: %s", resp.Status)
+				return fmt.Errorf("failed to sent message to main via HTTP: %s", resp.Status)
 			}
 			trace.Info("✔ source → http")
 			return nil
@@ -529,6 +549,24 @@ func connectSink() (func([]byte) error, error) {
 				withLock(func() { sinkStatues.Set(sink.Name, replica, printable(m)) })
 				logger.Info(string(m), "type", "log")
 				return nil
+			})
+		} else if x := sink.HTTP; x != nil {
+			logger.Info("connecting sink", "type", "http")
+			toSinks = append(toSinks, func(m []byte) error {
+				withLock(func() { sinkStatues.Set(sink.Name, replica, printable(m)) })
+				err := func() error {
+					if resp, err := http.Post(x.URL, "application/octet-stream", bytes.NewBuffer(m)); err != nil {
+						return err
+					} else if resp.StatusCode != 200 {
+						return fmt.Errorf("failed to send HTTP request: %q", resp.Status)
+					} else {
+						return nil
+					}
+				}()
+				if err != nil {
+					withLock(func() { sinkStatues.IncErrors(sink.Name, replica, err) })
+				}
+				return err
 			})
 		} else {
 			return nil, fmt.Errorf("sink misconfigured")

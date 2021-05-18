@@ -256,6 +256,19 @@ This example creates errors randomly
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml
 ```
 
+### [HTTP](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml)
+
+This example uses a HTTP sources and sinks.
+
+HTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your messages
+between steps. Unfortunately, it is possible for some or all of your messages to not get delivered. Also, this is
+sync, no async, so it can be slow. 
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml
+```
+
 ### [Default Kafka config](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml)
 
 This is an example of providing a namespace named Kafka configuration.

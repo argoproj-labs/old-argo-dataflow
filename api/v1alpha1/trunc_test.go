@@ -8,5 +8,19 @@ import (
 )
 
 func Test_trunc(t *testing.T) {
-	assert.Len(t, trunc(strings.Repeat("x", 99)), 32)
+	t.Run("31", func(t *testing.T) {
+		x := trunc(strings.Repeat("x", 31))
+		assert.Len(t, x, 31)
+		assert.Equal(t, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", x)
+	})
+	t.Run("32", func(t *testing.T) {
+		x := trunc(strings.Repeat("x", 32))
+		assert.Len(t, x, 32)
+		assert.Equal(t, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", x)
+	})
+	t.Run("32", func(t *testing.T) {
+		x := trunc(strings.Repeat("x", 33))
+		assert.Len(t, x, 32)
+		assert.Equal(t, "xxxxxxxxxxxxxxx...xxxxxxxxxxxxxx", x)
+	})
 }

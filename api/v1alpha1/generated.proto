@@ -108,6 +108,13 @@ message Group {
 message HTTP {
 }
 
+message HTTPSink {
+  optional string url = 1;
+}
+
+message HTTPSource {
+}
+
 message Handler {
   optional string runtime = 4;
 
@@ -223,6 +230,8 @@ message Sink {
   optional Kafka kafka = 3;
 
   optional Log log = 4;
+
+  optional HTTPSink http = 5;
 }
 
 message SinkStatus {
@@ -242,6 +251,8 @@ message Source {
   optional STAN stan = 3;
 
   optional Kafka kafka = 4;
+
+  optional HTTPSource http = 5;
 }
 
 message SourceStatus {

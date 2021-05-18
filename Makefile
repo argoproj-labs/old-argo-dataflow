@@ -25,10 +25,11 @@ test:
 
 pre-commit: codegen test install lint start
 
-codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml docs/EXAMPLES.md CHANGELOG.md
+codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml docs/EXAMPLES.md CHANGELOG.md $(GOBIN)/pie
 	go generate ./...
 
-
+$(GOBIN)/pie:
+	go install github.com/elliotchance/pie@v1.38.2
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 

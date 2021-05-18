@@ -37,7 +37,7 @@ func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 				return
 			}
 			if resp.StatusCode != 200 {
-				logger.Error(err, "failed to post message", resp.Status)
+				logger.Error(err, "failed to post message", "status", resp.Status)
 				w.WriteHeader(500)
 				return
 			}
