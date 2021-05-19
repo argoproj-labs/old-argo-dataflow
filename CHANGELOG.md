@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.12 (2021-05-18)
+
+ * [3089119](https://github.com/argoproj/argo-workflows/commit/3089119f0447727cd493b1116244d90ac6dc3a1e) fix: only terminate sidecars if the main container exit with code 0
+ * [6dc28a2](https://github.com/argoproj/argo-workflows/commit/6dc28a23802b922e9c074dfe93911e9ad4763012) fix: failed to record sink status
+ * [3db2fbc](https://github.com/argoproj/argo-workflows/commit/3db2fbc9645da9c9c2dd682322906f5541ca96d2) fix: add missing RBAC for manager
+ * [97c9d4b](https://github.com/argoproj/argo-workflows/commit/97c9d4b402a29ab978c536c0b2e5231c183cdd20) docs: updated CHANGELOG.md
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.11 (2021-05-18)
 
  * [b22e9fd](https://github.com/argoproj/argo-workflows/commit/b22e9fd986499a6f92bb417e246f2fe8eeaed98c) fix: correct changelog order
