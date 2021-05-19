@@ -23,41 +23,41 @@ var ErrorReasons = map[string]bool{
 	"OOMKilled":          true,
 }
 
-func inferPhase(pod corev1.Pod) (dfv1.StepPhase, string) {
-	min := dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "")
+func inferPhase(pod corev1.Pod) (dfv1.StepPhase, string, string) {
+	min := dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "", "")
 	for _, s := range pod.Status.InitContainerStatuses {
 		min = dfv1.MinStepPhaseMessage(min, func() dfv1.StepPhaseMessage {
 			if s.State.Running != nil {
-				return dfv1.NewStepPhaseMessage(dfv1.StepRunning, "")
-			} else if s.State.Waiting != nil {
-				if ErrorReasons[s.State.Waiting.Reason] {
-					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, s.State.Waiting.Message)
+				return dfv1.NewStepPhaseMessage(dfv1.StepRunning, "", "")
+			} else if x := s.State.Waiting; x != nil {
+				if ErrorReasons[x.Reason] {
+					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, x.Reason, x.Message)
 				} else {
-					return dfv1.NewStepPhaseMessage(dfv1.StepPending, s.State.Waiting.Message)
+					return dfv1.NewStepPhaseMessage(dfv1.StepPending, x.Reason, x.Message)
 				}
 			}
-			return dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "")
+			return dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "", "")
 		}())
 	}
 	for _, s := range pod.Status.ContainerStatuses {
 		min = dfv1.MinStepPhaseMessage(min, func() dfv1.StepPhaseMessage {
-			if s.State.Terminated != nil {
-				if int(s.State.Terminated.ExitCode) == 0 {
-					return dfv1.NewStepPhaseMessage(dfv1.StepSucceeded, "")
+			if x := s.State.Terminated; x != nil {
+				if int(x.ExitCode) == 0 {
+					return dfv1.NewStepPhaseMessage(dfv1.StepSucceeded, "", "")
 				} else {
-					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, s.State.Terminated.Message)
+					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, x.Reason, x.Message)
 				}
 			} else if s.State.Running != nil {
-				return dfv1.NewStepPhaseMessage(dfv1.StepRunning, "")
-			} else if s.State.Waiting != nil {
-				if ErrorReasons[s.State.Waiting.Reason] {
-					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, s.State.Waiting.Message)
+				return dfv1.NewStepPhaseMessage(dfv1.StepRunning, "", "")
+			} else if x := s.State.Waiting; x != nil {
+				if ErrorReasons[x.Reason] {
+					return dfv1.NewStepPhaseMessage(dfv1.StepFailed, x.Reason, x.Message)
 				} else {
-					return dfv1.NewStepPhaseMessage(dfv1.StepPending, s.State.Waiting.Message)
+					return dfv1.NewStepPhaseMessage(dfv1.StepPending, x.Reason, x.Message)
 				}
 			}
-			return dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "")
+			return dfv1.NewStepPhaseMessage(dfv1.StepUnknown, "", "")
 		}())
 	}
-	return min.GetPhase(), min.GetMessage()
+	return min.GetPhase(), min.GetReason(), min.GetMessage()
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.14 (2021-05-18)
+
+ * [2a23cb8](https://github.com/argoproj/argo-workflows/commit/2a23cb8abc4343272d4dd04f493d888694923114) fix: scale to 1 rather than 0 on start
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.13 (2021-05-18)
 
  * [ea4e910](https://github.com/argoproj/argo-workflows/commit/ea4e910597a1de3a99406523fdab0feadf14a116) docs: updated CHANGELOG.md

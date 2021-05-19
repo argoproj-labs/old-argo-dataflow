@@ -11,12 +11,16 @@ func (m StepPhaseMessage) GetPhase() StepPhase {
 	return StepPhase(strings.Split(string(m), "/")[0])
 }
 
-func (m StepPhaseMessage) GetMessage() string {
+func (m StepPhaseMessage) GetReason() string {
 	return strings.Split(string(m), "/")[1]
 }
 
-func NewStepPhaseMessage(p StepPhase, m string) StepPhaseMessage {
-	return StepPhaseMessage(fmt.Sprintf("%s/%s", p, m))
+func (m StepPhaseMessage) GetMessage() string {
+	return strings.Split(string(m), "/")[2]
+}
+
+func NewStepPhaseMessage(phase StepPhase, reason, message string) StepPhaseMessage {
+	return StepPhaseMessage(fmt.Sprintf("%s/%s/%s", phase, reason, message))
 }
 
 func MinStepPhaseMessage(v ...StepPhaseMessage) StepPhaseMessage {
@@ -27,5 +31,5 @@ func MinStepPhaseMessage(v ...StepPhaseMessage) StepPhaseMessage {
 			}
 		}
 	}
-	return NewStepPhaseMessage(StepUnknown, "")
+	return NewStepPhaseMessage(StepUnknown, "", "")
 }

@@ -11,12 +11,13 @@ import (
 
 func Test_inferPhase(t *testing.T) {
 	t.Run("Empty", func(t *testing.T) {
-		p, msg := inferPhase(corev1.Pod{})
+		p, reason, msg := inferPhase(corev1.Pod{})
 		assert.Equal(t, p, dfv1.StepUnknown)
+		assert.Equal(t, "", reason)
 		assert.Equal(t, "", msg)
 	})
 	t.Run("Init", func(t *testing.T) {
-		p, msg := inferPhase(corev1.Pod{
+		p, reason, msg := inferPhase(corev1.Pod{
 			Status: corev1.PodStatus{
 				InitContainerStatuses: []corev1.ContainerStatus{
 					{State: corev1.ContainerState{
@@ -26,10 +27,11 @@ func Test_inferPhase(t *testing.T) {
 			},
 		})
 		assert.Equal(t, p, dfv1.StepPending)
+		assert.Equal(t, "", reason)
 		assert.Equal(t, "", msg)
 	})
 	t.Run("Init", func(t *testing.T) {
-		p, _ := inferPhase(corev1.Pod{
+		p, _, _ := inferPhase(corev1.Pod{
 			Status: corev1.PodStatus{
 				InitContainerStatuses: []corev1.ContainerStatus{
 					{State: corev1.ContainerState{
@@ -41,7 +43,7 @@ func Test_inferPhase(t *testing.T) {
 		assert.Equal(t, p, dfv1.StepRunning)
 	})
 	t.Run("CrashLoopBackOff", func(t *testing.T) {
-		p, msg := inferPhase(corev1.Pod{
+		p, reason, msg := inferPhase(corev1.Pod{
 			Status: corev1.PodStatus{
 				ContainerStatuses: []corev1.ContainerStatus{
 					{State: corev1.ContainerState{
@@ -54,10 +56,11 @@ func Test_inferPhase(t *testing.T) {
 			},
 		})
 		assert.Equal(t, p, dfv1.StepFailed)
+		assert.Equal(t, "CrashLoopBackOff", reason)
 		assert.Equal(t, "foo", msg)
 	})
 	t.Run("ContainerCreating", func(t *testing.T) {
-		p, msg := inferPhase(corev1.Pod{
+		p, reason, msg := inferPhase(corev1.Pod{
 			Status: corev1.PodStatus{
 				ContainerStatuses: []corev1.ContainerStatus{
 					{State: corev1.ContainerState{
@@ -70,10 +73,11 @@ func Test_inferPhase(t *testing.T) {
 			},
 		})
 		assert.Equal(t, p, dfv1.StepPending)
+		assert.Equal(t, "ContainerCreating", reason)
 		assert.Equal(t, "foo", msg)
 	})
 	t.Run("Running", func(t *testing.T) {
-		p, _ := inferPhase(corev1.Pod{
+		p, _, _ := inferPhase(corev1.Pod{
 			Status: corev1.PodStatus{
 				ContainerStatuses: []corev1.ContainerStatus{
 					{State: corev1.ContainerState{
@@ -85,7 +89,7 @@ func Test_inferPhase(t *testing.T) {
 		assert.Equal(t, p, dfv1.StepRunning)
 	})
 	t.Run("OOMKilled", func(t *testing.T) {
-		p, msg := inferPhase(corev1.Pod{
+		p, reason, msg := inferPhase(corev1.Pod{
 			Status: corev1.PodStatus{
 				ContainerStatuses: []corev1.ContainerStatus{
 					{State: corev1.ContainerState{
@@ -99,10 +103,11 @@ func Test_inferPhase(t *testing.T) {
 			},
 		})
 		assert.Equal(t, p, dfv1.StepFailed)
+		assert.Equal(t, "OOMKilled", reason)
 		assert.Equal(t, "foo", msg)
 	})
 	t.Run("Completed", func(t *testing.T) {
-		p, _ := inferPhase(corev1.Pod{
+		p, _, _ := inferPhase(corev1.Pod{
 			Status: corev1.PodStatus{
 				ContainerStatuses: []corev1.ContainerStatus{
 					{State: corev1.ContainerState{

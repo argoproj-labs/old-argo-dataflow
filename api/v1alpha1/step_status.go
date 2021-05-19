@@ -8,6 +8,7 @@ import (
 
 type StepStatus struct {
 	Phase         StepPhase      `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
+	Reason        string         `json:"reason,omitempty" protobuf:"bytes,8,opt,name=reason"`
 	Message       string         `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
 	Replicas      uint32         `json:"replicas,omitempty" protobuf:"varint,5,opt,name=replicas"`
 	Selector      string         `json:"selector,omitempty" protobuf:"bytes,7,opt,name=selector"`

@@ -182,9 +182,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				return ctrl.Result{}, fmt.Errorf("failed to delete excess pod %s: %w", pod.Name, err)
 			}
 		} else {
-			phase, message := inferPhase(pod)
-			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Message), dfv1.NewStepPhaseMessage(phase, message))
-			newStatus.Phase, newStatus.Message = x.GetPhase(), x.GetMessage()
+			phase, reason, message := inferPhase(pod)
+			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Reason, newStatus.Message), dfv1.NewStepPhaseMessage(phase, reason, message))
+			newStatus.Phase, newStatus.Reason, newStatus.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 			// if the main container has terminated, kill all sidecars
 			mainCtrTerminated := false
 			for _, s := range pod.Status.ContainerStatuses {
