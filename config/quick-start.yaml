@@ -700,6 +700,8 @@ spec:
                         replicaRatio:
                           format: int32
                           type: integer
+                      required:
+                      - minReplicas
                       type: object
                     serviceAccountName:
                       default: pipeline
@@ -2524,6 +2526,8 @@ spec:
                   replicaRatio:
                     format: int32
                     type: integer
+                required:
+                - minReplicas
                 type: object
               serviceAccountName:
                 default: pipeline

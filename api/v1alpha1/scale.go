@@ -1,7 +1,7 @@
 package v1alpha1
 
 type Scale struct {
-	MinReplicas  int32   `json:"minReplicas,omitempty" protobuf:"varint,1,opt,name=minReplicas"`
+	MinReplicas  int32   `json:"minReplicas" protobuf:"varint,1,opt,name=minReplicas"`
 	MaxReplicas  *uint32 `json:"maxReplicas,omitempty" protobuf:"varint,2,opt,name=maxReplicas"` // takes precedence over min
 	ReplicaRatio uint32  `json:"replicaRatio,omitempty" protobuf:"varint,3,opt,name=replicaRatio"`
 }
