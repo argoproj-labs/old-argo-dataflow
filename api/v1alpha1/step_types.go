@@ -49,7 +49,7 @@ func (in *Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
 	targetReplicas := in.Spec.CalculateReplicas(pending)
 
 	// do we need to peek? currentReplicas and targetReplicas must both be zero
-	if currentReplicas == 0 && targetReplicas == 0 && time.Since(lastScaledAt) > peekDelay {
+	if currentReplicas <= 0 && targetReplicas == 0 && time.Since(lastScaledAt) > peekDelay {
 		return 1
 	}
 
@@ -57,7 +57,7 @@ func (in *Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
 }
 
 func RequeueAfter(currentReplicas, targetReplicas int, scalingDelay time.Duration) time.Duration {
-	if currentReplicas == 0 && targetReplicas == 0 {
+	if currentReplicas <= 0 && targetReplicas == 0 {
 		return scalingDelay
 	}
 	return 0

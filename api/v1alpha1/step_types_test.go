@@ -17,7 +17,7 @@ func TestStep_GetTargetReplicas(t *testing.T) {
 	t.Run("Init", func(t *testing.T) {
 		t.Run("Min=0", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Scale: &Scale{MinReplicas: 0}}}
-			assert.Equal(t, 0, s.GetTargetReplicas(scalingDelay, peekDelay))
+			assert.Equal(t, 1, s.GetTargetReplicas(scalingDelay, peekDelay))
 		})
 		t.Run("Min=1", func(t *testing.T) {
 			s := &Step{Spec: StepSpec{Scale: &Scale{MinReplicas: 1}}}

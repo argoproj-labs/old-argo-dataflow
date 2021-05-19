@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.13 (2021-05-18)
+
+ * [ea4e910](https://github.com/argoproj/argo-workflows/commit/ea4e910597a1de3a99406523fdab0feadf14a116) docs: updated CHANGELOG.md
+ * [6204cd1](https://github.com/argoproj/argo-workflows/commit/6204cd1b085b354647495ec9866b1629fc474eb4) fix: surface errors
+ * [c000e41](https://github.com/argoproj/argo-workflows/commit/c000e4152710e9a1a1d78516e396b3892ed55e7f) fix: make minReplicas required
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.12 (2021-05-18)
 
  * [3089119](https://github.com/argoproj/argo-workflows/commit/3089119f0447727cd493b1116244d90ac6dc3a1e) fix: only terminate sidecars if the main container exit with code 0
