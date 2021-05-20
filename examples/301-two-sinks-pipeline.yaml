@@ -3,17 +3,19 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example uses parallel to 2x the amount of data it processes.
-    dataflow.argoproj.io/name: Parallel
+      This example has two sinks
+    dataflow.argoproj.io/name: Two sinks
   creationTimestamp: null
-  name: parallel
+  name: two-sinks
 spec:
   steps:
   - cat: {}
     name: main
     sinks:
     - log: {}
+      name: a
+    - log: {}
+      name: b
     sources:
     - kafka:
-        parallel: 2
         topic: input-topic

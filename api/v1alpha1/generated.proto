@@ -62,7 +62,6 @@ message Expand {
 message Flatten {
 }
 
-// +kubebuilder:skipversion
 message GetPodSpecReq {
   optional string pipelineName = 1;
 

@@ -3,10 +3,10 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |
-      This example uses parallel to 2x the amount of data it processes.
-    dataflow.argoproj.io/name: Parallel
+      This example has two sources
+    dataflow.argoproj.io/name: Two sources
   creationTimestamp: null
-  name: parallel
+  name: two-sources
 spec:
   steps:
   - cat: {}
@@ -15,5 +15,9 @@ spec:
     - log: {}
     sources:
     - kafka:
-        parallel: 2
         topic: input-topic
+      name: kafka
+    - cron:
+        layout: "15:04:05"
+        schedule: '*/3 * * * * *'
+      name: cron
