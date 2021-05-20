@@ -278,18 +278,20 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			} else {
 				closers = append(closers, sub.Close)
-				go func() {
-					defer runtimeutil.HandleCrash()
-					for {
-						if pending, _, err := sub.Pending(); err != nil {
-							logger.Error(err, "failed to get pending", "subject", x.Subject)
-						} else {
-							debug.Info("setting pending", "subject", x.Subject, "pending", pending)
-							withLock(func() { sourceStatues.SetPending(sourceName, uint64(pending)) })
+				if replica == 0 {
+					go func() {
+						defer runtimeutil.HandleCrash()
+						for {
+							if pending, _, err := sub.Pending(); err != nil {
+								logger.Error(err, "failed to get pending", "subject", x.Subject)
+							} else {
+								debug.Info("setting pending", "subject", x.Subject, "pending", pending)
+								withLock(func() { sourceStatues.SetPending(sourceName, uint64(pending)) })
+							}
+							time.Sleep(updateInterval)
 						}
-						time.Sleep(updateInterval)
-					}
-				}()
+					}()
+				}
 			}
 		} else if x := source.Kafka; x != nil {
 			logger.Info("connecting kafka source", "type", "kafka", "brokers", x.Brokers, "topic", x.Topic)
@@ -316,30 +318,32 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					logger.Error(err, "failed to create kafka consumer")
 				}
 			}()
-			go func() {
-				defer runtimeutil.HandleCrash()
-				for {
-					if partitions, err := client.Partitions(x.Topic); err != nil {
-						logger.Error(err, "failed to get offset", "topic", x.Topic)
-					} else {
-						var newestOffset int64
-						for _, p := range partitions {
-							v, err := client.GetOffset(x.Topic, p, sarama.OffsetNewest)
-							if err != nil {
-								logger.Error(err, "failed to get offset", "topic", x.Topic)
-							} else if v > newestOffset {
-								newestOffset = v
+			if replica == 0 {
+				go func() {
+					defer runtimeutil.HandleCrash()
+					for {
+						if partitions, err := client.Partitions(x.Topic); err != nil {
+							logger.Error(err, "failed to get offset", "topic", x.Topic)
+						} else {
+							var newestOffset int64
+							for _, p := range partitions {
+								v, err := client.GetOffset(x.Topic, p, sarama.OffsetNewest)
+								if err != nil {
+									logger.Error(err, "failed to get offset", "topic", x.Topic)
+								} else if v > newestOffset {
+									newestOffset = v
+								}
+							}
+							if newestOffset > handler.offset && handler.offset > 0 { // zero implies we've not processed a message yet
+								pending := uint64(newestOffset - handler.offset)
+								debug.Info("setting pending", "type", "kafka", "topic", x.Topic, "pending", pending)
+								withLock(func() { sourceStatues.SetPending(sourceName, pending) })
 							}
 						}
-						if newestOffset > handler.offset && handler.offset > 0 { // zero implies we've not processed a message yet
-							pending := uint64(newestOffset - handler.offset)
-							debug.Info("setting pending", "type", "kafka", "topic", x.Topic, "pending", pending)
-							withLock(func() { sourceStatues.SetPending(sourceName, pending) })
-						}
+						time.Sleep(updateInterval)
 					}
-					time.Sleep(updateInterval)
-				}
-			}()
+				}()
+			}
 		} else if x := source.HTTP; x != nil {
 			logger.Info("connecting source", "type", "http")
 			http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
@@ -438,7 +442,7 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 			}
 			if resp.StatusCode >= 300 {
 				body, _ := ioutil.ReadAll(resp.Body)
-				return fmt.Errorf("failed to sent message to main via HTTP: %q %q", resp.Status, body)
+				return fmt.Errorf("failed to send message to main via HTTP: %q %q", resp.Status, body)
 			}
 			trace.Info("✔ source → http")
 			return nil

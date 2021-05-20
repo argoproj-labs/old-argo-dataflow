@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.17 (2021-05-19)
+
+ * [e4a4b1a](https://github.com/argoproj/argo-workflows/commit/e4a4b1a0a523c88190f833c4c06ec7fc0dd4fde2) feat: longer status messages
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.16 (2021-05-19)
 
 
