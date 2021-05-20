@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -21,12 +22,14 @@ func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 		if err != nil {
 			logger.Error(err, "failed to marshal message")
 			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		msgs, err := fn(in)
 		if err != nil {
 			logger.Error(err, "failed execute")
 			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		for _, out := range msgs {
@@ -34,11 +37,14 @@ func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 			if err != nil {
 				logger.Error(err, "failed to post message")
 				w.WriteHeader(500)
+				_, _ = w.Write([]byte(err.Error()))
 				return
 			}
 			if resp.StatusCode != 200 {
-				logger.Error(err, "failed to post message", "status", resp.Status)
+				err := fmt.Errorf("failed to post message %s", resp.Status)
+				logger.Error(err, "failed to post message")
 				w.WriteHeader(500)
+				_, _ = w.Write([]byte(err.Error()))
 				return
 			}
 			logger.V(6).Info("do", "in", string(in), "out", string(out))
@@ -47,7 +53,7 @@ func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 	})
 
 	go func() {
-		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		defer runtimeutil.HandleCrash()
 		if err := http.ListenAndServe(":8080", nil); err != nil {
 			panic(err)
 		}
