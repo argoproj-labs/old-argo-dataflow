@@ -1,0 +1,19 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example uses parallel to 2x the amount of data it processes.
+    dataflow.argoproj.io/name: Parallel
+  creationTimestamp: null
+  name: parallel
+spec:
+  steps:
+  - cat: {}
+    name: main
+    sinks:
+    - log: {}
+    sources:
+    - kafka:
+        topic: input-topic
+        parallel: 2
