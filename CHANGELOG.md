@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.18 (2021-05-20)
+
+ * [9d04dcd](https://github.com/argoproj/argo-workflows/commit/9d04dcde97f04eed1f54852eb7aaf8b6f3b79e49) refactor: change from `for {}` to `wait.JitterUntil`
+ * [e17f961](https://github.com/argoproj/argo-workflows/commit/e17f96180cb4af617303862b2a2ea212d5ddfff3) feat: only check Kafka partition for pending
+ * [d3e02ea](https://github.com/argoproj/argo-workflows/commit/d3e02ead1da9dd5bfb38d7d1a538e9c3961cef4f) feat: reduced update interval to every 30s
+ * [72f0aeb](https://github.com/argoproj/argo-workflows/commit/72f0aeb724d14b331e258059be4ce5a0ff845f86) feat(runner): change name of queue
+ * [e25a33c](https://github.com/argoproj/argo-workflows/commit/e25a33c98adcdbf56bd08172a3ea69285acc6527) feat: report Kubernetes API errors related to pod/servic creation/deletion
+ * [36dae38](https://github.com/argoproj/argo-workflows/commit/36dae3845cc885ae60960ded1deea255d314f6fa) feat: only update pending for replica zero to prevent disagreement
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.17 (2021-05-19)
 
  * [e4a4b1a](https://github.com/argoproj/argo-workflows/commit/e4a4b1a0a523c88190f833c4c06ec7fc0dd4fde2) feat: longer status messages
