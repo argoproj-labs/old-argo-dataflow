@@ -311,7 +311,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
 			closers = append(closers, group.Close)
-			handler := &handler{sourceName, toMain, 0}
+			handler := &handler{sourceName, toMain, 0, 0}
 			go func() {
 				defer runtimeutil.HandleCrash()
 				if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
@@ -322,23 +322,17 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				go func() {
 					defer runtimeutil.HandleCrash()
 					for {
-						if partitions, err := client.Partitions(x.Topic); err != nil {
-							logger.Error(err, "failed to get offset", "topic", x.Topic)
-						} else {
-							var newestOffset int64
-							for _, p := range partitions {
-								v, err := client.GetOffset(x.Topic, p, sarama.OffsetNewest)
+						if handler.offset > 0 {
+							withLock(func() {
+								newestOffset, err := client.GetOffset(x.Topic, handler.partition, sarama.OffsetNewest)
 								if err != nil {
 									logger.Error(err, "failed to get offset", "topic", x.Topic)
-								} else if v > newestOffset {
-									newestOffset = v
+								} else if newestOffset > handler.offset { // zero implies we've not processed a message yet
+									pending := uint64(newestOffset - handler.offset)
+									debug.Info("setting pending", "type", "kafka", "topic", x.Topic, "pending", pending)
+									sourceStatues.SetPending(sourceName, pending)
 								}
-							}
-							if newestOffset > handler.offset && handler.offset > 0 { // zero implies we've not processed a message yet
-								pending := uint64(newestOffset - handler.offset)
-								debug.Info("setting pending", "type", "kafka", "topic", x.Topic, "pending", pending)
-								withLock(func() { sourceStatues.SetPending(sourceName, pending) })
-							}
+							})
 						}
 						time.Sleep(updateInterval)
 					}
@@ -516,7 +510,7 @@ func connectSink() (func([]byte) error, error) {
 	for _, sink := range spec.Sinks {
 		sinkName := sink.Name
 		if s := sink.STAN; s != nil {
-			clientID := fmt.Sprintf("%s-%s-%d-sink-%d", pipelineName, spec.Name, sinkName)
+			clientID := fmt.Sprintf("%s-%s-%s", pipelineName, spec.Name, sinkName)
 			logger.Info("connecting sink", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", clientID, "subject", s.Subject)
 			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))
 			if err != nil {
