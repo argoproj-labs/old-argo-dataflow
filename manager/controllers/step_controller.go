@@ -73,6 +73,16 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	hash := util.MustHash(step.Spec)
 
+	oldStatus := step.Status.DeepCopy()
+	if oldStatus == nil {
+		oldStatus = &dfv1.StepStatus{}
+	}
+	// we need to delete the fields we do not own and should now be allowed in update
+	oldStatus.SinkStatues = nil
+	oldStatus.SourceStatues = nil
+	newStatus := oldStatus.DeepCopy()
+	newStatus.Phase = dfv1.StepUnknown
+
 	stepName := step.Spec.Name
 	if step.Status == nil || !step.Status.Phase.Completed() { // once a step is completed, we do not schedule or create pods
 		for replica := 0; replica < targetReplicas; replica++ {
@@ -121,7 +131,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					),
 				},
 			); util.IgnoreAlreadyExists(err) != nil {
-				return ctrl.Result{}, fmt.Errorf("failed to create pod %s: %w", podName, err)
+				x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Reason, newStatus.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create pod %s: %v", podName, err)))
+				newStatus.Phase, newStatus.Reason, newStatus.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 			}
 		}
 	}
@@ -148,7 +159,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 			},
 		); util.IgnoreAlreadyExists(err) != nil {
-			return ctrl.Result{}, fmt.Errorf("failed to create service %s: %w", step.Name, err)
+			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Reason, newStatus.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
+			newStatus.Phase, newStatus.Reason, newStatus.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 		}
 	}
 
@@ -157,16 +169,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if err := r.Client.List(ctx, pods, &client.ListOptions{Namespace: step.Namespace, LabelSelector: selector}); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
 	}
-
-	oldStatus := step.Status.DeepCopy()
-	if oldStatus == nil {
-		oldStatus = &dfv1.StepStatus{}
-	}
-	// we need to delete the fields we do not own and should now be allowed in update
-	oldStatus.SinkStatues = nil
-	oldStatus.SourceStatues = nil
-	newStatus := oldStatus.DeepCopy()
-	newStatus.Phase = dfv1.StepUnknown
 
 	if currentReplicas != targetReplicas {
 		newStatus.LastScaledAt = &metav1.Time{Time: time.Now()}
@@ -179,7 +181,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= targetReplicas || hash != pod.GetAnnotations()[dfv1.KeyHash] {
 			log.Info("deleting excess pod", "podName", pod.Name)
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
-				return ctrl.Result{}, fmt.Errorf("failed to delete excess pod %s: %w", pod.Name, err)
+				x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Reason, newStatus.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to delete excess pod %s: %v", pod.Name, err)))
+				newStatus.Phase, newStatus.Reason, newStatus.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 			}
 		} else {
 			phase, reason, message := inferPhase(pod)
