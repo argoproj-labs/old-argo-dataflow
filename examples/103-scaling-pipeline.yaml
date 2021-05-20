@@ -1,0 +1,25 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This is an example of having multiple replicas for a single step.
+
+      Steps can be manually scaled using `kubectl`:
+
+      ```
+      kubectl scale step/stepName --replicas 2
+      ```
+  creationTimestamp: null
+  name: scaling
+spec:
+  steps:
+  - cat: {}
+    name: main
+    replicas: 2
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

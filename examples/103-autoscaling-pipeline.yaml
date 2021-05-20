@@ -34,7 +34,7 @@ metadata:
       of replicas re-calculated.
     dataflow.argoproj.io/name: Using replicas and auto-scaling
   creationTimestamp: null
-  name: replicas
+  name: autoscaling
 spec:
   steps:
   - cat: {}

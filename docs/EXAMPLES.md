@@ -61,7 +61,7 @@ They have a single variable, `msg`, which is a byte array.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-map-pipeline.yaml
 ```
 
-### [Using replicas and auto-scaling](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-replicas-pipeline.yaml)
+### [Using replicas and auto-scaling](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-autoscaling-pipeline.yaml)
 
 This is an example of having multiple replicas for a single step.
 
@@ -95,7 +95,7 @@ of replicas re-calculated.
 
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-replicas-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-autoscaling-pipeline.yaml
 ```
 
 ### [Go 1.16 handler](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-go1-16-pipeline.yaml)
