@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/wait"
+
 	"github.com/Shopify/sarama"
 	"github.com/nats-io/stan.go"
 	"github.com/robfig/cron/v3"
@@ -109,21 +111,17 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	go func() {
-		defer runtimeutil.HandleCrash()
-		lastStatus := &dfv1.StepStatus{}
-		for {
-			status := &dfv1.StepStatus{
-				SourceStatues: sourceStatues,
-				SinkStatues:   sinkStatues,
-			}
-			if notEqual, _ := util2.NotEqual(lastStatus, status); notEqual {
-				patchStepStatus(ctx)
-				lastStatus = status.DeepCopy()
-			}
-			time.Sleep(updateInterval)
+	lastStatus := &dfv1.StepStatus{}
+	go wait.JitterUntil(func() {
+		status := &dfv1.StepStatus{
+			SourceStatues: sourceStatues,
+			SinkStatues:   sinkStatues,
 		}
-	}()
+		if notEqual, _ := util2.NotEqual(lastStatus, status); notEqual {
+			patchStepStatus(ctx)
+			lastStatus = status.DeepCopy()
+		}
+	}, updateInterval, 1.2, true, ctx.Done())
 	logger.Info("ready")
 	<-ctx.Done()
 	logger.Info("done")
@@ -239,62 +237,56 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		_ = crn.Stop()
 		return nil
 	})
+	sources := make(map[string]bool)
 	for _, source := range spec.Sources {
+		logger.Info("connecting source", "source", util2.MustJSON(source))
 		sourceName := source.Name
+		if _, exists := sources[sourceName]; exists {
+			return fmt.Errorf("duplicate source named %q", sourceName)
+		}
+		sources[sourceName] = true
+		f := func(msg []byte) error {
+			debug.Info("◷ →", "source", sourceName, "msg", printable(msg))
+			withLock(func() { sourceStatues.Set(sourceName, replica, printable(msg)) })
+			if err := toMain(msg); err != nil {
+				logger.Error(err, "⚠ →", "source", sourceName)
+				withLock(func() { sourceStatues.IncErrors(sourceName, replica, err) })
+				return err
+			}
+			return nil
+		}
 		if x := source.Cron; x != nil {
-			logger.Info("connecting to source", "type", "cron", "schedule", x.Schedule)
 			_, err := crn.AddFunc(x.Schedule, func() {
-				data := []byte(time.Now().Format(x.Layout))
-				debug.Info("◷ cron →", "m", printable(data))
-				withLock(func() { sourceStatues.Set(sourceName, replica, printable(data)) })
-				if err := toMain(data); err != nil {
-					logger.Error(err, "⚠ cron →")
-					withLock(func() { sourceStatues.IncErrors(sourceName, replica, err) })
-				} else {
-					debug.Info("✔ cron → ", "schedule", x.Schedule)
-				}
+				_ = f([]byte(time.Now().Format(x.Layout)))
 			})
 			if err != nil {
 				return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
 			}
 		} else if x := source.STAN; x != nil {
 			clientID := fmt.Sprintf("%s-%s-%d-%s", pipelineName, spec.Name, replica, sourceName)
-			logger.Info("connecting to source", "type", "stan", "url", x.NATSURL, "clusterID", x.ClusterID, "clientID", clientID, "subject", x.Subject)
 			sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
 			if err != nil {
 				return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 			}
 			closers = append(closers, sc.Close)
 			if sub, err := sc.QueueSubscribe(x.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
-				debug.Info("◷ stan →", "m", printable(m.Data))
-				withLock(func() { sourceStatues.Set(sourceName, replica, printable(m.Data)) })
-				if err := toMain(m.Data); err != nil {
-					logger.Error(err, "⚠ stan →")
-					withLock(func() { sourceStatues.IncErrors(sourceName, replica, err) })
-				} else {
-					debug.Info("✔ stan → ", "subject", x.Subject)
-				}
+				_ = f(m.Data)
 			}, stan.DurableName(clientID)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			} else {
 				closers = append(closers, sub.Close)
 				if replica == 0 {
-					go func() {
-						defer runtimeutil.HandleCrash()
-						for {
-							if pending, _, err := sub.Pending(); err != nil {
-								logger.Error(err, "failed to get pending", "subject", x.Subject)
-							} else {
-								debug.Info("setting pending", "subject", x.Subject, "pending", pending)
-								withLock(func() { sourceStatues.SetPending(sourceName, uint64(pending)) })
-							}
-							time.Sleep(updateInterval)
+					go wait.JitterUntil(func() {
+						if pending, _, err := sub.Pending(); err != nil {
+							logger.Error(err, "failed to get pending", "subject", x.Subject)
+						} else {
+							debug.Info("setting pending", "subject", x.Subject, "pending", pending)
+							withLock(func() { sourceStatues.SetPending(sourceName, uint64(pending)) })
 						}
-					}()
+					}, updateInterval, 1.2, true, ctx.Done())
 				}
 			}
 		} else if x := source.Kafka; x != nil {
-			logger.Info("connecting kafka source", "type", "kafka", "brokers", x.Brokers, "topic", x.Topic)
 			config, err := newKafkaConfig(x)
 			if err != nil {
 				return err
@@ -311,54 +303,41 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to create kafka consumer group: %w", err)
 			}
 			closers = append(closers, group.Close)
-			handler := &handler{sourceName, toMain, 0, 0}
-			go func() {
-				defer runtimeutil.HandleCrash()
+			handler := &handler{f: f}
+			go wait.JitterUntil(func() {
 				if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
 					logger.Error(err, "failed to create kafka consumer")
 				}
-			}()
+			}, 10*time.Second, 1.2, true, ctx.Done())
 			if replica == 0 {
-				go func() {
-					defer runtimeutil.HandleCrash()
-					for {
-						if handler.offset > 0 {
-							withLock(func() {
-								newestOffset, err := client.GetOffset(x.Topic, handler.partition, sarama.OffsetNewest)
-								if err != nil {
-									logger.Error(err, "failed to get offset", "topic", x.Topic)
-								} else if newestOffset > handler.offset { // zero implies we've not processed a message yet
-									pending := uint64(newestOffset - handler.offset)
-									debug.Info("setting pending", "type", "kafka", "topic", x.Topic, "pending", pending)
-									sourceStatues.SetPending(sourceName, pending)
-								}
-							})
-						}
-						time.Sleep(updateInterval)
+				go wait.JitterUntil(func() {
+					if handler.offset > 0 {
+						withLock(func() {
+							newestOffset, err := client.GetOffset(x.Topic, handler.partition, sarama.OffsetNewest)
+							if err != nil {
+								logger.Error(err, "failed to get offset", "topic", x.Topic)
+							} else if newestOffset > handler.offset { // zero implies we've not processed a message yet
+								pending := uint64(newestOffset - handler.offset)
+								debug.Info("setting pending", "type", "kafka", "topic", x.Topic, "pending", pending)
+								sourceStatues.SetPending(sourceName, pending)
+							}
+						})
 					}
-				}()
+				}, updateInterval, 1.2, true, ctx.Done())
 			}
 		} else if x := source.HTTP; x != nil {
-			logger.Info("connecting source", "type", "http")
 			http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
-				println("host", r.Host)
-				data, err := ioutil.ReadAll(r.Body)
+				msg, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					logger.Error(err, "⚠ http →")
 					w.WriteHeader(500)
 					_, _ = w.Write([]byte(err.Error()))
-					withLock(func() { sourceStatues.IncErrors(sourceName, replica, err) })
 					return
 				}
-				debug.Info("◷ http →", "m", printable(data))
-				withLock(func() { sourceStatues.Set(sourceName, replica, printable(data)) })
-				if err := toMain(data); err != nil {
-					logger.Error(err, "⚠ http →")
+				if err := f(msg); err != nil {
 					w.WriteHeader(500)
 					_, _ = w.Write([]byte(err.Error()))
-					withLock(func() { sourceStatues.IncErrors(sourceName, replica, err) })
 				} else {
-					debug.Info("✔ http ")
 					w.WriteHeader(200)
 				}
 			})
@@ -506,83 +485,63 @@ func connectOut(toSink func([]byte) error) {
 }
 
 func connectSink() (func([]byte) error, error) {
-	var toSinks []func([]byte) error
+	sinks := map[string]func(msg []byte) error{}
 	for _, sink := range spec.Sinks {
+		logger.Info("connecting sink", "sink", util2.MustJSON(sink))
 		sinkName := sink.Name
-		if s := sink.STAN; s != nil {
+		if _, exists := sinks[sinkName]; exists {
+			return nil, fmt.Errorf("duplicate sink named %q", sinkName)
+		}
+		if x := sink.STAN; x != nil {
 			clientID := fmt.Sprintf("%s-%s-%s", pipelineName, spec.Name, sinkName)
-			logger.Info("connecting sink", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", clientID, "subject", s.Subject)
-			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))
+			sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
 			if err != nil {
-				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", s.NATSURL, s.ClusterID, clientID, s.Subject, err)
+				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 			}
 			closers = append(closers, sc.Close)
-			toSinks = append(toSinks, func(m []byte) error {
-				withLock(func() { sinkStatues.Set(sinkName, replica, printable(m)) })
-				debug.Info("◷ → stan", "subject", s.Subject, "m", printable(m))
-				err := sc.Publish(s.Subject, m)
-				if err != nil {
-					withLock(func() { sinkStatues.IncErrors(sinkName, replica, err) })
-				}
-				return err
-			})
-		} else if k := sink.Kafka; k != nil {
-			logger.Info("connecting sink", "type", "kafka", "brokers", k.Brokers, "topic", k.Topic, "version", k.Version)
-			config, err := newKafkaConfig(k)
+			sinks[sinkName] = func(msg []byte) error { return sc.Publish(x.Subject, msg) }
+		} else if x := sink.Kafka; x != nil {
+			config, err := newKafkaConfig(x)
 			if err != nil {
 				return nil, err
 			}
 			config.Producer.Return.Successes = true
-			producer, err := sarama.NewSyncProducer(k.Brokers, config)
+			producer, err := sarama.NewSyncProducer(x.Brokers, config)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 			}
 			closers = append(closers, producer.Close)
-			toSinks = append(toSinks, func(m []byte) error {
-				withLock(func() { sinkStatues.Set(sinkName, replica, printable(m)) })
-				debug.Info("◷ → kafka", "topic", k.Topic, "m", printable(m))
+			sinks[sinkName] = func(msg []byte) error {
 				_, _, err := producer.SendMessage(&sarama.ProducerMessage{
-					Topic: k.Topic,
-					Value: sarama.ByteEncoder(m),
+					Topic: x.Topic,
+					Value: sarama.ByteEncoder(msg),
 				})
-				if err != nil {
-					withLock(func() { sinkStatues.IncErrors(sinkName, replica, err) })
-				}
 				return err
-			})
-		} else if l := sink.Log; l != nil {
-			logger.Info("connecting sink", "type", "log")
-			toSinks = append(toSinks, func(m []byte) error {
-				withLock(func() { sinkStatues.Set(sinkName, replica, printable(m)) })
-				logger.Info(string(m), "type", "log")
+			}
+		} else if x := sink.Log; x != nil {
+			sinks[sinkName] = func(msg []byte) error { //nolint:golint,unparam
+				logger.Info(string(msg), "type", "log")
 				return nil
-			})
+			}
 		} else if x := sink.HTTP; x != nil {
-			logger.Info("connecting sink", "type", "http")
-			toSinks = append(toSinks, func(m []byte) error {
-				withLock(func() { sinkStatues.Set(sinkName, replica, printable(m)) })
-				err := func() error {
-					if resp, err := http.Post(x.URL, "application/octet-stream", bytes.NewBuffer(m)); err != nil {
-						return err
-					} else if resp.StatusCode >= 300 {
-						body, _ := ioutil.ReadAll(resp.Body)
-						return fmt.Errorf("failed to send HTTP request: %q %q", resp.Status, body)
-					} else {
-						return nil
-					}
-				}()
-				if err != nil {
-					withLock(func() { sinkStatues.IncErrors(sinkName, replica, err) })
+			sinks[sinkName] = func(msg []byte) error {
+				if resp, err := http.Post(x.URL, "application/octet-stream", bytes.NewBuffer(msg)); err != nil {
+					return err
+				} else if resp.StatusCode >= 300 {
+					body, _ := ioutil.ReadAll(resp.Body)
+					return fmt.Errorf("failed to send HTTP request: %q %q", resp.Status, body)
 				}
-				return err
-			})
+				return nil
+			}
 		} else {
 			return nil, fmt.Errorf("sink misconfigured")
 		}
 	}
-	return func(m []byte) error {
-		for _, s := range toSinks {
-			if err := s(m); err != nil {
+	return func(msg []byte) error {
+		for sinkName, f := range sinks {
+			withLock(func() { sinkStatues.Set(sinkName, replica, printable(msg)) })
+			if err := f(msg); err != nil {
+				withLock(func() { sinkStatues.IncErrors(sinkName, replica, err) })
 				return err
 			}
 		}
