@@ -80,15 +80,6 @@ func Exec(ctx context.Context) error {
 
 	logger.Info("status", "status", util2.MustJSON(status))
 
-	// re-created the status, only keeping information on this replica
-	x := strconv.Itoa(replica)
-	status = dfv1.StepStatus{
-		SourceStatuses: dfv1.SourceStatuses{x: status.SourceStatuses[x]},
-		SinkStatues:    dfv1.SinkStatuses{x: status.SinkStatues[x]},
-	}
-
-	logger.Info("this replica's status", "status", util2.MustJSON(status))
-
 	lastStatus = *status.DeepCopy()
 
 	if v, err := strconv.Atoi(os.Getenv(dfv1.EnvReplica)); err != nil {
