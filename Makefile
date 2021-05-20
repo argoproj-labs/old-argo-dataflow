@@ -158,7 +158,7 @@ config/stan/single-server-stan.yml:
 
 .PHONY: test-examples
 test-examples:
-	go test -timeout 20m -v -count 1 ./examples
+	go test -timeout 20m -tags examples -v -count 1 ./examples
 
 argocli:
 	cd ../../argoproj/argo-workflows && git checkout dev-dataflow && make ./dist/argo DEV_BRANCH=true && ./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system
