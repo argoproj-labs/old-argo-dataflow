@@ -16,7 +16,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/runner/util"
 )
 
 var logger = zap.New()
@@ -39,10 +38,9 @@ func Exec() error {
 			}
 		}
 	}
-	spec, err := util.UnmarshallSpec()
-	if err != nil {
-		return err
-	}
+	spec := dfv1.StepSpec{}
+	util2.MustUnJSON(os.Getenv(dfv1.EnvStepSpec), &spec)
+
 	if spec.GetIn().FIFO {
 		logger.Info("creating in fifo")
 		if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); util2.IgnoreExist(err) != nil {

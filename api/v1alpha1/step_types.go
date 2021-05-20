@@ -34,19 +34,19 @@ type Step struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	Spec   StepSpec    `json:"spec" protobuf:"bytes,2,opt,name=spec"`
-	Status *StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Spec   StepSpec   `json:"spec" protobuf:"bytes,2,opt,name=spec"`
+	Status StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
 func (in *Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
-	lastScaledAt := in.Status.GetLastScaledAt()
+	lastScaledAt := in.Status.LastScaledAt.Time
 	currentReplicas := in.Status.GetReplicas() // can be -1
 
 	if time.Since(lastScaledAt) < scalingDelay {
 		return currentReplicas
 	}
 
-	pending := in.Status.GetSourceStatues().GetPending()
+	pending := in.Status.SourceStatuses.GetPending()
 	targetReplicas := in.Spec.CalculateReplicas(pending)
 
 	// do we need to peek? currentReplicas and targetReplicas must both be zero

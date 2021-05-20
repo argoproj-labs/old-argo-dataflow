@@ -73,18 +73,31 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	hash := util.MustHash(step.Spec)
 
-	oldStatus := step.Status.DeepCopy()
-	if oldStatus == nil {
-		oldStatus = &dfv1.StepStatus{}
+	oldStatus := dfv1.StepStatus{
+		Phase:          step.Status.Phase,
+		Reason:         step.Status.Reason,
+		Message:        step.Status.Message,
+		Replicas:       step.Status.Replicas,
+		Selector:       step.Status.Selector,
+		LastScaledAt:   step.Status.LastScaledAt,
+		SinkStatues:    dfv1.SinkStatuses{},
+		SourceStatuses: dfv1.SourceStatuses{},
 	}
+
 	// we need to delete the fields we do not own and should now be allowed in update
-	oldStatus.SinkStatues = nil
-	oldStatus.SourceStatues = nil
-	newStatus := oldStatus.DeepCopy()
-	newStatus.Phase = dfv1.StepUnknown
+	newStatus := dfv1.StepStatus{
+		Phase:          dfv1.StepUnknown,
+		Reason:         "",
+		Message:        "",
+		Replicas:       step.Status.Replicas,
+		Selector:       step.Status.Selector,
+		LastScaledAt:   step.Status.LastScaledAt,
+		SinkStatues:    dfv1.SinkStatuses{},
+		SourceStatuses: dfv1.SourceStatuses{},
+	}
 
 	stepName := step.Spec.Name
-	if step.Status == nil || !step.Status.Phase.Completed() { // once a step is completed, we do not schedule or create pods
+	if !step.Status.Phase.Completed() { // once a step is completed, we do not schedule or create pods
 		for replica := 0; replica < targetReplicas; replica++ {
 			podName := fmt.Sprintf("%s-%d", step.Name, replica)
 			log.Info("applying pod", "podName", podName)
@@ -113,7 +126,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						Name:        podName,
 						Labels:      _labels,
 						Annotations: annotations,
-
 						OwnerReferences: []metav1.OwnerReference{
 							*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 						},
@@ -127,6 +139,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 							RunnerImage:    runnerImage,
 							PullPolicy:     pullPolicy,
 							UpdateInterval: updateInterval,
+							StepStatus:     step.Status,
 						},
 					),
 				},
@@ -171,9 +184,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if currentReplicas != targetReplicas {
-		newStatus.LastScaledAt = &metav1.Time{Time: time.Now()}
 		newStatus.Replicas = uint32(targetReplicas)
 		newStatus.Selector = fmt.Sprintf("%s=%s,%s=%s", dfv1.KeyPipelineName, pipelineName, dfv1.KeyStepName, step.Name)
+		newStatus.LastScaledAt = metav1.Time{Time: time.Now()}
 		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
 	}
 

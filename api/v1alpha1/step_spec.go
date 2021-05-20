@@ -44,7 +44,6 @@ type StepSpec struct {
 	Tolerations        []corev1.Toleration `json:"tolerations,omitempty" protobuf:"bytes,19,rep,name=tolerations"`
 }
 
-// +kubebuilder:skipversion
 type GetPodSpecReq struct {
 	PipelineName   string            `protobuf:"bytes,1,opt,name=pipelineName"`
 	Namespace      string            `protobuf:"bytes,2,opt,name=namespace"`
@@ -53,6 +52,7 @@ type GetPodSpecReq struct {
 	RunnerImage    string            `protobuf:"bytes,5,opt,name=runnerImage"`
 	PullPolicy     corev1.PullPolicy `protobuf:"bytes,6,opt,name=pullPolicy,casttype=k8s.io/api/core/v1.PullPolicy"`
 	UpdateInterval time.Duration     `protobuf:"varint,7,opt,name=updateInterval,casttype=time.Duration"`
+	StepStatus     StepStatus        `protobuf:"bytes,8,opt,name=stepStatus"`
 }
 
 func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
@@ -60,13 +60,15 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		Name:         "var-run-argo-dataflow",
 		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 	}
-	data, _ := json.Marshal(in)
+	stepSpec, _ := json.Marshal(in)
+	stepStatus, _ := json.Marshal(req.StepStatus)
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
 	envVars := []corev1.EnvVar{
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvNamespace, Value: req.Namespace},
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
-		{Name: EnvStepSpec, Value: string(data)},
+		{Name: EnvStepSpec, Value: string(stepSpec)},
+		{Name: EnvStepStatus, Value: string(stepStatus)},
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 	}
 	return corev1.PodSpec{

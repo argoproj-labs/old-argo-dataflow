@@ -110,10 +110,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	pending, running, succeeded, failed := 0, 0, 0, 0
-	newStatus := pipeline.Status.DeepCopy()
-	if newStatus == nil {
-		newStatus = &dfv1.PipelineStatus{}
-	}
+	newStatus := *pipeline.Status.DeepCopy()
 	newStatus.Phase = dfv1.PipelineUnknown
 	terminate, sunkMessages, errors := false, false, false
 	for _, step := range steps.Items {
@@ -124,9 +121,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			if err := r.Client.Delete(ctx, &step); err != nil {
 				return ctrl.Result{}, fmt.Errorf("failed to delete excess step %s: %w", step.GetName(), err)
 			}
-			continue
-		}
-		if step.Status == nil {
 			continue
 		}
 		switch step.Status.Phase {

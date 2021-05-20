@@ -11,7 +11,7 @@ import (
 func TestSourceStatuses_Set(t *testing.T) {
 	ss := SourceStatuses{}
 
-	ss.Set("bar", 1, strings.Repeat("x", 33))
+	ss.Set("bar", 1, strings.Repeat("x", 33), 1)
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
@@ -20,10 +20,11 @@ func TestSourceStatuses_Set(t *testing.T) {
 		}
 		if assert.Len(t, s.Metrics, 1) {
 			assert.Equal(t, uint64(1), s.Metrics["1"].Total)
+			assert.Equal(t, uint64(1), s.Metrics["1"].Rate)
 		}
 	}
 
-	ss.Set("bar", 1, "bar")
+	ss.Set("bar", 1, "bar", 1)
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
@@ -32,10 +33,11 @@ func TestSourceStatuses_Set(t *testing.T) {
 		}
 		if assert.Len(t, s.Metrics, 1) {
 			assert.Equal(t, uint64(2), s.Metrics["1"].Total)
+			assert.Equal(t, uint64(1), s.Metrics["1"].Rate)
 		}
 	}
 
-	ss.Set("bar", 0, "foo")
+	ss.Set("bar", 0, "foo", 0)
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
@@ -48,7 +50,7 @@ func TestSourceStatuses_Set(t *testing.T) {
 		}
 	}
 
-	ss.Set("baz", 0, "foo")
+	ss.Set("baz", 0, "foo", 0)
 
 	if assert.Len(t, ss, 2) {
 		s := ss["baz"]

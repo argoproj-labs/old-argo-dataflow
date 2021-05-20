@@ -19,6 +19,7 @@ const (
 	EnvPipelineName   = "ARGO_DATAFLOW_PIPELINE_NAME"
 	EnvReplica        = "ARGO_DATAFLOW_REPLICA"
 	EnvStepSpec       = "ARGO_DATAFLOW_STEP_SPEC"
+	EnvStepStatus     = "ARGO_DATAFLOW_STEP_STATUS"
 	EnvPeekDelay      = "ARGO_DATAFLOW_PEEK_DELAY"      // how long between peeking (default 4m)
 	EnvPullPolicy     = "ARGO_DATAFLOW_PULL_POLICY"     // default ""
 	EnvScalingDelay   = "ARGO_DATAFLOW_SCALING_DELAY"   // // how long to wait between any scaling events (including peeking) default "4m"

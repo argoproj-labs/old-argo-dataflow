@@ -1,5 +1,7 @@
 package sidecar
 
+import "github.com/paulbellamy/ratecounter"
+
 import (
 	"bufio"
 	"bytes"
@@ -43,10 +45,10 @@ var (
 	replica             = 0
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
 	namespace           = os.Getenv(dfv1.EnvNamespace)
-	spec                *dfv1.StepSpec
-	sourceStatues       = dfv1.SourceStatuses{}
-	sinkStatues         = dfv1.SinkStatuses{}
-	mu                  = sync.RWMutex{}
+	spec                = dfv1.StepSpec{}
+	status              = dfv1.StepStatus{}
+	lastStatus          = dfv1.StepStatus{}
+	mu                  = sync.Mutex{}
 )
 
 func withLock(f func()) {
@@ -73,11 +75,22 @@ func Exec(ctx context.Context) error {
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 
-	if v, err := util.UnmarshallSpec(); err != nil {
-		return err
-	} else {
-		spec = v
+	util2.MustUnJSON(os.Getenv(dfv1.EnvStepSpec), &spec)
+	util2.MustUnJSON(os.Getenv(dfv1.EnvStepStatus), &status)
+
+	logger.Info("status", "status", util2.MustJSON(status))
+
+	// re-created the status, only keeping information on this replica
+	x := strconv.Itoa(replica)
+	status = dfv1.StepStatus{
+		SourceStatuses: dfv1.SourceStatuses{x: status.SourceStatuses[x]},
+		SinkStatues:    dfv1.SinkStatuses{x: status.SinkStatues[x]},
 	}
+
+	logger.Info("this replica's status", "status", util2.MustJSON(status))
+
+	lastStatus = *status.DeepCopy()
+
 	if v, err := strconv.Atoi(os.Getenv(dfv1.EnvReplica)); err != nil {
 		return err
 	} else {
@@ -111,17 +124,8 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	lastStatus := &dfv1.StepStatus{}
-	go wait.JitterUntil(func() {
-		status := &dfv1.StepStatus{
-			SourceStatues: sourceStatues,
-			SinkStatues:   sinkStatues,
-		}
-		if notEqual, _ := util2.NotEqual(lastStatus, status); notEqual {
-			patchStepStatus(ctx)
-			lastStatus = status.DeepCopy()
-		}
-	}, updateInterval, 1.2, true, ctx.Done())
+	go wait.JitterUntil(func() { patchStepStatus(ctx) }, updateInterval, 1.2, true, ctx.Done())
+
 	logger.Info("ready")
 	<-ctx.Done()
 	logger.Info("done")
@@ -129,27 +133,25 @@ func Exec(ctx context.Context) error {
 }
 
 func patchStepStatus(ctx context.Context) {
-	// we need to be careful to just patch fields we own
-	patch := util2.MustJSON(map[string]interface{}{
-		"status": map[string]interface{}{
-			"sourceStatuses": sourceStatues,
-			"sinkStatuses":   sinkStatues,
-		},
+	withLock(func() {
+		if notEqual, patch := util2.NotEqual(dfv1.Step{Status: lastStatus}, dfv1.Step{Status: status}); notEqual {
+			logger.Info("patching step status", "patch", patch)
+			if _, err := dynamicInterface.
+				Resource(dfv1.StepGroupVersionResource).
+				Namespace(namespace).
+				Patch(
+					ctx,
+					pipelineName+"-"+spec.Name,
+					types.MergePatchType,
+					[]byte(patch),
+					metav1.PatchOptions{},
+					"status",
+				); err != nil {
+				logger.Error(err, "failed to patch step status")
+			}
+			lastStatus = *status.DeepCopy()
+		}
 	})
-	logger.Info("patching step status", "patch", patch)
-	if _, err := dynamicInterface.
-		Resource(dfv1.StepGroupVersionResource).
-		Namespace(namespace).
-		Patch(
-			ctx,
-			pipelineName+"-"+spec.Name,
-			types.MergePatchType,
-			[]byte(patch),
-			metav1.PatchOptions{},
-			"status",
-		); err != nil {
-		logger.Error(err, "failed to patch step status")
-	}
 }
 
 func enrichSpec(ctx context.Context) error {
@@ -245,12 +247,19 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 		sources[sourceName] = true
+
+		rateCounter := ratecounter.NewRateCounter(updateInterval)
+
 		f := func(msg []byte) error {
 			debug.Info("◷ →", "source", sourceName, "msg", printable(msg))
-			withLock(func() { sourceStatues.Set(sourceName, replica, printable(msg)) })
+			rateCounter.Incr(1)
+
+			withLock(func() {
+				status.SourceStatuses.Set(sourceName, replica, printable(msg), uint64(rateCounter.Rate()/int64(updateInterval/time.Second)))
+			})
 			if err := toMain(msg); err != nil {
 				logger.Error(err, "⚠ →", "source", sourceName)
-				withLock(func() { sourceStatues.IncErrors(sourceName, replica, err) })
+				withLock(func() { status.SourceStatuses.IncErrors(sourceName, replica, err) })
 				return err
 			}
 			return nil
@@ -263,27 +272,29 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
 			}
 		} else if x := source.STAN; x != nil {
-			clientID := fmt.Sprintf("%s-%s-%d-%s", pipelineName, spec.Name, replica, sourceName)
+			clientID := fmt.Sprintf("%s-%s-%d-source-%s", pipelineName, spec.Name, replica, sourceName)
 			sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
 			if err != nil {
 				return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 			}
 			closers = append(closers, sc.Close)
-			if sub, err := sc.QueueSubscribe(x.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
-				_ = f(m.Data)
-			}, stan.DurableName(clientID)); err != nil {
-				return fmt.Errorf("failed to subscribe: %w", err)
-			} else {
-				closers = append(closers, sub.Close)
-				if replica == 0 {
-					go wait.JitterUntil(func() {
-						if pending, _, err := sub.Pending(); err != nil {
-							logger.Error(err, "failed to get pending", "subject", x.Subject)
-						} else {
-							debug.Info("setting pending", "subject", x.Subject, "pending", pending)
-							withLock(func() { sourceStatues.SetPending(sourceName, uint64(pending)) })
-						}
-					}, updateInterval, 1.2, true, ctx.Done())
+			for i := 0; i < int(x.Parallel); i++ {
+				if sub, err := sc.QueueSubscribe(x.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
+					_ = f(m.Data)
+				}, stan.DurableName(clientID)); err != nil {
+					return fmt.Errorf("failed to subscribe: %w", err)
+				} else {
+					closers = append(closers, sub.Close)
+					if i == 0 && replica == 0 {
+						go wait.JitterUntil(func() {
+							if pending, _, err := sub.Pending(); err != nil {
+								logger.Error(err, "failed to get pending", "source", sourceName)
+							} else if pending >= 0 {
+								logger.Info("setting pending", "source", sourceName, "pending", pending)
+								withLock(func() { status.SourceStatuses.SetPending(sourceName, uint64(pending)) })
+							}
+						}, updateInterval, 1.2, true, ctx.Done())
+					}
 				}
 			}
 		} else if x := source.Kafka; x != nil {
@@ -298,32 +309,31 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return err
 			}
 			closers = append(closers, client.Close)
-			group, err := sarama.NewConsumerGroup(x.Brokers, pipelineName+"-"+spec.Name, config)
-			if err != nil {
-				return fmt.Errorf("failed to create kafka consumer group: %w", err)
-			}
-			closers = append(closers, group.Close)
-			handler := &handler{f: f}
-			go wait.JitterUntil(func() {
-				if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
-					logger.Error(err, "failed to create kafka consumer")
+			for i := 0; i < int(x.Parallel); i++ {
+				group, err := sarama.NewConsumerGroup(x.Brokers, pipelineName+"-"+spec.Name, config)
+				if err != nil {
+					return fmt.Errorf("failed to create kafka consumer group: %w", err)
 				}
-			}, 10*time.Second, 1.2, true, ctx.Done())
-			if replica == 0 {
+				closers = append(closers, group.Close)
+				handler := &handler{f: f}
 				go wait.JitterUntil(func() {
-					if handler.offset > 0 {
-						withLock(func() {
-							newestOffset, err := client.GetOffset(x.Topic, handler.partition, sarama.OffsetNewest)
-							if err != nil {
-								logger.Error(err, "failed to get offset", "topic", x.Topic)
-							} else if newestOffset > handler.offset { // zero implies we've not processed a message yet
-								pending := uint64(newestOffset - handler.offset)
-								debug.Info("setting pending", "type", "kafka", "topic", x.Topic, "pending", pending)
-								sourceStatues.SetPending(sourceName, pending)
-							}
-						})
+					if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
+						logger.Error(err, "failed to create kafka consumer")
 					}
-				}, updateInterval, 1.2, true, ctx.Done())
+				}, 10*time.Second, 1.2, true, ctx.Done())
+				if i == 0 && replica == 0 {
+					go wait.JitterUntil(func() {
+						if handler.offset > 0 {
+							nextOffset, err := client.GetOffset(x.Topic, handler.partition, sarama.OffsetNewest)
+							if err != nil {
+								logger.Error(err, "failed to get offset", "source", sourceName)
+							} else if pending := nextOffset - 1 - handler.offset; pending >= 0 {
+								logger.Info("setting pending", "source", sourceName, "pending", pending)
+								withLock(func() { status.SourceStatuses.SetPending(sourceName, uint64(pending)) })
+							}
+						}
+					}, updateInterval, 1.2, true, ctx.Done())
+				}
 			}
 		} else if x := source.HTTP; x != nil {
 			http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
@@ -493,7 +503,7 @@ func connectSink() (func([]byte) error, error) {
 			return nil, fmt.Errorf("duplicate sink named %q", sinkName)
 		}
 		if x := sink.STAN; x != nil {
-			clientID := fmt.Sprintf("%s-%s-%s", pipelineName, spec.Name, sinkName)
+			clientID := fmt.Sprintf("%s-%s-%d-sink-%s", pipelineName, spec.Name, replica, sinkName)
 			sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
 			if err != nil {
 				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
@@ -539,9 +549,9 @@ func connectSink() (func([]byte) error, error) {
 	}
 	return func(msg []byte) error {
 		for sinkName, f := range sinks {
-			withLock(func() { sinkStatues.Set(sinkName, replica, printable(msg)) })
+			withLock(func() { status.SinkStatues.Set(sinkName, replica, printable(msg)) })
 			if err := f(msg); err != nil {
-				withLock(func() { sinkStatues.IncErrors(sinkName, replica, err) })
+				withLock(func() { status.SinkStatues.IncErrors(sinkName, replica, err) })
 				return err
 			}
 		}

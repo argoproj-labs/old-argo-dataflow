@@ -1056,6 +1056,11 @@ spec:
                             tls:
                               type: object
                           type: object
+                        parallel:
+                          default: 1
+                          format: int32
+                          minimum: 1
+                          type: integer
                         topic:
                           type: string
                         version:
@@ -1077,6 +1082,11 @@ spec:
                           type: string
                         natsUrl:
                           type: string
+                        parallel:
+                          default: 1
+                          format: int32
+                          minimum: 1
+                          type: integer
                         subject:
                           type: string
                         subjectPrefix:
@@ -1120,6 +1130,11 @@ spec:
                             tls:
                               type: object
                           type: object
+                        parallel:
+                          default: 1
+                          format: int32
+                          minimum: 1
+                          type: integer
                         topic:
                           type: string
                         version:
@@ -1139,6 +1154,11 @@ spec:
                           type: string
                         natsUrl:
                           type: string
+                        parallel:
+                          default: 1
+                          format: int32
+                          minimum: 1
+                          type: integer
                         subject:
                           type: string
                         subjectPrefix:
@@ -2689,6 +2709,9 @@ spec:
                           errors:
                             format: int64
                             type: integer
+                          rate:
+                            format: int64
+                            type: integer
                           total:
                             format: int64
                             type: integer
@@ -2729,6 +2752,9 @@ spec:
                           errors:
                             format: int64
                             type: integer
+                          rate:
+                            format: int64
+                            type: integer
                           total:
                             format: int64
                             type: integer
@@ -2739,6 +2765,15 @@ spec:
                       type: integer
                   type: object
                 type: object
+            required:
+            - lastScaledAt
+            - message
+            - phase
+            - reason
+            - replicas
+            - selector
+            - sinkStatuses
+            - sourceStatuses
             type: object
         required:
         - spec

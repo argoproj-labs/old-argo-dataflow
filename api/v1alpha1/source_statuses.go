@@ -6,9 +6,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type SourceStatuses map[string]SourceStatus
+type SourceStatuses map[string]SourceStatus // key is replica
 
-func (in SourceStatuses) Set(name string, replica int, msg string) {
+func (in SourceStatuses) Set(name string, replica int, msg string, rate uint64) {
 	x := in[name]
 	x.LastMessage = &Message{Data: trunc(msg), Time: metav1.Now()}
 	if x.Metrics == nil {
@@ -16,6 +16,7 @@ func (in SourceStatuses) Set(name string, replica int, msg string) {
 	}
 	m := x.Metrics[strconv.Itoa(replica)]
 	m.Total++
+	m.Rate = rate
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
 }

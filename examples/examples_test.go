@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -77,16 +77,15 @@ func Test(t *testing.T) {
 					pipeline := &dfv1.Pipeline{}
 					err := runtime.DefaultUnstructuredConverter.FromUnstructured(un.Object, pipeline)
 					assert.NoError(t, err)
-					if s := pipeline.Status; s != nil {
-						conditions := make(map[string]bool)
-						for _, c := range s.Conditions {
-							conditions[c.Type] = true
-						}
-						logger.Info("changed", "condition", conditions, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
-						if conditions[condition] {
-							logger.Info("condition found", "after", time.Since(start).Truncate(time.Second).String())
-							return
-						}
+					s := pipeline.Status
+					conditions := make(map[string]bool)
+					for _, c := range s.Conditions {
+						conditions[c.Type] = true
+					}
+					logger.Info("changed", "condition", conditions, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
+					if conditions[condition] {
+						logger.Info("condition found", "after", time.Since(start).Truncate(time.Second).String())
+						return
 					}
 				}
 			}
