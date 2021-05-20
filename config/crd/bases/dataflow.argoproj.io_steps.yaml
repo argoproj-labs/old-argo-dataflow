@@ -2662,7 +2662,7 @@ spec:
                     lastError:
                       properties:
                         message:
-                          maxLength: 32
+                          maxLength: 64
                           type: string
                         time:
                           format: date-time
@@ -2674,7 +2674,7 @@ spec:
                     lastMessage:
                       properties:
                         data:
-                          maxLength: 32
+                          maxLength: 64
                           type: string
                         time:
                           format: date-time
@@ -2702,7 +2702,7 @@ spec:
                     lastError:
                       properties:
                         message:
-                          maxLength: 32
+                          maxLength: 64
                           type: string
                         time:
                           format: date-time
@@ -2714,7 +2714,7 @@ spec:
                     lastMessage:
                       properties:
                         data:
-                          maxLength: 32
+                          maxLength: 64
                           type: string
                         time:
                           format: date-time

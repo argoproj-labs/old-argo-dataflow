@@ -110,7 +110,7 @@ func Exec(ctx context.Context) error {
 	}
 
 	go func() {
-		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		defer runtimeutil.HandleCrash()
 		lastStatus := &dfv1.StepStatus{}
 		for {
 			status := &dfv1.StepStatus{
@@ -279,7 +279,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			} else {
 				closers = append(closers, sub.Close)
 				go func() {
-					defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+					defer runtimeutil.HandleCrash()
 					for {
 						if pending, _, err := sub.Pending(); err != nil {
 							logger.Error(err, "failed to get pending", "subject", x.Subject)
@@ -311,13 +311,13 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			closers = append(closers, group.Close)
 			handler := &handler{sourceName, toMain, 0}
 			go func() {
-				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+				defer runtimeutil.HandleCrash()
 				if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
 					logger.Error(err, "failed to create kafka consumer")
 				}
 			}()
 			go func() {
-				defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+				defer runtimeutil.HandleCrash()
 				for {
 					if partitions, err := client.Partitions(x.Topic); err != nil {
 						logger.Error(err, "failed to get offset", "topic", x.Topic)
@@ -451,7 +451,7 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 func connectOut(toSink func([]byte) error) {
 	logger.Info("FIFO out interface configured")
 	go func() {
-		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		defer runtimeutil.HandleCrash()
 		err := func() error {
 			fifo, err := os.OpenFile(dfv1.PathFIFOOut, os.O_RDONLY, os.ModeNamedPipe)
 			if err != nil {
@@ -497,7 +497,7 @@ func connectOut(toSink func([]byte) error) {
 		}
 	})
 	go func() {
-		defer runtimeutil.HandleCrash(runtimeutil.PanicHandlers...)
+		defer runtimeutil.HandleCrash()
 		logger.Info("starting HTTP server")
 		err := http.ListenAndServe(":3569", nil)
 		if err != nil {

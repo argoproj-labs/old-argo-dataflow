@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.0.16 (2021-05-19)
+
+
+### Contributors
+
+
+## v0.0.15 (2021-05-19)
+
+ * [9bef0df](https://github.com/argoproj/argo-workflows/commit/9bef0df2ec1eb398f63c9ba4b99be76b8b08aee8) feat: expose pod failure reason
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.14 (2021-05-18)
 
  * [2a23cb8](https://github.com/argoproj/argo-workflows/commit/2a23cb8abc4343272d4dd04f493d888694923114) fix: scale to 1 rather than 0 on start

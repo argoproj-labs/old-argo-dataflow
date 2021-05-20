@@ -1,8 +1,13 @@
 package v1alpha1
 
 func trunc(msg string) string {
-	if len(msg) > 32 {
-		return msg[0:15] + "..." + msg[len(msg)-14:]
+	return truncN(msg, 64)
+}
+
+func truncN(msg string, n int) string {
+	x := n / 2
+	if len(msg) > n {
+		return msg[0:x-1] + "..." + msg[len(msg)-x+2:]
 	}
 	return msg
 }

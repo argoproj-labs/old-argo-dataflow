@@ -50,7 +50,7 @@ message Cron {
 }
 
 message Error {
-  // +kubebuilder:validation:MaxLength=32
+  // +kubebuilder:validation:MaxLength=64
   optional string message = 1;
 
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time time = 2;
@@ -148,7 +148,7 @@ message Log {
 }
 
 message Message {
-  // +kubebuilder:validation:MaxLength=32
+  // +kubebuilder:validation:MaxLength=64
   optional string data = 1;
 
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time time = 2;
