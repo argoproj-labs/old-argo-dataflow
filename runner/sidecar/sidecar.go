@@ -138,7 +138,7 @@ func patchStepStatus(ctx context.Context) {
 			"sinkStatuses":   sinkStatues,
 		},
 	})
-	debug.Info("patching step status (sinks/sources)", "patch", patch)
+	logger.Info("patching step status", "patch", patch)
 	if _, err := dynamicInterface.
 		Resource(dfv1.StepGroupVersionResource).
 		Namespace(namespace).
@@ -239,7 +239,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		_ = crn.Stop()
 		return nil
 	})
-	for i, source := range spec.Sources {
+	for _, source := range spec.Sources {
 		sourceName := source.Name
 		if x := source.Cron; x != nil {
 			logger.Info("connecting to source", "type", "cron", "schedule", x.Schedule)
@@ -258,7 +258,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
 			}
 		} else if x := source.STAN; x != nil {
-			clientID := fmt.Sprintf("%s-%s-%d-source-%d", pipelineName, spec.Name, replica, i)
+			clientID := fmt.Sprintf("%s-%s-%d-%s", pipelineName, spec.Name, replica, sourceName)
 			logger.Info("connecting to source", "type", "stan", "url", x.NATSURL, "clusterID", x.ClusterID, "clientID", clientID, "subject", x.Subject)
 			sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
 			if err != nil {
@@ -274,7 +274,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				} else {
 					debug.Info("✔ stan → ", "subject", x.Subject)
 				}
-			}, stan.DeliverAllAvailable(), stan.DurableName(clientID)); err != nil {
+			}, stan.DurableName(clientID)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			} else {
 				closers = append(closers, sub.Close)
@@ -513,10 +513,10 @@ func connectOut(toSink func([]byte) error) {
 
 func connectSink() (func([]byte) error, error) {
 	var toSinks []func([]byte) error
-	for i, sink := range spec.Sinks {
+	for _, sink := range spec.Sinks {
 		sinkName := sink.Name
 		if s := sink.STAN; s != nil {
-			clientID := fmt.Sprintf("%s-%s-%d-sink-%d", pipelineName, spec.Name, replica, i)
+			clientID := fmt.Sprintf("%s-%s-%d-sink-%d", pipelineName, spec.Name, sinkName)
 			logger.Info("connecting sink", "type", "stan", "url", s.NATSURL, "clusterID", s.ClusterID, "clientID", clientID, "subject", s.Subject)
 			sc, err := stan.Connect(s.ClusterID, clientID, stan.NatsURL(s.NATSURL))
 			if err != nil {
