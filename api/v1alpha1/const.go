@@ -22,7 +22,7 @@ const (
 	EnvPeekDelay      = "ARGO_DATAFLOW_PEEK_DELAY"      // how long between peeking (default 4m)
 	EnvPullPolicy     = "ARGO_DATAFLOW_PULL_POLICY"     // default ""
 	EnvScalingDelay   = "ARGO_DATAFLOW_SCALING_DELAY"   // // how long to wait between any scaling events (including peeking) default "4m"
-	EnvUpdateInterval = "ARGO_DATAFLOW_UPDATE_INTERVAL" // default "15s"
+	EnvUpdateInterval = "ARGO_DATAFLOW_UPDATE_INTERVAL" // default "30s"
 	// label/annotation keys
 	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
 	KeyPipelineName     = "dataflow.argoproj.io/pipeline-name"
