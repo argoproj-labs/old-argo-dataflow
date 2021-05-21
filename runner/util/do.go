@@ -52,14 +52,16 @@ func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 		w.WriteHeader(200)
 	})
 
+	server := &http.Server{Addr: ":8080"}
+
 	go func() {
 		defer runtimeutil.HandleCrash()
-		if err := http.ListenAndServe(":8080", nil); err != nil {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
 	}()
 
 	<-ctx.Done()
 
-	return nil
+	return server.Shutdown(context.Background())
 }
