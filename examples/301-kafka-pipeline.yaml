@@ -11,9 +11,9 @@ spec:
   steps:
   - cat: {}
     name: main
-    sources:
-    - kafka:
-        topic: input-topic
     sinks:
     - kafka:
         topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic
