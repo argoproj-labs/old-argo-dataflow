@@ -62,7 +62,6 @@ func init() {
 }
 
 func Exec(ctx context.Context) error {
-
 	restConfig := ctrl.GetConfigOrDie()
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
