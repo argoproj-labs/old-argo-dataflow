@@ -8,7 +8,7 @@ metadata:
       Steps can be manually scaled using `kubectl`:
 
       ```
-      kubectl scale step/stepName --replicas 2
+      kubectl scale step/scaling-main --replicas 3
       ```
   creationTimestamp: null
   name: scaling
