@@ -17,6 +17,7 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 		h.partition = m.Partition
 		h.offset = m.Offset
 		if err := h.f(m.Value); err != nil {
+			// noop
 		} else {
 			sess.MarkMessage(m, "")
 		}
