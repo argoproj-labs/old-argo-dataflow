@@ -202,7 +202,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			for _, s := range pod.Status.ContainerStatuses {
 				mainCtrTerminated = mainCtrTerminated || (s.Name == dfv1.CtrMain && s.State.Terminated != nil && s.State.Terminated.ExitCode == 0)
 			}
-			log.Info("pod", "name", pod.Name, "phase", phase, "message", message, "mainCtrTerminated", mainCtrTerminated)
+			log.Info("pod", "name", pod.Name, "phase", phase, "reason", reason, "message", message, "mainCtrTerminated", mainCtrTerminated)
 			if mainCtrTerminated {
 				for _, s := range pod.Status.ContainerStatuses {
 					if s.Name != dfv1.CtrMain {
@@ -216,7 +216,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if notEqual, patch := util.NotEqual(oldStatus, newStatus); notEqual {
-		log.Info("patching step status (phase/message)", "phase", newStatus.Phase, "patch", patch)
+		log.Info("patching step status", "patch", patch)
 		if err := r.Status().
 			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(util.MustJSON(&dfv1.Step{Status: newStatus})))); util.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
