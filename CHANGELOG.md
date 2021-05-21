@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.0.19 (2021-05-20)
+
+ * [122acc3](https://github.com/argoproj/argo-workflows/commit/122acc33ed8e0d7dbb2a15b2a83a028a2b31d430) docs: added scaling examples
+ * [f3ba148](https://github.com/argoproj/argo-workflows/commit/f3ba1481e3cfa45e675ea7e875939b0d21346c79) fix: correct metrics over restart
+ * [3c0b7fd](https://github.com/argoproj/argo-workflows/commit/3c0b7fd34e1828104cc8b6c4ecaa71bb21f751d4) config: pump more data thorough Kafka topic
+ * [f753b2d](https://github.com/argoproj/argo-workflows/commit/f753b2df22485ee71d771e91083235e7e42e18ae) feat: update examples
+ * [5c6832b](https://github.com/argoproj/argo-workflows/commit/5c6832bbddb4b20d8601eb7e5145d86ff2bead6a) feat: report rate
+ * [b28c3a3](https://github.com/argoproj/argo-workflows/commit/b28c3a3d2c9ec2a51391e701ba26c00894a9b963) fix: report back errors
+ * [cfc93c2](https://github.com/argoproj/argo-workflows/commit/cfc93c2a7eb3e2e1c825f0a47558f52acd4f03c2) build: remove unused env var
+ * [e4cbf3b](https://github.com/argoproj/argo-workflows/commit/e4cbf3b2fd0b4552bbc19257297bffb6d43efce2) build: run tests
+ * [13e91a4](https://github.com/argoproj/argo-workflows/commit/13e91a4f019c3ca3f911539a517ac0d1c4810489) docs: update CHANGELOG.md
+ * [388a116](https://github.com/argoproj/argo-workflows/commit/388a11642d642c8ede95758691ae8ea3e83bd017) test: mark 301-http-pipeline.yaml as test
+ * [be3305b](https://github.com/argoproj/argo-workflows/commit/be3305b71f9d86403c20e0793f9a2475dbc2522f) test: mark 301-http-pipeline.yaml as test
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.18 (2021-05-20)
 
  * [9d04dcd](https://github.com/argoproj/argo-workflows/commit/9d04dcde97f04eed1f54852eb7aaf8b6f3b79e49) refactor: change from `for {}` to `wait.JitterUntil`
