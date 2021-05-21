@@ -59,3 +59,9 @@ jobs:
       - name: controller logs
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system logs deploy/controller-manager -c manager
+      - name: sidecar logs
+        if: ${{ failure() }}
+        run: kubectl -n argo-dataflow-system logs -l dataflow.argoproj.io/pipeline-name -c sidecar
+      - name: main logs
+        if: ${{ failure() }}
+        run: kubectl -n argo-dataflow-system logs -l dataflow.argoproj.io/pipeline-name -c main
