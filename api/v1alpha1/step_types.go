@@ -38,9 +38,8 @@ type Step struct {
 	Status StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
-func (in *Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
+func (in *Step) GetTargetReplicas(currentReplicas int, scalingDelay, peekDelay time.Duration) int {
 	lastScaledAt := in.Status.LastScaledAt.Time
-	currentReplicas := in.Status.GetReplicas() // can be -1
 
 	if time.Since(lastScaledAt) < scalingDelay {
 		return currentReplicas

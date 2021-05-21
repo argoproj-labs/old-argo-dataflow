@@ -346,7 +346,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							if err != nil {
 								logger.Error(err, "failed to get offset", "source", sourceName)
 							} else if pending := nextOffset - 1 - handler.offset; pending >= 0 {
-								logger.Info("setting pending", "source", sourceName, "pending", pending)
+								logger.Info("setting pending", "source", sourceName, "pending", pending, "nextOffset", nextOffset, "handlerOffset", handler.offset)
 								withLock(func() { status.SourceStatuses.SetPending(sourceName, uint64(pending)) })
 							}
 						}
