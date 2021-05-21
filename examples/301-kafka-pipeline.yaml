@@ -1,0 +1,19 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example shows reading and writing to cafe.
+    dataflow.argoproj.io/name: Kafka
+  creationTimestamp: null
+  name: kafka
+spec:
+  steps:
+  - cat: {}
+    name: main
+    sources:
+    - kafka:
+        topic: input-topic
+    sinks:
+    - kafka:
+        topic: output-topic
