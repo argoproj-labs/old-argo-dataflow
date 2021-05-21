@@ -84,13 +84,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		SourceStatuses: dfv1.SourceStatuses{},
 	}
 
-	// we need to delete the fields we do not own and should now be allowed in update
 	newStatus := dfv1.StepStatus{
 		Phase:          dfv1.StepUnknown,
-		Reason:         "",
-		Message:        "",
-		Replicas:       step.Status.Replicas,
-		Selector:       step.Status.Selector,
 		LastScaledAt:   step.Status.LastScaledAt,
 		SinkStatues:    dfv1.SinkStatuses{},
 		SourceStatuses: dfv1.SourceStatuses{},
@@ -183,9 +178,10 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
 	}
 
+	newStatus.Replicas = uint32(len(pods.Items))
+	newStatus.Selector = selector.String()
+
 	if currentReplicas != targetReplicas {
-		newStatus.Replicas = uint32(targetReplicas)
-		newStatus.Selector = fmt.Sprintf("%s=%s,%s=%s", dfv1.KeyPipelineName, pipelineName, dfv1.KeyStepName, step.Name)
 		newStatus.LastScaledAt = metav1.Time{Time: time.Now()}
 		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
 	}
