@@ -3739,12 +3739,10 @@ spec:
                   type: object
                 type: object
             required:
-            - lastScaledAt
             - message
             - phase
             - reason
             - replicas
-            - selector
             - sinkStatuses
             - sourceStatuses
             type: object

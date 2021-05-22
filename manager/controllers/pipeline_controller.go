@@ -66,11 +66,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("reconciling", "steps", len(pipeline.Spec.Steps))
+	log.Info("reconciling")
 
 	for _, step := range pipeline.Spec.Steps {
 		stepFullName := pipeline.Name + "-" + step.Name
-		log.Info("applying step", "stepName", step.Name, "stepFullName", stepFullName)
 		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: step.Name}
 		obj := &dfv1.Step{
 			ObjectMeta: metav1.ObjectMeta{

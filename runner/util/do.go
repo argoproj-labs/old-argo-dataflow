@@ -1,9 +1,7 @@
 package util
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -13,47 +11,31 @@ import (
 
 var logger = zap.New()
 
-func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
+func Do(ctx context.Context, fn func(msg []byte) ([]byte, error)) error {
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(204)
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		in, err := ioutil.ReadAll(r.Body)
+		defer func() { _ = r.Body.Close() }()
+		out, err := func() ([]byte, error) {
+			if in, err := ioutil.ReadAll(r.Body); err != nil {
+				return nil, err
+			} else {
+				return fn(in)
+			}
+		}()
 		if err != nil {
 			logger.Error(err, "failed to marshal message")
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		msgs, err := fn(in)
-		if err != nil {
-			logger.Error(err, "failed execute")
-			w.WriteHeader(500)
-			_, _ = w.Write([]byte(err.Error()))
-			return
+		if out != nil {
+			w.WriteHeader(201)
+			_, _ = w.Write(out)
+		} else {
+			w.WriteHeader(204)
 		}
-		for _, out := range msgs {
-			err := func() error {
-				if resp, err := http.Post("http://localhost:3569/messages", "application/octet-stream", bytes.NewBuffer(out)); err != nil {
-					return err
-				} else {
-					body, _ := ioutil.ReadAll(resp.Body)
-					defer func() { _ = resp.Body.Close() }()
-					if resp.StatusCode != 200 {
-						return fmt.Errorf("failed to post message %s: %s", resp.Status, string(body))
-					}
-				}
-				return nil
-			}()
-			if err != nil {
-				logger.Error(err, "failed to post message")
-				w.WriteHeader(500)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
-			logger.V(6).Info("do", "in", string(in), "out", string(out))
-		}
-		w.WriteHeader(200)
 	})
 
 	server := &http.Server{Addr: ":8080"}

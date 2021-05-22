@@ -14,7 +14,7 @@ func Exec(ctx context.Context, x string) error {
 	if err != nil {
 		return fmt.Errorf("failed to compile %q: %w", x, err)
 	}
-	return util.Do(ctx, func(msg []byte) ([][]byte, error) {
+	return util.Do(ctx, func(msg []byte) ([]byte, error) {
 		res, err := expr.Run(prog, util.ExprEnv(msg))
 		if err != nil {
 			return nil, fmt.Errorf("failed to run program %x: %w", x, err)
@@ -24,7 +24,7 @@ func Exec(ctx context.Context, x string) error {
 			return nil, fmt.Errorf("%q must return bool", x)
 		}
 		if accept {
-			return [][]byte{msg}, nil
+			return msg, nil
 		} else {
 			return nil, nil
 		}

@@ -18,7 +18,7 @@ import (
 	"github.com/juju/fslock"
 )
 
-func withLock(dir string, f func() ([][]byte, error)) ([][]byte, error) {
+func withLock(dir string, f func() ([]byte, error)) ([]byte, error) {
 	mu := fslock.New(fmt.Sprintf("%s.lock", dir))
 	if err := mu.Lock(); err != nil {
 		return nil, fmt.Errorf("failed to lock %s %w", dir, err)
@@ -43,7 +43,7 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 	if err != nil {
 		return fmt.Errorf("failed to compile %q: %w", endOfGroup, err)
 	}
-	return util.Do(ctx, func(msg []byte) ([][]byte, error) {
+	return util.Do(ctx, func(msg []byte) ([]byte, error) {
 		res, err := expr.Run(prog, util.ExprEnv(msg))
 		if err != nil {
 			return nil, fmt.Errorf("failed to run program %q: %w", key, err)
@@ -56,7 +56,7 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 		if err := os.Mkdir(dir, 0700); util2.IgnoreExist(err) != nil {
 			return nil, fmt.Errorf("failed to create group sub-dir: %w", err)
 		}
-		return withLock(dir, func() ([][]byte, error) {
+		return withLock(dir, func() ([]byte, error) {
 			path := filepath.Join(dir, uuid.New().String())
 			if err := ioutil.WriteFile(path, msg, 0600); err != nil {
 				return nil, fmt.Errorf("failed to create message file: %w", err)
@@ -96,7 +96,7 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 				if err != nil {
 					return nil, fmt.Errorf("failed to marshal messages: %w", err)
 				}
-				msgs = [][]byte{data}
+				return data, os.RemoveAll(dir)
 			case dfv1.GroupFormatJSONStringArray:
 				stringMsgs := make([]string, len(items))
 				for i, bytes := range msgs {
@@ -106,9 +106,9 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 				if err != nil {
 					return nil, fmt.Errorf("failed to marshal messages: %w", err)
 				}
-				msgs = [][]byte{data}
+				return data, os.RemoveAll(dir)
 			}
-			return msgs, os.RemoveAll(dir)
+			return nil, fmt.Errorf("unknown group format %q", groupFormat)
 		})
 	})
 }

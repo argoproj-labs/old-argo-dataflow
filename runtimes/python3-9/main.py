@@ -12,12 +12,14 @@ class MyServer(BaseHTTPRequestHandler):
     def do_POST(self):  # POST /messages
         len = int(self.headers.get('Content-Length'))
         msg = self.rfile.read(len)
-        for msg in handler(msg):
-            resp = requests.post('http://localhost:3569/messages', data=msg)
-            if resp.status_code != 200:
-                raise Exception(resp.status_code)
-        self.send_response(200)
-        self.end_headers()
+        out = handler(msg)
+        if out:
+            self.send_response(201)
+            self.end_headers()
+            self.wfile.write(out)
+        else:
+            self.send_response(204)
+            self.end_headers()
 
 
 if __name__ == "__main__":

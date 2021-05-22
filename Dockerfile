@@ -61,4 +61,5 @@ ADD runtimes/python3-9 /workspace
 RUN chown -R 9653 /.cache /.local /workspace
 WORKDIR /workspace
 USER 9653:9653
+RUN pip3 install -r requirements.txt
 ENTRYPOINT ./entrypoint.sh

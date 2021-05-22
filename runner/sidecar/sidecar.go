@@ -121,7 +121,7 @@ func Exec(ctx context.Context) error {
 
 	connectOut(toSink)
 
-	toMain, err := connectTo(ctx)
+	toMain, err := connectTo(ctx, toSink)
 	if err != nil {
 		return err
 	}
@@ -366,7 +366,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					w.WriteHeader(500)
 					_, _ = w.Write([]byte(err.Error()))
 				} else {
-					w.WriteHeader(200)
+					w.WriteHeader(204)
 				}
 			})
 		} else {
@@ -394,7 +394,7 @@ func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 	return x, nil
 }
 
-func connectTo(ctx context.Context) (func([]byte) error, error) {
+func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error, error) {
 	in := spec.GetIn()
 	if in == nil {
 		logger.Info("no in interface configured")
@@ -440,8 +440,11 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 				if resp.StatusCode >= 300 {
 					return fmt.Errorf("failed to send to main: %q %q", resp.Status, body)
 				}
+				trace.Info("✔ source → http")
+				if resp.StatusCode == 201 {
+					return sink(body)
+				}
 			}
-			trace.Info("✔ source → http")
 			return nil
 		}, nil
 	} else {
@@ -456,7 +459,7 @@ func waitReady(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode == 200 {
+			if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode < 300 {
 				logger.Info("HTTP in interface ready")
 				return nil
 			}
@@ -472,7 +475,7 @@ func waitUnready(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			if resp, err := http.Get("http://localhost:8080/ready"); err != nil || resp.StatusCode != 200 {
+			if resp, err := http.Get("http://localhost:8080/ready"); err != nil || resp.StatusCode >= 300 {
 				logger.Info("HTTP in interface unready")
 				return nil
 			}

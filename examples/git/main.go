@@ -8,7 +8,7 @@ import (
 
 func main() {
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(204)
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		msg, err := ioutil.ReadAll(r.Body)
@@ -30,7 +30,7 @@ func main() {
 				w.WriteHeader(500)
 				return
 			}
-			if resp.StatusCode != 200 {
+			if resp.StatusCode >=300 {
 				println(err, "failed to post message", resp.Status)
 				w.WriteHeader(500)
 				return

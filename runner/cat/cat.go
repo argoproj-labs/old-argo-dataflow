@@ -7,7 +7,7 @@ import (
 )
 
 func Exec(ctx context.Context) error {
-	return util.Do(ctx, func(msg []byte) ([][]byte, error) {
-		return [][]byte{msg}, nil
+	return util.Do(ctx, func(msg []byte) ([]byte, error) {
+		return msg, nil
 	})
 }

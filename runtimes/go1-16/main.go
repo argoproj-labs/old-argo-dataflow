@@ -1,50 +1,32 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
 func main() {
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
+		w.WriteHeader(204)
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		msg, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			println(err, "failed to marshal message")
-			w.WriteHeader(500)
-			return
-		}
-		msgs, err := Handler(msg)
-		if err != nil {
-			println(err, "failed to process message")
-			w.WriteHeader(500)
-			return
-		}
-		for _, msg := range msgs {
-			err := func() error {
-				if resp, err := http.Post("http://localhost:3569/messages", "application/octet-stream", bytes.NewBuffer(msg)); err != nil {
-					return err
-				}else {
-					body, _ := ioutil.ReadAll(resp.Body)
-					defer func() { _ = resp.Body.Close() }()
-					if resp.StatusCode != 200 {
-						return fmt.Errorf("failed to post message: %q %q", resp.Status, string(body))
-					}
-				}
-				return nil
-			}()
-			if err!=nil {
-				println(err, "failed to post message")
-				w.WriteHeader(500)
-				_, _ = w.Write([]byte(err.Error()))
-				return
+		defer func() { _ = r.Body.Close() }()
+		out, err := func() ([]byte, error) {
+			if in, err := ioutil.ReadAll(r.Body); err != nil {
+				return nil, err
+			} else {
+				return Handler(in)
 			}
+		}()
+		if err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+		} else if out != nil {
+			w.WriteHeader(201)
+			_, _ = w.Write(out)
+		} else {
+			w.WriteHeader(204)
 		}
-		w.WriteHeader(200)
 	})
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
