@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.0.21 (2021-05-21)
+
+ * [22b0b8b](https://github.com/argoproj/argo-workflows/commit/22b0b8b436ea3bef7e0f2aa17fe223e31e51eb30) fix: fix bouncy scaling bug
+ * [2d661ab](https://github.com/argoproj/argo-workflows/commit/2d661abcca7a1b8e734020690900dc3d2207aff8) test: tidy up
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.20 (2021-05-21)
+
+ * [35e7913](https://github.com/argoproj/argo-workflows/commit/35e7913c44a926ac5069b2f2674c2852a750f1e5) chore: make lint
+ * [de8a19f](https://github.com/argoproj/argo-workflows/commit/de8a19fcb6960af8096ddb3bb944a06c883482b4) fix: enhanced shutdown
+ * [6eebb68](https://github.com/argoproj/argo-workflows/commit/6eebb688937107704b902273cbafe4e98d35ff33) docs: add 301-kafka-pipeline.yaml
+ * [f3c6f16](https://github.com/argoproj/argo-workflows/commit/f3c6f16d0af4398c81ab981d397f7096f9c8c51a) docs: update CHANGELOG.md
+ * [30ce723](https://github.com/argoproj/argo-workflows/commit/30ce7237c3bcdf4e74d6de12aab99f6483588672) chore: code comment
+ * [94fb293](https://github.com/argoproj/argo-workflows/commit/94fb2937d6fc87b57ef2723da6f95ab95606fc2e) chore: logging
+ * [16362e4](https://github.com/argoproj/argo-workflows/commit/16362e49207b62e42efe8f25ef131fbe8d2ade0b) test: added kafka example
+ * [786ae3d](https://github.com/argoproj/argo-workflows/commit/786ae3d67dad1c6cc79ac04e2d1d9c27b361d2e4) build: reduced update interval
+ * [ad34a96](https://github.com/argoproj/argo-workflows/commit/ad34a966b8fecf99244e01e21e69f854a06a1410) ci: print logs
+ * [34f5c17](https://github.com/argoproj/argo-workflows/commit/34f5c171798c1643b4771f896f017650550a6bbb) chore: simplify controller
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.19 (2021-05-20)
 
  * [122acc3](https://github.com/argoproj/argo-workflows/commit/122acc33ed8e0d7dbb2a15b2a83a028a2b31d430) docs: added scaling examples

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -24,15 +25,22 @@ func main() {
 			return
 		}
 		for _, msg := range msgs {
-			resp, err := http.Post("http://localhost:3569/messages", "application/octet-stream", bytes.NewBuffer(msg))
-			if err != nil {
+			err := func() error {
+				if resp, err := http.Post("http://localhost:3569/messages", "application/octet-stream", bytes.NewBuffer(msg)); err != nil {
+					return err
+				}else {
+					body, _ := ioutil.ReadAll(resp.Body)
+					defer func() { _ = resp.Body.Close() }()
+					if resp.StatusCode != 200 {
+						return fmt.Errorf("failed to post message: %q %q", resp.Status, string(body))
+					}
+				}
+				return nil
+			}()
+			if err!=nil {
 				println(err, "failed to post message")
 				w.WriteHeader(500)
-				return
-			}
-			if resp.StatusCode != 200 {
-				println(err, "failed to post message", resp.Status)
-				w.WriteHeader(500)
+				_, _ = w.Write([]byte(err.Error()))
 				return
 			}
 		}

@@ -33,15 +33,19 @@ func Do(ctx context.Context, fn func(msg []byte) ([][]byte, error)) error {
 			return
 		}
 		for _, out := range msgs {
-			resp, err := http.Post("http://localhost:3569/messages", "application/octet-stream", bytes.NewBuffer(out))
+			err := func() error {
+				if resp, err := http.Post("http://localhost:3569/messages", "application/octet-stream", bytes.NewBuffer(out)); err != nil {
+					return err
+				} else {
+					body, _ := ioutil.ReadAll(resp.Body)
+					defer func() { _ = resp.Body.Close() }()
+					if resp.StatusCode != 200 {
+						return fmt.Errorf("failed to post message %s: %s", resp.Status, string(body))
+					}
+				}
+				return nil
+			}()
 			if err != nil {
-				logger.Error(err, "failed to post message")
-				w.WriteHeader(500)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
-			if resp.StatusCode != 200 {
-				err := fmt.Errorf("failed to post message %s", resp.Status)
 				logger.Error(err, "failed to post message")
 				w.WriteHeader(500)
 				_, _ = w.Write([]byte(err.Error()))

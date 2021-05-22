@@ -432,13 +432,14 @@ func connectTo(ctx context.Context) (func([]byte) error, error) {
 		})
 		return func(data []byte) error {
 			trace.Info("◷ source → http")
-			resp, err := http.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data))
-			if err != nil {
+			if resp, err := http.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data)); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
-			}
-			if resp.StatusCode >= 300 {
+			} else {
 				body, _ := ioutil.ReadAll(resp.Body)
-				return fmt.Errorf("failed to send to main: %q %q", resp.Status, body)
+				defer func() { _ = resp.Body.Close() }()
+				if resp.StatusCode >= 300 {
+					return fmt.Errorf("failed to send to main: %q %q", resp.Status, body)
+				}
 			}
 			trace.Info("✔ source → http")
 			return nil
@@ -594,9 +595,12 @@ func connectSink() (func([]byte) error, error) {
 			sinks[sinkName] = func(msg []byte) error {
 				if resp, err := http.Post(x.URL, "application/octet-stream", bytes.NewBuffer(msg)); err != nil {
 					return err
-				} else if resp.StatusCode >= 300 {
+				} else {
 					body, _ := ioutil.ReadAll(resp.Body)
-					return fmt.Errorf("failed to send HTTP request: %q %q", resp.Status, body)
+					defer func() { _ = resp.Body.Close() }()
+					if resp.StatusCode >= 300 {
+						return fmt.Errorf("failed to send HTTP request: %q %q", resp.Status, body)
+					}
 				}
 				return nil
 			}

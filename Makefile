@@ -35,6 +35,7 @@ $(GOBIN)/goreman:
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: generate deploy $(GOBIN)/goreman
+	kubectl config set-context --current --namespace=argo-dataflow-system
 	goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
