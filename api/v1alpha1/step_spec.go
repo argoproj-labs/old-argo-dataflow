@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 )
@@ -104,6 +106,14 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				Resources:       SmallResourceRequirements,
 				Ports: []corev1.ContainerPort{
 					{ContainerPort: 3569},
+				},
+				Lifecycle: &corev1.Lifecycle{
+					PreStop: &corev1.Handler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Path: "/pre-stop",
+							Port: intstr.FromInt(3569),
+						},
+					},
 				},
 			},
 			in.GetContainer(

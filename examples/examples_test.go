@@ -31,7 +31,7 @@ func Test(t *testing.T) {
 	assert.NoError(t, err)
 	for _, info := range infos {
 		pipeline := info.Items[0]
-		if pipeline.GetAnnotations()["dataflow.argoproj.io/test"] != "true" {
+		if pipeline.GetAnnotations()["dataflow.argoproj.io/test"] == "false" {
 			continue
 		}
 		t.Run(info.Name(), func(t *testing.T) {
@@ -40,7 +40,7 @@ func Test(t *testing.T) {
 			pipelines := dynamicInterface.Resource(dfv1.PipelineGroupVersionResource).Namespace(namespace)
 			assert.NoError(t, pipelines.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{}))
 			condition := "SunkMessages"
-			timeout := 3 * time.Minute // typically actually about 30s
+			timeout := 1 * time.Minute // typically actually about 30s
 			pipelineName := pipeline.GetName()
 			if v := pipeline.GetAnnotations()["dataflow.argoproj.io/wait-for"]; v != "" {
 				condition = v

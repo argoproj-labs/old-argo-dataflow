@@ -17,6 +17,8 @@ spec:
   steps:
   - cat: {}
     name: main
+    sinks:
+      - log: {}
     sources:
     - cron:
         layout: "15:04:05"

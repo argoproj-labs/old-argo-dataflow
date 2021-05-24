@@ -5,7 +5,7 @@ metadata:
     dataflow.argoproj.io/description: |
       This pipeline processes pets (cats and dogs).
     dataflow.argoproj.io/name: Vetinary
-    dataflow.argoproj.io/timeout: 2m
+    dataflow.argoproj.io/test: "false"
   name: vet
 spec:
   steps:

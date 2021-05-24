@@ -131,7 +131,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				for _, s := range pod.Status.ContainerStatuses {
 					if s.Name != dfv1.CtrMain {
 						if err := r.ContainerKiller.KillContainer(pod, s.Name); err != nil {
-							return ctrl.Result{}, fmt.Errorf("failed to kill container %s/%s: %w", pod.Name, s.Name, err)
+							log.Error(err, "failed to kill container", "pod", pod.Name, "container", s.Name)
 						}
 					}
 				}
@@ -156,8 +156,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		annotations[dfv1.KeyReplica] = strconv.Itoa(replica)
 		annotations[dfv1.KeyHash] = hash
 		annotations[dfv1.KeyDefaultContainer] = dfv1.CtrMain
-		annotations[dfv1.KeyKillCmd(dfv1.CtrMain)] = util.MustJSON([]string{dfv1.PathVarRun, "1"})
-		annotations[dfv1.KeyKillCmd(dfv1.CtrSidecar)] = util.MustJSON([]string{dfv1.PathVarRun, "1"})
+		annotations[dfv1.KeyKillCmd(dfv1.CtrMain)] = util.MustJSON([]string{dfv1.PathKill, "1"})
+		annotations[dfv1.KeyKillCmd(dfv1.CtrSidecar)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{

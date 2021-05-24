@@ -114,7 +114,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	terminate, sunkMessages, errors := false, false, false
 	for _, step := range steps.Items {
 		stepName := step.Spec.Name
-
 		if !pipeline.Spec.HasStep(stepName) { // this happens when a pipeline changes and a step is removed
 			log.Info("deleting excess step", "stepName", stepName)
 			if err := r.Client.Delete(ctx, &step); err != nil {
@@ -143,12 +142,16 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		errors = errors || step.Status.AnyErrors()
 	}
 
+	if newStatus.Phase.Completed() {
+		terminate = false
+	}
+
 	var ss []string
-	for n, s := range map[int]string{
-		pending:   "pending",
-		running:   "running",
-		succeeded: "succeeded",
-		failed:    "failed",
+	for s, n := range map[string]int{
+		"pending":   pending,
+		"running":   running,
+		"succeeded": succeeded,
+		"failed":    failed,
 	} {
 		if n > 0 {
 			ss = append(ss, fmt.Sprintf("%d %s", n, s))
@@ -160,16 +163,16 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	newStatus.Message = strings.Join(ss, ", ")
 
-	for ok, c := range map[bool]string{
-		newStatus.Phase == dfv1.PipelineRunning: dfv1.ConditionRunning,
-		newStatus.Phase.Completed():             dfv1.ConditionCompleted,
-		sunkMessages:                            dfv1.ConditionSunkMessages,
-		errors:                                  dfv1.ConditionErrors,
-		terminate:                               dfv1.ConditionTerminating,
+	for c, ok := range map[string]bool{
+		dfv1.ConditionRunning:      newStatus.Phase == dfv1.PipelineRunning,
+		dfv1.ConditionCompleted:    newStatus.Phase.Completed(),
+		dfv1.ConditionSunkMessages: sunkMessages,
+		dfv1.ConditionErrors:       errors,
+		dfv1.ConditionTerminating:  terminate,
 	} {
 		if ok {
 			meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: c, Status: metav1.ConditionTrue, Reason: c})
-		} else if meta.FindStatusCondition(newStatus.Conditions, c) != nil { // guard only needed because RemoveStatusCondition panics on zero length conditions
+		} else if len(newStatus.Conditions) > 0 { // guard only needed because RemoveStatusCondition panics on zero length conditions
 			meta.RemoveStatusCondition(&newStatus.Conditions, c)
 		}
 	}

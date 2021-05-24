@@ -34,7 +34,7 @@ import (
 
 var (
 	logger              = zap.New()
-	preStopCh           = make(chan bool, 1)
+	preStopCh           = make(chan bool, 16)
 	beforeClosers       []func(ctx context.Context) error // should be closed before main container exits
 	afterClosers        []func(ctx context.Context) error // should be close after the main container exits
 	dynamicInterface    dynamic.Interface
@@ -96,9 +96,7 @@ func Exec(ctx context.Context) error {
 	logger.Info("sidecar config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
 
 	defer func() {
-		logger.Info("waiting for pre-stop")
-		<-preStopCh
-		logger.Info("waited for pre-stop")
+		preStop()
 		stop(afterClosers)
 	}()
 
@@ -115,11 +113,8 @@ func Exec(ctx context.Context) error {
 	// we listen to this message, but it does not come from Kubernetes, it actually comes from the main container's
 	// pre-stop hook
 	http.HandleFunc("/pre-stop", func(w http.ResponseWriter, r *http.Request) {
-		logger.Info("pre-stop")
-		stop(beforeClosers)
+		preStop()
 		w.WriteHeader(204)
-		logger.Info("pre-stop done")
-		preStopCh <- true
 	})
 
 	connectOut(toSink)
@@ -139,6 +134,16 @@ func Exec(ctx context.Context) error {
 	<-ctx.Done()
 	logger.Info("done")
 	return nil
+}
+
+func preStop() {
+	logger.Info("pre-stop")
+	mu.Lock()
+	defer mu.Unlock()
+	stop(beforeClosers)
+	beforeClosers = nil
+	preStopCh <- true
+	logger.Info("pre-stop done")
 }
 
 func stop(closers []func(ctx context.Context) error) {
