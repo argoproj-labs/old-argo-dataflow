@@ -14,5 +14,6 @@ func (m *Flatten) getContainer(req getContainerReq) corev1.Container {
 		Args:            []string{"flatten"},
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       SmallResourceRequirements,
+		Lifecycle:       req.lifecycle,
 	}
 }

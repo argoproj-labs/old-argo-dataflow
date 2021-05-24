@@ -30,13 +30,16 @@ COPY shared/ shared/
 COPY runner/ runner/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=$(git log -n1 --oneline)'" -o bin/runner ./runner
 COPY kill/ kill/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=$(git log -n1 --oneline)'" -o bin/kill ./kill
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/kill ./kill
+COPY prestop/ prestop/
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/prestop ./prestop
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
 COPY runtimes runtimes
 COPY --from=runner-builder /workspace/bin/runner .
 COPY --from=runner-builder /workspace/bin/kill /bin/kill
+COPY --from=runner-builder /workspace/bin/prestop /bin/prestop
 USER 9653:9653
 ENTRYPOINT ["/runner"]
 

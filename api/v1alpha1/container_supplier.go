@@ -8,6 +8,7 @@ type getContainerReq struct {
 	runnerImage     string
 	imagePullPolicy corev1.PullPolicy
 	volumeMount     corev1.VolumeMount
+	lifecycle       *corev1.Lifecycle
 }
 
 // +kubebuilder:skipversion

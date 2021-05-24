@@ -21,6 +21,7 @@ func (in *Container) getContainer(req getContainerReq) corev1.Container {
 		Env:             in.Env,
 		VolumeMounts:    append(in.VolumeMounts, req.volumeMount),
 		Resources:       SmallResourceRequirements,
+		Lifecycle:       req.lifecycle,
 	}
 }
 

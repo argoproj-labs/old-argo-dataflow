@@ -4,11 +4,7 @@ import (
 	"os"
 	"strconv"
 	"syscall"
-
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
-
-var logger = zap.New()
 
 func main() {
 	pid, err := strconv.Atoi(os.Args[1])
@@ -25,7 +21,7 @@ func mainE(pid int) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("signaling pid with SIGTERM", "pid", pid)
+	println("signaling pid with SIGTERM", "pid", pid)
 	if err := p.Signal(syscall.SIGTERM); err != nil {
 		return err
 	}

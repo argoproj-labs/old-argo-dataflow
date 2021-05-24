@@ -24,6 +24,7 @@ func (g *Group) getContainer(req getContainerReq) corev1.Container {
 		Args:            []string{"group", g.Key, g.EndOfGroup, string(g.Format)},
 		VolumeMounts:    []corev1.VolumeMount{g.getVolumeMount(req.volumeMount)},
 		Resources:       SmallResourceRequirements,
+		Lifecycle:       req.lifecycle,
 	}
 }
 

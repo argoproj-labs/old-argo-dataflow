@@ -129,6 +129,13 @@ func (in *StepSpec) GetContainer(imageFormat, runnerImage string, policy corev1.
 		runnerImage:     runnerImage,
 		imagePullPolicy: policy,
 		volumeMount:     mnt,
+		lifecycle: &corev1.Lifecycle{
+			PreStop: &corev1.Handler{
+				Exec: &corev1.ExecAction{
+					Command: []string{PathPreStop},
+				},
+			},
+		},
 	})
 }
 

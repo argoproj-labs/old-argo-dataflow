@@ -6,7 +6,7 @@ from handler import handler
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):  # GET /ready
-        self.send_response(200)
+        self.send_response(204)
         self.end_headers()
 
     def do_POST(self):  # POST /messages

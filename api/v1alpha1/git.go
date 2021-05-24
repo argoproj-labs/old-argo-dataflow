@@ -25,5 +25,6 @@ func (in *Git) getContainer(req getContainerReq) corev1.Container {
 		WorkingDir:      PathWorkingDir,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       LargeResourceRequirements,
+		Lifecycle:       req.lifecycle,
 	}
 }

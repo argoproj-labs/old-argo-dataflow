@@ -14,5 +14,6 @@ func (m *Cat) getContainer(req getContainerReq) corev1.Container {
 		Args:            []string{"cat"},
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       SmallResourceRequirements,
+		Lifecycle:       req.lifecycle,
 	}
 }

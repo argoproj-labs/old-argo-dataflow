@@ -1,6 +1,8 @@
 package v1alpha1
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	// conditions
@@ -37,6 +39,7 @@ const (
 	PathGroups      = "/var/run/argo-dataflow/groups"
 	PathHandlerFile = "/var/run/argo-dataflow/handler"
 	PathKill        = "/var/run/argo-dataflow/kill"
+	PathPreStop     = "/var/run/argo-dataflow/prestop"
 	PathWorkingDir  = "/var/run/argo-dataflow/wd"
 	PathVarRun      = "/var/run/argo-dataflow"
 )

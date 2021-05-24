@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.22 (2021-05-22)
+
+ * [2ad2f52](https://github.com/argoproj/argo-workflows/commit/2ad2f52651cb8b4283a6cc9ef71c92c0d7c70c24) feat: allow messages to be return to request
+ * [59669ca](https://github.com/argoproj/argo-workflows/commit/59669cabf52bd479cfae32e2bc7a74c49062a340) fix: correct http POST to use keep-alives
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.21 (2021-05-21)
 
  * [22b0b8b](https://github.com/argoproj/argo-workflows/commit/22b0b8b436ea3bef7e0f2aa17fe223e31e51eb30) fix: fix bouncy scaling bug

@@ -23,15 +23,16 @@ var logger = zap.New()
 // due to main container crashing, the init container may be started many times, so each operation we perform should be
 // idempontent, i.e. if we copy a file to shared volume, and it already exists, we should ignore that error
 func Exec() error {
-	{
-		logger.Info("copying kill binary")
-		src, err := os.Open("/bin/kill")
+	for _, name := range []string{dfv1.PathKill, dfv1.PathPreStop} {
+		logger.Info("copying binary", "name", name)
+		a := filepath.Join("/bin", filepath.Base(name))
+		src, err := os.Open(a)
 		if err != nil {
-			return fmt.Errorf("failed to open /bin/kill: %w", err)
+			return fmt.Errorf("failed to open %s: %w", a, err)
 		}
-		dst, err := os.OpenFile(dfv1.PathKill, os.O_RDWR|os.O_CREATE, 0o500)
+		dst, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0o500)
 		if util2.IgnorePermission(util2.IgnoreExist(err)) != nil {
-			return fmt.Errorf("failed to open %s: %w", dfv1.PathKill, err)
+			return fmt.Errorf("failed to open %s: %w", name, err)
 		} else if err == nil {
 			if _, err := io.Copy(dst, src); util2.IgnoreExist(err) != nil {
 				return fmt.Errorf("failed to create input FIFO: %w", err)

@@ -18,5 +18,6 @@ func (in *Handler) getContainer(req getContainerReq) corev1.Container {
 		ImagePullPolicy: req.imagePullPolicy,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       LargeResourceRequirements,
+		Lifecycle:       req.lifecycle,
 	}
 }

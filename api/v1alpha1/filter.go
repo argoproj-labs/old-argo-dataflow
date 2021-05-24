@@ -12,5 +12,6 @@ func (m Filter) getContainer(req getContainerReq) corev1.Container {
 		Args:            []string{"filter", string(m)},
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       SmallResourceRequirements,
+		Lifecycle:       req.lifecycle,
 	}
 }

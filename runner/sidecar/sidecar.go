@@ -1,7 +1,5 @@
 package sidecar
 
-import "github.com/paulbellamy/ratecounter"
-
 import (
 	"bufio"
 	"bytes"
@@ -15,15 +13,15 @@ import (
 	"sync"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/wait"
-
 	"github.com/Shopify/sarama"
 	"github.com/nats-io/stan.go"
+	"github.com/paulbellamy/ratecounter"
 	"github.com/robfig/cron/v3"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -36,9 +34,9 @@ import (
 
 var (
 	logger              = zap.New()
-	debug               = logger.V(6)
-	trace               = logger.V(8)
-	closers             []func(ctx context.Context) error
+	preStopCh           = make(chan bool, 1)
+	beforeClosers       []func(ctx context.Context) error // should be closed before main container exits
+	afterClosers        []func(ctx context.Context) error // should be close after the main container exits
 	dynamicInterface    dynamic.Interface
 	kubernetesInterface kubernetes.Interface
 	updateInterval      time.Duration
@@ -98,18 +96,13 @@ func Exec(ctx context.Context) error {
 	logger.Info("sidecar config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
 
 	defer func() {
-		logger.Info("closing closers", "len", len(closers))
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-		for i := len(closers) - 1; i >= 0; i-- {
-			logger.Info("closing", "i", i)
-			if err := closers[i](ctx); err != nil {
-				logger.Error(err, "failed to close", "i", i)
-			}
-		}
+		logger.Info("waiting for pre-stop")
+		<-preStopCh
+		logger.Info("waited for pre-stop")
+		stop(afterClosers)
 	}()
 
-	closers = append(closers, func(ctx context.Context) error {
+	afterClosers = append(afterClosers, func(ctx context.Context) error {
 		patchStepStatus(ctx)
 		return nil
 	})
@@ -118,6 +111,16 @@ func Exec(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// we listen to this message, but it does not come from Kubernetes, it actually comes from the main container's
+	// pre-stop hook
+	http.HandleFunc("/pre-stop", func(w http.ResponseWriter, r *http.Request) {
+		logger.Info("pre-stop")
+		stop(beforeClosers)
+		w.WriteHeader(204)
+		logger.Info("pre-stop done")
+		preStopCh <- true
+	})
 
 	connectOut(toSink)
 
@@ -136,6 +139,18 @@ func Exec(ctx context.Context) error {
 	<-ctx.Done()
 	logger.Info("done")
 	return nil
+}
+
+func stop(closers []func(ctx context.Context) error) {
+	logger.Info("closing closers", "len", len(closers))
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	for i := len(closers) - 1; i >= 0; i-- {
+		logger.Info("closing", "i", i)
+		if err := closers[i](ctx); err != nil {
+			logger.Error(err, "failed to close", "i", i)
+		}
+	}
 }
 
 func patchStepStatus(ctx context.Context) {
@@ -241,7 +256,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		cron.WithChain(cron.Recover(logger)),
 	)
 	go crn.Run()
-	closers = append(closers, func(ctx context.Context) error {
+	beforeClosers = append(beforeClosers, func(ctx context.Context) error {
 		logger.Info("stopping cron")
 		<-crn.Stop().Done()
 		return nil
@@ -258,7 +273,6 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 
 		f := func(msg []byte) error {
-			debug.Info("◷ →", "source", sourceName, "msg", printable(msg))
 			rateCounter.Incr(1)
 			withLock(func() {
 				status.SourceStatuses.Set(sourceName, replica, printable(msg), uint64(rateCounter.Rate()/int64(updateInterval/time.Second)))
@@ -283,7 +297,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			if err != nil {
 				return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 			}
-			closers = append(closers, func(ctx context.Context) error {
+			beforeClosers = append(beforeClosers, func(ctx context.Context) error {
 				logger.Info("closing stan connection", "source", sourceName)
 				return sc.Close()
 			})
@@ -293,7 +307,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				}, stan.DurableName(clientID)); err != nil {
 					return fmt.Errorf("failed to subscribe: %w", err)
 				} else {
-					closers = append(closers, func(ctx context.Context) error {
+					beforeClosers = append(beforeClosers, func(ctx context.Context) error {
 						logger.Info("closing stan subscription", "source", sourceName)
 						return sub.Close()
 					})
@@ -320,7 +334,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			if err != nil {
 				return err
 			}
-			closers = append(closers, func(ctx context.Context) error {
+			beforeClosers = append(beforeClosers, func(ctx context.Context) error {
 				logger.Info("closing kafka client", "source", sourceName)
 				return client.Close()
 			})
@@ -329,7 +343,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				if err != nil {
 					return fmt.Errorf("failed to create kafka consumer group: %w", err)
 				}
-				closers = append(closers, func(ctx context.Context) error {
+				beforeClosers = append(beforeClosers, func(ctx context.Context) error {
 					logger.Info("closing kafka consumer group", "source", sourceName)
 					return group.Close()
 				})
@@ -339,6 +353,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						logger.Error(err, "failed to create kafka consumer")
 					}
 				}, 10*time.Second, 1.2, true, ctx.Done())
+				beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+					logger.Info("closing kafka handler", "source", sourceName)
+					return handler.Close()
+				})
 				if i == 0 && replica == 0 {
 					go wait.JitterUntil(func() {
 						if handler.offset > 0 {
@@ -407,19 +425,17 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 		if err != nil {
 			return nil, fmt.Errorf("failed to open input FIFO: %w", err)
 		}
-		closers = append(closers, func(ctx context.Context) error {
+		afterClosers = append(afterClosers, func(ctx context.Context) error {
 			logger.Info("closing FIFO")
 			return fifo.Close()
 		})
 		return func(data []byte) error {
-			trace.Info("◷ source → fifo")
 			if _, err := fifo.Write(data); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
 			}
 			if _, err := fifo.Write([]byte("\n")); err != nil {
 				return fmt.Errorf("ffailed to send to main: %w", err)
 			}
-			trace.Info("✔ source → fifo")
 			return nil
 		}, nil
 	} else if in.HTTP != nil {
@@ -427,11 +443,10 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 		if err := waitReady(ctx); err != nil {
 			return nil, err
 		}
-		closers = append(closers, func(ctx context.Context) error {
+		afterClosers = append(afterClosers, func(ctx context.Context) error {
 			return waitUnready(ctx)
 		})
 		return func(data []byte) error {
-			trace.Info("◷ source → http")
 			if resp, err := http.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data)); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
 			} else {
@@ -440,7 +455,6 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 				if resp.StatusCode >= 300 {
 					return fmt.Errorf("failed to send to main: %q %q", resp.Status, body)
 				}
-				trace.Info("✔ source → http")
 				if resp.StatusCode == 201 {
 					return sink(body)
 				}
@@ -493,18 +507,16 @@ func connectOut(toSink func([]byte) error) {
 			if err != nil {
 				return fmt.Errorf("failed to open output FIFO: %w", err)
 			}
-			closers = append(closers, func(ctx context.Context) error {
+			afterClosers = append(afterClosers, func(ctx context.Context) error {
 				logger.Info("closing out FIFO")
 				return fifo.Close()
 			})
 			logger.Info("opened output FIFO")
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
-				trace.Info("◷ fifo → sink")
 				if err := toSink(scanner.Bytes()); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)
 				}
-				trace.Info("✔ fifo → sink")
 			}
 			if err = scanner.Err(); err != nil {
 				return fmt.Errorf("scanner error: %w", err)
@@ -525,18 +537,16 @@ func connectOut(toSink func([]byte) error) {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		trace.Info("◷ http → sink")
 		if err := toSink(data); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 		} else {
-			trace.Info("✔ http → sink")
-			w.WriteHeader(200)
+			w.WriteHeader(204)
 		}
 	})
 	server := &http.Server{Addr: ":3569"}
-	closers = append(closers, func(ctx context.Context) error {
+	afterClosers = append(afterClosers, func(ctx context.Context) error {
 		logger.Info("closing HTTP server")
 		return server.Shutdown(ctx)
 	})
@@ -563,7 +573,7 @@ func connectSink() (func([]byte) error, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 			}
-			closers = append(closers, func(ctx context.Context) error {
+			afterClosers = append(afterClosers, func(ctx context.Context) error {
 				logger.Info("closing stan connection", "sink", sinkName)
 				return sc.Close()
 			})
@@ -578,7 +588,7 @@ func connectSink() (func([]byte) error, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 			}
-			closers = append(closers, func(ctx context.Context) error {
+			afterClosers = append(afterClosers, func(ctx context.Context) error {
 				logger.Info("closing stan producer", "sink", sinkName)
 				return producer.Close()
 			})
