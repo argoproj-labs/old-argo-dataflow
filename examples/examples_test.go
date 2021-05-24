@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -30,6 +31,9 @@ func Test(t *testing.T) {
 	infos, err := util.ReadDir(".")
 	assert.NoError(t, err)
 	for _, info := range infos {
+		if !strings.HasSuffix(info.Name(), "-pipeline.yaml") {
+			continue
+		}
 		pipeline := info.Items[0]
 		if pipeline.GetAnnotations()["dataflow.argoproj.io/test"] == "false" {
 			continue
