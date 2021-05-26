@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.0.25 (2021-05-25)
+
+ * [980c741](https://github.com/argoproj/argo-workflows/commit/980c741576235f8eb04fcecd48ef1de3c59e69d4) fix: try and avoid partition changes
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.24 (2021-05-24)
+
+
+### Contributors
+
+
+## v0.0.23 (2021-05-24)
+
+ * [2031cd1](https://github.com/argoproj/argo-workflows/commit/2031cd1b29ce7b32ad0a9b8f553e56a64a5cf03b) ci: disable test-examples job
+ * [045a711](https://github.com/argoproj/argo-workflows/commit/045a7112927d763fb8db73603d6ee378cc362470) test: skip non-pipeline files
+ * [a561027](https://github.com/argoproj/argo-workflows/commit/a5610275123a0ce82f52ca870749cde9135c238d) fix: fixed bug with pipeline conditions and messages computation
+ * [45f51fa](https://github.com/argoproj/argo-workflows/commit/45f51fa86e36cf3a1240a73e0774a9a0f02e8149) feat: implement an ordered shutdown sequence
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.22 (2021-05-22)
 
  * [2ad2f52](https://github.com/argoproj/argo-workflows/commit/2ad2f52651cb8b4283a6cc9ef71c92c0d7c70c24) feat: allow messages to be return to request
