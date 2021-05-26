@@ -26,24 +26,6 @@ metadata:
   namespace: argo-dataflow-system
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  annotations:
-    dataflow.argoproj.io/description: |
-      This is an example of providing a namespace named NATS Streaming configuration.
-
-      The secret must be named `dataflow-nats-${name}`.
-
-      [Learn about configuration](../docs/CONFIGURATION.md)
-    dataflow.argoproj.io/name: Default NATS Streaming (STAN) configuration
-  name: dataflow-stan-default
-  namespace: argo-dataflow-system
-stringData:
-  clusterId: stan
-  natsUrl: nats
-  subjectPrefix: NamespacedPipelineName
----
-apiVersion: v1
 kind: Service
 metadata:
   labels:

@@ -5070,6 +5070,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: input
+  namespace: argo-dataflow-system
 spec:
   containers:
   - args:

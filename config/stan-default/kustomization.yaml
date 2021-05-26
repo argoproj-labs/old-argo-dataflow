@@ -2,6 +2,5 @@ namespace: argo-dataflow-system
 resources:
   - ../nats-default
   - single-server-stan.yml
-  - ../../examples/dataflow-stan-default-secret.yaml
 patchesStrategicMerge:
   - stan-statefulset.yaml

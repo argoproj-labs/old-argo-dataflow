@@ -1,7 +1,11 @@
+namespace: argo-dataflow-system
+
 resources:
   - ../quick-start
   - ../kafka-default
+  - ../../examples/dataflow-kafka-default-secret.yaml
   - ../stan-default
+  - ../../examples/dataflow-stan-default-secret.yaml
   - input-pod.yaml
 
 patchesStrategicMerge:
