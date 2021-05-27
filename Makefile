@@ -164,4 +164,4 @@ test-examples:
 argocli:
 	cd ../../argoproj/argo-workflows && git checkout dev-dataflow && make ./dist/argo DEV_BRANCH=true && ./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system
 ui:
-	cd ../../argoproj/argo-workflows && yarn --cwd ui start
+	cd ../../argoproj/argo-workflows && yarn --cwd ui install && yarn --cwd ui start
