@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.26 (2021-05-26)
+
+ * [135bde0](https://github.com/argoproj/argo-workflows/commit/135bde000a2f450e4131238478ba9af4e2dbd40d) build: yarn install
+ * [53c4d04](https://github.com/argoproj/argo-workflows/commit/53c4d040a61e04488c717d06c3cec2c1729658e7) feat: mark all Kafka messages
+ * [dcee8f5](https://github.com/argoproj/argo-workflows/commit/dcee8f59a2bdf3861c7475d840ec31f05bdc808e) config: remove secrets for stan/kafka
+ * [95a6e8e](https://github.com/argoproj/argo-workflows/commit/95a6e8e0828d78e10295ced25057fdb6ccfd140b) chore: whitespace
+ * [0fd976c](https://github.com/argoproj/argo-workflows/commit/0fd976c6d76d860e02f833064499712b87fd3e0d) docs: update CHANGELOG.md
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.25 (2021-05-25)
 
  * [980c741](https://github.com/argoproj/argo-workflows/commit/980c741576235f8eb04fcecd48ef1de3c59e69d4) fix: try and avoid partition changes
