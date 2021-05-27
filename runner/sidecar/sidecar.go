@@ -370,7 +370,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							if err != nil {
 								logger.Error(err, "failed to get offset", "source", sourceName)
 							} else if pending := nextOffset - 1 - offset; pending >= 0 {
-								logger.Info("setting pending", "source", sourceName, "pending", pending, "nextOffset", nextOffset, "handlerOffset", offset)
+								logger.Info("setting pending", "source", sourceName, "pending", pending, "nextOffset", nextOffset, "handlerOffset", offset, "partition", partition)
 								withLock(func() { status.SourceStatuses.SetPending(sourceName, uint64(pending)) })
 							}
 						}
