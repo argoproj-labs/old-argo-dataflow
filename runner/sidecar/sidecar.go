@@ -308,7 +308,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			})
 			for i := 0; i < int(x.Parallel); i++ {
 				if sub, err := sc.QueueSubscribe(x.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
-					_ = f(m.Data)
+					_ = f(m.Data) // TODO we should decide what to do with errors here, currently we ignore them
 				}, stan.DurableName(clientID)); err != nil {
 					return fmt.Errorf("failed to subscribe: %w", err)
 				} else {
@@ -382,7 +382,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				msg, err := ioutil.ReadAll(r.Body)
 				if err != nil {
 					logger.Error(err, "⚠ http →")
-					w.WriteHeader(500)
+					w.WriteHeader(400)
 					_, _ = w.Write([]byte(err.Error()))
 					return
 				}
@@ -539,7 +539,7 @@ func connectOut(toSink func([]byte) error) {
 		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			logger.Error(err, "failed to read message body from main via HTTP")
-			w.WriteHeader(500)
+			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}

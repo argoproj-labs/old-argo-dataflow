@@ -32,11 +32,8 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 	for m := range claim.Messages() {
 		h.partition = m.Partition
 		h.offset = m.Offset
-		if err := h.f(m.Value); err != nil {
-			// noop
-		} else {
-			sess.MarkMessage(m, "")
-		}
+		_ = h.f(m.Value) // TODO we should provide a way to deal with errors here, e.g. retries
+		sess.MarkMessage(m, "")
 	}
 	return nil
 }
