@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	"github.com/Shopify/sarama"
 	"github.com/nats-io/stan.go"
 	"github.com/paulbellamy/ratecounter"
@@ -280,7 +282,8 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
-				status.SourceStatuses.Set(sourceName, replica, printable(msg), uint64(rateCounter.Rate()/int64(updateInterval/time.Second)))
+				rate := float64(rateCounter.Rate()) / updateInterval.Seconds()
+				status.SourceStatuses.Set(sourceName, replica, printable(msg), resource.MustParse(fmt.Sprintf("%.3f", rate)))
 			})
 			if err := toMain(msg); err != nil {
 				logger.Error(err, "⚠ →", "source", sourceName)

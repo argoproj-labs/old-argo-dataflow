@@ -3,12 +3,14 @@ package v1alpha1
 import (
 	"strconv"
 
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type SourceStatuses map[string]SourceStatus // key is replica
 
-func (in SourceStatuses) Set(name string, replica int, msg string, rate uint64) {
+func (in SourceStatuses) Set(name string, replica int, msg string, rate resource.Quantity) {
 	x := in[name]
 	x.LastMessage = &Message{Data: trunc(msg), Time: metav1.Now()}
 	if x.Metrics == nil {
