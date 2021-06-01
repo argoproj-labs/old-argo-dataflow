@@ -130,9 +130,6 @@ endif
 scan-%:
 	docker scan --severity=high quay.io/argoproj/dataflow-$*:$(TAG)
 
-changelog:
-	git log --oneline -n10 > changelog
-
 $(GOBIN)/controller-gen:
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
 
