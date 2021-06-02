@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/Shopify/sarama"
@@ -192,16 +194,9 @@ func enrichSpec(ctx context.Context) error {
 					return err
 				}
 			} else {
-				x.NATSURL = dfv1.StringOr(x.NATSURL, string(secret.Data["natsUrl"]))
-				x.ClusterID = dfv1.StringOr(x.ClusterID, string(secret.Data["clusterId"]))
-				x.SubjectPrefix = dfv1.SubjectPrefixOr(x.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
+				stanFromSecret(x, secret)
 			}
-			switch x.SubjectPrefix {
-			case dfv1.SubjectPrefixNamespaceName:
-				x.Subject = fmt.Sprintf("%s.%s", namespace, x.Subject)
-			case dfv1.SubjectPrefixNamespacedPipelineName:
-				x.Subject = fmt.Sprintf("%s.%s.%s", namespace, pipelineName, x.Subject)
-			}
+			subjectivefStan(x)
 			source.STAN = x
 		} else if x := source.Kafka; x != nil {
 			secret, err := secrets.Get(ctx, "dataflow-kafka-"+x.Name, metav1.GetOptions{})
@@ -210,7 +205,7 @@ func enrichSpec(ctx context.Context) error {
 					return err
 				}
 			} else {
-				x.Brokers = dfv1.StringsOr(x.Brokers, strings.Split(string(secret.Data["brokers"]), ","))
+				kafkaFromSecret(x, secret)
 			}
 			source.Kafka = x
 		}
@@ -225,16 +220,9 @@ func enrichSpec(ctx context.Context) error {
 					return err
 				}
 			} else {
-				s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
-				s.ClusterID = dfv1.StringOr(s.ClusterID, string(secret.Data["clusterId"]))
-				s.SubjectPrefix = dfv1.SubjectPrefixOr(s.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
+				stanFromSecret(s, secret)
 			}
-			switch s.SubjectPrefix {
-			case dfv1.SubjectPrefixNamespaceName:
-				s.Subject = fmt.Sprintf("%s.%s", namespace, s.Subject)
-			case dfv1.SubjectPrefixNamespacedPipelineName:
-				s.Subject = fmt.Sprintf("%s.%s.%s", namespace, pipelineName, s.Subject)
-			}
+			subjectivefStan(s)
 			sink.STAN = s
 		} else if k := sink.Kafka; k != nil {
 			secret, err := secrets.Get(ctx, "dataflow-kafka-"+k.Name, metav1.GetOptions{})
@@ -243,11 +231,7 @@ func enrichSpec(ctx context.Context) error {
 					return err
 				}
 			} else {
-				k.Brokers = dfv1.StringsOr(k.Brokers, strings.Split(string(secret.Data["brokers"]), ","))
-				k.Version = dfv1.StringOr(k.Version, string(secret.Data["version"]))
-				if _, ok := secret.Data["net.tls"]; ok {
-					k.NET = &dfv1.KafkaNET{TLS: &dfv1.TLS{}}
-				}
+				kafkaFromSecret(k, secret)
 			}
 			sink.Kafka = k
 		}
@@ -255,6 +239,29 @@ func enrichSpec(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func subjectivefStan(x *dfv1.STAN) {
+	switch x.SubjectPrefix {
+	case dfv1.SubjectPrefixNamespaceName:
+		x.Subject = fmt.Sprintf("%s.%s", namespace, x.Subject)
+	case dfv1.SubjectPrefixNamespacedPipelineName:
+		x.Subject = fmt.Sprintf("%s.%s.%s", namespace, pipelineName, x.Subject)
+	}
+}
+
+func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) {
+	s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
+	s.ClusterID = dfv1.StringOr(s.ClusterID, string(secret.Data["clusterId"]))
+	s.SubjectPrefix = dfv1.SubjectPrefixOr(s.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
+}
+
+func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) {
+	k.Brokers = dfv1.StringsOr(k.Brokers, strings.Split(string(secret.Data["brokers"]), ","))
+	k.Version = dfv1.StringOr(k.Version, string(secret.Data["version"]))
+	if _, ok := secret.Data["net.tls"]; ok {
+		k.NET = &dfv1.KafkaNET{TLS: &dfv1.TLS{}}
+	}
 }
 
 func connectSources(ctx context.Context, toMain func([]byte) error) error {
