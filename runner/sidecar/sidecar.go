@@ -316,10 +316,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				logger.Info("closing stan connection", "source", sourceName)
 				return sc.Close()
 			})
+			// https://docs.nats.io/developing-with-nats-streaming/queues
+			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, spec.Name, sourceName)
 			for i := 0; i < int(x.Parallel); i++ {
-				if sub, err := sc.QueueSubscribe(x.Subject, fmt.Sprintf("%s-%s", pipelineName, spec.Name), func(m *stan.Msg) {
+				if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(m *stan.Msg) {
 					_ = f(m.Data) // TODO we should decide what to do with errors here, currently we ignore them
-				}, stan.DurableName(clientID)); err != nil {
+				}, stan.DurableName(queueName)); err != nil {
 					return fmt.Errorf("failed to subscribe: %w", err)
 				} else {
 					beforeClosers = append(beforeClosers, func(ctx context.Context) error {
