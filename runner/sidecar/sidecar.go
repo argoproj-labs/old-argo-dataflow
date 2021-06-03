@@ -5,31 +5,31 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
-
-	corev1 "k8s.io/api/core/v1"
-
-	"k8s.io/apimachinery/pkg/api/resource"
-
 	"github.com/Shopify/sarama"
 	"github.com/nats-io/stan.go"
 	"github.com/paulbellamy/ratecounter"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/robfig/cron/v3"
+	"io/ioutil"
+	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"net/http"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
@@ -114,6 +114,8 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
+	http.Handle("/metrics", promhttp.Handler())
+
 	// we listen to this message, but it does not come from Kubernetes, it actually comes from the main container's
 	// pre-stop hook
 	http.HandleFunc("/pre-stop", func(w http.ResponseWriter, r *http.Request) {
@@ -196,7 +198,7 @@ func enrichSpec(ctx context.Context) error {
 			} else {
 				stanFromSecret(x, secret)
 			}
-			subjectivefStan(x)
+			subjectiveStan(x)
 			source.STAN = x
 		} else if x := source.Kafka; x != nil {
 			secret, err := secrets.Get(ctx, "dataflow-kafka-"+x.Name, metav1.GetOptions{})
@@ -222,7 +224,7 @@ func enrichSpec(ctx context.Context) error {
 			} else {
 				stanFromSecret(s, secret)
 			}
-			subjectivefStan(s)
+			subjectiveStan(s)
 			sink.STAN = s
 		} else if k := sink.Kafka; k != nil {
 			secret, err := secrets.Get(ctx, "dataflow-kafka-"+k.Name, metav1.GetOptions{})
@@ -241,7 +243,7 @@ func enrichSpec(ctx context.Context) error {
 	return nil
 }
 
-func subjectivefStan(x *dfv1.STAN) {
+func subjectiveStan(x *dfv1.STAN) {
 	switch x.SubjectPrefix {
 	case dfv1.SubjectPrefixNamespaceName:
 		x.Subject = fmt.Sprintf("%s.%s", namespace, x.Subject)
@@ -285,9 +287,22 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		sources[sourceName] = true
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
+		totalMetric := promauto.NewCounter(prometheus.CounterOpts{
+			Name:        "total",
+			Subsystem:   "sources",
+			Help:        "Total number of messages",
+			ConstLabels: map[string]string{"sourceName": source.Name},
+		})
+		errorMetric := promauto.NewCounter(prometheus.CounterOpts{
+			Name:        "errors",
+			Subsystem:   "sources",
+			Help:        "Total number of errors",
+			ConstLabels: map[string]string{"sourceName": source.Name},
+		})
 
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)
+			totalMetric.Inc()
 			withLock(func() {
 				rate := float64(rateCounter.Rate()) / updateInterval.Seconds()
 				status.SourceStatuses.Set(sourceName, replica, printable(msg), resource.MustParse(fmt.Sprintf("%.3f", rate)))
@@ -295,6 +310,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			if err := toMain(msg); err != nil {
 				logger.Error(err, "⚠ →", "source", sourceName)
 				withLock(func() { status.SourceStatuses.IncErrors(sourceName, replica, err) })
+				errorMetric.Inc()
 				return err
 			}
 			return nil
