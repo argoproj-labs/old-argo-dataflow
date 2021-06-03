@@ -158,6 +158,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		annotations[dfv1.KeyDefaultContainer] = dfv1.CtrMain
 		annotations[dfv1.KeyKillCmd(dfv1.CtrMain)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 		annotations[dfv1.KeyKillCmd(dfv1.CtrSidecar)] = util.MustJSON([]string{dfv1.PathKill, "1"})
+		annotations["prometheus.io/scrape"] = "true"
+		annotations["prometheus.io/port"] = "3569"
+
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
