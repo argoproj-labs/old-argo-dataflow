@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.29 (2021-06-02)
+
+ * [6156b57](https://github.com/argoproj/argo-workflows/commit/6156b57f71d829df6eb8717d4a34de52a49d9511) fix: bug where we were not getting kafka secret
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.28 (2021-05-27)
 
  * [57567e3](https://github.com/argoproj/argo-workflows/commit/57567e3cfae15ebcbd2b3801a2b3db3b3c4b68e9) fix!: change rate to resource.Quantity
