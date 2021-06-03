@@ -55,6 +55,7 @@ type GetPodSpecReq struct {
 	PullPolicy     corev1.PullPolicy `protobuf:"bytes,6,opt,name=pullPolicy,casttype=k8s.io/api/core/v1.PullPolicy"`
 	UpdateInterval time.Duration     `protobuf:"varint,7,opt,name=updateInterval,casttype=time.Duration"`
 	StepStatus     StepStatus        `protobuf:"bytes,8,opt,name=stepStatus"`
+	BearerToken    string            `protobuf:"bytes,9,opt,name=bearerToken"`
 }
 
 func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
@@ -65,6 +66,7 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	stepSpec, _ := json.Marshal(in)
 	stepStatus, _ := json.Marshal(req.StepStatus)
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
+
 	envVars := []corev1.EnvVar{
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvNamespace, Value: req.Namespace},
@@ -72,6 +74,7 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		{Name: EnvStepSpec, Value: string(stepSpec)},
 		{Name: EnvStepStatus, Value: string(stepStatus)},
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
+		{Name: EnvDataflowBearerToken, Value: req.BearerToken},
 	}
 	return corev1.PodSpec{
 		Volumes:            append(in.Volumes, volume),

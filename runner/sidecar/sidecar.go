@@ -5,6 +5,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/Shopify/sarama"
 	"github.com/nats-io/stan.go"
 	"github.com/paulbellamy/ratecounter"
@@ -12,7 +20,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/robfig/cron/v3"
-	"io/ioutil"
+
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -22,14 +30,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	"net/http"
-	"os"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
@@ -564,6 +567,10 @@ func connectOut(toSink func([]byte) error) {
 	}()
 	logger.Info("HTTP out interface configured")
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer "+os.Getenv(dfv1.EnvDataflowBearerToken) {
+			w.WriteHeader(403)
+			return
+		}
 		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			logger.Error(err, "failed to read message body from main via HTTP")

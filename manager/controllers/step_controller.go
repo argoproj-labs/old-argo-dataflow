@@ -183,6 +183,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						PullPolicy:     pullPolicy,
 						UpdateInterval: updateInterval,
 						StepStatus:     step.Status,
+						BearerToken:    util.RandString(),
 					},
 				),
 			},

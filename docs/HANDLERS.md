@@ -16,8 +16,8 @@ handler:
   code: |
     package main
 
-    func Handler(m []byte) ([][]byte, error) {
-      return [][]byte{[]byte("hello " + string(m))}, nil
+    func Handler(m []byte) ([]byte, error) {
+      return []byte("hello " + string(m)), nil
     }
   runtime: go1.16
 ```
@@ -25,7 +25,7 @@ handler:
 The code must include a handler function, in pseudo code:
 
 ```
-Handler(msg []byte) -> ([][]byte, error) 
+Handler(msg []byte) -> ([]byte, error) 
 ```
 
 Examples:
