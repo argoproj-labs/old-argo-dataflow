@@ -52,8 +52,14 @@ func (in *Step) GetTargetReplicas(currentReplicas int, scalingDelay, peekDelay t
 	if currentReplicas <= 0 && targetReplicas == 0 && time.Since(lastScaledAt) > peekDelay {
 		return 1
 	}
-
-	return targetReplicas
+	// prevent violent scale-up and scale-down by only scaling by 1 each time
+	if targetReplicas > currentReplicas {
+		return currentReplicas + 1
+	} else if targetReplicas < currentReplicas {
+		return currentReplicas - 1
+	} else {
+		return targetReplicas
+	}
 }
 
 func RequeueAfter(currentReplicas, targetReplicas int, scalingDelay time.Duration) time.Duration {
