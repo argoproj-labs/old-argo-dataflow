@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.30 (2021-06-03)
+
+ * [c6763e5](https://github.com/argoproj/argo-workflows/commit/c6763e5b1f7f8112d0e7806b2344e78b15863810) feat(runner): Request Bearer token
+ * [9d8676b](https://github.com/argoproj/argo-workflows/commit/9d8676b5243c70ee48a211f30d1564403fa84fd7) feat(runner): Emit Prometheus metrics (#57)
+ * [869e492](https://github.com/argoproj/argo-workflows/commit/869e4929c38dd5c2e1c68589273b10b1f9cb6a92) ok
+ * [af151b6](https://github.com/argoproj/argo-workflows/commit/af151b66c03495706d10dc9030fd7e305cc36f06) fix: correct STAN durable name
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.29 (2021-06-02)
 
  * [6156b57](https://github.com/argoproj/argo-workflows/commit/6156b57f71d829df6eb8717d4a34de52a49d9511) fix: bug where we were not getting kafka secret
