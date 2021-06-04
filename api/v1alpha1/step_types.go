@@ -46,7 +46,7 @@ func (in *Step) GetTargetReplicas(currentReplicas int, scalingDelay, peekDelay t
 	}
 
 	pending := in.Status.SourceStatuses.GetPending()
-	targetReplicas := in.Spec.CalculateReplicas(pending)
+	targetReplicas := in.Spec.CalculateReplicas(int(pending))
 
 	// do we need to peek? currentReplicas and targetReplicas must both be zero
 	if currentReplicas <= 0 && targetReplicas == 0 && time.Since(lastScaledAt) > peekDelay {

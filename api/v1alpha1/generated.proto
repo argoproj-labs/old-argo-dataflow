@@ -248,14 +248,6 @@ message Sink {
   optional HTTPSink http = 5;
 }
 
-message SinkStatus {
-  optional Message lastMessage = 2;
-
-  optional Error lastError = 4;
-
-  map<string, Metrics> metrics = 3;
-}
-
 message Source {
   // +kubebuilder:default=default
   optional string name = 1;
@@ -371,7 +363,7 @@ message StepStatus {
 
   map<string, SourceStatus> sourceStatuses = 3;
 
-  map<string, SinkStatus> sinkStatuses = 4;
+  map<string, SourceStatus> sinkStatuses = 4;
 }
 
 message Storage {

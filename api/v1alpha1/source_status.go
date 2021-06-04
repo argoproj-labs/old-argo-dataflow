@@ -7,11 +7,22 @@ type SourceStatus struct {
 	Metrics     map[string]Metrics `json:"metrics,omitempty" protobuf:"bytes,4,rep,name=metrics"`
 }
 
-func (in *SourceStatus) AnyErrors() bool {
+func (in SourceStatus) GetTotal() uint64 {
+	var x uint64
 	for _, m := range in.Metrics {
-		if m.Errors > 0 {
-			return true
-		}
+		x += m.Total
 	}
-	return false
+	return x
+}
+
+func (in SourceStatus) GetErrors() uint64 {
+	var x uint64
+	for _, m := range in.Metrics {
+		x += m.Errors
+	}
+	return x
+}
+
+func (in SourceStatus) AnyErrors() bool {
+	return in.GetErrors() > 0
 }

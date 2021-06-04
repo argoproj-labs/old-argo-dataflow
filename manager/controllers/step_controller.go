@@ -86,7 +86,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		Replicas:       step.Status.Replicas,
 		Selector:       step.Status.Selector,
 		LastScaledAt:   step.Status.LastScaledAt,
-		SinkStatues:    dfv1.SinkStatuses{},
+		SinkStatues:    dfv1.SourceStatuses{},
 		SourceStatuses: dfv1.SourceStatuses{},
 	}
 
@@ -95,7 +95,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		Replicas:       uint32(currentReplicas),
 		Selector:       selector.String(),
 		LastScaledAt:   step.Status.LastScaledAt,
-		SinkStatues:    dfv1.SinkStatuses{},
+		SinkStatues:    dfv1.SourceStatuses{},
 		SourceStatuses: dfv1.SourceStatuses{},
 	}
 

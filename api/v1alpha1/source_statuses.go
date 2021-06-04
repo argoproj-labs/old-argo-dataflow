@@ -23,6 +23,14 @@ func (in SourceStatuses) Set(name string, replica int, msg string, rate resource
 	in[name] = x
 }
 
+func (in SourceStatuses) GetTotal() uint64 {
+	var x uint64
+	for _, s := range in {
+		x += s.GetTotal()
+	}
+	return x
+}
+
 func (in SourceStatuses) IncErrors(name string, replica int, err error) {
 	x := in[name]
 	msg := err.Error()
@@ -42,11 +50,11 @@ func (in SourceStatuses) SetPending(name string, pending uint64) {
 	in[name] = x
 }
 
-func (in SourceStatuses) GetPending() int {
-	v := 0
+func (in SourceStatuses) GetPending() uint64 {
+	var v uint64
 	for _, s := range in {
 		if s.Pending != nil {
-			v += int(*s.Pending)
+			v += *s.Pending
 		}
 	}
 	return v
@@ -59,4 +67,8 @@ func (in SourceStatuses) AnyErrors() bool {
 		}
 	}
 	return false
+}
+
+func (in SourceStatuses) AnySunk() bool {
+	return in.GetTotal() > 0
 }

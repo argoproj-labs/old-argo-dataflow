@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.31 (2021-06-04)
+
+ * [3dd39f1](https://github.com/argoproj/argo-workflows/commit/3dd39f16bf6d1104af3d2a3e4c23b98c22170639) fix(sidecar): updated to use fixed counters
+ * [6bef420](https://github.com/argoproj/argo-workflows/commit/6bef420f18718ca977365ff2ed0c46f213036ec6) fix: removed scrape annotations
+ * [3a7ab5c](https://github.com/argoproj/argo-workflows/commit/3a7ab5c238c351941fb6cbc7771da7479c80f607) ok
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.30 (2021-06-03)
 
  * [c6763e5](https://github.com/argoproj/argo-workflows/commit/c6763e5b1f7f8112d0e7806b2344e78b15863810) feat(runner): Request Bearer token

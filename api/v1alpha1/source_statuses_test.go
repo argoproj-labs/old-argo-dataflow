@@ -101,9 +101,9 @@ func TestSourceStatuses_SetPending(t *testing.T) {
 }
 
 func TestSourceStatus_GetPending(t *testing.T) {
-	assert.Equal(t, 0, SourceStatuses{}.GetPending())
+	assert.Equal(t, uint64(0), SourceStatuses{}.GetPending())
 	v := uint64(1)
-	assert.Equal(t, 1, SourceStatuses{"0": {Pending: &v}}.GetPending())
+	assert.Equal(t, uint64(1), SourceStatuses{"0": {Pending: &v}}.GetPending())
 }
 
 func TestSourceStatus_AnyErrors(t *testing.T) {

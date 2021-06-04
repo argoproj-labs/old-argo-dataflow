@@ -12,7 +12,7 @@ type StepStatus struct {
 	Selector       string         `json:"selector,omitempty" protobuf:"bytes,7,opt,name=selector"`
 	LastScaledAt   metav1.Time    `json:"lastScaledAt,omitempty" protobuf:"bytes,6,opt,name=lastScaledAt"`
 	SourceStatuses SourceStatuses `json:"sourceStatuses" protobuf:"bytes,3,rep,name=sourceStatuses"`
-	SinkStatues    SinkStatuses   `json:"sinkStatuses" protobuf:"bytes,4,rep,name=sinkStatuses"`
+	SinkStatues    SourceStatuses `json:"sinkStatuses" protobuf:"bytes,4,rep,name=sinkStatuses"`
 }
 
 func (m StepStatus) GetReplicas() int {

@@ -78,7 +78,7 @@ func Exec(ctx context.Context) error {
 		status.SourceStatuses = dfv1.SourceStatuses{}
 	}
 	if status.SinkStatues == nil {
-		status.SinkStatues = dfv1.SinkStatuses{}
+		status.SinkStatues = dfv1.SourceStatuses{}
 	}
 
 	logger.Info("status", "status", util2.MustJSON(status))
@@ -296,20 +296,19 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			Subsystem:   "sources",
 			Help:        "Total number of messages",
 			ConstLabels: map[string]string{"sourceName": source.Name},
-		}, func() float64 { return float64(status.SinkStatues.GetTotal()) })
+		}, func() float64 { return float64(status.SourceStatuses[sourceName].GetTotal()) })
 
 		promauto.NewCounterFunc(prometheus.CounterOpts{
 			Subsystem:   "sources",
 			Name:        "errors",
 			Help:        "Total number of errors",
 			ConstLabels: map[string]string{"sourceName": source.Name},
-		}, func() float64 { return float64(status.SinkStatues.GetErrors()) })
+		}, func() float64 { return float64(status.SourceStatuses[sourceName].GetErrors()) })
 
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
-				rate := float64(rateCounter.Rate()) / updateInterval.Seconds()
-				status.SourceStatuses.Set(sourceName, replica, printable(msg), resource.MustParse(fmt.Sprintf("%.3f", rate)))
+				status.SourceStatuses.Set(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
 			})
 			if err := toMain(msg); err != nil {
 				logger.Error(err, "⚠ →", "source", sourceName)
@@ -429,6 +428,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		}
 	}
 	return nil
+}
+
+func rateToResourceQuantity(rateCounter *ratecounter.RateCounter) resource.Quantity {
+	return resource.MustParse(fmt.Sprintf("%.3f", float64(rateCounter.Rate())/updateInterval.Seconds()))
 }
 
 func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
@@ -602,12 +605,14 @@ func connectOut(toSink func([]byte) error) {
 
 func connectSink() (func([]byte) error, error) {
 	sinks := map[string]func(msg []byte) error{}
+	rateCounters := map[string]*ratecounter.RateCounter{}
 	for _, sink := range spec.Sinks {
 		logger.Info("connecting sink", "sink", util2.MustJSON(sink))
 		sinkName := sink.Name
 		if _, exists := sinks[sinkName]; exists {
 			return nil, fmt.Errorf("duplicate sink named %q", sinkName)
 		}
+		rateCounters[sinkName] = ratecounter.NewRateCounter(updateInterval)
 		if x := sink.STAN; x != nil {
 			clientID := fmt.Sprintf("%s-%s-%d-sink-%s", pipelineName, spec.Name, replica, sinkName)
 			sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
@@ -662,9 +667,12 @@ func connectSink() (func([]byte) error, error) {
 			return nil, fmt.Errorf("sink misconfigured")
 		}
 	}
+
 	return func(msg []byte) error {
 		for sinkName, f := range sinks {
-			withLock(func() { status.SinkStatues.Set(sinkName, replica, printable(msg)) })
+			counter := rateCounters[sinkName]
+			counter.Incr(1)
+			withLock(func() { status.SinkStatues.Set(sinkName, replica, printable(msg), rateToResourceQuantity(counter)) })
 			if err := f(msg); err != nil {
 				withLock(func() { status.SinkStatues.IncErrors(sinkName, replica, err) })
 				return err
