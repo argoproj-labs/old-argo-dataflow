@@ -88,7 +88,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				if err := r.Client.Get(ctx, client.ObjectKeyFromObject(obj), old); err != nil {
 					return ctrl.Result{}, err
 				}
-				old.Spec.Replicas = nil // nil this field as it can be user/HPA modified
+				step.Replicas = old.Spec.Replicas // copy this field as it should only be modified by `kubectl scale`, edited by the user
 				if notEqual, patch := util.NotEqual(step, old.Spec); notEqual {
 					log.Info("updating step due to changed spec", "patch", patch)
 					old.Spec = step

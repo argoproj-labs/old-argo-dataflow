@@ -22,6 +22,8 @@ import (
 	"strconv"
 	"time"
 
+	apierr "k8s.io/apimachinery/pkg/api/errors"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"github.com/go-logr/logr"
@@ -29,7 +31,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -70,73 +71,22 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	log.Info("reconciling", "pipelineName", pipelineName, "stepName", stepName)
 
-	pods := &corev1.PodList{}
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
-	if err := r.Client.List(ctx, pods, &client.ListOptions{Namespace: step.Namespace, LabelSelector: selector}); err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
-	}
 
 	hash := util.MustHash(step.Spec)
-	currentReplicas := len(pods.Items)
+	currentReplicas := int(step.Status.Replicas)
 
-	oldStatus := dfv1.StepStatus{
-		Phase:          step.Status.Phase,
-		Reason:         step.Status.Reason,
-		Message:        step.Status.Message,
-		Replicas:       step.Status.Replicas,
-		Selector:       step.Status.Selector,
-		LastScaledAt:   step.Status.LastScaledAt,
-		SinkStatues:    dfv1.SourceStatuses{},
-		SourceStatuses: dfv1.SourceStatuses{},
-	}
-
-	newStatus := dfv1.StepStatus{
-		Phase:          dfv1.StepUnknown,
-		Replicas:       uint32(currentReplicas),
-		Selector:       selector.String(),
-		LastScaledAt:   step.Status.LastScaledAt,
-		SinkStatues:    dfv1.SourceStatuses{},
-		SourceStatuses: dfv1.SourceStatuses{},
-	}
-
-	for _, pod := range pods.Items {
-		phase, reason, message := inferPhase(pod)
-		x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Reason, newStatus.Message), dfv1.NewStepPhaseMessage(phase, reason, message))
-		newStatus.Phase, newStatus.Reason, newStatus.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
-	}
+	oldStatus := step.Status.DeepCopy()
+	step.Status.Phase, step.Status.Reason, step.Status.Message = dfv1.StepUnknown, "", ""
+	step.Status.Selector = selector.String()
 
 	targetReplicas := step.GetTargetReplicas(currentReplicas, scalingDelay, peekDelay)
 
 	if currentReplicas != targetReplicas {
 		log.Info("scaling", "currentReplicas", currentReplicas, "targetReplicas", targetReplicas)
-		newStatus.LastScaledAt = metav1.Time{Time: time.Now()}
+		step.Status.Replicas = uint32(targetReplicas)
+		step.Status.LastScaledAt = metav1.Time{Time: time.Now()}
 		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
-	}
-
-	for _, pod := range pods.Items {
-		if i, _ := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica]); i >= targetReplicas || hash != pod.GetAnnotations()[dfv1.KeyHash] {
-			log.Info("deleting excess pod", "podName", pod.Name)
-			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
-				x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Reason, newStatus.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to delete excess pod %s: %v", pod.Name, err)))
-				newStatus.Phase, newStatus.Reason, newStatus.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
-			}
-		} else {
-			// if the main container has terminated, kill all sidecars
-			mainCtrTerminated := false
-			for _, s := range pod.Status.ContainerStatuses {
-				mainCtrTerminated = mainCtrTerminated || (s.Name == dfv1.CtrMain && s.State.Terminated != nil && s.State.Terminated.ExitCode == 0)
-			}
-			log.Info("pod", "name", pod.Name, "mainCtrTerminated", mainCtrTerminated)
-			if mainCtrTerminated {
-				for _, s := range pod.Status.ContainerStatuses {
-					if s.Name != dfv1.CtrMain {
-						if err := r.ContainerKiller.KillContainer(pod, s.Name); err != nil {
-							log.Error(err, "failed to kill container", "pod", pod.Name, "container", s.Name)
-						}
-					}
-				}
-			}
-		}
 	}
 
 	for replica := 0; replica < targetReplicas; replica++ {
@@ -185,9 +135,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					},
 				),
 			},
-		); util.IgnoreAlreadyExists(err) != nil {
-			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Reason, newStatus.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create pod %s: %v", podName, err)))
-			newStatus.Phase, newStatus.Reason, newStatus.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
+		); apierr.IsAlreadyExists(err) {
+			// ignore
+		} else if err != nil {
+			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create pod %s: %v", podName, err)))
+			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
+		} else {
+			log.Info("pod created", "pod", podName)
 		}
 	}
 
@@ -213,16 +167,58 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 			},
 		); util.IgnoreAlreadyExists(err) != nil {
-			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(newStatus.Phase, newStatus.Reason, newStatus.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
-			newStatus.Phase, newStatus.Reason, newStatus.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
+			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
+			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 		}
 	}
 
-	if notEqual, patch := util.NotEqual(oldStatus, newStatus); notEqual {
-		log.Info("patching step status", "patch", patch)
-		if err := r.Status().
-			Patch(ctx, step, client.RawPatch(types.MergePatchType, []byte(util.MustJSON(&dfv1.Step{Status: newStatus})))); util.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
-			return ctrl.Result{}, fmt.Errorf("failed to patch status: %w", err)
+	pods := &corev1.PodList{}
+	if err := r.Client.List(ctx, pods, &client.ListOptions{Namespace: step.Namespace, LabelSelector: selector}); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to list pods: %w", err)
+	}
+
+	for _, pod := range pods.Items {
+		replica, err := strconv.Atoi(pod.GetAnnotations()[dfv1.KeyReplica])
+		if err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to parse replica of pod %q: %w", pod.Name, err)
+		}
+		if replica >= targetReplicas || hash != pod.GetAnnotations()[dfv1.KeyHash] {
+			log.Info("deleting excess pod", "podName", pod.Name)
+			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
+				x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to delete excess pod %s: %v", pod.Name, err)))
+				step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
+			}
+		} else {
+			phase, reason, message := inferPhase(pod)
+			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(phase, reason, message))
+			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
+
+			// if the main container has terminated, kill all sidecars
+			mainCtrTerminated := false
+			for _, s := range pod.Status.ContainerStatuses {
+				mainCtrTerminated = mainCtrTerminated || (s.Name == dfv1.CtrMain && s.State.Terminated != nil && s.State.Terminated.ExitCode == 0)
+			}
+			log.Info("pod", "name", pod.Name, "mainCtrTerminated", mainCtrTerminated)
+			if mainCtrTerminated {
+				for _, s := range pod.Status.ContainerStatuses {
+					if s.Name != dfv1.CtrMain {
+						if err := r.ContainerKiller.KillContainer(pod, s.Name); err != nil {
+							log.Error(err, "failed to kill container", "pod", pod.Name, "container", s.Name)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if notEqual, patch := util.NotEqual(oldStatus, step.Status); notEqual {
+		log.Info("updating step", "patch", patch, "oldStatus", util.MustJSON(oldStatus), "newStatus", step.Status)
+		if err := r.Status().Update(ctx, step); err != nil {
+			if apierr.IsConflict(err) {
+				return ctrl.Result{}, nil // conflict is ok, we will reconcile again soon
+			} else {
+				return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
+			}
 		}
 	}
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.0.33 (2021-06-04)
+
+ * [60eab31](https://github.com/argoproj/argo-workflows/commit/60eab313fe856ee34b44d8f7cfcb4057d01c6344) fix: prevent violent scale-up and scale-down by only scaling by 1 each time
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.32 (2021-06-04)
+
+ * [ca363fe](https://github.com/argoproj/argo-workflows/commit/ca363fe3638fa6c329dc786dedb4aaf8d230a8f3) feat: add pending metric
+ * [f3a4813](https://github.com/argoproj/argo-workflows/commit/f3a4813aaf23d630f4d8292792d6b147d53515f0) fix: fix metrics
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.31 (2021-06-04)
 
  * [3dd39f1](https://github.com/argoproj/argo-workflows/commit/3dd39f16bf6d1104af3d2a3e4c23b98c22170639) fix(sidecar): updated to use fixed counters

@@ -6,13 +6,13 @@ import (
 
 type StepStatus struct {
 	Phase          StepPhase      `json:"phase" protobuf:"bytes,1,opt,name=phase,casttype=StepPhase"`
-	Reason         string         `json:"reason" protobuf:"bytes,8,opt,name=reason"`
-	Message        string         `json:"message" protobuf:"bytes,2,opt,name=message"`
+	Reason         string         `json:"reason,omitempty" protobuf:"bytes,8,opt,name=reason"`
+	Message        string         `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
 	Replicas       uint32         `json:"replicas" protobuf:"varint,5,opt,name=replicas"`
 	Selector       string         `json:"selector,omitempty" protobuf:"bytes,7,opt,name=selector"`
 	LastScaledAt   metav1.Time    `json:"lastScaledAt,omitempty" protobuf:"bytes,6,opt,name=lastScaledAt"`
-	SourceStatuses SourceStatuses `json:"sourceStatuses" protobuf:"bytes,3,rep,name=sourceStatuses"`
-	SinkStatues    SourceStatuses `json:"sinkStatuses" protobuf:"bytes,4,rep,name=sinkStatuses"`
+	SourceStatuses SourceStatuses `json:"sourceStatuses,omitempty" protobuf:"bytes,3,rep,name=sourceStatuses"`
+	SinkStatues    SourceStatuses `json:"sinkStatuses,omitempty" protobuf:"bytes,4,rep,name=sinkStatuses"`
 }
 
 func (m StepStatus) GetReplicas() int {

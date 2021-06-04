@@ -16,7 +16,6 @@ spec:
   steps:
   - cat: {}
     name: main
-    replicas: 2
     sinks:
     - kafka:
         topic: output-topic

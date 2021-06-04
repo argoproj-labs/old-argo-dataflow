@@ -3748,12 +3748,8 @@ spec:
                   type: object
                 type: object
             required:
-            - message
             - phase
-            - reason
             - replicas
-            - sinkStatuses
-            - sourceStatuses
             type: object
         required:
         - spec
@@ -3926,7 +3922,7 @@ rules:
   resources:
   - steps/status
   verbs:
-  - patch
+  - update
 - apiGroups:
   - ""
   resources:
