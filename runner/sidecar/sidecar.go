@@ -290,22 +290,23 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		sources[sourceName] = true
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
-		totalMetric := promauto.NewCounter(prometheus.CounterOpts{
+
+		promauto.NewCounterFunc(prometheus.CounterOpts{
 			Name:        "total",
 			Subsystem:   "sources",
 			Help:        "Total number of messages",
 			ConstLabels: map[string]string{"sourceName": source.Name},
-		})
-		errorMetric := promauto.NewCounter(prometheus.CounterOpts{
-			Name:        "errors",
+		}, func() float64 { return float64(status.SinkStatues.GetTotal()) })
+
+		promauto.NewCounterFunc(prometheus.CounterOpts{
 			Subsystem:   "sources",
+			Name:        "errors",
 			Help:        "Total number of errors",
 			ConstLabels: map[string]string{"sourceName": source.Name},
-		})
+		}, func() float64 { return float64(status.SinkStatues.GetErrors()) })
 
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)
-			totalMetric.Inc()
 			withLock(func() {
 				rate := float64(rateCounter.Rate()) / updateInterval.Seconds()
 				status.SourceStatuses.Set(sourceName, replica, printable(msg), resource.MustParse(fmt.Sprintf("%.3f", rate)))
@@ -313,7 +314,6 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			if err := toMain(msg); err != nil {
 				logger.Error(err, "⚠ →", "source", sourceName)
 				withLock(func() { status.SourceStatuses.IncErrors(sourceName, replica, err) })
-				errorMetric.Inc()
 				return err
 			}
 			return nil

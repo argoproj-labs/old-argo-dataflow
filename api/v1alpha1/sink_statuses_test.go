@@ -51,6 +51,24 @@ func TestSinkStatuses_Set(t *testing.T) {
 	}
 }
 
+func TestSinkStatuses_GetTotal(t *testing.T) {
+	assert.Equal(t, uint64(0), SinkStatuses{}.GetTotal())
+	assert.Equal(t, uint64(1), SinkStatuses{
+		"0": SinkStatus{
+			Metrics: map[string]Metrics{"0": {Total: 1}},
+		},
+	}.GetTotal())
+}
+
+func TestSinkStatuses_GetErrors(t *testing.T) {
+	assert.Equal(t, uint64(0), SinkStatuses{}.GetErrors())
+	assert.Equal(t, uint64(1), SinkStatuses{
+		"0": SinkStatus{
+			Metrics: map[string]Metrics{"0": {Errors: 1}},
+		},
+	}.GetErrors())
+}
+
 func TestSinkStatuses_AnyErrors(t *testing.T) {
 	assert.False(t, SinkStatuses{}.AnyErrors())
 	assert.True(t, SinkStatuses{"0": {

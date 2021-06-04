@@ -32,22 +32,30 @@ func (in SinkStatuses) IncErrors(name string, replica int, err error) {
 	in[name] = x
 }
 
-func (in SinkStatuses) AnySunk() bool {
+func (in SinkStatuses) GetTotal() uint64 {
+	var x uint64
 	for _, s := range in {
 		for _, m := range s.Metrics {
-			if m.Total > 0 {
-				return true
-			}
+			x += m.Total
 		}
 	}
-	return false
+	return x
+}
+
+func (in SinkStatuses) GetErrors() uint64 {
+	var x uint64
+	for _, s := range in {
+		for _, m := range s.Metrics {
+			x += m.Errors
+		}
+	}
+	return x
+}
+
+func (in SinkStatuses) AnySunk() bool {
+	return in.GetTotal() > 0
 }
 
 func (in SinkStatuses) AnyErrors() bool {
-	for _, s := range in {
-		if s.AnyErrors() {
-			return true
-		}
-	}
-	return false
+	return in.GetErrors() > 0
 }
