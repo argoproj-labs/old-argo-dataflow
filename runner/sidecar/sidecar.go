@@ -292,6 +292,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 
 		promauto.NewCounterFunc(prometheus.CounterOpts{
+			Name:        "pending",
+			Subsystem:   "sources",
+			Help:        "Pending messages",
+			ConstLabels: map[string]string{"sourceName": source.Name},
+		}, func() float64 { return float64(status.SourceStatuses[sourceName].GetPending()) })
+		promauto.NewCounterFunc(prometheus.CounterOpts{
 			Name:        "total",
 			Subsystem:   "sources",
 			Help:        "Total number of messages",

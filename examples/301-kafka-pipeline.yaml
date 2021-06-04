@@ -6,7 +6,7 @@ metadata:
       This example shows reading and writing to cafe.
     dataflow.argoproj.io/name: Kafka
   creationTimestamp: null
-  name: kafka
+  name: kafka-1
 spec:
   steps:
   - cat: {}

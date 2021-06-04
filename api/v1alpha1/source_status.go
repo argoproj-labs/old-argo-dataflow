@@ -7,6 +7,13 @@ type SourceStatus struct {
 	Metrics     map[string]Metrics `json:"metrics,omitempty" protobuf:"bytes,4,rep,name=metrics"`
 }
 
+func (m SourceStatus) GetPending() uint64 {
+	if m.Pending != nil {
+		return *m.Pending
+	}
+	return 0
+}
+
 func (in SourceStatus) GetTotal() uint64 {
 	var x uint64
 	for _, m := range in.Metrics {
