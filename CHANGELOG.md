@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.34 (2021-06-04)
+
+ * [c73ce5b](https://github.com/argoproj/argo-workflows/commit/c73ce5b33a6bfc42abf772d6f794c6af885499a0) fix: change from patch to update for the controller
+ * [4a32fb9](https://github.com/argoproj/argo-workflows/commit/4a32fb9fcd72181bb6299d7d123166e29369a8e7) fix: kafka pending messages
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.33 (2021-06-04)
 
  * [60eab31](https://github.com/argoproj/argo-workflows/commit/60eab313fe856ee34b44d8f7cfcb4057d01c6344) fix: prevent violent scale-up and scale-down by only scaling by 1 each time
