@@ -292,27 +292,27 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 
 		labels := map[string]string{"sourceName": source.Name, "replica": strconv.Itoa(replica)}
-		if replica == 0 {
+		if replica == 0 { // only replica zero updates this value, so it the only replica that can be accurate
 			promauto.NewCounterFunc(prometheus.CounterOpts{
 				Name:        "pending",
 				Subsystem:   "sources",
 				Help:        "Pending messages",
 				ConstLabels: labels,
-			}, func() float64 { return float64(status.SourceStatuses[sourceName].GetPending()) })
+			}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetPending()) })
 		}
 		promauto.NewCounterFunc(prometheus.CounterOpts{
 			Name:        "total",
 			Subsystem:   "sources",
 			Help:        "Total number of messages",
 			ConstLabels: labels,
-		}, func() float64 { return float64(status.SourceStatuses[sourceName].GetTotal()) })
+		}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetMetrics(replica).Total) })
 
 		promauto.NewCounterFunc(prometheus.CounterOpts{
 			Subsystem:   "sources",
 			Name:        "errors",
 			Help:        "Total number of errors",
 			ConstLabels: labels,
-		}, func() float64 { return float64(status.SourceStatuses[sourceName].GetErrors()) })
+		}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetMetrics(replica).Errors) })
 
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)

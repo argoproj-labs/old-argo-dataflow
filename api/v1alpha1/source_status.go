@@ -1,10 +1,19 @@
 package v1alpha1
 
+import "strconv"
+
 type SourceStatus struct {
 	LastMessage *Message           `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
 	LastError   *Error             `json:"lastError,omitempty" protobuf:"bytes,5,opt,name=lastError"`
 	Pending     *uint64            `json:"pending,omitempty" protobuf:"varint,3,opt,name=pending"`
 	Metrics     map[string]Metrics `json:"metrics,omitempty" protobuf:"bytes,4,rep,name=metrics"`
+}
+
+func (m SourceStatus) GetMetrics(replica int) Metrics {
+	if x, ok := m.Metrics[strconv.Itoa(replica)]; ok {
+		return x
+	}
+	return Metrics{}
 }
 
 func (m SourceStatus) GetPending() uint64 {
@@ -28,6 +37,10 @@ func (in SourceStatus) GetErrors() uint64 {
 		x += m.Errors
 	}
 	return x
+}
+
+func (in SourceStatus) AnySunk() bool {
+	return in.GetTotal() > 0
 }
 
 func (in SourceStatus) AnyErrors() bool {

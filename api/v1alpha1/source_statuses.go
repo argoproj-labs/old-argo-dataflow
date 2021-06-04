@@ -23,12 +23,11 @@ func (in SourceStatuses) Set(name string, replica int, msg string, rate resource
 	in[name] = x
 }
 
-func (in SourceStatuses) GetTotal() uint64 {
-	var x uint64
-	for _, s := range in {
-		x += s.GetTotal()
+func (in SourceStatuses) Get(name string) SourceStatus {
+	if x, ok := in[name]; ok {
+		return x
 	}
-	return x
+	return SourceStatus{}
 }
 
 func (in SourceStatuses) IncErrors(name string, replica int, err error) {
@@ -70,5 +69,10 @@ func (in SourceStatuses) AnyErrors() bool {
 }
 
 func (in SourceStatuses) AnySunk() bool {
-	return in.GetTotal() > 0
+	for _, s := range in {
+		if s.AnySunk() {
+			return true
+		}
+	}
+	return false
 }
