@@ -375,12 +375,21 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			if err != nil {
 				return err
 			}
+			adminClient, err := sarama.NewClusterAdmin(x.Brokers, config)
+			if err != nil {
+				return err
+			}
 			beforeClosers = append(beforeClosers, func(ctx context.Context) error {
 				logger.Info("closing kafka client", "source", sourceName)
 				return client.Close()
 			})
+			beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+				logger.Info("closing kafka admin client", "source", sourceName)
+				return adminClient.Close()
+			})
 			for i := 0; i < int(x.Parallel); i++ {
-				group, err := sarama.NewConsumerGroup(x.Brokers, pipelineName+"-"+spec.Name, config)
+				groupName := pipelineName + "-" + spec.Name
+				group, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
 				if err != nil {
 					return fmt.Errorf("failed to create kafka consumer group: %w", err)
 				}
@@ -400,16 +409,28 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				})
 				if i == 0 && replica == 0 {
 					go wait.JitterUntil(func() {
-						offset, partition := handler.offset, handler.partition // copy these variables, so changes are not a problem
-						if offset > 0 {
-							nextOffset, err := client.GetOffset(x.Topic, partition, sarama.OffsetNewest)
-							if err != nil {
-								logger.Error(err, "failed to get offset", "source", sourceName)
-							} else if pending := nextOffset - 1 - offset; pending >= 0 {
-								logger.Info("setting pending", "source", sourceName, "pending", pending, "nextOffset", nextOffset, "handlerOffset", offset, "partition", partition)
-								withLock(func() { status.SourceStatuses.SetPending(sourceName, uint64(pending)) })
-							}
+						partitions, err := client.Partitions(x.Topic)
+						if err != nil {
+							logger.Error(err, "failed to get partitions", "source", sourceName)
+							return
 						}
+						totalLags := int64(0)
+						rep, err := adminClient.ListConsumerGroupOffsets(groupName, map[string][]int32{x.Topic: partitions})
+						if err != nil {
+							logger.Error(err, "failed to list consumer group offsets", "source", sourceName)
+							return
+						}
+						for _, partition := range partitions {
+							partitionOffset, err := client.GetOffset(x.Topic, partition, sarama.OffsetNewest)
+							if err != nil {
+								logger.Error(err, "failed to get topic/partition offset", "source", sourceName, "topic", x.Topic, "partition", partition)
+								return
+							}
+							block := rep.GetBlock(x.Topic, partition)
+							totalLags += partitionOffset - block.Offset
+						}
+						logger.Info("setting pending", "source", sourceName, "pending", totalLags)
+						withLock(func() { status.SourceStatuses.SetPending(sourceName, uint64(totalLags)) })
 					}, updateInterval, 1.2, true, ctx.Done())
 				}
 			}
