@@ -10,6 +10,7 @@ func (m Filter) getContainer(req getContainerReq) corev1.Container {
 		Image:           req.runnerImage,
 		ImagePullPolicy: req.imagePullPolicy,
 		Args:            []string{"filter", string(m)},
+		Env:             req.env,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       SmallResourceRequirements,
 		Lifecycle:       req.lifecycle,

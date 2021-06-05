@@ -119,12 +119,20 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 					},
 				},
 			},
-			in.GetContainer(
-				req.ImageFormat,
-				req.RunnerImage,
-				req.PullPolicy,
-				corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
-			),
+			in.getType().getContainer(getContainerReq{
+				env:             []corev1.EnvVar{{Name: EnvDataflowBearerToken, Value: req.BearerToken}},
+				imageFormat:     req.ImageFormat,
+				imagePullPolicy: req.PullPolicy,
+				lifecycle: &corev1.Lifecycle{
+					PreStop: &corev1.Handler{
+						Exec: &corev1.ExecAction{
+							Command: []string{PathPreStop},
+						},
+					},
+				},
+				runnerImage: req.RunnerImage,
+				volumeMount: corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
+			}),
 		},
 	}
 }
@@ -134,22 +142,6 @@ func (in *StepSpec) GetIn() *Interface {
 		return in.Container.GetIn()
 	}
 	return DefaultInterface
-}
-
-func (in *StepSpec) GetContainer(imageFormat, runnerImage string, policy corev1.PullPolicy, mnt corev1.VolumeMount) corev1.Container {
-	return in.getType().getContainer(getContainerReq{
-		imageFormat:     imageFormat,
-		runnerImage:     runnerImage,
-		imagePullPolicy: policy,
-		volumeMount:     mnt,
-		lifecycle: &corev1.Lifecycle{
-			PreStop: &corev1.Handler{
-				Exec: &corev1.ExecAction{
-					Command: []string{PathPreStop},
-				},
-			},
-		},
-	})
 }
 
 func (in *StepSpec) getType() containerSupplier {

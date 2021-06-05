@@ -12,6 +12,7 @@ func (m Map) getContainer(req getContainerReq) corev1.Container {
 		Image:           req.runnerImage,
 		ImagePullPolicy: req.imagePullPolicy,
 		Args:            []string{"map", string(m)},
+		Env:             req.env,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       SmallResourceRequirements,
 		Lifecycle:       req.lifecycle,

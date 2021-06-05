@@ -22,6 +22,7 @@ func (g *Group) getContainer(req getContainerReq) corev1.Container {
 		Image:           req.runnerImage,
 		ImagePullPolicy: req.imagePullPolicy,
 		Args:            []string{"group", g.Key, g.EndOfGroup, string(g.Format)},
+		Env:             req.env,
 		VolumeMounts:    []corev1.VolumeMount{g.getVolumeMount(req.volumeMount)},
 		Resources:       SmallResourceRequirements,
 		Lifecycle:       req.lifecycle,

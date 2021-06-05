@@ -12,6 +12,7 @@ func (m *Expand) getContainer(req getContainerReq) corev1.Container {
 		Image:           req.runnerImage,
 		ImagePullPolicy: req.imagePullPolicy,
 		Args:            []string{"expand"},
+		Env:             req.env,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       SmallResourceRequirements,
 		Lifecycle:       req.lifecycle,

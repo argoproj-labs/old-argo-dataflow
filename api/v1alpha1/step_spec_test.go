@@ -65,10 +65,9 @@ func TestStepSpec_GetPodSpec(t *testing.T) {
 					},
 					{
 						Args: []string{"cat"},
-						// TODO
-						//Env: []corev1.EnvVar{
-						//	{Name: "ARGO_DATAFLOW_BEARER_TOKEN", Value: "my-bearer-token"},
-						//},
+						Env: []corev1.EnvVar{
+							{Name: "ARGO_DATAFLOW_BEARER_TOKEN", Value: "my-bearer-token"},
+						},
 						Image:           "my-runner",
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            "main",

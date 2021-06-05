@@ -21,7 +21,7 @@ func (in *Git) getContainer(req getContainerReq) corev1.Container {
 		Image:           in.Image,
 		ImagePullPolicy: req.imagePullPolicy,
 		Command:         in.Command,
-		Env:             in.Env,
+		Env:             append(in.Env, req.env...),
 		WorkingDir:      PathWorkingDir,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       LargeResourceRequirements,

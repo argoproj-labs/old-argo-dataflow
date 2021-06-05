@@ -18,7 +18,7 @@ func (in *Container) getContainer(req getContainerReq) corev1.Container {
 		ImagePullPolicy: req.imagePullPolicy,
 		Command:         in.Command,
 		Args:            in.Args,
-		Env:             in.Env,
+		Env:             append(in.Env, req.env...),
 		VolumeMounts:    append(in.VolumeMounts, req.volumeMount),
 		Resources:       SmallResourceRequirements,
 		Lifecycle:       req.lifecycle,

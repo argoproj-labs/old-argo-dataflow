@@ -16,6 +16,7 @@ func (in *Handler) getContainer(req getContainerReq) corev1.Container {
 		Name:            CtrMain,
 		Image:           fmt.Sprintf(req.imageFormat, "dataflow-"+in.Runtime),
 		ImagePullPolicy: req.imagePullPolicy,
+		Env:             req.env,
 		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
 		Resources:       LargeResourceRequirements,
 		Lifecycle:       req.lifecycle,
