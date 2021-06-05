@@ -68,13 +68,13 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
 
 	envVars := []corev1.EnvVar{
-		{Name: EnvPipelineName, Value: req.PipelineName},
-		{Name: EnvNamespace, Value: req.Namespace},
-		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
-		{Name: EnvStepSpec, Value: string(stepSpec)},
-		{Name: EnvStepStatus, Value: string(stepStatus)},
-		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 		{Name: EnvDataflowBearerToken, Value: req.BearerToken},
+		{Name: EnvNamespace, Value: req.Namespace},
+		{Name: EnvPipelineName, Value: req.PipelineName},
+		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
+		{Name: EnvStepStatus, Value: string(stepStatus)},
+		{Name: EnvStepSpec, Value: string(stepSpec)},
+		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 	}
 	return corev1.PodSpec{
 		Volumes:            append(in.Volumes, volume),
