@@ -32,7 +32,7 @@ func withLock(dir string, f func() ([]byte, error)) ([]byte, error) {
 }
 
 func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.GroupFormat) error {
-	if err := os.Mkdir(dfv1.PathGroups, 0700); util2.IgnoreExist(err) != nil {
+	if err := os.Mkdir(dfv1.PathGroups, 0o700); util2.IgnoreExist(err) != nil {
 		return fmt.Errorf("failed to create groups dir: %w", err)
 	}
 	prog, err := expr.Compile(key)
@@ -53,12 +53,12 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 			return nil, fmt.Errorf("key expression must return a string")
 		}
 		dir := filepath.Join(dfv1.PathGroups, group)
-		if err := os.Mkdir(dir, 0700); util2.IgnoreExist(err) != nil {
+		if err := os.Mkdir(dir, 0o700); util2.IgnoreExist(err) != nil {
 			return nil, fmt.Errorf("failed to create group sub-dir: %w", err)
 		}
 		return withLock(dir, func() ([]byte, error) {
 			path := filepath.Join(dir, uuid.New().String())
-			if err := ioutil.WriteFile(path, msg, 0600); err != nil {
+			if err := ioutil.WriteFile(path, msg, 0o600); err != nil {
 				return nil, fmt.Errorf("failed to create message file: %w", err)
 			}
 			res, err = expr.Run(endProg, util.ExprEnv(msg))

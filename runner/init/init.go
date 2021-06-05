@@ -44,12 +44,12 @@ func Exec() error {
 
 	if spec.GetIn().FIFO {
 		logger.Info("creating in fifo")
-		if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0600); util2.IgnoreExist(err) != nil {
+		if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0o600); util2.IgnoreExist(err) != nil {
 			return fmt.Errorf("failed to create input FIFO: %w", err)
 		}
 	}
 	logger.Info("creating out fifo")
-	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0600); util2.IgnoreExist(err) != nil {
+	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0o600); util2.IgnoreExist(err) != nil {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
 	if g := spec.Git; g != nil {
@@ -73,7 +73,7 @@ func Exec() error {
 		}
 	} else if h := spec.Handler; h != nil {
 		logger.Info("setting up handler", "runtime", h.Runtime, "code", strings.ShortenString(h.Code, 32)+"...")
-		if err := ioutil.WriteFile(dfv1.PathHandlerFile, []byte(h.Code), 0600); err != nil {
+		if err := ioutil.WriteFile(dfv1.PathHandlerFile, []byte(h.Code), 0o600); err != nil {
 			return fmt.Errorf("failed to create code file: %w", err)
 		}
 	}

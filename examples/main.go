@@ -36,7 +36,7 @@ func main() {
 				formatted[i] = string(data)
 			}
 		}
-		if err := ioutil.WriteFile(filepath.Join(dirname, info.Name()), []byte(strings.Join(formatted, "\n---\n")), 0600); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(dirname, info.Name()), []byte(strings.Join(formatted, "\n---\n")), 0o600); err != nil {
 			panic(err)
 		}
 	}

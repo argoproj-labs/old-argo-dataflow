@@ -53,7 +53,7 @@ func main() {
 		}
 	}()
 	if err != nil && err != context.Canceled {
-		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 0600); err != nil {
+		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 0o600); err != nil {
 			println(fmt.Sprintf("failed to write termination-log: %v", err))
 		}
 		panic(err)

@@ -17,4 +17,3 @@ func TestPrintable(t *testing.T) {
 	assert.Equal(t, "abc", Printable("abc"))
 	assert.Equal(t, "AA==", Printable("\000"))
 }
-
