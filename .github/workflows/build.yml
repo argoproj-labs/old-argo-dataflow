@@ -30,6 +30,7 @@ jobs:
       - uses: golangci/golangci-lint-action@v2
         with:
           version: v1.36.0
+          args: --verbose
       - run: git diff --exit-code
 
   e2e:
