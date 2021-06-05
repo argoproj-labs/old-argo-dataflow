@@ -291,27 +291,26 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 
-		labels := map[string]string{"sourceName": source.Name, "replica": strconv.Itoa(replica)}
 		if replica == 0 { // only replica zero updates this value, so it the only replica that can be accurate
 			promauto.NewCounterFunc(prometheus.CounterOpts{
-				Name:        "pending",
 				Subsystem:   "sources",
-				Help:        "Pending messages",
-				ConstLabels: labels,
+				Name:        "pending",
+				Help:        "Pending messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_pending",
+				ConstLabels: map[string]string{"sourceName": source.Name},
 			}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetPending()) })
 		}
 		promauto.NewCounterFunc(prometheus.CounterOpts{
-			Name:        "total",
 			Subsystem:   "sources",
-			Help:        "Total number of messages",
-			ConstLabels: labels,
+			Name:        "total",
+			Help:        "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total",
+			ConstLabels: map[string]string{"sourceName": source.Name, "replica": strconv.Itoa(replica)},
 		}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetMetrics(replica).Total) })
 
 		promauto.NewCounterFunc(prometheus.CounterOpts{
 			Subsystem:   "sources",
 			Name:        "errors",
-			Help:        "Total number of errors",
-			ConstLabels: labels,
+			Help:        "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors",
+			ConstLabels: map[string]string{"sourceName": source.Name, "replica": strconv.Itoa(replica)},
 		}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetMetrics(replica).Errors) })
 
 		f := func(msg []byte) error {
@@ -483,6 +482,12 @@ func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 }
 
 func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error, error) {
+	inFlight := promauto.NewGauge(prometheus.GaugeOpts{
+		Subsystem:   "input",
+		Name:        "in_flight",
+		Help:        "Number of in-flight message, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_in_flight",
+		ConstLabels: map[string]string{"replica": strconv.Itoa(replica)},
+	})
 	in := spec.GetIn()
 	if in == nil {
 		logger.Info("no in interface configured")
@@ -500,11 +505,13 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 			return fifo.Close()
 		})
 		return func(data []byte) error {
+			inFlight.Inc()
+			defer inFlight.Dec()
 			if _, err := fifo.Write(data); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
 			}
 			if _, err := fifo.Write([]byte("\n")); err != nil {
-				return fmt.Errorf("ffailed to send to main: %w", err)
+				return fmt.Errorf("failed to send to main: %w", err)
 			}
 			return nil
 		}, nil
@@ -517,6 +524,8 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 			return waitUnready(ctx)
 		})
 		return func(data []byte) error {
+			inFlight.Inc()
+			defer inFlight.Dec()
 			if resp, err := http.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data)); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
 			} else {

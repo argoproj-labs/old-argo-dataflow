@@ -21,8 +21,8 @@ spec:
       runtime: go1-16
     name: main
     sinks:
-    - kafka:
-        topic: output-topic
+    - log: {}
     sources:
     - kafka:
         topic: input-topic
+        parallel: 4
