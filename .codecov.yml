@@ -12,6 +12,8 @@ ignore:
   - runner
   - runtimes
   - shared/containerkiller
+  - shared/util/error.go
+  - shared/util/io.go
 coverage:
   status:
     # we've found this not to be useful
