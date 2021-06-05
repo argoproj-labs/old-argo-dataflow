@@ -11,21 +11,18 @@ type Container struct {
 	Env          []corev1.EnvVar      `json:"env,omitempty" protobuf:"bytes,8,rep,name=env"`
 }
 
-func (in *Container) getContainer(req getContainerReq) corev1.Container {
-	return corev1.Container{
-		Name:            CtrMain,
-		Image:           in.Image,
-		ImagePullPolicy: req.imagePullPolicy,
-		Command:         in.Command,
-		Args:            in.Args,
-		Env:             append(in.Env, req.env...),
-		VolumeMounts:    append(in.VolumeMounts, req.volumeMount),
-		Resources:       SmallResourceRequirements,
-		Lifecycle:       req.lifecycle,
-	}
+func (in Container) getContainer(req getContainerReq) corev1.Container {
+	return containerBuilder{}.
+		init(req).
+		image(in.Image).
+		command(in.Command...).
+		args(in.Args...).
+		appendEnv(in.Env...).
+		appendVolumeMounts(in.VolumeMounts...).
+		build()
 }
 
-func (in *Container) GetIn() *Interface {
+func (in Container) GetIn() *Interface {
 	if in.In != nil {
 		return in.In
 	}

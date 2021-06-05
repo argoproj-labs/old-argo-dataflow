@@ -17,16 +17,11 @@ type Group struct {
 }
 
 func (g *Group) getContainer(req getContainerReq) corev1.Container {
-	return corev1.Container{
-		Name:            CtrMain,
-		Image:           req.runnerImage,
-		ImagePullPolicy: req.imagePullPolicy,
-		Args:            []string{"group", g.Key, g.EndOfGroup, string(g.Format)},
-		Env:             req.env,
-		VolumeMounts:    []corev1.VolumeMount{g.getVolumeMount(req.volumeMount)},
-		Resources:       SmallResourceRequirements,
-		Lifecycle:       req.lifecycle,
-	}
+	return containerBuilder{}.
+		init(req).
+		args("group", g.Key, g.EndOfGroup, string(g.Format)).
+		appendVolumeMounts(g.getVolumeMount(req.volumeMount)).
+		build()
 }
 
 func (g *Group) getVolumeMount(defaultVolumeMount corev1.VolumeMount) corev1.VolumeMount {

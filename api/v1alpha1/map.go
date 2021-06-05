@@ -7,14 +7,8 @@ import (
 type Map string
 
 func (m Map) getContainer(req getContainerReq) corev1.Container {
-	return corev1.Container{
-		Name:            CtrMain,
-		Image:           req.runnerImage,
-		ImagePullPolicy: req.imagePullPolicy,
-		Args:            []string{"map", string(m)},
-		Env:             req.env,
-		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
-		Resources:       SmallResourceRequirements,
-		Lifecycle:       req.lifecycle,
-	}
+	return containerBuilder{}.
+		init(req).
+		args("map", string(m)).
+		build()
 }

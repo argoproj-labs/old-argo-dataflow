@@ -6,15 +6,9 @@ import (
 
 type Cat struct{}
 
-func (m *Cat) getContainer(req getContainerReq) corev1.Container {
-	return corev1.Container{
-		Name:            CtrMain,
-		Image:           req.runnerImage,
-		ImagePullPolicy: req.imagePullPolicy,
-		Args:            []string{"cat"},
-		Env:             req.env,
-		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
-		Resources:       SmallResourceRequirements,
-		Lifecycle:       req.lifecycle,
-	}
+func (m Cat) getContainer(req getContainerReq) corev1.Container {
+	return containerBuilder{}.
+		init(req).
+		args("cat").
+		build()
 }

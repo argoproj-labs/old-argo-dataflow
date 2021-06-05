@@ -15,16 +15,13 @@ type Git struct {
 	Env    []corev1.EnvVar `json:"env,omitempty" protobuf:"bytes,5,rep,name=env"`
 }
 
-func (in *Git) getContainer(req getContainerReq) corev1.Container {
-	return corev1.Container{
-		Name:            CtrMain,
-		Image:           in.Image,
-		ImagePullPolicy: req.imagePullPolicy,
-		Command:         in.Command,
-		Env:             append(in.Env, req.env...),
-		WorkingDir:      PathWorkingDir,
-		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
-		Resources:       LargeResourceRequirements,
-		Lifecycle:       req.lifecycle,
-	}
+func (in Git) getContainer(req getContainerReq) corev1.Container {
+	return containerBuilder{}.
+		init(req).
+		image(in.Image).
+		command(in.Command...).
+		appendEnv(in.Env...).
+		workingDir(PathWorkingDir).
+		resources(LargeResourceRequirements).
+		build()
 }

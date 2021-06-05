@@ -7,14 +7,8 @@ import (
 type Flatten struct{}
 
 func (m *Flatten) getContainer(req getContainerReq) corev1.Container {
-	return corev1.Container{
-		Name:            CtrMain,
-		Image:           req.runnerImage,
-		ImagePullPolicy: req.imagePullPolicy,
-		Args:            []string{"flatten"},
-		Env:             req.env,
-		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
-		Resources:       SmallResourceRequirements,
-		Lifecycle:       req.lifecycle,
-	}
+	return containerBuilder{}.
+		init(req).
+		args("flatten").
+		build()
 }

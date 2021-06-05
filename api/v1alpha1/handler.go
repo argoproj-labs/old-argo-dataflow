@@ -11,14 +11,10 @@ type Handler struct {
 	Code    string  `json:"code" protobuf:"bytes,3,opt,name=code"`
 }
 
-func (in *Handler) getContainer(req getContainerReq) corev1.Container {
-	return corev1.Container{
-		Name:            CtrMain,
-		Image:           fmt.Sprintf(req.imageFormat, "dataflow-"+in.Runtime),
-		ImagePullPolicy: req.imagePullPolicy,
-		Env:             req.env,
-		VolumeMounts:    []corev1.VolumeMount{req.volumeMount},
-		Resources:       LargeResourceRequirements,
-		Lifecycle:       req.lifecycle,
-	}
+func (in Handler) getContainer(req getContainerReq) corev1.Container {
+	return containerBuilder{}.
+		init(req).
+		image(fmt.Sprintf(req.imageFormat, "dataflow-"+in.Runtime)).
+		resources(LargeResourceRequirements).
+		build()
 }

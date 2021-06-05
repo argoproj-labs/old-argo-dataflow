@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.35 (2021-06-04)
+
+ * [421c142](https://github.com/argoproj/argo-workflows/commit/421c14269c618eb1a1c601715e6ff361d45d9921) fix: total/error calcs
+ * [06fc5f0](https://github.com/argoproj/argo-workflows/commit/06fc5f0592ce74982864f133af5dd405948451f0) fix: only return pending for replica=0
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.34 (2021-06-04)
 
  * [c73ce5b](https://github.com/argoproj/argo-workflows/commit/c73ce5b33a6bfc42abf772d6f794c6af885499a0) fix: change from patch to update for the controller
