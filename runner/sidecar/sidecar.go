@@ -484,8 +484,8 @@ func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error, error) {
 	inFlight := promauto.NewGauge(prometheus.GaugeOpts{
 		Subsystem:   "input",
-		Name:        "in_flight",
-		Help:        "Number of in-flight message, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_in_flight",
+		Name:        "inflight",
+		Help:        "Number of in-flight message, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_inflight",
 		ConstLabels: map[string]string{"replica": strconv.Itoa(replica)},
 	})
 	in := spec.GetIn()

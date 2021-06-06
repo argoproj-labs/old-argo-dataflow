@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.36 (2021-06-05)
+
+ * [ca7edf1](https://github.com/argoproj/argo-workflows/commit/ca7edf16c34075efb77d0cc1e76c40b943ab75d5) feat: add in_flight metric
+ * [009731a](https://github.com/argoproj/argo-workflows/commit/009731a0bab298f1d50a6a0f64278ddfba7ca2a5) refactor: made code more testable
+ * [a3142eb](https://github.com/argoproj/argo-workflows/commit/a3142eb7b5755a064acf47066a8c99604bfa73d9) fix: add bearer token
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.35 (2021-06-04)
 
  * [421c142](https://github.com/argoproj/argo-workflows/commit/421c14269c618eb1a1c601715e6ff361d45d9921) fix: total/error calcs
