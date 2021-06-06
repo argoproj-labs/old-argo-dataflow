@@ -485,7 +485,13 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 	inFlight := promauto.NewGauge(prometheus.GaugeOpts{
 		Subsystem:   "input",
 		Name:        "inflight",
-		Help:        "Number of in-flight message, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_inflight",
+		Help:        "Number of in-flight messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_inflight",
+		ConstLabels: map[string]string{"replica": strconv.Itoa(replica)},
+	})
+	messageTimeSeconds := promauto.NewHistogram(prometheus.HistogramOpts{
+		Subsystem:   "input",
+		Name:        "message_time_seconds",
+		Help:        "Message time, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_message_time_seconds",
 		ConstLabels: map[string]string{"replica": strconv.Itoa(replica)},
 	})
 	in := spec.GetIn()
@@ -526,6 +532,8 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 		return func(data []byte) error {
 			inFlight.Inc()
 			defer inFlight.Dec()
+			start := time.Now()
+			defer func() { messageTimeSeconds.Observe(time.Since(start).Seconds()) }()
 			if resp, err := http.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data)); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
 			} else {
