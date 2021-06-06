@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.37 (2021-06-06)
+
+ * [267fd6b](https://github.com/argoproj/argo-workflows/commit/267fd6b03450b70629c3d7b43674fb988d863a34) feat: added latency metric
+ * [c1c88da](https://github.com/argoproj/argo-workflows/commit/c1c88da7ff9a4448f08541cdab6ddabfe61b8d88) fix: in_flight -> inflight
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.36 (2021-06-05)
 
  * [ca7edf1](https://github.com/argoproj/argo-workflows/commit/ca7edf16c34075efb77d0cc1e76c40b943ab75d5) feat: add in_flight metric

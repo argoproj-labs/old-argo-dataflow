@@ -4,17 +4,15 @@ import (
 	"fmt"
 	"os"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
-var logger = zap.New()
+var logger = util.NewLogger()
 
 type Interface interface {
 	KillContainer(pod corev1.Pod, container string) error
@@ -24,14 +22,6 @@ type containerKiller struct {
 	kubernetes.Interface
 	*rest.Config
 }
-
-type fake struct{}
-
-func (f fake) KillContainer(pod corev1.Pod, container string) error {
-	return nil
-}
-
-var Fake Interface = fake{}
 
 func New(k kubernetes.Interface, r *rest.Config) Interface {
 	return &containerKiller{Interface: k, Config: r}

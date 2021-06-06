@@ -10,15 +10,13 @@ import (
 
 	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"k8s.io/utils/strings"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-var logger = zap.New()
+var logger = util2.NewLogger()
 
 // due to main container crashing, the init container may be started many times, so each operation we perform should be
 // idempontent, i.e. if we copy a file to shared volume, and it already exists, we should ignore that error

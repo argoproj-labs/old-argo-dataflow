@@ -21,16 +21,16 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
+
+	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers"
+	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/manager/controllers"
-	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
 )
 
 var (
@@ -54,7 +54,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New())
+	ctrl.SetLogger(util.NewLogger())
 
 	restConfig := ctrl.GetConfigOrDie()
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
