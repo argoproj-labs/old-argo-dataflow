@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.38 (2021-06-07)
+
+ * [fcfb45f](https://github.com/argoproj/argo-workflows/commit/fcfb45f880d7b414136f16be32dcd5bcdaf303e3) fix: bugs in grouping
+ * [bf55468](https://github.com/argoproj/argo-workflows/commit/bf55468731dfb63244b66062ab30c93c9edfb992) refactor: de-couple scaling
+ * [2695c7a](https://github.com/argoproj/argo-workflows/commit/2695c7a8f5493bdf5e895e86b030e45100a3009d) feat: more Python DSL
+ * [f6a6d0d](https://github.com/argoproj/argo-workflows/commit/f6a6d0d381611bb0f03eaf1e76a3b09fc007b93e) feat: more Python DSL
+ * [85908bb](https://github.com/argoproj/argo-workflows/commit/85908bb2263de3b8353fb6acda4b6e3574b5c149) feat: add Python DSL
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.37 (2021-06-06)
 
  * [267fd6b](https://github.com/argoproj/argo-workflows/commit/267fd6b03450b70629c3d7b43674fb988d863a34) feat: added latency metric
