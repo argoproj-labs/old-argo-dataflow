@@ -2,13 +2,12 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This example is of the Python 3.9 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
     dataflow.argoproj.io/timeout: 2m
-  creationTimestamp: null
-  name: python3-9
+  name: python
 spec:
   steps:
   - handler:

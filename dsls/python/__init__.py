@@ -1,4 +1,15 @@
+import inspect
+import sys
 import yaml
+
+
+def str_presenter(dumper, data):
+    if len(data.splitlines()) > 1 or '"' in data or "'" in data:
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+
+
+yaml.add_representer(str, str_presenter)
 
 
 class PipelineBuilder():
@@ -10,6 +21,9 @@ class PipelineBuilder():
     def annotate(self, name, value):
         self.annotations[name] = value
         return self
+
+    def describe(self, value):
+        return self.annotate('dataflow.argoproj.io/description', value)
 
     def step(self, step):
         self.steps.append(step)
@@ -24,12 +38,12 @@ class PipelineBuilder():
                 'annotations': self.annotations
             },
             'spec': {
-                'steps': [x.build(i) for i, x in enumerate(self.steps)]
+                'steps': [x.build() for x in self.steps]
             }
         }
 
     def dump(self):
-        print(yaml.dump(self.build()))
+        sys.stdout.write((yaml.dump(self.build())))
 
 
 def pipeline(name):
@@ -41,8 +55,25 @@ class LogSink:
         return {'log': {}}
 
 
-class CatStep():
-    def __init__(self, sources):
+class KafkaSink:
+    def __init__(self, subject):
+        self.subject = subject
+
+    def build(self):
+        return {'kafka': {'topic': self.subject}}
+
+
+class STANSink:
+    def __init__(self, topic):
+        self.topic = topic
+
+    def build(self):
+        return {'stan': {'subject': self.topic}}
+
+
+class Step:
+    def __init__(self, name, sources):
+        self.name = name
         self.sources = sources
         self.sinks = []
 
@@ -50,29 +81,143 @@ class CatStep():
         self.sinks.append(LogSink())
         return self
 
-    def build(self, i):
-        return {
-            'name': 's{i}'.format(i=i),
-            'sources': [x.build() for x in self.sources],
-            'sinks': [x.build() for x in self.sinks],
-            'cat': {}
-        }
+    def kafka(self, subject):
+        self.sinks.append(KafkaSink(subject))
+        return self
 
-
-class CronSource:
-    def __init__(self, schedule):
-        self.schedule = schedule
-
-    def cat(self):
-        return CatStep([self])
+    def stan(self, topic):
+        self.sinks.append(STANSink(topic))
+        return self
 
     def build(self):
         return {
-            'cron': {
-                'schedule': self.schedule
-            }
+            'name': self.name,
+            'sources': [x.build() for x in self.sources],
+            'sinks': [x.build() for x in self.sinks],
         }
 
 
-def cron(schedule):
-    return CronSource(schedule)
+class CatStep(Step):
+    def __init__(self, name, sources):
+        super().__init__(name, sources)
+
+    def build(self):
+        x = super().build()
+        x['cat'] = {}
+        return x
+
+
+class ExpandStep(Step):
+    def __init__(self, name, sources):
+        super().__init__(name, sources)
+
+    def build(self):
+        x = super().build()
+        x['expand'] = {}
+        return x
+
+
+class FilterStep(Step):
+    def __init__(self, name, sources, filter):
+        super().__init__(name, sources)
+        self.filter = filter
+
+    def build(self):
+        x = super().build()
+        x['filter'] = self.filter
+        return x
+
+
+class FlattenStep(Step):
+    def __init__(self, name, sources):
+        super().__init__(name, sources)
+
+    def build(self):
+        x = super().build()
+        x['flatten'] = {}
+        return x
+
+
+class HandlerStep(Step):
+    def __init__(self, name, sources, handler):
+        super().__init__(name, sources)
+        self.handler = handler
+
+    def build(self):
+        x = super().build()
+        x['handler'] = {
+            'runtime': 'python3-9',
+            'code': inspect.getsource(self.handler)
+        }
+        return x
+
+
+class MapStep(Step):
+    def __init__(self, name, sources, map):
+        super().__init__(name, sources)
+        self.map = map
+
+    def build(self):
+        x = super().build()
+        x['map'] = self.map
+        return x
+
+
+class Source:
+    def cat(self, name):
+        return CatStep(name, [self])
+
+    def expand(self, name):
+        return ExpandStep(name, [self])
+
+    def filter(self, name, filter):
+        return FilterStep(name, [self], filter)
+
+    def flatten(self, name):
+        return FlattenStep(name, [self])
+
+    def handler(self, name, handler):
+        return HandlerStep(name, [self], handler)
+
+    def map(self, name, map):
+        return MapStep(name, [self], map)
+
+
+class CronSource(Source):
+    def __init__(self, schedule, layout):
+        self.schedule = schedule
+        self.layout = layout
+
+    def build(self):
+        x = {'schedule': self.schedule}
+        if self.layout:
+            x['layout'] = self.layout
+        return {'cron': x}
+
+
+class KafkaSource(Source):
+    def __init__(self, topic):
+        self.topic = topic
+
+    def build(self):
+        return {'kafka': {'topic': self.topic}}
+
+
+class STANSource(Source):
+    def __init__(self, subject):
+        self.subject = subject
+
+    def build(self):
+        return {'stan': {'subject': self.subject}}
+
+
+def cron(schedule, layout=''):
+    return CronSource(schedule, layout)
+
+
+def kafka(topic):
+    return KafkaSource(topic)
+
+
+def stan(subject):
+    return STANSource(subject)

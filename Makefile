@@ -154,9 +154,12 @@ config/nats/single-server-nats.yml:
 config/stan/single-server-stan.yml:
 	curl -o config/stan/single-server-stan.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-streaming-server/single-server-stan.yml
 
-examples: $(shell find examples -name '*-pipeline.yaml')
+examples: $(shell find examples -name '*-pipeline.yaml' | sort)
 
 examples/101-hello-pipeline.yaml:
+examples/101-two-node-pipeline.yaml:
+examples/102-filter-pipeline.yaml:
+examples/102-flatten-expand-pipeline.yaml:
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/__init__.py
 	PYTHONPATH=. python3 examples/$*-pipeline.py > $@
 

@@ -2,16 +2,15 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This example shows a example of having two nodes in a pipeline.
 
       While they read from Kafka, they are connected by a NATS Streaming subject.
-  creationTimestamp: null
   name: two-node
 spec:
   steps:
   - cat: {}
-    name: a
+    name: main
     sinks:
     - stan:
         subject: a-b
@@ -19,7 +18,7 @@ spec:
     - kafka:
         topic: input-topic
   - cat: {}
-    name: b
+    name: main
     sinks:
     - kafka:
         topic: output-topic

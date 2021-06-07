@@ -2,7 +2,7 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This is an example of built-in filtering.
 
       Filters are written using expression syntax and must return a boolean.
@@ -10,11 +10,11 @@ metadata:
       They have a single variable, `msg`, which is a byte array.
 
       [Learn about expressions](../docs/EXPRESSIONS.md)
-  creationTimestamp: null
-  name: filter
+  name: two-node
 spec:
   steps:
-  - filter: string(msg) contains "capybara"
+  - filter: |-
+      string(msg) contains "capybara"
     name: main
     sinks:
     - kafka:
