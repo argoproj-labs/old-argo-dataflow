@@ -2,14 +2,13 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This example of a pipeline using Git.
 
       The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
       your code when the step starts.
 
       [Learn about Git steps](../docs/GIT.md)
-  creationTimestamp: null
   name: git
 spec:
   steps:

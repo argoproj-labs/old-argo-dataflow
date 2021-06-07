@@ -128,6 +128,25 @@ class FilterStep(Step):
         return x
 
 
+class GitStep(Step):
+    def __init__(self, name, sources, url, branch, path, image):
+        super().__init__(name, sources)
+        self.url = url
+        self.branch = branch
+        self.path = path
+        self.image = image
+
+    def build(self):
+        x = super().build()
+        x['git'] = {
+            'url': self.url,
+            'branch': self.branch,
+            'path': self.path,
+            'image': self.image
+        }
+        return x
+
+
 class FlattenStep(Step):
     def __init__(self, name, sources):
         super().__init__(name, sources)
@@ -172,6 +191,9 @@ class Source:
 
     def filter(self, name, filter):
         return FilterStep(name, [self], filter)
+
+    def git(self, name, url, branch, path, image):
+        return GitStep(name, [self], url, branch, path, image)
 
     def flatten(self, name):
         return FlattenStep(name, [self])
