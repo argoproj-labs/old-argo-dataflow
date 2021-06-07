@@ -21,34 +21,17 @@ pipelines composed of many steps which are often small and homogenic.
 
 ## Example
 
-```yaml
-apiVersion: dataflow.argoproj.io/v1alpha1
-kind: Pipeline
-metadata:
-  name: example
-  annotations:
-    dataflow.argoproj.io/name: "Example pipeline"
-spec:
-  steps:
-    - name: find-cats
-      sources:
-        - kafka:
-            topic: pets
-      filter: 'object(msg).type == "cat"'
-      sinks:
-        - stan:
-            subject: cats
+```python
+from dsls.python import cron, pipeline
 
-    - name: hi-cats
-      sources:
-        - stan:
-            subject: cats
-      map: '"hello " + object(msg).name'
-      replicas:
-        min: 2
-      sinks:
-        - kafka:
-            topic: hello-to-cats
+if __name__ == '__main__':
+    (pipeline('hello')
+     .step(
+        (cron('*/3 * * * * *')
+         .cat('main')
+         .log())
+    )
+     .dump())
 ```
 
 ## Documentation
