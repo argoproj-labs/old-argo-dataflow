@@ -20,7 +20,6 @@ metadata:
 
       * An ephemeral volume - you don't mind loosing some or all messages (e.g. development or pre-production).
       * A persistent volume - you want to be to recover (e.g. production).
-    dataflow.argoproj.io/name: Group messages
   creationTimestamp: null
   name: group
 spec:

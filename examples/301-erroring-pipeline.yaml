@@ -4,7 +4,6 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: |
       This example creates errors randomly
-    dataflow.argoproj.io/name: Erroring
     dataflow.argoproj.io/wait-for: Errors
   creationTimestamp: null
   name: erroring

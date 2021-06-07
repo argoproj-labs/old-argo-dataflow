@@ -4339,7 +4339,6 @@ metadata:
       version: "2.0.0"
 
       [Learn about configuration](../docs/CONFIGURATION.md)
-    dataflow.argoproj.io/name: Default Kafka config
   name: dataflow-kafka-default
   namespace: argo-dataflow-system
 stringData:
@@ -4355,7 +4354,6 @@ metadata:
       The secret must be named `dataflow-nats-${name}`.
 
       [Learn about configuration](../docs/CONFIGURATION.md)
-    dataflow.argoproj.io/name: Default NATS Streaming (STAN) configuration
   name: dataflow-stan-default
   namespace: argo-dataflow-system
 stringData:

@@ -11,7 +11,6 @@ metadata:
       * The contain can write to `/var/run/argo-dataflow/out`. Each line MUST be a single message.
 
       You MUST escape new lines.
-    dataflow.argoproj.io/name: Using FIFOs for input and outputs
   creationTimestamp: null
   name: fifos
 spec:

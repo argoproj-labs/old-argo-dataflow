@@ -4,7 +4,6 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: |
       This pipeline processes pets (cats and dogs).
-    dataflow.argoproj.io/name: Vetinary
     dataflow.argoproj.io/test: "false"
   name: vet
 spec:

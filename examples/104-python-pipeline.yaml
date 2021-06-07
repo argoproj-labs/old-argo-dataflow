@@ -6,7 +6,6 @@ metadata:
       This example is of the Python 3.9 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
-    dataflow.argoproj.io/name: Python 3.9 handler
     dataflow.argoproj.io/timeout: 2m
   creationTimestamp: null
   name: python3-9

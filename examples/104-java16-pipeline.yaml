@@ -6,7 +6,6 @@ metadata:
       This example is of the Java 16 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
-    dataflow.argoproj.io/name: Java 16 handler
     dataflow.argoproj.io/timeout: 2m
   creationTimestamp: null
   name: java16

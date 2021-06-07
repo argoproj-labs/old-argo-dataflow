@@ -4,7 +4,6 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: |
       This example has two sources
-    dataflow.argoproj.io/name: Two sources
   creationTimestamp: null
   name: two-sources
 spec:

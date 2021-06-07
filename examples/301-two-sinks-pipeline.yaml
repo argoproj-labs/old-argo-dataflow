@@ -4,7 +4,6 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: |
       This example has two sinks
-    dataflow.argoproj.io/name: Two sinks
   creationTimestamp: null
   name: two-sinks
 spec:

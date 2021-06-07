@@ -10,7 +10,6 @@ metadata:
       They have a single variable, `msg`, which is a byte array.
 
       [Learn about expressions](../docs/EXPRESSIONS.md)
-    dataflow.argoproj.io/name: Map messages
   creationTimestamp: null
   name: map
 spec:

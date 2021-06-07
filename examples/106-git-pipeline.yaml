@@ -9,7 +9,6 @@ metadata:
       your code when the step starts.
 
       [Learn about Git steps](../docs/GIT.md)
-    dataflow.argoproj.io/name: Git handler
   creationTimestamp: null
   name: git
 spec:
