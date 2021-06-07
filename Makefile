@@ -72,7 +72,7 @@ undeploy:
 	kubectl delete --ignore-not-found -f config/$(CONFIG).yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: $(GOBIN)/controller-gen $(shell find api -name '*.go')
+manifests: $(GOBIN)/controller-gen $(shell find api -name '*.go' -not -name '*generated*')
 	$(GOBIN)/controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 generate: $(GOBIN)/controller-gen
