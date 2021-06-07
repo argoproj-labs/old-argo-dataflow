@@ -36,12 +36,15 @@ if __name__ == '__main__':
 
 ## Documentation
 
+* [Quick start](docs/QUICK_START.md)
 * [Examples](docs/EXAMPLES.md)
 * [Configuration](docs/CONFIGURATION.md)
 * [Handlers](docs/HANDLERS.md)
 * [Git usage](docs/GIT.md)
 * [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)
+* [Metrics](docs/METRICS.md)
+* [Image Contract](docs/IMAGE_CONTRACT.md)
 * [Reading material](docs/READING.md)
 * [Contributing](docs/CONTRIBUTING.md)
 
