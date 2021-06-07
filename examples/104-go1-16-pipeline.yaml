@@ -22,5 +22,4 @@ spec:
     - log: {}
     sources:
     - kafka:
-        parallel: 4
         topic: input-topic

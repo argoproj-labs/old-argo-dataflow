@@ -4,6 +4,8 @@ if __name__ == "__main__":
     (pipeline("group")
      .describe("""This is an example of built-in grouping.
 
+WARNING: The spec/syntax not been finalized yet. Please tell us how you think it should work!
+
 There are four mandatory fields:
 
 * `key` A string expression that returns the message's key
@@ -26,7 +28,7 @@ Storage can either be:
                 format='JSONStringArray',
                 endOfGroup='string(msg) contains "excited"',
                 storage={'emptyDir': {}}
-                    )
+                )
          .stan('odd-end')
          ))
      .dump())

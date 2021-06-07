@@ -7,12 +7,12 @@ if __name__ == "__main__":
 While they read from Kafka, they are connected by a NATS Streaming subject.""")
      .step(
         (kafka('input-topic')
-         .cat('main')
+         .cat('a')
          .stan('a-b'))
     )
      .step(
         (stan('a-b')
-         .cat('main')
+         .cat('b')
          .kafka('output-topic'))
     )
      .dump())

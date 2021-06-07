@@ -2,10 +2,9 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
-      This example uses parallel to 2x the amount of data it processes.
-    dataflow.argoproj.io/test: "false"
-  creationTimestamp: null
+    dataflow.argoproj.io/description: This example uses parallel to 2x the amount
+      of data it processes.
+    dataflow.argoproj.io/test: 'false'
   name: parallel
 spec:
   steps:

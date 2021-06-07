@@ -53,13 +53,13 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 			return nil, fmt.Errorf("key expression must return a string")
 		}
 		dir := filepath.Join(dfv1.PathGroups, group)
-		if err := os.Mkdir(dir, 0o700); util2.IgnoreExist(err) != nil {
-			return nil, fmt.Errorf("failed to create group sub-dir: %w", err)
-		}
 		return withLock(dir, func() ([]byte, error) {
+			if err := os.MkdirAll(dir, 0o700); util2.IgnoreExist(err) != nil {
+				return nil, fmt.Errorf("failed to create group sub-dir %q: %w", dir, err)
+			}
 			path := filepath.Join(dir, uuid.New().String())
 			if err := ioutil.WriteFile(path, msg, 0o600); err != nil {
-				return nil, fmt.Errorf("failed to create message file: %w", err)
+				return nil, fmt.Errorf("failed to create message file %q: %w", path, err)
 			}
 			res, err = expr.Run(endProg, util.ExprEnv(msg))
 			if err != nil {

@@ -193,6 +193,8 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 This is an example of built-in grouping.
 
+WARNING: The spec/syntax not been finalized yet. Please tell us how you think it should work!
+
 There are four mandatory fields:
 
 * `key` A string expression that returns the message's key
@@ -279,7 +281,6 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 ### [parallel](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-parallel-pipeline.yaml)
 
 This example uses parallel to 2x the amount of data it processes.
-
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-parallel-pipeline.yaml

@@ -2,6 +2,10 @@ import inspect
 import sys
 import yaml
 
+DEFAULT_RUNTIME = 'python3-9'
+
+GROUPS_VOLUME_NAME = 'groups'
+
 
 def str_presenter(dumper, data):
     if len(data.splitlines()) > 1 or '"' in data or "'" in data:
@@ -205,9 +209,15 @@ class GitStep(Step):
         return x
 
 
+def storageVolumes(storage=None):
+    if storage:
+        storage['name'] = GROUPS_VOLUME_NAME
+        return [storage]
+    return []
+
 class GroupStep(Step):
-    def __init__(self, name, key, format, endOfGroup, storage, sources=[]):
-        super().__init__(name, sources=sources, volumes=[{'emptyDir': {}, 'name': 'group'}])
+    def __init__(self, name, key, format, endOfGroup, storage=None, sources=[]):
+        super().__init__(name, sources=sources, volumes=storageVolumes(storage))
         self._key = key
         self._format = format
         self._endOfGroup = endOfGroup
@@ -215,14 +225,16 @@ class GroupStep(Step):
 
     def build(self):
         x = super().build()
-        x['group'] = {
+        y = {
             'key': self._key,
             'format': self._format,
             'endOfGroup': self._endOfGroup,
-            'storage': {
-                'name': 'groups'
-            },
         }
+        if self._storage:
+            y['storage'] = {
+                'name': GROUPS_VOLUME_NAME
+            }
+        x['group'] = y
         return x
 
 
@@ -246,7 +258,7 @@ class HandlerStep(Step):
         if runtime:
             self._runtime = runtime
         else:
-            self._runtime = 'python3-9'
+            self._runtime = DEFAULT_RUNTIME
 
     def build(self):
         x = super().build()

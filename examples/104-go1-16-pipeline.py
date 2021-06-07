@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
 [Learn about handlers](../docs/HANDLERS.md)""")
      .step(
-        (kafka('input-topic', parallel=4)
+        (kafka('input-topic')
          .handler('main', code="""package main
 
 func Handler(m []byte) ([]byte, error) {
