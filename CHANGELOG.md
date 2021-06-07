@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.39 (2021-06-07)
+
+ * [e1cc03c](https://github.com/argoproj/argo-workflows/commit/e1cc03c070744057d2f4cce0bfb32aa19861a696) config: expose 9090
+ * [5f9c09c](https://github.com/argoproj/argo-workflows/commit/5f9c09c62a72cb779b5595fae24dbaf4df6be400) config: expose 9090
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.38 (2021-06-07)
 
  * [fcfb45f](https://github.com/argoproj/argo-workflows/commit/fcfb45f880d7b414136f16be32dcd5bcdaf303e3) fix: bugs in grouping

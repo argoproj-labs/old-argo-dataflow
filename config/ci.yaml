@@ -3916,7 +3916,6 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
-  - pipelines/scale
   - pipelines/status
   verbs:
   - update
@@ -3926,6 +3925,12 @@ rules:
   - steps/status
   verbs:
   - update
+- apiGroups:
+  - dataflow.argoproj.io
+  resources:
+  - steps/scale
+  verbs:
+  - patch
 - apiGroups:
   - ""
   resources:
@@ -5080,21 +5085,6 @@ spec:
   updateStrategy:
     type: RollingUpdate
   volumeClaimTemplates: []
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  labels:
-    control-plane: controller-manager
-  name: controller-manager-metrics-monitor
-  namespace: argo-dataflow-system
-spec:
-  endpoints:
-  - path: /metrics
-    port: https
-  selector:
-    matchLabels:
-      control-plane: controller-manager
 ---
 apiVersion: v1
 kind: Pod
