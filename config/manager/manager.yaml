@@ -35,6 +35,8 @@ spec:
               value: argo-dataflow-system
             - name: ARGO_DATAFLOW_IMAGE_FORMAT
               value: quay.io/argoproj/%s:latest
+          ports:
+            - containerPort: 9090
           resources:
             limits:
               cpu: 100m

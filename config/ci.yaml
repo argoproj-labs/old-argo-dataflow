@@ -4583,6 +4583,8 @@ spec:
           value: quay.io/argoproj/%s:latest
         image: quay.io/argoproj/dataflow-controller:latest
         name: manager
+        ports:
+        - containerPort: 9090
         resources:
           limits:
             cpu: 100m
@@ -5078,6 +5080,21 @@ spec:
   updateStrategy:
     type: RollingUpdate
   volumeClaimTemplates: []
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: controller-manager-metrics-monitor
+  namespace: argo-dataflow-system
+spec:
+  endpoints:
+  - path: /metrics
+    port: https
+  selector:
+    matchLabels:
+      control-plane: controller-manager
 ---
 apiVersion: v1
 kind: Pod
