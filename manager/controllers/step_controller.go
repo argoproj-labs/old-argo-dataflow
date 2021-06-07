@@ -22,6 +22,9 @@ import (
 	"strconv"
 	"time"
 
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/dynamic"
+
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -43,10 +46,11 @@ import (
 // StepReconciler reconciles a Step object
 type StepReconciler struct {
 	client.Client
-	Log             logr.Logger
-	Scheme          *runtime.Scheme
-	Recorder        record.EventRecorder
-	ContainerKiller containerkiller.Interface
+	Log              logr.Logger
+	Scheme           *runtime.Scheme
+	Recorder         record.EventRecorder
+	ContainerKiller  containerkiller.Interface
+	DynamicInterface dynamic.Interface
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
@@ -71,25 +75,50 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	log.Info("reconciling", "pipelineName", pipelineName, "stepName", stepName)
 
-	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
+	if step.Spec.Scale != nil {
+		desiredReplicas := step.GetTargetReplicas(scalingDelay, peekDelay)
 
-	hash := util.MustHash(step.Spec)
+		if int(step.Spec.Replicas) != desiredReplicas {
+			log.Info("auto-scaling step", "currentReplicas", step.Spec.Replicas, "desiredReplicas", desiredReplicas)
+			if _, err := r.DynamicInterface.
+				Resource(dfv1.StepGroupVersionResource).
+				Namespace(step.Namespace).
+				Patch(
+					ctx,
+					step.Name,
+					types.MergePatchType,
+					[]byte(util.MustJSON(
+						map[string]interface{}{
+							"spec": map[string]interface{}{
+								"replicas": desiredReplicas,
+							},
+						})),
+					metav1.PatchOptions{},
+					"scale",
+				); err != nil {
+				return ctrl.Result{}, fmt.Errorf("failed to scale step: %w", err)
+			}
+			return ctrl.Result{}, nil
+		}
+	}
+
 	currentReplicas := int(step.Status.Replicas)
+	desiredReplicas := int(step.Spec.Replicas)
 
+	if currentReplicas != desiredReplicas || step.Status.Selector == "" {
+		log.Info("replicas changed", "currentReplicas", currentReplicas, "desiredReplicas", desiredReplicas)
+		step.Status.Replicas = uint32(desiredReplicas)
+		step.Status.LastScaledAt = metav1.Time{Time: time.Now()}
+		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, desiredReplicas), "Scaling from %d to %d", currentReplicas, desiredReplicas)
+	}
+
+	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
+	hash := util.MustHash(step.Spec)
 	oldStatus := step.Status.DeepCopy()
 	step.Status.Phase, step.Status.Reason, step.Status.Message = dfv1.StepUnknown, "", ""
 	step.Status.Selector = selector.String()
 
-	targetReplicas := step.GetTargetReplicas(currentReplicas, scalingDelay, peekDelay)
-
-	if currentReplicas != targetReplicas {
-		log.Info("scaling", "currentReplicas", currentReplicas, "targetReplicas", targetReplicas)
-		step.Status.Replicas = uint32(targetReplicas)
-		step.Status.LastScaledAt = metav1.Time{Time: time.Now()}
-		r.Recorder.Eventf(step, "Normal", eventReason(currentReplicas, targetReplicas), "Scaling from %d to %d", currentReplicas, targetReplicas)
-	}
-
-	for replica := 0; replica < targetReplicas; replica++ {
+	for replica := 0; replica < desiredReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
 		_labels := map[string]string{}
 		annotations := map[string]string{}
@@ -182,7 +211,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("failed to parse replica of pod %q: %w", pod.Name, err)
 		}
-		if replica >= targetReplicas || hash != pod.GetAnnotations()[dfv1.KeyHash] {
+		if replica >= desiredReplicas || hash != pod.GetAnnotations()[dfv1.KeyHash] {
 			log.Info("deleting excess pod", "podName", pod.Name)
 			if err := r.Client.Delete(ctx, &pod); client.IgnoreNotFound(err) != nil {
 				x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to delete excess pod %s: %v", pod.Name, err)))
@@ -212,7 +241,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	if notEqual, patch := util.NotEqual(oldStatus, step.Status); notEqual {
-		log.Info("updating step", "patch", patch, "oldStatus", util.MustJSON(oldStatus), "newStatus", step.Status)
+		log.Info("updating step", "patch", patch)
 		if err := r.Status().Update(ctx, step); err != nil {
 			if apierr.IsConflict(err) {
 				return ctrl.Result{}, nil // conflict is ok, we will reconcile again soon
@@ -223,13 +252,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	return ctrl.Result{
-		RequeueAfter: dfv1.RequeueAfter(currentReplicas, targetReplicas, scalingDelay),
+		RequeueAfter: dfv1.RequeueAfter(currentReplicas, desiredReplicas, scalingDelay),
 	}, nil
 }
 
-func eventReason(currentReplicas, targetReplicas int) string {
+func eventReason(currentReplicas, desiredReplicas int) string {
 	eventType := "ScaleDown"
-	if targetReplicas > currentReplicas {
+	if desiredReplicas > currentReplicas {
 		eventType = "ScaleUp"
 	}
 	return eventType

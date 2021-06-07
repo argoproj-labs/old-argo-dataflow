@@ -16,12 +16,11 @@ This example shows a example of having two nodes in a pipeline.
 
 While they read from Kafka, they are connected by a NATS Streaming subject.
 
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-two-node-pipeline.yaml
 ```
 
-### [filter](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-filter-pipeline.yaml)
+### [two-node](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-filter-pipeline.yaml)
 
 This is an example of built-in filtering.
 
@@ -31,7 +30,6 @@ They have a single variable, `msg`, which is a byte array.
 
 [Learn about expressions](../docs/EXPRESSIONS.md)
 
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-filter-pipeline.yaml
 ```
@@ -39,7 +37,6 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 ### [flatten-expand](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-flatten-expand-pipeline.yaml)
 
 This is an example of built-in flattening and expanding.
-
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-flatten-expand-pipeline.yaml
@@ -54,7 +51,6 @@ Maps are written using expression syntax and must return a byte array.
 They have a single variable, `msg`, which is a byte array.
 
 [Learn about expressions](../docs/EXPRESSIONS.md)
-
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-map-pipeline.yaml
@@ -92,21 +88,19 @@ You can scale to zero by setting `minReplicas: 0`. The number of replicas will s
 to 1  so it can "peek" the the message queue. The number of pending messages is measured and the target number
 of replicas re-calculated.
 
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-autoscaling-pipeline.yaml
 ```
 
 ### [scaling](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-scaling-pipeline.yaml)
 
-This is an example of having multiple replicas for a single step.
+      This is an example of having multiple replicas for a single step.
 
 Steps can be manually scaled using `kubectl`:
 
 ```
 kubectl scale step/scaling-main --replicas 3
 ```
-
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-scaling-pipeline.yaml
@@ -118,31 +112,28 @@ This example of Go 1.16 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)
 
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-go1-16-pipeline.yaml
 ```
 
-### [java16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml)
+### [java-16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml)
 
 This example is of the Java 16 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)
 
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml
 ```
 
-### [python3-9](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python-pipeline.yaml)
+### [python3-9](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python3-9-pipeline.yaml)
 
 This example is of the Python 3.9 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)
 
-
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python3-9-pipeline.yaml
 ```
 
 ### [git](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-pipeline.yaml)
@@ -154,22 +145,20 @@ your code when the step starts.
 
 [Learn about Git steps](../docs/GIT.md)
 
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-pipeline.yaml
 ```
 
 ### [completion](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-completion-pipeline.yaml)
 
-This example shows a pipelne running to completion.
+This example shows a pipeline running to completion.
 
-A pipeline that run to completion (aka "termianting") is one that will finish.
+A pipeline that run to completion (aka "terminating") is one that will finish.
 
 For a pipeline to terminate one of two things must happen:
 
 * Every steps exits successfully (i.e. with exit code 0).
 * One step exits successfully, and is marked with `terminator: true`. When this happens, all other steps are killed.
-
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-completion-pipeline.yaml
@@ -196,7 +185,6 @@ Two named pipes are made available:
 
 You MUST escape new lines.
 
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/108-fifos-pipeline.yaml
 ```
@@ -221,7 +209,6 @@ Storage can either be:
 * An ephemeral volume - you don't mind loosing some or all messages (e.g. development or pre-production).
 * A persistent volume - you want to be to recover (e.g. production).
 
-
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/109-group-pipeline.yaml
 ```
@@ -229,7 +216,6 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 ### [vet](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-vetinary-pipeline.yaml)
 
 This pipeline processes pets (cats and dogs).
-
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-vetinary-pipeline.yaml
@@ -239,8 +225,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 This pipeline count the number of words in a document, not the number of count of each word as you might expect.
 
-It also shows an example of a pipelines terminates based on a single step's status.
-
+  It also shows an example of a pipelines terminates based on a single step's status.
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-word-count-pipeline.yaml
@@ -277,7 +262,6 @@ This example uses a HTTP sources and sinks.
 HTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your
 messages between steps. Unfortunately, it is possible for some or all of your messages to not get delivered.
 Also, this is sync, not async, so it can be slow due to the time taken to deliver messages.
-
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml

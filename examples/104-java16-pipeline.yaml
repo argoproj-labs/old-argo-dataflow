@@ -2,17 +2,15 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This example is of the Java 16 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
-    dataflow.argoproj.io/timeout: 2m
-  creationTimestamp: null
-  name: java16
+  name: java-16
 spec:
   steps:
   - handler:
-      code: |
+      code: |-
         public class Handler {
             public static byte[] Handle(byte[] msg) throws Exception {
                 return msg;

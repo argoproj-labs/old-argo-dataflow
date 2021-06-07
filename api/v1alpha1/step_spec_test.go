@@ -106,7 +106,7 @@ func TestStepSpec_GetPodSpec(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			a, _ := json.MarshalIndent(tt.spec.GetPodSpec(tt.req), "", "  ")
 			b, _ := json.MarshalIndent(tt.want, "", "  ")
-			assert.Equal(t, string(a), string(b))
+			assert.Equal(t, string(b), string(a))
 		})
 	}
 }

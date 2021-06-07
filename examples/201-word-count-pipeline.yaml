@@ -2,11 +2,12 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This pipeline count the number of words in a document, not the number of count of each word as you might expect.
 
-      It also shows an example of a pipelines terminates based on a single step's status.
-    dataflow.argoproj.io/test: "false"
+        It also shows an example of a pipelines terminates based on a single step's status.
+    dataflow.argoproj.io/needs: word-count-input-configmap.yaml
+    dataflow.argoproj.io/test: 'false'
   name: word-count
 spec:
   steps:
@@ -14,8 +15,7 @@ spec:
       args:
       - sh
       - -c
-      - |
-        cat /in/text | tee -a /var/run/argo-dataflow/out
+      - cat /in/text | tee -a /var/run/argo-dataflow/out
       image: ubuntu:latest
       volumeMounts:
       - mountPath: /in
@@ -24,6 +24,9 @@ spec:
     sinks:
     - stan:
         subject: lines
+    sources:
+    - kafka:
+        topic: input-topic
     volumes:
     - configMap:
         name: word-count-input
@@ -32,7 +35,7 @@ spec:
       args:
       - bash
       - -c
-      - |
+      - |-
         set -eux -o pipefail
         while read sentence; do
           for word in $sentence; do
@@ -57,7 +60,7 @@ spec:
       args:
       - bash
       - -c
-      - |
+      - |-
         set -eux -o pipefail
         i=0
         while read word && [ $word != EOF ]; do
@@ -75,16 +78,3 @@ spec:
     - stan:
         subject: words
     terminator: true
-
----
-apiVersion: v1
-data:
-  text: |
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    EOF
-kind: ConfigMap
-metadata:
-  name: word-count-input

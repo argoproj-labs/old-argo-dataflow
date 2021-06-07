@@ -25,6 +25,7 @@ rules:
   - apiGroups:
       - dataflow.argoproj.io
     resources:
+      - pipelines/scale
       - pipelines/status
     verbs:
       - update

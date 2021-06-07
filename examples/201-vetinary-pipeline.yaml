@@ -2,9 +2,9 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
-      This pipeline processes pets (cats and dogs).
-    dataflow.argoproj.io/test: "false"
+    dataflow.argoproj.io/description: This pipeline processes pets (cats and dogs).
+    dataflow.argoproj.io/needs: pets-configmap.yaml
+    dataflow.argoproj.io/test: 'false'
   name: vet
 spec:
   steps:
@@ -12,29 +12,30 @@ spec:
       args:
       - sh
       - -c
-      - |
-        cat /in/text | tee -a /var/run/argo-dataflow/out
+      - cat /in/text | tee -a /var/run/argo-dataflow/out
       image: ubuntu:latest
-      volumeMounts:
-      - mountPath: /in
-        name: in
     name: read-pets
     sinks:
     - stan:
-        subject: animals
+        subject: pets
+    sources:
+    - kafka:
+        topic: input-topic
     volumes:
     - configMap:
         name: pets
       name: in
-  - filter: string(msg) contains "cat"
+  - filter: |-
+      string(msg) contains "cat"
     name: filter-cats
     sinks:
     - stan:
         subject: cats
     sources:
     - stan:
-        subject: animals
-  - map: json("Meow! " + object(msg).name)
+        subject: pets
+  - map: |-
+      json("Meow! " + object(msg).name)
     name: process-cats
     sinks:
     - kafka:
@@ -42,15 +43,17 @@ spec:
     sources:
     - stan:
         subject: cats
-  - filter: string(msg) contains "dog"
+  - filter: |-
+      string(msg) contains "dog"
     name: filter-dogs
     sinks:
     - stan:
         subject: dogs
     sources:
     - stan:
-        subject: animals
-  - map: json("Woof! " + object(msg).name)
+        subject: pets
+  - map: |-
+      json("Woof! " + object(msg).name)
     name: process-dogs
     sinks:
     - kafka:
@@ -58,14 +61,3 @@ spec:
     sources:
     - stan:
         subject: dogs
-
----
-apiVersion: v1
-data:
-  text: |
-    {"type": "dog", "name": "Emma"}
-    {"type": "cat", "name": "Dino"}
-    EOF
-kind: ConfigMap
-metadata:
-  name: pets

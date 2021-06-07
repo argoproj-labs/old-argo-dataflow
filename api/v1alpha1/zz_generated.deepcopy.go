@@ -794,11 +794,6 @@ func (in *StepSpec) DeepCopyInto(out *StepSpec) {
 		*out = new(Expand)
 		**out = **in
 	}
-	if in.Replicas != nil {
-		in, out := &in.Replicas, &out.Replicas
-		*out = new(uint32)
-		**out = **in
-	}
 	if in.Scale != nil {
 		in, out := &in.Scale, &out.Scale
 		*out = new(Scale)

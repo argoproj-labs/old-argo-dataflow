@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"os"
 
+	"k8s.io/client-go/dynamic"
+
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
 
 	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -70,6 +72,7 @@ func main() {
 	}
 
 	clientset := kubernetes.NewForConfigOrDie(restConfig)
+	dynamicInterface := dynamic.NewForConfigOrDie(restConfig)
 	containerKiller := containerkiller.New(clientset, restConfig)
 	if err = (&controllers.PipelineReconciler{
 		Client:          mgr.GetClient(),
@@ -81,11 +84,12 @@ func main() {
 	}
 
 	if err = (&controllers.StepReconciler{
-		Client:          mgr.GetClient(),
-		Log:             ctrl.Log.WithName("controllers").WithName("Step"),
-		Scheme:          mgr.GetScheme(),
-		Recorder:        mgr.GetEventRecorderFor("step-reconciler"),
-		ContainerKiller: containerKiller,
+		Client:           mgr.GetClient(),
+		Log:              ctrl.Log.WithName("controllers").WithName("Step"),
+		Scheme:           mgr.GetScheme(),
+		Recorder:         mgr.GetEventRecorderFor("step-reconciler"),
+		ContainerKiller:  containerKiller,
+		DynamicInterface: dynamicInterface,
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}

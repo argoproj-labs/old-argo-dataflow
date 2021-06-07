@@ -2,7 +2,7 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This example use named pipe to send and receive messages.
 
       Two named pipes are made available:
@@ -11,7 +11,6 @@ metadata:
       * The contain can write to `/var/run/argo-dataflow/out`. Each line MUST be a single message.
 
       You MUST escape new lines.
-  creationTimestamp: null
   name: fifos
 spec:
   steps:
@@ -19,7 +18,7 @@ spec:
       args:
       - sh
       - -c
-      - |
+      - |-
         cat /var/run/argo-dataflow/in | while read line ; do
           echo "hi $line"
         done > /var/run/argo-dataflow/out

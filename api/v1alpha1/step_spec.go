@@ -24,8 +24,9 @@ type StepSpec struct {
 	Flatten   *Flatten   `json:"flatten,omitempty" protobuf:"bytes,25,opt,name=flatten"`
 	Expand    *Expand    `json:"expand,omitempty" protobuf:"bytes,26,opt,name=expand"`
 
-	Replicas *uint32 `json:"replicas,omitempty" protobuf:"varint,23,opt,name=replicas"`
-	Scale    *Scale  `json:"scale,omitempty" protobuf:"bytes,24,opt,name=scale"`
+	// +kubebuilder:default=1
+	Replicas uint32 `json:"replicas,omitempty" protobuf:"varint,23,opt,name=replicas"`
+	Scale    *Scale `json:"scale,omitempty" protobuf:"bytes,24,opt,name=scale"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	Sources Sources `json:"sources,omitempty" protobuf:"bytes,3,rep,name=sources"`
@@ -58,7 +59,7 @@ type GetPodSpecReq struct {
 	BearerToken    string            `protobuf:"bytes,9,opt,name=bearerToken"`
 }
 
-func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
+func (in StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	volume := corev1.Volume{
 		Name:         "var-run-argo-dataflow",
 		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
@@ -137,14 +138,14 @@ func (in *StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	}
 }
 
-func (in *StepSpec) GetIn() *Interface {
+func (in StepSpec) GetIn() *Interface {
 	if in.Container != nil {
 		return in.Container.GetIn()
 	}
 	return DefaultInterface
 }
 
-func (in *StepSpec) getType() containerSupplier {
+func (in StepSpec) getType() containerSupplier {
 	if x := in.Cat; x != nil {
 		return x
 	} else if x := in.Container; x != nil {
@@ -168,12 +169,9 @@ func (in *StepSpec) getType() containerSupplier {
 	}
 }
 
-func (in *StepSpec) CalculateReplicas(pending int) int {
-	if in.Replicas != nil {
-		return int(*in.Replicas)
-	}
+func (in StepSpec) CalculateReplicas(pending int) int {
 	if in.Scale == nil {
-		return 1
+		return -1
 	}
 	return in.Scale.Calculate(pending)
 }

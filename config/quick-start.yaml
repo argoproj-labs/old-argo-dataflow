@@ -683,6 +683,7 @@ spec:
                         type: string
                       type: object
                     replicas:
+                      default: 1
                       format: int32
                       type: integer
                     restartPolicy:
@@ -2532,6 +2533,7 @@ spec:
                   type: string
                 type: object
               replicas:
+                default: 1
                 format: int32
                 type: integer
               restartPolicy:
@@ -3914,6 +3916,7 @@ rules:
 - apiGroups:
   - dataflow.argoproj.io
   resources:
+  - pipelines/scale
   - pipelines/status
   verbs:
   - update

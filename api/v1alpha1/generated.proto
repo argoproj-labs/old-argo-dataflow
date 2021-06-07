@@ -315,6 +315,7 @@ message StepSpec {
 
   optional Expand expand = 26;
 
+  // +kubebuilder:default=1
   optional uint32 replicas = 23;
 
   optional Scale scale = 24;

@@ -2,17 +2,16 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
-      This example shows a pipelne running to completion.
+    dataflow.argoproj.io/description: |-
+      This example shows a pipeline running to completion.
 
-      A pipeline that run to completion (aka "termianting") is one that will finish.
+      A pipeline that run to completion (aka "terminating") is one that will finish.
 
       For a pipeline to terminate one of two things must happen:
 
       * Every steps exits successfully (i.e. with exit code 0).
       * One step exits successfully, and is marked with `terminator: true`. When this happens, all other steps are killed.
     dataflow.argoproj.io/wait-for: Completed
-  creationTimestamp: null
   name: completion
 spec:
   steps:
@@ -20,7 +19,6 @@ spec:
       args:
       - sh
       - -c
-      - |
-        exit 0
+      - exit 0
       image: ubuntu:latest
     name: main

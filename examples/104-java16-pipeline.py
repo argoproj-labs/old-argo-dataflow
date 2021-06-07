@@ -6,14 +6,17 @@ def handler(msg):
 
 
 if __name__ == "__main__":
-    (pipeline("python")
-     .describe("""This example is of the Python 3.9 handler.
+    (pipeline("java-16")
+     .describe("""This example is of the Java 16 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)""")
-     .annotate('dataflow.argoproj.io/timeout', '2m')
      .step(
         (kafka('input-topic')
-         .handler('main', handler)
+         .handler('main', code="""public class Handler {
+    public static byte[] Handle(byte[] msg) throws Exception {
+        return msg;
+    }
+}""", runtime='java16')
          .kafka('output-topic')
          ))
      .dump())

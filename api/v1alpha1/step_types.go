@@ -38,7 +38,8 @@ type Step struct {
 	Status StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
-func (in *Step) GetTargetReplicas(currentReplicas int, scalingDelay, peekDelay time.Duration) int {
+func (in Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
+	currentReplicas := int(in.Status.Replicas)
 	lastScaledAt := in.Status.LastScaledAt.Time
 
 	if time.Since(lastScaledAt) < scalingDelay {
@@ -47,6 +48,10 @@ func (in *Step) GetTargetReplicas(currentReplicas int, scalingDelay, peekDelay t
 
 	pending := in.Status.SourceStatuses.GetPending()
 	targetReplicas := in.Spec.CalculateReplicas(int(pending))
+	println("targetReplicas", targetReplicas)
+	if targetReplicas == -1 {
+		return currentReplicas
+	}
 
 	// do we need to peek? currentReplicas and targetReplicas must both be zero
 	if currentReplicas <= 0 && targetReplicas == 0 && time.Since(lastScaledAt) > peekDelay {

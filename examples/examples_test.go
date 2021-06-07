@@ -56,7 +56,14 @@ func Test(t *testing.T) {
 				}
 			}
 			// act
-			for _, un := range info.Items {
+			items := info.Items
+			if v := pipeline.GetAnnotations()["dataflow.argoproj.io/needs"]; v != "" {
+				logger.Info("needs", "needs", v)
+				item, err := util.ReadFile(v)
+				assert.NoError(t, err)
+				items = append(items, item.Items...)
+			}
+			for _, un := range items {
 				gvr := un.GroupVersionKind().GroupVersion().WithResource(util.Resource(un.GetKind()))
 				logger.Info("creating resource", "kind", un.GetKind(), "name", un.GetName())
 				_, err = dynamicInterface.Resource(gvr).Namespace(namespace).Create(ctx, &un, metav1.CreateOptions{})
@@ -72,7 +79,7 @@ func Test(t *testing.T) {
 			for {
 				select {
 				case <-ctx.Done():
-					logger.Info("timeout waiting for condition")
+					logger.Info("timeout waiting for condition", "condition", condition)
 					assert.NoError(t, ctx.Err())
 					return
 				case event := <-w.ResultChan():
@@ -85,9 +92,9 @@ func Test(t *testing.T) {
 					for _, c := range s.Conditions {
 						conditions[c.Type] = true
 					}
-					logger.Info("changed", "condition", conditions, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
+					logger.Info("changed", "conditions", conditions, "phase", pipeline.Status.Phase, "message", pipeline.Status.Message)
 					if conditions[condition] {
-						logger.Info("condition found", "after", time.Since(start).Truncate(time.Second).String())
+						logger.Info("condition found", "condition", condition, "after", time.Since(start).Truncate(time.Second).String())
 						return
 					}
 				}

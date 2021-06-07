@@ -25,7 +25,7 @@ test:
 
 pre-commit: codegen test install lint start
 
-codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml docs/EXAMPLES.md CHANGELOG.md $(GOBIN)/pie
+codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml examples CHANGELOG.md $(GOBIN)/pie
 	go generate ./...
 
 $(GOBIN)/pie:
@@ -72,15 +72,13 @@ undeploy:
 	kubectl delete --ignore-not-found -f config/$(CONFIG).yaml
 
 # Generate manifests e.g. CRD, RBAC etc.
-.PHONY: manifests
-manifests: $(GOBIN)/controller-gen
+manifests: $(GOBIN)/controller-gen $(shell find api -name '*.go')
 	$(GOBIN)/controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-.PHONY: docs/EXAMPLES.md
-docs/EXAMPLES.md: /dev/null
+docs/EXAMPLES.md: $(shell find examples -name '*.yaml') examples/main.go
 	go run ./examples > docs/EXAMPLES.md
 
 .PHONY: CHANGELOG.md
@@ -154,7 +152,7 @@ config/nats/single-server-nats.yml:
 config/stan/single-server-stan.yml:
 	curl -o config/stan/single-server-stan.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-streaming-server/single-server-stan.yml
 
-examples: $(shell find examples -name '*-pipeline.yaml' | sort)
+examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 
 examples/101-hello-pipeline.yaml:
 examples/101-two-node-pipeline.yaml:
@@ -164,7 +162,7 @@ examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/__init__.py
 	PYTHONPATH=. python3 examples/$*-pipeline.py > $@
 
 .PHONY: test-examples
-test-examples:
+test-examples: examples
 	go test -timeout 20m -tags examples -v -count 1 ./examples
 
 argocli:

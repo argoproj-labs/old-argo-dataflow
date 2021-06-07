@@ -2,7 +2,7 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This is an example of having multiple replicas for a single step.
 
       Replicas are automatically scaled up and down depending on the number of messages pending processing.
@@ -32,7 +32,6 @@ metadata:
       You can scale to zero by setting `minReplicas: 0`. The number of replicas will start at zero, and periodically be scaled
       to 1  so it can "peek" the the message queue. The number of pending messages is measured and the target number
       of replicas re-calculated.
-  creationTimestamp: null
   name: autoscaling
 spec:
   steps:

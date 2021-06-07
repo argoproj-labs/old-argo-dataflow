@@ -2,7 +2,7 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
+    dataflow.argoproj.io/description: |-
       This is an example of built-in grouping.
 
       There are four mandatory fields:
@@ -20,23 +20,24 @@ metadata:
 
       * An ephemeral volume - you don't mind loosing some or all messages (e.g. development or pre-production).
       * A persistent volume - you want to be to recover (e.g. production).
-  creationTimestamp: null
   name: group
 spec:
   steps:
   - group:
-      endOfGroup: string(msg) contains "excited"
+      endOfGroup: |-
+        string(msg) contains "excited"
       format: JSONStringArray
-      key: 'string(msg) contains "2" ? "even" : "odd"'
+      key: |-
+        string(msg) contains "2" ? "even" : "odd"
       storage:
         name: groups
     name: main
     sinks:
     - stan:
-        subject: odd-even
+        subject: odd-end
     sources:
     - kafka:
         topic: input-topic
     volumes:
     - emptyDir: {}
-      name: groups
+      name: group
