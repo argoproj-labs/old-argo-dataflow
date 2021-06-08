@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -280,6 +281,7 @@ func subjectiveStan(x *dfv1.STAN) {
 
 func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) {
 	s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
+	s.NATSMonitoringURL = dfv1.StringOr(s.NATSMonitoringURL, string(secret.Data["natsMonitoringUrl"]))
 	s.ClusterID = dfv1.StringOr(s.ClusterID, string(secret.Data["clusterId"]))
 	s.SubjectPrefix = dfv1.SubjectPrefixOr(s.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
 }
@@ -388,6 +390,55 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				logger.Info("closing stan connection", "source", sourceName)
 				return sc.Close()
 			})
+			httpClient := http.Client{
+				Timeout: time.Second * 3,
+			}
+
+			type obj = map[string]interface{}
+
+			pendingMessages := func(channel, queueNameCombo string) (int64, error) {
+				monitoringEndpoint := fmt.Sprintf("%s/streaming/channelsz?channel=%s&subs=1", x.NATSMonitoringURL, channel)
+				req, err := http.NewRequest("GET", monitoringEndpoint, nil)
+				if err != nil {
+					return 0, err
+				}
+				resp, err := httpClient.Do(req)
+				if err != nil {
+					return 0, err
+				}
+				if resp.StatusCode != 200 {
+					return 0, fmt.Errorf("Invalid response: %s", resp.Status)
+				}
+				defer resp.Body.Close()
+				o := make(obj)
+				if err := json.NewDecoder(resp.Body).Decode(&o); err != nil {
+					return 0, err
+				}
+				lastSeq, err := strconv.ParseInt(fmt.Sprintf("%v", o["last_seq"]), 10, 64)
+				if err != nil {
+					return 0, err
+				}
+				subs, ok := o["subscriptions"]
+				if !ok {
+					return 0, fmt.Errorf("No suscriptions field found in the monitoring endpoint response")
+				}
+				maxLastSent := int64(0)
+				for _, i := range subs.([]interface{}) {
+					s := i.(obj)
+					if fmt.Sprintf("%v", s["queue_name"]) != queueNameCombo {
+						continue
+					}
+					lastSent, err := strconv.ParseInt(fmt.Sprintf("%v", s["last_sent"]), 10, 64)
+					if err != nil {
+						return 0, err
+					}
+					if lastSent > maxLastSent {
+						maxLastSent = lastSent
+					}
+				}
+				return lastSeq - maxLastSent, nil
+			}
+
 			// https://docs.nats.io/developing-with-nats-streaming/queues
 			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 			for i := 0; i < int(x.Parallel); i++ {
@@ -400,9 +451,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						logger.Info("closing stan subscription", "source", sourceName)
 						return sub.Close()
 					})
+
 					if i == 0 && replica == 0 {
 						go wait.JitterUntil(func() {
-							if pending, _, err := sub.Pending(); err != nil {
+							// queueNameCombo := {durableName}:{queueGroup}
+							queueNameCombo := queueName + ":" + queueName
+							if pending, err := pendingMessages(x.Subject, queueNameCombo); err != nil {
 								logger.Error(err, "failed to get pending", "source", sourceName)
 							} else if pending >= 0 {
 								logger.Info("setting pending", "source", sourceName, "pending", pending)
