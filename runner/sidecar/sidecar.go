@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -343,8 +344,9 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			})
 			err := wait.ExponentialBackoff(wait.Backoff{
 				Duration: 100 * time.Millisecond,
-				Factor:   2,
-				Cap:      time.Second,
+				Factor:   1.2,
+				Jitter:   1.2,
+				Steps:    math.MaxInt32,
 			}, func() (done bool, err error) {
 				select {
 				case <-ctx.Done():
@@ -359,8 +361,8 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							return false, nil
 						}
 					}
+					return true, nil
 				}
-				return true, nil
 			})
 			if err != nil {
 				withLock(func() { step.Status.SourceStatuses.IncErrors(sourceName, replica, err) })

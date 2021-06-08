@@ -7,5 +7,5 @@ import (
 )
 
 func Test_RandString(t *testing.T) {
-	assert.Len(t, RandString(), 28)
+	assert.NotEmpty(t, RandString())
 }
