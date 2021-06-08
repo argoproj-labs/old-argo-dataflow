@@ -12,6 +12,7 @@ if __name__ == '__main__':
     (pipeline("301-erroring")
      .owner('argoproj-labs')
      .describe("""This example showcases retry policies.""")
+     .annotate('dataflow.argoproj.io/wait-for', 'Errors')
      .step(
         (cron('*/3 * * * * *', retryPolicy='Always')
          .handler('always', handler=handler)

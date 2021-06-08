@@ -4,6 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: This example showcases container options.
     dataflow.argoproj.io/owner: argoproj-labs
+    dataflow.argoproj.io/wait-for: Completed
   name: 108-container
 spec:
   steps:

@@ -5,7 +5,7 @@ metadata:
     dataflow.argoproj.io/description: |
       This example has two sinks
   creationTimestamp: null
-  name: two-sinks
+  name: 301-two-sinks
 spec:
   steps:
   - cat: {}

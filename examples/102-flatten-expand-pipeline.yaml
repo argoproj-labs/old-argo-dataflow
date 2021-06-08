@@ -23,10 +23,12 @@ spec:
     - stan:
         subject: flattened
     sources:
-    - {}
+    - stan:
+        subject: data
   - expand: {}
     name: expand
     sinks:
     - log: {}
     sources:
-    - {}
+    - stan:
+        subject: flattened

@@ -457,7 +457,7 @@ class STANSource(Source):
         y = {'subject': self._subject}
         if self._parallel:
             y['parallel'] = self._parallel
-            x['stan'] = y
+        x['stan'] = y
         return x
 
 

@@ -33,7 +33,8 @@ spec:
     - stan:
         subject: cats
     sources:
-    - {}
+    - stan:
+        subject: pets
   - map: |-
       json("Meow! " + object(msg).name)
     name: process-cats
@@ -41,7 +42,8 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - {}
+    - stan:
+        subject: cats
   - filter: |-
       string(msg) contains "dog"
     name: filter-dogs
@@ -49,7 +51,8 @@ spec:
     - stan:
         subject: dogs
     sources:
-    - {}
+    - stan:
+        subject: pets
   - map: |-
       json("Woof! " + object(msg).name)
     name: process-dogs
@@ -57,4 +60,5 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - {}
+    - stan:
+        subject: dogs

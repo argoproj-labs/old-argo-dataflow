@@ -5,6 +5,7 @@ metadata:
     dataflow.argoproj.io/description: This example shows reading and writing to a
       STAN subject
     dataflow.argoproj.io/owner: argoproj-labs
+    dataflow.argoproj.io/test: 'false'
   name: 301-stan
 spec:
   steps:
@@ -14,4 +15,5 @@ spec:
     - stan:
         subject: output-subject
     sources:
-    - {}
+    - stan:
+        subject: input-subject

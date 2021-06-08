@@ -24,4 +24,5 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - {}
+    - stan:
+        subject: a-b

@@ -55,7 +55,8 @@ spec:
     - stan:
         subject: words
     sources:
-    - {}
+    - stan:
+        subject: lines
   - container:
       args:
       - bash
@@ -75,5 +76,6 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - {}
+    - stan:
+        subject: words
     terminator: true

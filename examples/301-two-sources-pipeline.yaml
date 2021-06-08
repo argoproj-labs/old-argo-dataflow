@@ -5,7 +5,7 @@ metadata:
     dataflow.argoproj.io/description: |
       This example has two sources
   creationTimestamp: null
-  name: two-sources
+  name: 301-two-sources
 spec:
   steps:
   - cat: {}
