@@ -1,6 +1,6 @@
 from dsls.python import kafka, pipeline, stan
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("two-node")
      .describe("""This example shows a example of having two nodes in a pipeline.
 

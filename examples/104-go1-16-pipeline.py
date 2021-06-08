@@ -5,7 +5,7 @@ def handler(msg):
     return msg
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("go1-16")
      .describe("""This example of Go 1.16 handler.
 

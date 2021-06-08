@@ -1,0 +1,32 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This example uses a cron source and a log sink.
+
+      ## Cron
+
+      You can format dates using a "layout":
+
+      https://golang.org/pkg/time/#Time.Format
+
+      By default, the layout is RFC3339.
+
+      * Cron sources are **unreliable**. Messages will not be sent when a pod is not running, which can happen at any time in Kubernetes.
+      * Cron sources must not be scaled to zero.
+
+      ## Log
+
+      This logs the message.
+  name: cron-log
+spec:
+  steps:
+  - cat: {}
+    name: main
+    sinks:
+    - log: {}
+    sources:
+    - cron:
+        layout: '15:04:05'
+        schedule: '*/3 * * * * *'

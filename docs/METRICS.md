@@ -55,6 +55,8 @@ Use this to track scaling events.
 
 Only exposed by replica 0.
 
+Golden metric type: traffic.
+
 ### sources_errors
 
 Use this to track errors.

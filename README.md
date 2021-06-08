@@ -40,6 +40,7 @@ if __name__ == '__main__':
 * [Examples](docs/EXAMPLES.md)
 * [Configuration](docs/CONFIGURATION.md)
 * [Handlers](docs/HANDLERS.md)
+* [Sources](docs/SOURCES.md) and [Sinks](docs/SIKNS.md)
 * [Git usage](docs/GIT.md)
 * [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)

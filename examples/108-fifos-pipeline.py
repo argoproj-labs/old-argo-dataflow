@@ -1,6 +1,6 @@
 from dsls.python import pipeline, kafka
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("fifos")
      .describe("""This example use named pipe to send and receive messages.
 

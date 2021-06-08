@@ -1,6 +1,6 @@
 from dsls.python import cron, pipeline
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("hello")
      .describe("""This is the hello world of pipelines.
 

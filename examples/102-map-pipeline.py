@@ -1,6 +1,6 @@
 from dsls.python import pipeline, kafka
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("map")
      .describe("""This is an example of built-in mapping.
 

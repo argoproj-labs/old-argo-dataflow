@@ -1,6 +1,6 @@
 from dsls.python import pipeline, kafka
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("git")
      .describe("""This example of a pipeline using Git.
 

@@ -3,16 +3,15 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: This example shows reading and writing to a
-      Kafka topic
-    dataflow.argoproj.io/test: 'true'
-  name: kafka
+      STAN subject
+  name: stan
 spec:
   steps:
   - cat: {}
     name: main
     sinks:
-    - kafka:
-        topic: output-topic
+    - stan:
+        subject: output-subject
     sources:
-    - kafka:
-        topic: input-topic
+    - stan:
+        subject: input-subject

@@ -233,19 +233,28 @@ This pipeline count the number of words in a document, not the number of count o
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-word-count-pipeline.yaml
 ```
 
-### [cron](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-pipeline.yaml)
+### [cron-log](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-log-pipeline.yaml)
 
-This example uses a cron source.
+This example uses a cron source and a log sink.
+
+## Cron
 
 You can format dates using a "layout":
 
 https://golang.org/pkg/time/#Time.Format
 
-By deafult, the layout is RFC3339.
+By default, the layout is RFC3339.
+
+* Cron sources are **unreliable**. Messages will not be sent when a pod is not running, which can happen at any time in Kubernetes.
+* Cron sources must not be scaled to zero.
+
+## Log
+
+This logs the message.
 
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-log-pipeline.yaml
 ```
 
 ### [erroring](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml)
@@ -262,17 +271,18 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 This example uses a HTTP sources and sinks.
 
 HTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your
-messages between steps. Unfortunately, it is possible for some or all of your messages to not get delivered.
-Also, this is sync, not async, so it can be slow due to the time taken to deliver messages.
+messages between steps. 
+
+* HTTP sinks are *unreliable* because it is possible for messages to not get delivered when the receiving service is down.
+
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml
 ```
 
-### [kafka-1](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml)
+### [kafka](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml)
 
-This example shows reading and writing to cafe.
-
+This example shows reading and writing to a Kafka topic
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml
@@ -284,6 +294,14 @@ This example uses parallel to 2x the amount of data it processes.
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-parallel-pipeline.yaml
+```
+
+### [stan](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-stan-pipeline.yaml)
+
+This example shows reading and writing to a STAN subject
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-stan-pipeline.yaml
 ```
 
 ### [two-sinks](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-two-sinks-pipeline.yaml)

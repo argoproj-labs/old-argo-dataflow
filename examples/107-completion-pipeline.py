@@ -1,6 +1,6 @@
 from dsls.python import pipeline, container
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("completion")
      .describe("""This example shows a pipeline running to completion.
 

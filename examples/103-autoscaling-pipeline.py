@@ -1,6 +1,6 @@
 from dsls.python import pipeline, kafka
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("autoscaling")
      .describe("""This is an example of having multiple replicas for a single step.
 

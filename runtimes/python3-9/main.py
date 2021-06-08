@@ -22,7 +22,7 @@ class MyServer(BaseHTTPRequestHandler):
             self.end_headers()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     webServer = HTTPServer(("localhost", 8080), MyServer)
 
     try:

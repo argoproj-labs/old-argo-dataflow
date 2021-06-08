@@ -1,6 +1,6 @@
 from dsls.python import kafka, pipeline
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("two-node")
      .describe("""This is an example of built-in filtering.
 

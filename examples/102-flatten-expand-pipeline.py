@@ -1,6 +1,6 @@
 from dsls.python import cron, pipeline, stan
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("flatten-expand")
      .describe("""This is an example of built-in flattening and expanding.""")
      .step(

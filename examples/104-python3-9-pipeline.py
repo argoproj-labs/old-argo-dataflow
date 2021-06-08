@@ -5,7 +5,7 @@ def handler(msg):
     return msg
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("python3-9")
      .describe("""This example is of the Python 3.9 handler.
 

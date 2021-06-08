@@ -5,7 +5,7 @@ def handler(msg):
     return msg
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("java-16")
      .describe("""This example is of the Java 16 handler.
 

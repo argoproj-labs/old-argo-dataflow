@@ -1,6 +1,6 @@
 from dsls.python import pipeline, kafka, stan
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     (pipeline("word-count")
      .describe("""This pipeline count the number of words in a document, not the number of count of each word as you might expect.
 
