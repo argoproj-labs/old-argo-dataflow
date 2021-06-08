@@ -8,7 +8,7 @@ metadata:
       \ *unreliable* because it is possible for messages to not get delivered when\
       \ the receiving service is down.\n"
     dataflow.argoproj.io/test: 'true'
-  name: http
+  name: 301-http
 spec:
   steps:
   - cat: {}

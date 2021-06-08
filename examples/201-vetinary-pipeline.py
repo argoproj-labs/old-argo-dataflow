@@ -1,7 +1,7 @@
 from dsls.python import pipeline, kafka, stan
 
 if __name__ == '__main__':
-    (pipeline("201-vet")
+    (pipeline("201-vetinary")
      .describe("""This pipeline processes pets (cats and dogs).""")
      .annotate("dataflow.argoproj.io/test", "false")
      .annotate("dataflow.argoproj.io/needs", "pets-configmap.yaml")

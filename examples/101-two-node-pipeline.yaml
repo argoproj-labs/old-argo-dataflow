@@ -6,7 +6,7 @@ metadata:
       This example shows a example of having two nodes in a pipeline.
 
       While they read from Kafka, they are connected by a NATS Streaming subject.
-  name: two-node
+  name: 101-two-node
 spec:
   steps:
   - cat: {}

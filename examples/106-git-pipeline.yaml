@@ -9,7 +9,7 @@ metadata:
       your code when the step starts.
 
       [Learn about Git steps](../docs/GIT.md)
-  name: git
+  name: 106-git
 spec:
   steps:
   - git:

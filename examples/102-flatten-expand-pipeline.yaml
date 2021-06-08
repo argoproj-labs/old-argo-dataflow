@@ -4,7 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: This is an example of built-in flattening and
       expanding.
-  name: flatten-expand
+  name: 102-flatten-expand
 spec:
   steps:
   - map: |-

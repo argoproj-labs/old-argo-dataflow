@@ -6,7 +6,7 @@ metadata:
       This example is of the Java 16 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
-  name: java-16
+  name: 104-java16
 spec:
   steps:
   - handler:

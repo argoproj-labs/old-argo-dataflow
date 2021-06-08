@@ -10,7 +10,7 @@ It uses a cron schedule as a source and then just cat the message to a log
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-hello-pipeline.yaml
 ```
 
-### [two-node](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-two-node-pipeline.yaml)
+### [101-two-node](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-two-node-pipeline.yaml)
 
 This example shows a example of having two nodes in a pipeline.
 
@@ -20,7 +20,7 @@ While they read from Kafka, they are connected by a NATS Streaming subject.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-two-node-pipeline.yaml
 ```
 
-### [two-node](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-filter-pipeline.yaml)
+### [102-filter](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-filter-pipeline.yaml)
 
 This is an example of built-in filtering.
 
@@ -34,7 +34,7 @@ They have a single variable, `msg`, which is a byte array.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-filter-pipeline.yaml
 ```
 
-### [flatten-expand](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-flatten-expand-pipeline.yaml)
+### [102-flatten-expand](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-flatten-expand-pipeline.yaml)
 
 This is an example of built-in flattening and expanding.
 
@@ -42,7 +42,7 @@ This is an example of built-in flattening and expanding.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-flatten-expand-pipeline.yaml
 ```
 
-### [map](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-map-pipeline.yaml)
+### [102-map](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-map-pipeline.yaml)
 
 This is an example of built-in mapping.
 
@@ -56,7 +56,7 @@ They have a single variable, `msg`, which is a byte array.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-map-pipeline.yaml
 ```
 
-### [autoscaling](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-autoscaling-pipeline.yaml)
+### [103-autoscaling](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-autoscaling-pipeline.yaml)
 
 This is an example of having multiple replicas for a single step.
 
@@ -92,7 +92,7 @@ of replicas re-calculated.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-autoscaling-pipeline.yaml
 ```
 
-### [scaling](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-scaling-pipeline.yaml)
+### [103-scaling](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-scaling-pipeline.yaml)
 
       This is an example of having multiple replicas for a single step.
 
@@ -106,7 +106,7 @@ kubectl scale step/scaling-main --replicas 3
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-scaling-pipeline.yaml
 ```
 
-### [go1-16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-go1-16-pipeline.yaml)
+### [104-go1-16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-go1-16-pipeline.yaml)
 
 This example of Go 1.16 handler.
 
@@ -116,7 +116,7 @@ This example of Go 1.16 handler.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-go1-16-pipeline.yaml
 ```
 
-### [java-16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml)
+### [104-java16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml)
 
 This example is of the Java 16 handler.
 
@@ -126,7 +126,7 @@ This example is of the Java 16 handler.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml
 ```
 
-### [python3-9](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python3-9-pipeline.yaml)
+### [104-python3-9](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python3-9-pipeline.yaml)
 
 This example is of the Python 3.9 handler.
 
@@ -136,7 +136,7 @@ This example is of the Python 3.9 handler.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python3-9-pipeline.yaml
 ```
 
-### [git](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-pipeline.yaml)
+### [106-git](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-pipeline.yaml)
 
 This example of a pipeline using Git.
 
@@ -149,7 +149,7 @@ your code when the step starts.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-pipeline.yaml
 ```
 
-### [completion](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-completion-pipeline.yaml)
+### [107-completion](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-completion-pipeline.yaml)
 
 This example shows a pipeline running to completion.
 
@@ -182,7 +182,7 @@ This example showcases container options.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/108-container-pipeline.yaml
 ```
 
-### [fifos](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/108-fifos-pipeline.yaml)
+### [108-fifos](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/108-fifos-pipeline.yaml)
 
 This example use named pipe to send and receive messages.
 
@@ -197,7 +197,7 @@ You MUST escape new lines.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/108-fifos-pipeline.yaml
 ```
 
-### [group](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/109-group-pipeline.yaml)
+### [109-group](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/109-group-pipeline.yaml)
 
 This is an example of built-in grouping.
 
@@ -223,7 +223,7 @@ Storage can either be:
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/109-group-pipeline.yaml
 ```
 
-### [vet](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-vetinary-pipeline.yaml)
+### [201-vetinary](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-vetinary-pipeline.yaml)
 
 This pipeline processes pets (cats and dogs).
 
@@ -231,7 +231,7 @@ This pipeline processes pets (cats and dogs).
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-vetinary-pipeline.yaml
 ```
 
-### [word-count](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-word-count-pipeline.yaml)
+### [201-word-count](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-word-count-pipeline.yaml)
 
 This pipeline count the number of words in a document, not the number of count of each word as you might expect.
 
@@ -241,7 +241,7 @@ This pipeline count the number of words in a document, not the number of count o
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/201-word-count-pipeline.yaml
 ```
 
-### [cron-log](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-log-pipeline.yaml)
+### [301-cron-log](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-log-pipeline.yaml)
 
 This example uses a cron source and a log sink.
 
@@ -274,7 +274,7 @@ This example creates errors randomly
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml
 ```
 
-### [http](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml)
+### [301-http](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml)
 
 This example uses a HTTP sources and sinks.
 
@@ -288,7 +288,7 @@ messages between steps.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml
 ```
 
-### [kafka](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml)
+### [301-kafka](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml)
 
 This example shows reading and writing to a Kafka topic
 
@@ -296,7 +296,7 @@ This example shows reading and writing to a Kafka topic
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml
 ```
 
-### [parallel](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-parallel-pipeline.yaml)
+### [301-parallel](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-parallel-pipeline.yaml)
 
 This example uses parallel to 2x the amount of data it processes.
 
@@ -304,7 +304,7 @@ This example uses parallel to 2x the amount of data it processes.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-parallel-pipeline.yaml
 ```
 
-### [stan](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-stan-pipeline.yaml)
+### [301-stan](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-stan-pipeline.yaml)
 
 This example shows reading and writing to a STAN subject
 

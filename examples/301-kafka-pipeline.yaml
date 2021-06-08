@@ -5,7 +5,7 @@ metadata:
     dataflow.argoproj.io/description: This example shows reading and writing to a
       Kafka topic
     dataflow.argoproj.io/test: 'true'
-  name: kafka
+  name: 301-kafka
 spec:
   steps:
   - cat: {}

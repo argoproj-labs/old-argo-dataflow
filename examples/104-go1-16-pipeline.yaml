@@ -6,7 +6,7 @@ metadata:
       This example of Go 1.16 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
-  name: go1-16
+  name: 104-go1-16
 spec:
   steps:
   - handler:

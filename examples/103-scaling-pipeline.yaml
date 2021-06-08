@@ -10,7 +10,7 @@ metadata:
       ```
       kubectl scale step/scaling-main --replicas 3
       ```
-  name: scaling
+  name: 103-scaling
 spec:
   steps:
   - cat: {}

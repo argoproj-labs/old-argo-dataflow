@@ -11,7 +11,7 @@ metadata:
       * The contain can write to `/var/run/argo-dataflow/out`. Each line MUST be a single message.
 
       You MUST escape new lines.
-  name: fifos
+  name: 108-fifos
 spec:
   steps:
   - container:

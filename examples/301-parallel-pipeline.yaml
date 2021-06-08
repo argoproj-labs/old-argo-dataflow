@@ -5,7 +5,7 @@ metadata:
     dataflow.argoproj.io/description: This example uses parallel to 2x the amount
       of data it processes.
     dataflow.argoproj.io/test: 'false'
-  name: parallel
+  name: 301-parallel
 spec:
   steps:
   - cat: {}
