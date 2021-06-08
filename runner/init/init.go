@@ -37,10 +37,10 @@ func Exec() error {
 			}
 		}
 	}
-	spec := dfv1.StepSpec{}
-	util2.MustUnJSON(os.Getenv(dfv1.EnvStepSpec), &spec)
+	step := dfv1.Step{}
+	util2.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
-	if spec.GetIn().FIFO {
+	if step.Spec.GetIn().FIFO {
 		logger.Info("creating in fifo")
 		if err := syscall.Mkfifo(dfv1.PathFIFOIn, 0o600); util2.IgnoreExist(err) != nil {
 			return fmt.Errorf("failed to create input FIFO: %w", err)
@@ -50,7 +50,7 @@ func Exec() error {
 	if err := syscall.Mkfifo(dfv1.PathFIFOOut, 0o600); util2.IgnoreExist(err) != nil {
 		return fmt.Errorf("failed to create output FIFO: %w", err)
 	}
-	if g := spec.Git; g != nil {
+	if g := step.Spec.Git; g != nil {
 		logger.Info("cloning", "url", g.URL, "checkout", dfv1.PathCheckout)
 		if _, err := git.PlainClone(dfv1.PathCheckout, false, &git.CloneOptions{
 			URL:           g.URL,
@@ -69,7 +69,7 @@ func Exec() error {
 		if err := os.Rename(path, dfv1.PathWorkingDir); util2.IgnoreExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
-	} else if h := spec.Handler; h != nil {
+	} else if h := step.Spec.Handler; h != nil {
 		logger.Info("setting up handler", "runtime", h.Runtime, "code", strings.ShortenString(h.Code, 32)+"...")
 		if err := ioutil.WriteFile(dfv1.PathHandlerFile, []byte(h.Code), 0o600); err != nil {
 			return fmt.Errorf("failed to create code file: %w", err)

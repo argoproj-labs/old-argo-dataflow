@@ -17,7 +17,13 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"encoding/json"
+	"strconv"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/pointer"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -36,6 +42,83 @@ type Step struct {
 
 	Spec   StepSpec   `json:"spec" protobuf:"bytes,2,opt,name=spec"`
 	Status StepStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+}
+
+func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
+	volume := corev1.Volume{
+		Name:         "var-run-argo-dataflow",
+		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+	}
+	step, _ := json.Marshal(in)
+	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
+
+	envVars := []corev1.EnvVar{
+		{Name: EnvDataflowBearerToken, Value: req.BearerToken},
+		{Name: EnvNamespace, Value: req.Namespace},
+		{Name: EnvPipelineName, Value: req.PipelineName},
+		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
+		{Name: EnvStep, Value: string(step)},
+		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
+	}
+	return corev1.PodSpec{
+		Volumes:            append(in.Spec.Volumes, volume),
+		RestartPolicy:      in.Spec.RestartPolicy,
+		NodeSelector:       in.Spec.NodeSelector,
+		ServiceAccountName: in.Spec.ServiceAccountName,
+		SecurityContext: &corev1.PodSecurityContext{
+			RunAsNonRoot: pointer.BoolPtr(true),
+			RunAsUser:    pointer.Int64Ptr(9653),
+		},
+		Affinity:    in.Spec.Affinity,
+		Tolerations: in.Spec.Tolerations,
+		InitContainers: []corev1.Container{
+			{
+				Name:            CtrInit,
+				Image:           req.RunnerImage,
+				ImagePullPolicy: req.PullPolicy,
+				Args:            []string{"init"},
+				Env:             envVars,
+				VolumeMounts:    volumeMounts,
+				Resources:       SmallResourceRequirements,
+			},
+		},
+		Containers: []corev1.Container{
+			{
+				Name:            CtrSidecar,
+				Image:           req.RunnerImage,
+				ImagePullPolicy: req.PullPolicy,
+				Args:            []string{"sidecar"},
+				Env:             envVars,
+				VolumeMounts:    volumeMounts,
+				Resources:       SmallResourceRequirements,
+				Ports: []corev1.ContainerPort{
+					{ContainerPort: 3569},
+				},
+				Lifecycle: &corev1.Lifecycle{
+					PreStop: &corev1.Handler{
+						HTTPGet: &corev1.HTTPGetAction{
+							Path: "/pre-stop",
+							Port: intstr.FromInt(3569),
+						},
+					},
+				},
+			},
+			in.Spec.getType().getContainer(getContainerReq{
+				env:             []corev1.EnvVar{{Name: EnvDataflowBearerToken, Value: req.BearerToken}},
+				imageFormat:     req.ImageFormat,
+				imagePullPolicy: req.PullPolicy,
+				lifecycle: &corev1.Lifecycle{
+					PreStop: &corev1.Handler{
+						Exec: &corev1.ExecAction{
+							Command: []string{PathPreStop},
+						},
+					},
+				},
+				runnerImage: req.RunnerImage,
+				volumeMount: corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
+			}),
+		},
+	}
 }
 
 func (in Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {

@@ -150,7 +150,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 					},
 				}),
-				Spec: step.Spec.GetPodSpec(
+				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
 						PipelineName:   pipelineName,
 						Namespace:      step.Namespace,

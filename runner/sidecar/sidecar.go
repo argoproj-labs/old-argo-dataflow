@@ -20,6 +20,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/robfig/cron/v3"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -49,10 +50,10 @@ var (
 	updateInterval      time.Duration
 	replica             = 0
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
+	stepName            string
 	namespace           = os.Getenv(dfv1.EnvNamespace)
-	spec                = dfv1.StepSpec{}
-	status              = dfv1.StepStatus{}
-	lastStatus          = dfv1.StepStatus{}
+	step                = dfv1.Step{} // this is updated on start, and then periodically as we update the status
+	lastStep            = dfv1.Step{}
 	mu                  = sync.Mutex{}
 )
 
@@ -71,19 +72,18 @@ func Exec(ctx context.Context) error {
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 
-	util2.MustUnJSON(os.Getenv(dfv1.EnvStepSpec), &spec)
-	util2.MustUnJSON(os.Getenv(dfv1.EnvStepStatus), &status)
+	util2.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
-	if status.SourceStatuses == nil {
-		status.SourceStatuses = dfv1.SourceStatuses{}
+	logger.Info("step", "step", util2.MustJSON(step))
+
+	stepName = step.Spec.Name
+	if step.Status.SourceStatuses == nil {
+		step.Status.SourceStatuses = dfv1.SourceStatuses{}
 	}
-	if status.SinkStatues == nil {
-		status.SinkStatues = dfv1.SourceStatuses{}
+	if step.Status.SinkStatues == nil {
+		step.Status.SinkStatues = dfv1.SourceStatuses{}
 	}
-
-	logger.Info("status", "status", util2.MustJSON(status))
-
-	lastStatus = *status.DeepCopy()
+	lastStep = *step.DeepCopy()
 
 	if v, err := strconv.Atoi(os.Getenv(dfv1.EnvReplica)); err != nil {
 		return err
@@ -100,7 +100,7 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	logger.Info("sidecar config", "stepName", spec.Name, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
+	logger.Info("sidecar config", "stepName", stepName, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
 
 	defer func() {
 		preStop()
@@ -118,6 +118,13 @@ func Exec(ctx context.Context) error {
 	}
 
 	http.Handle("/metrics", promhttp.Handler())
+
+	if replica == 0 {
+		promauto.NewGaugeFunc(prometheus.GaugeOpts{
+			Name: "replicas",
+			Help: "Number of replicas, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#replicas",
+		}, func() float64 { return float64(step.Status.Replicas) })
+	}
 
 	// we listen to this message, but it does not come from Kubernetes, it actually comes from the main container's
 	// pre-stop hook
@@ -169,29 +176,44 @@ func stop(closers []func(ctx context.Context) error) {
 
 func patchStepStatus(ctx context.Context) {
 	withLock(func() {
-		if notEqual, patch := util2.NotEqual(dfv1.Step{Status: lastStatus}, dfv1.Step{Status: status}); notEqual {
+		if notEqual, patch := util2.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status}); notEqual {
 			logger.Info("patching step status", "patch", patch)
-			if _, err := dynamicInterface.
+			if un, err := dynamicInterface.
 				Resource(dfv1.StepGroupVersionResource).
 				Namespace(namespace).
 				Patch(
 					ctx,
-					pipelineName+"-"+spec.Name,
+					pipelineName+"-"+stepName,
 					types.MergePatchType,
 					[]byte(patch),
 					metav1.PatchOptions{},
 					"status",
-				); util2.IgnoreNotFound(err) != nil { // the step can be deleted before the pod
-				logger.Error(err, "failed to patch step status")
+				); err != nil {
+				if !apierr.IsNotFound(err) { // the step can be deleted before the pod
+					logger.Error(err, "failed to patch step status")
+				}
+			} else {
+				v := dfv1.Step{}
+				if err := runtime.DefaultUnstructuredConverter.FromUnstructured(un.Object, &v); err != nil {
+					logger.Error(err, "failed to from-unstructured")
+				} else {
+					if v.Status.SourceStatuses == nil {
+						v.Status.SourceStatuses = dfv1.SourceStatuses{}
+					}
+					if v.Status.SinkStatues == nil {
+						v.Status.SourceStatuses = dfv1.SourceStatuses{}
+					}
+					step = v
+					lastStep = *v.DeepCopy()
+				}
 			}
-			lastStatus = *status.DeepCopy()
 		}
 	})
 }
 
 func enrichSpec(ctx context.Context) error {
 	secrets := kubernetesInterface.CoreV1().Secrets(namespace)
-	for i, source := range spec.Sources {
+	for i, source := range step.Spec.Sources {
 		if x := source.STAN; x != nil {
 			secret, err := secrets.Get(ctx, "dataflow-stan-"+x.Name, metav1.GetOptions{})
 			if err != nil {
@@ -214,10 +236,10 @@ func enrichSpec(ctx context.Context) error {
 			}
 			source.Kafka = x
 		}
-		spec.Sources[i] = source
+		step.Spec.Sources[i] = source
 	}
 
-	for i, sink := range spec.Sinks {
+	for i, sink := range step.Spec.Sinks {
 		if s := sink.STAN; s != nil {
 			secret, err := secrets.Get(ctx, "dataflow-stan-"+s.Name, metav1.GetOptions{})
 			if err != nil {
@@ -240,7 +262,7 @@ func enrichSpec(ctx context.Context) error {
 			}
 			sink.Kafka = k
 		}
-		spec.Sinks[i] = sink
+		step.Spec.Sinks[i] = sink
 	}
 
 	return nil
@@ -281,7 +303,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		return nil
 	})
 	sources := make(map[string]bool)
-	for _, source := range spec.Sources {
+	for _, source := range step.Spec.Sources {
 		logger.Info("connecting source", "source", util2.MustJSON(source))
 		sourceName := source.Name
 		if _, exists := sources[sourceName]; exists {
@@ -297,30 +319,31 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				Name:        "pending",
 				Help:        "Pending messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_pending",
 				ConstLabels: map[string]string{"sourceName": source.Name},
-			}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetPending()) })
-		}
-		promauto.NewCounterFunc(prometheus.CounterOpts{
-			Subsystem:   "sources",
-			Name:        "total",
-			Help:        "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total",
-			ConstLabels: map[string]string{"sourceName": source.Name, "replica": strconv.Itoa(replica)},
-		}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetMetrics(replica).Total) })
+			}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetPending()) })
 
-		promauto.NewCounterFunc(prometheus.CounterOpts{
-			Subsystem:   "sources",
-			Name:        "errors",
-			Help:        "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors",
-			ConstLabels: map[string]string{"sourceName": source.Name, "replica": strconv.Itoa(replica)},
-		}, func() float64 { return float64(status.SourceStatuses.Get(sourceName).GetMetrics(replica).Errors) })
+			promauto.NewCounterFunc(prometheus.CounterOpts{
+				Subsystem:   "sources",
+				Name:        "total",
+				Help:        "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total",
+				ConstLabels: map[string]string{"sourceName": source.Name},
+			}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetTotal()) })
+
+			promauto.NewCounterFunc(prometheus.CounterOpts{
+				Subsystem:   "sources",
+				Name:        "errors",
+				Help:        "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors",
+				ConstLabels: map[string]string{"sourceName": source.Name},
+			}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors()) })
+		}
 
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
-				status.SourceStatuses.Set(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
+				step.Status.SourceStatuses.Set(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
 			})
 			if err := toMain(msg); err != nil {
 				logger.Error(err, "⚠ →", "source", sourceName)
-				withLock(func() { status.SourceStatuses.IncErrors(sourceName, replica, err) })
+				withLock(func() { step.Status.SourceStatuses.IncErrors(sourceName, replica, err) })
 				return err
 			}
 			return nil
@@ -333,7 +356,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
 			}
 		} else if x := source.STAN; x != nil {
-			clientID := fmt.Sprintf("%s-%s-%d-source-%s", pipelineName, spec.Name, replica, sourceName)
+			clientID := fmt.Sprintf("%s-%s-%d-source-%s", pipelineName, stepName, replica, sourceName)
 			sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
 			if err != nil {
 				return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
@@ -343,7 +366,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return sc.Close()
 			})
 			// https://docs.nats.io/developing-with-nats-streaming/queues
-			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, spec.Name, sourceName)
+			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 			for i := 0; i < int(x.Parallel); i++ {
 				if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(m *stan.Msg) {
 					_ = f(m.Data) // TODO we should decide what to do with errors here, currently we ignore them
@@ -360,7 +383,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 								logger.Error(err, "failed to get pending", "source", sourceName)
 							} else if pending >= 0 {
 								logger.Info("setting pending", "source", sourceName, "pending", pending)
-								withLock(func() { status.SourceStatuses.SetPending(sourceName, uint64(pending)) })
+								withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, uint64(pending)) })
 							}
 						}, updateInterval, 1.2, true, ctx.Done())
 					}
@@ -390,7 +413,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				return adminClient.Close()
 			})
 			for i := 0; i < int(x.Parallel); i++ {
-				groupName := pipelineName + "-" + spec.Name
+				groupName := pipelineName + "-" + stepName
 				group, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
 				if err != nil {
 					return fmt.Errorf("failed to create kafka consumer group: %w", err)
@@ -432,7 +455,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 							totalLags += partitionOffset - block.Offset
 						}
 						logger.Info("setting pending", "source", sourceName, "pending", totalLags)
-						withLock(func() { status.SourceStatuses.SetPending(sourceName, uint64(totalLags)) })
+						withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, uint64(totalLags)) })
 					}, updateInterval, 1.2, true, ctx.Done())
 				}
 			}
@@ -494,7 +517,7 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 		Help:        "Message time, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_message_time_seconds",
 		ConstLabels: map[string]string{"replica": strconv.Itoa(replica)},
 	})
-	in := spec.GetIn()
+	in := step.Spec.GetIn()
 	if in == nil {
 		logger.Info("no in interface configured")
 		return func(i []byte) error {
@@ -653,7 +676,7 @@ func connectOut(toSink func([]byte) error) {
 func connectSink() (func([]byte) error, error) {
 	sinks := map[string]func(msg []byte) error{}
 	rateCounters := map[string]*ratecounter.RateCounter{}
-	for _, sink := range spec.Sinks {
+	for _, sink := range step.Spec.Sinks {
 		logger.Info("connecting sink", "sink", util2.MustJSON(sink))
 		sinkName := sink.Name
 		if _, exists := sinks[sinkName]; exists {
@@ -661,7 +684,7 @@ func connectSink() (func([]byte) error, error) {
 		}
 		rateCounters[sinkName] = ratecounter.NewRateCounter(updateInterval)
 		if x := sink.STAN; x != nil {
-			clientID := fmt.Sprintf("%s-%s-%d-sink-%s", pipelineName, spec.Name, replica, sinkName)
+			clientID := fmt.Sprintf("%s-%s-%d-sink-%s", pipelineName, stepName, replica, sinkName)
 			sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
 			if err != nil {
 				return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
@@ -719,9 +742,11 @@ func connectSink() (func([]byte) error, error) {
 		for sinkName, f := range sinks {
 			counter := rateCounters[sinkName]
 			counter.Incr(1)
-			withLock(func() { status.SinkStatues.Set(sinkName, replica, printable(msg), rateToResourceQuantity(counter)) })
+			withLock(func() {
+				step.Status.SinkStatues.Set(sinkName, replica, printable(msg), rateToResourceQuantity(counter))
+			})
 			if err := f(msg); err != nil {
-				withLock(func() { status.SinkStatues.IncErrors(sinkName, replica, err) })
+				withLock(func() { step.Status.SinkStatues.IncErrors(sinkName, replica, err) })
 				return err
 			}
 		}

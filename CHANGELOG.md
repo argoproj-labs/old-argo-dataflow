@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.40 (2021-06-07)
+
+ * [da6a1e0](https://github.com/argoproj/argo-workflows/commit/da6a1e0e396a9d225ec1b8b25213597d69b995eb) fix: fix permissions
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.39 (2021-06-07)
 
  * [e1cc03c](https://github.com/argoproj/argo-workflows/commit/e1cc03c070744057d2f4cce0bfb32aa19861a696) config: expose 9090

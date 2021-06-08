@@ -3,40 +3,43 @@
 Each replica's sidecar exposes Prometheus metrics so you can build graphs:
 
 ```
-# HELP input_inflight Number of in-flight messages, see https
-://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_inflight
+# HELP input_inflight Number of in-flight messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_inflight
 # TYPE input_inflight gauge
 input_inflight{replica="0"} 0
 # HELP input_message_time_seconds Message time, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#input_message_time_seconds
 # TYPE input_message_time_seconds histogram
-input_message_time_seconds_bucket{replica="0",le="0.005"} 33
-input_message_time_seconds_bucket{replica="0",le="0.01"} 33
-input_message_time_seconds_bucket{replica="0",le="0.025"} 33
-input_message_time_seconds_bucket{replica="0",le="0.05"} 33
-input_message_time_seconds_bucket{replica="0",le="0.1"} 33
-input_message_time_seconds_bucket{replica="0",le="0.25"} 33
-input_message_time_seconds_bucket{replica="0",le="0.5"} 33
-input_message_time_seconds_bucket{replica="0",le="1"} 33
-input_message_time_seconds_bucket{replica="0",le="2.5"} 33
-input_message_time_seconds_bucket{replica="0",le="5"} 33
-input_message_time_seconds_bucket{replica="0",le="10"} 33
-input_message_time_seconds_bucket{replica="0",le="+Inf"} 33
-input_message_time_seconds_sum{replica="0"} 0.025579325999999996
-input_message_time_seconds_count{replica="0"} 33
+input_message_time_seconds_bucket{replica="0",le="0.005"} 22
+input_message_time_seconds_bucket{replica="0",le="0.01"} 23
+input_message_time_seconds_bucket{replica="0",le="0.025"} 23
+input_message_time_seconds_bucket{replica="0",le="0.05"} 24
+input_message_time_seconds_bucket{replica="0",le="0.1"} 24
+input_message_time_seconds_bucket{replica="0",le="0.25"} 24
+input_message_time_seconds_bucket{replica="0",le="0.5"} 24
+input_message_time_seconds_bucket{replica="0",le="1"} 24
+input_message_time_seconds_bucket{replica="0",le="2.5"} 24
+input_message_time_seconds_bucket{replica="0",le="5"} 24
+input_message_time_seconds_bucket{replica="0",le="10"} 24
+input_message_time_seconds_bucket{replica="0",le="+Inf"} 24
+input_message_time_seconds_sum{replica="0"} 0.052320869
+input_message_time_seconds_count{replica="0"} 24
+...
+# HELP replicas Number of replicas, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#replicas
+# TYPE replicas gauge
+replicas 1
 # HELP sources_errors Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors
 # TYPE sources_errors counter
-sources_errors{replica="0",sourceName="default"} 0
+sources_errors{sourceName="default"} 0
 # HELP sources_pending Pending messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_pending
 # TYPE sources_pending counter
 sources_pending{sourceName="default"} 0
 # HELP sources_total Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total
 # TYPE sources_total counter
-sources_total{replica="0",sourceName="default"} 33
+sources_total{sourceName="default"} 528
 ```
 
 ### input_inflight
 
-Use this metric to determine how many message a pod can process in parallel.
+Use this metric to determine how many message each replica can process in parallel.
 
 Golden metric type: saturation.
 
@@ -46,11 +49,17 @@ Use this metric to determine how long messages are taking to be processed.
 
 Golden metric type: latency.
 
+### replicas
+
+Use this to track scaling events. 
+
+Only exposed by replica 0.
+
 ### sources_errors
 
 Use this to track errors.
 
-This is produced for each replica and must be summed.
+Only exposed by replica 0.
 
 Golden metric type: error.
 
@@ -58,17 +67,7 @@ Golden metric type: error.
 
 Use this to track throughput. 
 
-This is produced for each replica and must be summed.
-
-```
-sum(last(6h, ts(custom.argo-dataflow.sources.total.counter)), label.dataflow.argoproj.io/pipeline-name, label.dataflow.argoproj.io/step-name)
-```
-
-Rate (needs to exclude old data): 
-
-```
-deriv(sum(last(5m, ts(custom.argo-dataflow.sources.total.counter)), label.dataflow.argoproj.io/pipeline-name, label.dataflow.argoproj.io/step-name))
-```
+Only exposed by replica 0.
 
 Golden metric type: traffic.
 
@@ -76,6 +75,6 @@ Golden metric type: traffic.
 
 Use this to track back-pressure.
 
-One single figure produced by replica 0.
+Only exposed by replica 0.
 
 Golden metric type: traffic.

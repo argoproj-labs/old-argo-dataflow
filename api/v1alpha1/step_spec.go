@@ -1,14 +1,9 @@
 package v1alpha1
 
 import (
-	"encoding/json"
-	"strconv"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
 )
 
 type StepSpec struct {
@@ -57,85 +52,6 @@ type GetPodSpecReq struct {
 	UpdateInterval time.Duration     `protobuf:"varint,7,opt,name=updateInterval,casttype=time.Duration"`
 	StepStatus     StepStatus        `protobuf:"bytes,8,opt,name=stepStatus"`
 	BearerToken    string            `protobuf:"bytes,9,opt,name=bearerToken"`
-}
-
-func (in StepSpec) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
-	volume := corev1.Volume{
-		Name:         "var-run-argo-dataflow",
-		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
-	}
-	stepSpec, _ := json.Marshal(in)
-	stepStatus, _ := json.Marshal(req.StepStatus)
-	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
-
-	envVars := []corev1.EnvVar{
-		{Name: EnvDataflowBearerToken, Value: req.BearerToken},
-		{Name: EnvNamespace, Value: req.Namespace},
-		{Name: EnvPipelineName, Value: req.PipelineName},
-		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
-		{Name: EnvStepStatus, Value: string(stepStatus)},
-		{Name: EnvStepSpec, Value: string(stepSpec)},
-		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
-	}
-	return corev1.PodSpec{
-		Volumes:            append(in.Volumes, volume),
-		RestartPolicy:      in.RestartPolicy,
-		NodeSelector:       in.NodeSelector,
-		ServiceAccountName: in.ServiceAccountName,
-		SecurityContext: &corev1.PodSecurityContext{
-			RunAsNonRoot: pointer.BoolPtr(true),
-			RunAsUser:    pointer.Int64Ptr(9653),
-		},
-		Affinity:    in.Affinity,
-		Tolerations: in.Tolerations,
-		InitContainers: []corev1.Container{
-			{
-				Name:            CtrInit,
-				Image:           req.RunnerImage,
-				ImagePullPolicy: req.PullPolicy,
-				Args:            []string{"init"},
-				Env:             envVars,
-				VolumeMounts:    volumeMounts,
-				Resources:       SmallResourceRequirements,
-			},
-		},
-		Containers: []corev1.Container{
-			{
-				Name:            CtrSidecar,
-				Image:           req.RunnerImage,
-				ImagePullPolicy: req.PullPolicy,
-				Args:            []string{"sidecar"},
-				Env:             envVars,
-				VolumeMounts:    volumeMounts,
-				Resources:       SmallResourceRequirements,
-				Ports: []corev1.ContainerPort{
-					{ContainerPort: 3569},
-				},
-				Lifecycle: &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path: "/pre-stop",
-							Port: intstr.FromInt(3569),
-						},
-					},
-				},
-			},
-			in.getType().getContainer(getContainerReq{
-				env:             []corev1.EnvVar{{Name: EnvDataflowBearerToken, Value: req.BearerToken}},
-				imageFormat:     req.ImageFormat,
-				imagePullPolicy: req.PullPolicy,
-				lifecycle: &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
-						Exec: &corev1.ExecAction{
-							Command: []string{PathPreStop},
-						},
-					},
-				},
-				runnerImage: req.RunnerImage,
-				volumeMount: corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
-			}),
-		},
-	}
 }
 
 func (in StepSpec) GetIn() *Interface {
