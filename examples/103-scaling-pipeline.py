@@ -2,7 +2,8 @@ from dsls.python import pipeline, kafka
 
 if __name__ == '__main__':
     (pipeline("103-scaling")
-     .describe("""      This is an example of having multiple replicas for a single step.
+     .owner('argoproj-labs')
+     .describe("""This is an example of having multiple replicas for a single step.
 
 Steps can be manually scaled using `kubectl`:
 

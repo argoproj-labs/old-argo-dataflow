@@ -4,6 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: This pipeline processes pets (cats and dogs).
     dataflow.argoproj.io/needs: pets-configmap.yaml
+    dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'false'
   name: 201-vetinary
 spec:
@@ -32,8 +33,7 @@ spec:
     - stan:
         subject: cats
     sources:
-    - stan:
-        subject: pets
+    - {}
   - map: |-
       json("Meow! " + object(msg).name)
     name: process-cats
@@ -41,8 +41,7 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - stan:
-        subject: cats
+    - {}
   - filter: |-
       string(msg) contains "dog"
     name: filter-dogs
@@ -50,8 +49,7 @@ spec:
     - stan:
         subject: dogs
     sources:
-    - stan:
-        subject: pets
+    - {}
   - map: |-
       json("Woof! " + object(msg).name)
     name: process-dogs
@@ -59,5 +57,4 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - stan:
-        subject: dogs
+    - {}

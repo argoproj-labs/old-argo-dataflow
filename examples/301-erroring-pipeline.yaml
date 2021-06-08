@@ -2,19 +2,38 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
-      This example creates errors randomly
-    dataflow.argoproj.io/wait-for: Errors
-  creationTimestamp: null
-  name: erroring
+    dataflow.argoproj.io/description: This example showcases retry policies.
+    dataflow.argoproj.io/owner: argoproj-labs
+  name: 301-erroring
 spec:
   steps:
   - handler:
-      code: "package main\n\nimport (\n\t\"fmt\"\n\t\"math/rand\"\n)\n\nfunc Handler(m []byte) ([]byte, error) {\n\tif rand.Int()%2 == 0 {\n\t\treturn nil, fmt.Errorf(\"random error\")\n\t}\n\treturn []byte(\"hi \" + string(m)), nil\n}\n"
-      runtime: go1-16
-    name: main
+      code: |
+        def handler(msg):
+            import random
+            if random.randint(0, 1) == 1:
+                raise Exception("random error")
+            return msg
+      runtime: python3-9
+    name: always
     sinks:
     - log: {}
     sources:
     - cron:
         schedule: '*/3 * * * * *'
+      retryPolicy: Always
+  - handler:
+      code: |
+        def handler(msg):
+            import random
+            if random.randint(0, 1) == 1:
+                raise Exception("random error")
+            return msg
+      runtime: python3-9
+    name: never
+    sinks:
+    - log: {}
+    sources:
+    - cron:
+        schedule: '*/3 * * * * *'
+      retryPolicy: Never

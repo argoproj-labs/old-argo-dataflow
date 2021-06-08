@@ -2,6 +2,7 @@ from dsls.python import pipeline, kafka
 
 if __name__ == '__main__':
     (pipeline("103-autoscaling")
+     .owner('argoproj-labs')
      .describe("""This is an example of having multiple replicas for a single step.
 
 Replicas are automatically scaled up and down depending on the number of messages pending processing.

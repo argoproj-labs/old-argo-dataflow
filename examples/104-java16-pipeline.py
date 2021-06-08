@@ -7,6 +7,7 @@ def handler(msg):
 
 if __name__ == '__main__':
     (pipeline("104-java16")
+     .owner('argoproj-labs')
      .describe("""This example is of the Java 16 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)""")

@@ -1,9 +1,10 @@
+import getpass
 import inspect
 import yaml
 
 DEFAULT_RUNTIME = 'python3-9'
-
 GROUPS_VOLUME_NAME = 'groups'
+USER = getpass.getuser()
 
 
 def str_presenter(dumper, data):
@@ -20,10 +21,14 @@ class PipelineBuilder():
         self._name = name
         self._annotations = {}
         self._steps = []
+        self.owner(USER)
 
     def annotate(self, name, value):
         self._annotations[name] = value
         return self
+
+    def owner(self, value):
+        return self.annotate('dataflow.argoproj.io/owner', value)
 
     def describe(self, value):
         return self.annotate('dataflow.argoproj.io/description', value)
@@ -324,13 +329,16 @@ class MapStep(Step):
 
 
 class Source:
-    def __init__(self, name=None):
+    def __init__(self, name=None, retryPolicy=None):
         self._name = name
+        self._retryPolicy = retryPolicy
 
     def dump(self):
         x = {}
         if self._name:
             x['name'] = self._name
+        if self._retryPolicy:
+            x['retryPolicy'] = self._retryPolicy
         return x
 
     def cat(self, name):
@@ -400,22 +408,23 @@ def map(name, map):
 
 
 class CronSource(Source):
-    def __init__(self, schedule, layout, name=None):
-        super().__init__(name)
+    def __init__(self, schedule, layout, name=None, retryPolicy=None):
+        super().__init__(name=name, retryPolicy=retryPolicy)
         self._schedule = schedule
         self._layout = layout
 
     def dump(self):
         x = super().dump()
-        x['schedule'] = self._schedule
+        y = {'schedule': self._schedule}
         if self._layout:
-            x['layout'] = self._layout
-        return {'cron': x}
+            y['layout'] = self._layout
+        x['cron'] = y
+        return x
 
 
 class HTTPSource(Source):
-    def __init__(self, name=None):
-        super().__init__(name)
+    def __init__(self, name=None, retryPolicy=None):
+        super().__init__(name=name, retryPolicy=retryPolicy)
 
     def dump(self):
         x = super().dump()
@@ -424,8 +433,8 @@ class HTTPSource(Source):
 
 
 class KafkaSource(Source):
-    def __init__(self, topic, parallel=None, name=None):
-        super().__init__(name)
+    def __init__(self, topic, parallel=None, name=None, retryPolicy=None):
+        super().__init__(name=name, retryPolicy=retryPolicy)
         self._topic = topic
         self._parallel = parallel
 
@@ -438,27 +447,31 @@ class KafkaSource(Source):
 
 
 class STANSource(Source):
-    def __init__(self, subject, name=None):
-        super().__init__(name)
+    def __init__(self, subject, name=None, parallel=None, retryPolicy=None):
+        super().__init__(name=name, retryPolicy=retryPolicy)
         self._subject = subject
+        self._parallel = parallel
 
     def dump(self):
         x = super().dump()
-        x['stan'] = {'subject': self._subject}
+        y = {'subject': self._subject}
+        if self._parallel:
+            y['parallel'] = self._parallel
+            x['stan'] = y
         return x
 
 
-def cron(schedule, layout=None, name=None):
-    return CronSource(schedule, layout=layout, name=name)
+def cron(schedule, layout=None, name=None, retryPolicy=None):
+    return CronSource(schedule, layout=layout, name=name, retryPolicy=retryPolicy)
 
 
-def http(name=None):
-    return HTTPSource(name=name)
+def http(name=None, retryPolicy=None):
+    return HTTPSource(name=name, retryPolicy=retryPolicy)
 
 
-def kafka(topic, parallel=None, name=None):
-    return KafkaSource(topic, parallel, name=name)
+def kafka(topic, parallel=None, name=None, retryPolicy=None):
+    return KafkaSource(topic, parallel, name=name, retryPolicy=retryPolicy)
 
 
-def stan(subject, name=None):
-    return STANSource(subject, name=name)
+def stan(subject, name=None, parallel=None, retryPolicy=None):
+    return STANSource(subject, name=name, parallel=parallel, retryPolicy=retryPolicy)

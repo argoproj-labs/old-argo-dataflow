@@ -311,8 +311,6 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		}
 		sources[sourceName] = true
 
-		rateCounter := ratecounter.NewRateCounter(updateInterval)
-
 		if replica == 0 { // only replica zero updates this value, so it the only replica that can be accurate
 			promauto.NewCounterFunc(prometheus.CounterOpts{
 				Subsystem:   "sources",
@@ -336,21 +334,42 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors()) })
 		}
 
+		rateCounter := ratecounter.NewRateCounter(updateInterval)
+		retryPolicy := source.RetryPolicy
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
 				step.Status.SourceStatuses.Set(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
 			})
-			if err := toMain(msg); err != nil {
-				logger.Error(err, "⚠ →", "source", sourceName)
+			err := wait.ExponentialBackoff(wait.Backoff{
+				Duration: 100 * time.Millisecond,
+				Factor:   2,
+				Cap:      time.Second,
+			}, func() (done bool, err error) {
+				select {
+				case <-ctx.Done():
+					return true, ctx.Err()
+				default:
+					if err := toMain(msg); err != nil {
+						logger.Error(err, "⚠ →", "source", sourceName)
+						switch retryPolicy {
+						case dfv1.RetryNever:
+							return true, err
+						default:
+							return false, nil
+						}
+					}
+				}
+				return true, nil
+			})
+			if err != nil {
 				withLock(func() { step.Status.SourceStatuses.IncErrors(sourceName, replica, err) })
-				return err
 			}
-			return nil
+			return err
 		}
 		if x := source.Cron; x != nil {
 			_, err := crn.AddFunc(x.Schedule, func() {
-				_ = f([]byte(time.Now().Format(x.Layout)))
+				_ = f([]byte(time.Now().Format(x.Layout))) // TODO
 			})
 			if err != nil {
 				return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
@@ -396,6 +415,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			}
 			config.Consumer.Return.Errors = true
 			config.Consumer.Offsets.Initial = sarama.OffsetNewest
+			config.Consumer.Offsets.AutoCommit.Enable = false
 			client, err := sarama.NewClient(x.Brokers, config) // I am not giving any configuration
 			if err != nil {
 				return err

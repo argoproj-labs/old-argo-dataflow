@@ -2,14 +2,15 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |2-
-            This is an example of having multiple replicas for a single step.
+    dataflow.argoproj.io/description: |-
+      This is an example of having multiple replicas for a single step.
 
       Steps can be manually scaled using `kubectl`:
 
       ```
       kubectl scale step/scaling-main --replicas 3
       ```
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 103-scaling
 spec:
   steps:

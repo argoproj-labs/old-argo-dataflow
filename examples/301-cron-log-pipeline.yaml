@@ -19,6 +19,7 @@ metadata:
       ## Log
 
       This logs the message.
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 301-cron-log
 spec:
   steps:

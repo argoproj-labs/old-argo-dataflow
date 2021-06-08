@@ -6,6 +6,7 @@ metadata:
       This example of Go 1.16 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 104-go1-16
 spec:
   steps:

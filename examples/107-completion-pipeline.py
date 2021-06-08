@@ -2,6 +2,7 @@ from dsls.python import pipeline, container
 
 if __name__ == '__main__':
     (pipeline("107-completion")
+     .owner('argoproj-labs')
      .describe("""This example shows a pipeline running to completion.
 
 A pipeline that run to completion (aka "terminating") is one that will finish.

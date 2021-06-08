@@ -6,6 +6,7 @@ metadata:
       This is the hello world of pipelines.
 
       It uses a cron schedule as a source and then just cat the message to a log
+    dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'true'
   name: 101-hello
 spec:

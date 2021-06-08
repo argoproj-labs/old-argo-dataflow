@@ -2,6 +2,7 @@ from dsls.python import pipeline, container
 
 if __name__ == '__main__':
     (pipeline("108-container")
+     .owner('argoproj-labs')
      .describe("""This example showcases container options.""")
      .step(
         (container('main',

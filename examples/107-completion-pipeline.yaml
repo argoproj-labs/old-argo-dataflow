@@ -11,6 +11,7 @@ metadata:
 
       * Every steps exits successfully (i.e. with exit code 0).
       * One step exits successfully, and is marked with `terminator: true`. When this happens, all other steps are killed.
+    dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/wait-for: Completed
   name: 107-completion
 spec:

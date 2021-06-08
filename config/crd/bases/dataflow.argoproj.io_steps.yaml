@@ -1146,6 +1146,12 @@ spec:
                     name:
                       default: default
                       type: string
+                    retryPolicy:
+                      default: Never
+                      enum:
+                      - Always
+                      - Never
+                      type: string
                     stan:
                       properties:
                         clusterId:

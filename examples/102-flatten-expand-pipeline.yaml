@@ -4,6 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: This is an example of built-in flattening and
       expanding.
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 102-flatten-expand
 spec:
   steps:
@@ -22,12 +23,10 @@ spec:
     - stan:
         subject: flattened
     sources:
-    - stan:
-        subject: data
+    - {}
   - expand: {}
     name: expand
     sinks:
     - log: {}
     sources:
-    - stan:
-        subject: flattened
+    - {}

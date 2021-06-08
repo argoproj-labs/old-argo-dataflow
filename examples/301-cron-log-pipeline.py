@@ -2,6 +2,7 @@ from dsls.python import pipeline, cron
 
 if __name__ == '__main__':
     (pipeline("301-cron-log")
+     .owner('argoproj-labs')
      .describe("""This example uses a cron source and a log sink.
 
 ## Cron

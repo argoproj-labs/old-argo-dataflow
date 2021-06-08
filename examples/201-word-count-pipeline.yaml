@@ -7,6 +7,7 @@ metadata:
 
         It also shows an example of a pipelines terminates based on a single step's status.
     dataflow.argoproj.io/needs: word-count-input-configmap.yaml
+    dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'false'
   name: 201-word-count
 spec:
@@ -54,8 +55,7 @@ spec:
     - stan:
         subject: words
     sources:
-    - stan:
-        subject: lines
+    - {}
   - container:
       args:
       - bash
@@ -75,6 +75,5 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - stan:
-        subject: words
+    - {}
     terminator: true

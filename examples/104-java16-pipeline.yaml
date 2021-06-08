@@ -6,6 +6,7 @@ metadata:
       This example is of the Java 16 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 104-java16
 spec:
   steps:

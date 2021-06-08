@@ -7,6 +7,7 @@ def handler(msg):
 
 if __name__ == '__main__':
     (pipeline("104-go1-16")
+     .owner('argoproj-labs')
      .describe("""This example of Go 1.16 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)""")

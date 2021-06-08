@@ -7,6 +7,7 @@ def handler(msg):
 
 if __name__ == '__main__':
     (pipeline("104-python3-9")
+     .owner('argoproj-labs')
      .describe("""This example is of the Python 3.9 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)""")

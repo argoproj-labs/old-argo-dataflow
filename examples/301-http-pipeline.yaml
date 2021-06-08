@@ -7,6 +7,7 @@ metadata:
       \ to set-up any storage for your\nmessages between steps. \n\n* HTTP sinks are\
       \ *unreliable* because it is possible for messages to not get delivered when\
       \ the receiving service is down.\n"
+    dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'true'
   name: 301-http
 spec:

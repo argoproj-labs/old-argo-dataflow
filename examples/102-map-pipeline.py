@@ -2,6 +2,7 @@ from dsls.python import pipeline, kafka
 
 if __name__ == '__main__':
     (pipeline("102-map")
+     .owner('argoproj-labs')
      .describe("""This is an example of built-in mapping.
 
 Maps are written using expression syntax and must return a byte array.

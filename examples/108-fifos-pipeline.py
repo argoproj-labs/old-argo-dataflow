@@ -2,6 +2,7 @@ from dsls.python import pipeline, kafka
 
 if __name__ == '__main__':
     (pipeline("108-fifos")
+     .owner('argoproj-labs')
      .describe("""This example use named pipe to send and receive messages.
 
 Two named pipes are made available:

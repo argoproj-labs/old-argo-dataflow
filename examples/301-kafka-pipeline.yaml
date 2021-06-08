@@ -4,6 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: This example shows reading and writing to a
       Kafka topic
+    dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'true'
   name: 301-kafka
 spec:

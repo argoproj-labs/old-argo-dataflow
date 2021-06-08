@@ -259,6 +259,9 @@ message Source {
   optional Kafka kafka = 4;
 
   optional HTTPSource http = 5;
+
+  // +kubebuilder:default=Never
+  optional string retryPolicy = 6;
 }
 
 message SourceStatus {

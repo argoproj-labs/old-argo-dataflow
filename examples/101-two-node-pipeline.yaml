@@ -6,6 +6,7 @@ metadata:
       This example shows a example of having two nodes in a pipeline.
 
       While they read from Kafka, they are connected by a NATS Streaming subject.
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 101-two-node
 spec:
   steps:
@@ -23,5 +24,4 @@ spec:
     - kafka:
         topic: output-topic
     sources:
-    - stan:
-        subject: a-b
+    - {}

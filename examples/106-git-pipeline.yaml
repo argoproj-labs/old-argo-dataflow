@@ -9,6 +9,7 @@ metadata:
       your code when the step starts.
 
       [Learn about Git steps](../docs/GIT.md)
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 106-git
 spec:
   steps:

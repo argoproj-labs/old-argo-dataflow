@@ -4,6 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: This example uses parallel to 2x the amount
       of data it processes.
+    dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'false'
   name: 301-parallel
 spec:
@@ -13,6 +14,6 @@ spec:
     sinks:
     - log: {}
     sources:
-    - kafka:
+    - stan:
         parallel: 2
-        topic: input-topic
+        subject: input-subject

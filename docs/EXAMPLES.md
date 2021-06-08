@@ -94,7 +94,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 ### [103-scaling](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-scaling-pipeline.yaml)
 
-      This is an example of having multiple replicas for a single step.
+This is an example of having multiple replicas for a single step.
 
 Steps can be manually scaled using `kubectl`:
 
@@ -265,10 +265,9 @@ This logs the message.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-cron-log-pipeline.yaml
 ```
 
-### [erroring](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml)
+### [301-erroring](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml)
 
-This example creates errors randomly
-
+This example showcases retry policies.
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-erroring-pipeline.yaml
