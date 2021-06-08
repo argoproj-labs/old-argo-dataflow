@@ -339,9 +339,6 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		retryPolicy := source.RetryPolicy
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)
-			withLock(func() {
-				step.Status.SourceStatuses.Set(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
-			})
 			err := wait.ExponentialBackoff(wait.Backoff{
 				Duration: 100 * time.Millisecond,
 				Factor:   1.2,
@@ -360,14 +357,18 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						default:
 							return false, nil
 						}
+					} else {
+						return true, nil
 					}
-					return true, nil
 				}
 			})
 			if err != nil {
-				withLock(func() { step.Status.SourceStatuses.IncErrors(sourceName, replica, err) })
+				withLock(func() { step.Status.SourceStatuses.IncrTotal(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter)) })
+			} else {
+				withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica, err) })
 			}
 			return err
+
 		}
 		if x := source.Cron; x != nil {
 			_, err := crn.AddFunc(x.Schedule, func() {
@@ -765,10 +766,10 @@ func connectSink() (func([]byte) error, error) {
 			counter := rateCounters[sinkName]
 			counter.Incr(1)
 			withLock(func() {
-				step.Status.SinkStatues.Set(sinkName, replica, printable(msg), rateToResourceQuantity(counter))
+				step.Status.SinkStatues.IncrTotal(sinkName, replica, printable(msg), rateToResourceQuantity(counter))
 			})
 			if err := f(msg); err != nil {
-				withLock(func() { step.Status.SinkStatues.IncErrors(sinkName, replica, err) })
+				withLock(func() { step.Status.SinkStatues.IncrErrors(sinkName, replica, err) })
 				return err
 			}
 		}

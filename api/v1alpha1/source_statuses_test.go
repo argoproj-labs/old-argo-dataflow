@@ -13,7 +13,7 @@ import (
 func TestSourceStatuses_Set(t *testing.T) {
 	ss := SourceStatuses{}
 
-	ss.Set("bar", 1, strings.Repeat("x", 33), resource.MustParse("1"))
+	ss.IncrTotal("bar", 1, strings.Repeat("x", 33), resource.MustParse("1"))
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
@@ -26,7 +26,7 @@ func TestSourceStatuses_Set(t *testing.T) {
 		}
 	}
 
-	ss.Set("bar", 1, "bar", resource.MustParse("1"))
+	ss.IncrTotal("bar", 1, "bar", resource.MustParse("1"))
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
@@ -39,7 +39,7 @@ func TestSourceStatuses_Set(t *testing.T) {
 		}
 	}
 
-	ss.Set("bar", 0, "foo", resource.MustParse("1"))
+	ss.IncrTotal("bar", 0, "foo", resource.MustParse("1"))
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
@@ -52,7 +52,7 @@ func TestSourceStatuses_Set(t *testing.T) {
 		}
 	}
 
-	ss.Set("baz", 0, "foo", resource.MustParse("1"))
+	ss.IncrTotal("baz", 0, "foo", resource.MustParse("1"))
 
 	if assert.Len(t, ss, 2) {
 		s := ss["baz"]
@@ -68,13 +68,13 @@ func TestSourceStatuses_Set(t *testing.T) {
 func TestSourceStatuses_IncErrors(t *testing.T) {
 	ss := SourceStatuses{}
 	err := errors.New(strings.Repeat("x", 33))
-	ss.IncErrors("foo", 0, err)
+	ss.IncrErrors("foo", 0, err)
 	assert.Equal(t, uint64(1), ss["foo"].Metrics["0"].Errors)
 	assert.NotEmpty(t, ss["foo"].LastError.Message)
 	assert.NotEmpty(t, ss["foo"].LastError.Time)
-	ss.IncErrors("foo", 0, err)
+	ss.IncrErrors("foo", 0, err)
 	assert.Equal(t, uint64(2), ss["foo"].Metrics["0"].Errors)
-	ss.IncErrors("bar", 0, err)
+	ss.IncrErrors("bar", 0, err)
 	assert.Equal(t, uint64(1), ss["bar"].Metrics["0"].Errors)
 }
 

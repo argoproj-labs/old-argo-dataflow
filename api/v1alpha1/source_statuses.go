@@ -10,7 +10,7 @@ import (
 
 type SourceStatuses map[string]SourceStatus // key is replica
 
-func (in SourceStatuses) Set(name string, replica int, msg string, rate resource.Quantity) {
+func (in SourceStatuses) IncrTotal(name string, replica int, msg string, rate resource.Quantity) {
 	x := in[name]
 	x.LastMessage = &Message{Data: trunc(msg), Time: metav1.Now()}
 	if x.Metrics == nil {
@@ -30,7 +30,7 @@ func (in SourceStatuses) Get(name string) SourceStatus {
 	return SourceStatus{}
 }
 
-func (in SourceStatuses) IncErrors(name string, replica int, err error) {
+func (in SourceStatuses) IncrErrors(name string, replica int, err error) {
 	x := in[name]
 	msg := err.Error()
 	x.LastError = &Error{Message: trunc(msg), Time: metav1.Now()}
