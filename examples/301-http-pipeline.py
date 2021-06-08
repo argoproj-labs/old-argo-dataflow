@@ -1,7 +1,7 @@
 from dsls.python import pipeline, cron, http
 
 if __name__ == '__main__':
-    (pipeline("http")
+    (pipeline("301-http")
      .describe("""This example uses a HTTP sources and sinks.
 
 HTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your
@@ -20,4 +20,4 @@ messages between steps.
          .cat('main')
          .log()
          ))
-     .dump())
+     .save())

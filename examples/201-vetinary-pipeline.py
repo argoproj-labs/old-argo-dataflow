@@ -1,7 +1,7 @@
 from dsls.python import pipeline, kafka, stan
 
 if __name__ == '__main__':
-    (pipeline("vet")
+    (pipeline("201-vet")
      .describe("""This pipeline processes pets (cats and dogs).""")
      .annotate("dataflow.argoproj.io/test", "false")
      .annotate("dataflow.argoproj.io/needs", "pets-configmap.yaml")
@@ -34,4 +34,4 @@ if __name__ == '__main__':
          .map("process-dogs", 'json("Woof! " + object(msg).name)'))
             .kafka('output-topic')
     )
-     .dump())
+     .save())

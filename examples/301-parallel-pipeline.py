@@ -1,7 +1,7 @@
 from dsls.python import pipeline, kafka
 
 if __name__ == '__main__':
-    (pipeline("parallel")
+    (pipeline("301-parallel")
      .describe("""This example uses parallel to 2x the amount of data it processes.""")
      .annotate("dataflow.argoproj.io/test", "false")
      .step(
@@ -9,4 +9,4 @@ if __name__ == '__main__':
          .cat('main')
          .log()
          ))
-     .dump())
+     .save())

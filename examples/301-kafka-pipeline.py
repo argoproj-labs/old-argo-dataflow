@@ -1,7 +1,7 @@
 from dsls.python import pipeline, kafka
 
 if __name__ == '__main__':
-    (pipeline("kafka")
+    (pipeline("301-kafka")
      .describe("""This example shows reading and writing to a Kafka topic""")
      .annotate("dataflow.argoproj.io/test", "true")
      .step(
@@ -9,4 +9,4 @@ if __name__ == '__main__':
          .cat('main')
          .kafka('output-topic')
          ))
-     .dump())
+     .save())

@@ -1,7 +1,7 @@
 from dsls.python import pipeline, kafka, stan
 
 if __name__ == '__main__':
-    (pipeline("word-count")
+    (pipeline("201-word-count")
      .describe("""This pipeline count the number of words in a document, not the number of count of each word as you might expect.
 
   It also shows an example of a pipelines terminates based on a single step's status.""")
@@ -47,4 +47,4 @@ echo $i > /var/run/argo-dataflow/out"""],
          .terminator()
          .kafka('output-topic')
          ))
-     .dump())
+     .save())

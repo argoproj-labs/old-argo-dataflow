@@ -6,7 +6,7 @@ def handler(msg):
 
 
 if __name__ == '__main__':
-    (pipeline("go1-16")
+    (pipeline("104-go1-16")
      .describe("""This example of Go 1.16 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)""")
@@ -19,4 +19,4 @@ func Handler(m []byte) ([]byte, error) {
 }""", runtime='go1-16')
          .log()
          ))
-     .dump())
+     .save())

@@ -1,0 +1,21 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: This example showcases container options.
+  name: 108-container
+spec:
+  steps:
+  - container:
+      args:
+      - sh
+      - -c
+      - exit 0
+      env:
+      - name: FOO
+        value: bar
+      image: ubuntu:latest
+    metadata:
+      annotations:
+        my-annotation: my-value
+    name: main

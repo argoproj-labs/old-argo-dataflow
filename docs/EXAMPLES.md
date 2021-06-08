@@ -1,6 +1,6 @@
 ### Examples
 
-### [hello](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-hello-pipeline.yaml)
+### [101-hello](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-hello-pipeline.yaml)
 
 This is the hello world of pipelines.
 
@@ -172,6 +172,14 @@ using different terminations strategies.
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-terminator-pipeline.yaml
+```
+
+### [108-container](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/108-container-pipeline.yaml)
+
+This example showcases container options.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/108-container-pipeline.yaml
 ```
 
 ### [fifos](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/108-fifos-pipeline.yaml)

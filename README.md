@@ -31,7 +31,7 @@ if __name__ == '__main__':
          .cat('main')
          .log())
     )
-     .dump())
+     .save())
 ```
 
 ## Documentation

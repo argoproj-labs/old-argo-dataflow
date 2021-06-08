@@ -14,4 +14,4 @@ kubectl scale step/scaling-main --replicas 3
          .cat('main')
          .kafka('output-topic'))
     )
-     .dump())
+     .save())

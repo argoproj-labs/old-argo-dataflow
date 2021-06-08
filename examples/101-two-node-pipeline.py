@@ -1,7 +1,7 @@
 from dsls.python import kafka, pipeline, stan
 
 if __name__ == '__main__':
-    (pipeline("two-node")
+    (pipeline("101-two-node")
      .describe("""This example shows a example of having two nodes in a pipeline.
 
 While they read from Kafka, they are connected by a NATS Streaming subject.""")
@@ -15,4 +15,4 @@ While they read from Kafka, they are connected by a NATS Streaming subject.""")
          .cat('b')
          .kafka('output-topic'))
     )
-     .dump())
+     .save())

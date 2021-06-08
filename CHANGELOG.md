@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.41 (2021-06-07)
+
+ * [cd2082e](https://github.com/argoproj/argo-workflows/commit/cd2082e893ac130a4367894b8f1a924fad070f84) feat: simplify so only replica 0 report metrics
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.40 (2021-06-07)
 
  * [da6a1e0](https://github.com/argoproj/argo-workflows/commit/da6a1e0e396a9d225ec1b8b25213597d69b995eb) fix: fix permissions

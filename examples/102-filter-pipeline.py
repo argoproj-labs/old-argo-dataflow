@@ -1,7 +1,7 @@
 from dsls.python import kafka, pipeline
 
 if __name__ == '__main__':
-    (pipeline("two-node")
+    (pipeline("102-two-node")
      .describe("""This is an example of built-in filtering.
 
 Filters are written using expression syntax and must return a boolean.
@@ -14,4 +14,4 @@ They have a single variable, `msg`, which is a byte array.
             .filter('main', 'string(msg) contains "capybara"')
             .kafka('output-topic')
     )
-     .dump())
+     .save())

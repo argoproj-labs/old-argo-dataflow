@@ -1,7 +1,7 @@
 from dsls.python import pipeline, container
 
 if __name__ == '__main__':
-    (pipeline("completion")
+    (pipeline("107-completion")
      .describe("""This example shows a pipeline running to completion.
 
 A pipeline that run to completion (aka "terminating") is one that will finish.
@@ -17,4 +17,4 @@ For a pipeline to terminate one of two things must happen:
                     image='ubuntu:latest'
                     )
          ))
-     .dump())
+     .save())

@@ -154,12 +154,8 @@ config/stan/single-server-stan.yml:
 
 examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 
-examples/101-hello-pipeline.yaml:
-examples/101-two-node-pipeline.yaml:
-examples/102-filter-pipeline.yaml:
-examples/102-flatten-expand-pipeline.yaml:
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/__init__.py
-	PYTHONPATH=. python3 examples/$*-pipeline.py > $@
+	PYTHONPATH=. python3 examples/$*-pipeline.py
 
 .PHONY: test-examples
 test-examples: examples

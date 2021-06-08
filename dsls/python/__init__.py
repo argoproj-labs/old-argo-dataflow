@@ -1,5 +1,4 @@
 import inspect
-import sys
 import yaml
 
 DEFAULT_RUNTIME = 'python3-9'
@@ -33,7 +32,7 @@ class PipelineBuilder():
         self._steps.append(step)
         return self
 
-    def build(self):
+    def dump(self):
         return {
             'apiVersion': 'dataflow.argoproj.io/v1alpha1',
             'kind': 'Pipeline',
@@ -42,45 +41,74 @@ class PipelineBuilder():
                 'annotations': self._annotations
             },
             'spec': {
-                'steps': [x.build() for x in self._steps]
+                'steps': [x.dump() for x in self._steps]
             }
         }
 
-    def dump(self):
-        sys.stdout.write((yaml.dump(self.build())))
+    def yaml(self):
+        return yaml.dump(self.dump())
+
+    def save(self):
+        with open(self._name + '-pipeline.yaml', "w") as f:
+            f.write(self.yaml())
 
 
 def pipeline(name):
     return PipelineBuilder(name)
 
 
-class LogSink:
-    def build(self):
-        return {'log': {}}
+class Sink:
+    def __init__(self, name=None):
+        self._name = name
+
+    def dump(self):
+        x = {}
+        if self._name:
+            x['name'] = self._name
+        return x
 
 
-class HTTPSink:
-    def __init__(self, url):
+class LogSink(Sink):
+    def __init__(self, name=None):
+        super().__init__(name)
+
+    def dump(self):
+        x = super().dump()
+        x['log'] = {}
+        return x
+
+
+class HTTPSink(Sink):
+    def __init__(self, url, name=None):
+        super().__init__(name)
         self._url = url
 
-    def build(self):
-        return {'http': {'url': self._url}}
+    def dump(self):
+        x = super().dump()
+        x['http'] = {'url': self._url}
+        return x
 
 
-class KafkaSink:
-    def __init__(self, subject):
+class KafkaSink(Sink):
+    def __init__(self, subject, name=None):
+        super().__init__(name)
         self._subject = subject
 
-    def build(self):
-        return {'kafka': {'topic': self._subject}}
+    def dump(self):
+        x = super().dump()
+        x['kafka'] = {'topic': self._subject}
+        return x
 
 
-class STANSink:
-    def __init__(self, topic):
+class STANSink(Sink):
+    def __init__(self, topic, name=None):
+        super().__init__(name)
         self._topic = topic
 
-    def build(self):
-        return {'stan': {'subject': self._topic}}
+    def dump(self):
+        x = super().dump()
+        x['stan'] = {'subject': self._topic}
+        return x
 
 
 class Step:
@@ -91,17 +119,18 @@ class Step:
         self._scale = {}
         self._volumes = volumes
         self._terminator = False
+        self._annotations = []
 
-    def log(self):
-        self._sinks.append(LogSink())
+    def log(self, name=None):
+        self._sinks.append(LogSink(name=name))
         return self
 
-    def http(self, url):
-        self._sinks.append(HTTPSink(url))
+    def http(self, url, name=None):
+        self._sinks.append(HTTPSink(url, name=name))
         return self
 
-    def kafka(self, subject):
-        self._sinks.append(KafkaSink(subject))
+    def kafka(self, subject, name=None):
+        self._sinks.append(KafkaSink(subject, name=name))
         return self
 
     def scale(self, minReplicas, maxReplicas, replicaRatio):
@@ -112,28 +141,37 @@ class Step:
         }
         return self
 
-    def stan(self, topic):
-        self._sinks.append(STANSink(topic))
+    def stan(self, topic, name=None):
+        self._sinks.append(STANSink(topic, name=name))
         return self
 
     def terminator(self):
         self._terminator = True
         return self
 
-    def build(self):
+    def annotations(self, annotations):
+        self._annotations = annotations
+        return self
+
+    def dump(self):
         y = {
             'name': self._name,
         }
         if len(self._sources):
-            y['sources'] = [x.build() for x in self._sources]
+            y['sources'] = [x.dump() for x in self._sources]
         if len(self._sinks):
-            y['sinks'] = [x.build() for x in self._sinks]
+            y['sinks'] = [x.dump() for x in self._sinks]
         if len(self._scale) > 0:
             y['scale'] = self._scale
         if len(self._volumes) > 0:
             y['volumes'] = self._volumes
         if self._terminator:
             y['terminator'] = True
+        if self._annotations:
+            # TODO - labels too please
+            y['metadata'] = {
+                'annotations': self._annotations
+            }
         return y
 
 
@@ -141,30 +179,34 @@ class CatStep(Step):
     def __init__(self, name, sources):
         super().__init__(name, sources=sources)
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         x['cat'] = {}
         return x
 
 
 class ContainerStep(Step):
-    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[]):
+    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[], env={}):
         super().__init__(name, sources=sources, volumes=volumes)
         self._image = image
         self._args = args
         self._fifo = fifo
         self._volumeMounts = volumeMounts
+        self._env = env
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         c = {
             'image': self._image,
-            'args': self._args
         }
+        if len(self._args) > 0:
+            c['args'] = self._args
         if self._fifo:
             c['in'] = {'fifo': True}
         if len(self._volumeMounts) > 0:
             c['volumeMounts'] = self._volumeMounts
+        if self._env:
+            c['env'] = [{'name': x, 'value': self._env[x]} for k, x in enumerate(self._env)]
         x['container'] = c
         return x
 
@@ -173,8 +215,8 @@ class ExpandStep(Step):
     def __init__(self, name, sources=[]):
         super().__init__(name, sources=sources)
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         x['expand'] = {}
         return x
 
@@ -184,8 +226,8 @@ class FilterStep(Step):
         super().__init__(name, sources=sources)
         self._filter = filter
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         x['filter'] = self._filter
         return x
 
@@ -198,8 +240,8 @@ class GitStep(Step):
         self._path = path
         self._image = image
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         x['git'] = {
             'url': self._url,
             'branch': self._branch,
@@ -215,6 +257,7 @@ def storageVolumes(storage=None):
         return [storage]
     return []
 
+
 class GroupStep(Step):
     def __init__(self, name, key, format, endOfGroup, storage=None, sources=[]):
         super().__init__(name, sources=sources, volumes=storageVolumes(storage))
@@ -223,8 +266,8 @@ class GroupStep(Step):
         self._endOfGroup = endOfGroup
         self._storage = storage
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         y = {
             'key': self._key,
             'format': self._format,
@@ -242,8 +285,8 @@ class FlattenStep(Step):
     def __init__(self, name, sources=[]):
         super().__init__(name, sources=sources)
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         x['flatten'] = {}
         return x
 
@@ -260,8 +303,8 @@ class HandlerStep(Step):
         else:
             self._runtime = DEFAULT_RUNTIME
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         x['handler'] = {
             'runtime': self._runtime,
             'code': self._code,
@@ -274,20 +317,28 @@ class MapStep(Step):
         super().__init__(name, sources=sources)
         self._map = map
 
-    def build(self):
-        x = super().build()
+    def dump(self):
+        x = super().dump()
         x['map'] = self._map
         return x
 
 
 class Source:
+    def __init__(self, name=None):
+        self._name = name
+
+    def dump(self):
+        x = {}
+        if self._name:
+            x['name'] = self._name
+        return x
 
     def cat(self, name):
         return CatStep(name, sources=[self])
 
-    def container(self, name, image, args, fifo=False, volumes=[], volumeMounts=[]):
+    def container(self, name, image, args=[], fifo=False, volumes=[], volumeMounts=[], env={}):
         return ContainerStep(name, sources=[self], image=image, args=args, fifo=fifo, volumes=volumes,
-                             volumeMounts=volumeMounts)
+                             volumeMounts=volumeMounts, env=env)
 
     def expand(self, name):
         return ExpandStep(name, sources=[self])
@@ -315,9 +366,9 @@ def cat(name):
     return CatStep(name, [])
 
 
-def container(name, image, args, fifo=False, volumes=[], volumeMounts=[]):
+def container(name, image, args, fifo=False, volumes=[], volumeMounts=[], env={}):
     return ContainerStep(name, sources=[], image=image, args=args, fifo=fifo, volumes=volumes,
-                         volumeMounts=volumeMounts)
+                         volumeMounts=volumeMounts, env=env)
 
 
 def expand(name):
@@ -349,59 +400,65 @@ def map(name, map):
 
 
 class CronSource(Source):
-    def __init__(self, schedule, layout):
-        super().__init__()
+    def __init__(self, schedule, layout, name=None):
+        super().__init__(name)
         self._schedule = schedule
         self._layout = layout
 
-    def build(self):
-        x = {'schedule': self._schedule}
+    def dump(self):
+        x = super().dump()
+        x['schedule'] = self._schedule
         if self._layout:
             x['layout'] = self._layout
         return {'cron': x}
 
 
 class HTTPSource(Source):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name=None):
+        super().__init__(name)
 
-    def build(self):
-        return {'http': {}}
+    def dump(self):
+        x = super().dump()
+        x['http'] = {}
+        return x
 
 
 class KafkaSource(Source):
-    def __init__(self, topic, parallel=None):
-        super().__init__()
+    def __init__(self, topic, parallel=None, name=None):
+        super().__init__(name)
         self._topic = topic
         self._parallel = parallel
 
-    def build(self):
-        y = {'topic': self._topic}
+    def dump(self):
+        x = super().dump()
+        x['topic'] = self._topic
         if self._parallel:
-            y['parallel'] = self._parallel
-        return {'kafka': y}
+            x['parallel'] = self._parallel
+        return {'kafka': x}
 
 
 class STANSource(Source):
-    def __init__(self, subject):
-        super().__init__()
+    def __init__(self, subject, name=None):
+        super().__init__(name)
         self._subject = subject
 
-    def build(self):
-        return {'stan': {'subject': self._subject}}
+    def dump(self):
+        x = super().dump()
+        x['stan'] = {'subject': self._subject}
+        return x
 
 
-def cron(schedule, layout=''):
-    return CronSource(schedule, layout)
+def cron(schedule, layout=None, name=None):
+    return CronSource(schedule, layout=layout, name=name)
 
 
-def http():
-    return HTTPSource()
+def http(name=None):
+    return HTTPSource(name=name)
 
 
-def kafka(topic, parallel=None):
-    return KafkaSource(topic, parallel)
+def kafka(topic, parallel=None, name=None):
+    return KafkaSource(topic, parallel, name=name)
 
 
-def stan(subject):
-    return STANSource(subject)
+def stan(subject, name=None):
+    return STANSource(subject, name=name)

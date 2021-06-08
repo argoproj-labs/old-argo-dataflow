@@ -1,7 +1,7 @@
 from dsls.python import pipeline, cron
 
 if __name__ == '__main__':
-    (pipeline("cron-log")
+    (pipeline("301-cron-log")
      .describe("""This example uses a cron source and a log sink.
 
 ## Cron
@@ -23,4 +23,4 @@ This logs the message.
         (cron('*/3 * * * * *', layout='15:04:05')
          .cat('main')
          .log())
-    ).dump())
+    ).save())

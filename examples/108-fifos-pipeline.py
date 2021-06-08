@@ -21,4 +21,4 @@ done > /var/run/argo-dataflow/out"""],
                     )
          .kafka('output-topic')
          ))
-     .dump())
+     .save())

@@ -6,7 +6,7 @@ def handler(msg):
 
 
 if __name__ == '__main__':
-    (pipeline("python3-9")
+    (pipeline("104-python3-9")
      .describe("""This example is of the Python 3.9 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)""")
@@ -16,4 +16,4 @@ if __name__ == '__main__':
          .handler('main', handler)
          .kafka('output-topic')
          ))
-     .dump())
+     .save())

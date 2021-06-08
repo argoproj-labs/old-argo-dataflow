@@ -1,7 +1,7 @@
 from dsls.python import pipeline, kafka
 
 if __name__ == '__main__':
-    (pipeline("group")
+    (pipeline("109-group")
      .describe("""This is an example of built-in grouping.
 
 WARNING: The spec/syntax not been finalized yet. Please tell us how you think it should work!
@@ -31,4 +31,4 @@ Storage can either be:
                 )
          .stan('odd-end')
          ))
-     .dump())
+     .save())
