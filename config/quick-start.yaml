@@ -755,6 +755,8 @@ spec:
                               name:
                                 default: default
                                 type: string
+                              natsMonitoringUrl:
+                                type: string
                               natsUrl:
                                 type: string
                               parallel:
@@ -832,6 +834,8 @@ spec:
                                 type: string
                               name:
                                 default: default
+                                type: string
+                              natsMonitoringUrl:
                                 type: string
                               natsUrl:
                                 type: string
@@ -2611,6 +2615,8 @@ spec:
                         name:
                           default: default
                           type: string
+                        natsMonitoringUrl:
+                          type: string
                         natsUrl:
                           type: string
                         parallel:
@@ -2688,6 +2694,8 @@ spec:
                           type: string
                         name:
                           default: default
+                          type: string
+                        natsMonitoringUrl:
                           type: string
                         natsUrl:
                           type: string

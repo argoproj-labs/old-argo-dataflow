@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.42 (2021-06-08)
+
+ * [d2f219f](https://github.com/argoproj/argo-workflows/commit/d2f219f806277636ab5b4c41dd26ea87c887ec3a) ok
+ * [abbf7d0](https://github.com/argoproj/argo-workflows/commit/abbf7d09b6ef6ca36d7538acfc663907233b08b6) fix: various issues
+ * [c6a9e6e](https://github.com/argoproj/argo-workflows/commit/c6a9e6e7bbee5a60d43ddc0d3b69713a90e8de72) feat: add retryPolicy
+ * [8170a88](https://github.com/argoproj/argo-workflows/commit/8170a8847fe43f9a79eaaf73cd6d39a886294cb2) feat: more work on Python DLS
+ * [e306739](https://github.com/argoproj/argo-workflows/commit/e3067398a57919791a531fd4ed90e27d69028b5e) feat: more work on Python DLS
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.41 (2021-06-07)
 
  * [cd2082e](https://github.com/argoproj/argo-workflows/commit/cd2082e893ac130a4367894b8f1a924fad070f84) feat: simplify so only replica 0 report metrics

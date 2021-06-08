@@ -215,6 +215,8 @@ message STAN {
 
   optional string natsUrl = 4;
 
+  optional string natsMonitoringUrl = 8;
+
   optional string clusterId = 5;
 
   optional string subject = 3;
