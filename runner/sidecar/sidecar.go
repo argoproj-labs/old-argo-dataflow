@@ -341,6 +341,9 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		retryPolicy := source.RetryPolicy
 		f := func(msg []byte) error {
 			rateCounter.Incr(1)
+			withLock(func() {
+				step.Status.SourceStatuses.IncrTotal(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
+			})
 			err := wait.ExponentialBackoff(wait.Backoff{
 				Duration: 100 * time.Millisecond,
 				Factor:   1.2,
@@ -365,10 +368,6 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				}
 			})
 			if err != nil {
-				withLock(func() {
-					step.Status.SourceStatuses.IncrTotal(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
-				})
-			} else {
 				withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica, err) })
 			}
 			return err

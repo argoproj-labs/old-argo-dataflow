@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.43 (2021-06-08)
+
+ * [a03615d](https://github.com/argoproj/argo-workflows/commit/a03615d7ccd5d7ed68479cdebff76b0ce5e05a17) ok
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.42 (2021-06-08)
 
  * [d2f219f](https://github.com/argoproj/argo-workflows/commit/d2f219f806277636ab5b4c41dd26ea87c887ec3a) ok
