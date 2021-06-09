@@ -413,7 +413,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				if err := json.NewDecoder(resp.Body).Decode(&o); err != nil {
 					return 0, err
 				}
-				lastSeq, err := strconv.ParseInt(fmt.Sprintf("%v", o["last_seq"]), 10, 64)
+				lastSeq, ok := o["last_seq"].(float64)
+				if !ok {
+					return 0, fmt.Errorf("Unrecognized last_seq: %v", o["last_seq"])
+				}
 				if err != nil {
 					return 0, err
 				}
@@ -421,13 +424,16 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				if !ok {
 					return 0, fmt.Errorf("No suscriptions field found in the monitoring endpoint response")
 				}
-				maxLastSent := int64(0)
+				maxLastSent := float64(0)
 				for _, i := range subs.([]interface{}) {
 					s := i.(obj)
 					if fmt.Sprintf("%v", s["queue_name"]) != queueNameCombo {
 						continue
 					}
-					lastSent, err := strconv.ParseInt(fmt.Sprintf("%v", s["last_sent"]), 10, 64)
+					lastSent, ok := s["last_sent"].(float64)
+					if !ok {
+						return 0, fmt.Errorf("Unrecognized last_sent: %v", s["last_sent"])
+					}
 					if err != nil {
 						return 0, err
 					}
@@ -435,7 +441,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 						maxLastSent = lastSent
 					}
 				}
-				return lastSeq - maxLastSent, nil
+				return int64(lastSeq) - int64(maxLastSent), nil
 			}
 
 			// https://docs.nats.io/developing-with-nats-streaming/queues
