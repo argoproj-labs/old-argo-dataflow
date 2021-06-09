@@ -363,12 +363,13 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				}
 			})
 			if err != nil {
-				withLock(func() { step.Status.SourceStatuses.IncrTotal(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter)) })
+				withLock(func() {
+					step.Status.SourceStatuses.IncrTotal(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
+				})
 			} else {
 				withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica, err) })
 			}
 			return err
-
 		}
 		if x := source.Cron; x != nil {
 			_, err := crn.AddFunc(x.Schedule, func() {
