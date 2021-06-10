@@ -21,8 +21,12 @@ pipelines composed of many steps which are often small and homogenic.
 
 ## Example
 
+```bash
+pip install git+https://github.com/argoproj-labs/argo-dataflow#subdirectory=dsls/python
+```
+
 ```python
-from dsls.python import cron, pipeline
+from argodataflow import cron, pipeline
 
 if __name__ == '__main__':
     (pipeline('hello')
