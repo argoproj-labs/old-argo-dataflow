@@ -36,6 +36,7 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 			// noop
 		} else {
 			sess.MarkMessage(m, "")
+			sess.Commit()
 		}
 	}
 	return nil

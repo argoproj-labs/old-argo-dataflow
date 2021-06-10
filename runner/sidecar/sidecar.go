@@ -419,7 +419,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				}
 				subs, ok := o["subscriptions"]
 				if !ok {
-					return 0, fmt.Errorf("no \"suscriptions\" field found in the monitoring endpoint response")
+					return 0, fmt.Errorf("no suscriptions field found in the monitoring endpoint response")
 				}
 				maxLastSent := float64(0)
 				for _, i := range subs.([]interface{}) {
@@ -440,8 +440,12 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 
 			// https://docs.nats.io/developing-with-nats-streaming/queues
 			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
-			if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(m *stan.Msg) {
-				_ = f(m.Data) // TODO we should decide what to do with errors here, currently we ignore them
+			if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
+				if err := f(msg.Data); err != nil {
+					if err := msg.Ack(); err != nil {
+						logger.Error(err, "failed to ack message", "msg", msg)
+					}
+				}
 			}, stan.DurableName(queueName)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			} else {
@@ -468,9 +472,6 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			if err != nil {
 				return err
 			}
-			config.Consumer.Return.Errors = true
-			config.Consumer.Offsets.Initial = sarama.OffsetNewest
-			config.Consumer.Offsets.AutoCommit.Enable = false
 			client, err := sarama.NewClient(x.Brokers, config) // I am not giving any configuration
 			if err != nil {
 				return err
