@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.0.45 (2021-06-09)
+
+ * [b8e88fe](https://github.com/argoproj/argo-workflows/commit/b8e88fe3ba1aa1c62cb965560ccbcfddbeb6e61b) fix: nats pending messages type assersion error
+
+### Contributors
+
+ * Derek Wang
+
+## v0.0.44 (2021-06-09)
+
+ * [12f0e5e](https://github.com/argoproj/argo-workflows/commit/12f0e5e9f4cf2dbd792f94a5656bddf7aba6052b) fix: correct total counter
+ * [bf7b993](https://github.com/argoproj/argo-workflows/commit/bf7b99324199fc26de068ded51a01f4aba312657) fix: nats pending messages
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.43 (2021-06-08)
 
  * [a03615d](https://github.com/argoproj/argo-workflows/commit/a03615d7ccd5d7ed68479cdebff76b0ce5e05a17) ok
