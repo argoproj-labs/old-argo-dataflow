@@ -1,4 +1,3 @@
-import requests
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from handler import handler
@@ -12,7 +11,7 @@ class MyServer(BaseHTTPRequestHandler):
     def do_POST(self):  # POST /messages
         len = int(self.headers.get('Content-Length'))
         msg = self.rfile.read(len)
-        out = handler(msg)
+        out = handler(msg, {})
         if out:
             self.send_response(201)
             self.end_headers()

@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.47 (2021-06-10)
+
+ * [34b75ae](https://github.com/argoproj/argo-workflows/commit/34b75ae05de30b1e80fa1eb0312d398c59095c77) fix: change default retryPolicy=Always
+ * [a9e83fa](https://github.com/argoproj/argo-workflows/commit/a9e83fa0b033ae9a7c1355d14a4b30acbb946bea) feat: add Golang context
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.46 (2021-06-09)
 
  * [268b1ec](https://github.com/argoproj/argo-workflows/commit/268b1ecd89e9cd86be2384e44eeda441d4d190b8) fix: removed parallel

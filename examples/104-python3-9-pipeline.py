@@ -1,7 +1,7 @@
 from dsls.python import pipeline, kafka
 
 
-def handler(msg):
+def handler(msg, context):
     return msg
 
 
