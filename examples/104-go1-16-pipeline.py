@@ -15,7 +15,9 @@ if __name__ == '__main__':
         (kafka('input-topic')
          .handler('main', code="""package main
 
-func Handler(m []byte) ([]byte, error) {
+import "context"
+
+func Handler(ctx context.Context, m []byte) ([]byte, error) {
   return []byte("hi " + string(m)), nil
 }""", runtime='go1-16')
          .log()
