@@ -2,8 +2,9 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: This example shows reading and writing to a
-      Kafka topic
+    dataflow.argoproj.io/description: "This example shows reading and writing to a\
+      \ Kafka topic\n     \nKafka topics are typically partitioned. Dataflow will\
+      \ process each partition simultaneously.     \n     "
     dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'true'
   name: 301-kafka
