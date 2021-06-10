@@ -406,7 +406,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					return 0, err
 				}
 				if resp.StatusCode != 200 {
-					return 0, fmt.Errorf("Invalid response: %s", resp.Status)
+					return 0, fmt.Errorf("invalid response: %s", resp.Status)
 				}
 				defer resp.Body.Close()
 				o := make(obj)
@@ -415,11 +415,11 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				}
 				lastSeq, ok := o["last_seq"].(float64)
 				if !ok {
-					return 0, fmt.Errorf("Unrecognized last_seq: %v", o["last_seq"])
+					return 0, fmt.Errorf("unrecognized last_seq: %v", o["last_seq"])
 				}
 				subs, ok := o["subscriptions"]
 				if !ok {
-					return 0, fmt.Errorf("No suscriptions field found in the monitoring endpoint response")
+					return 0, fmt.Errorf("no \"suscriptions\" field found in the monitoring endpoint response")
 				}
 				maxLastSent := float64(0)
 				for _, i := range subs.([]interface{}) {
@@ -429,7 +429,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					}
 					lastSent, ok := s["last_sent"].(float64)
 					if !ok {
-						return 0, fmt.Errorf("Unrecognized last_sent: %v", s["last_sent"])
+						return 0, fmt.Errorf("unrecognized last_sent: %v", s["last_sent"])
 					}
 					if lastSent > maxLastSent {
 						maxLastSent = lastSent
