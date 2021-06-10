@@ -254,11 +254,13 @@ https://golang.org/pkg/time/#Time.Format
 By default, the layout is RFC3339.
 
 * Cron sources are **unreliable**. Messages will not be sent when a pod is not running, which can happen at any time in Kubernetes.
-* Cron sources must not be scaled to zero.
+* Cron sources must not be scaled to zero. They will stop working.
 
 ## Log
 
 This logs the message.
+
+* Log sinks are totally reliable.
 
 
 ```
@@ -290,17 +292,12 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 ### [301-kafka](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml)
 
 This example shows reading and writing to a Kafka topic
+     
+Kafka topics are typically partitioned. Dataflow will process each partition simultaneously.     
+     
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml
-```
-
-### [301-parallel](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-parallel-pipeline.yaml)
-
-This example uses parallel to 2x the amount of data it processes.
-
-```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-parallel-pipeline.yaml
 ```
 
 ### [301-stan](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-stan-pipeline.yaml)
@@ -313,7 +310,10 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 ### [301-two-sinks](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-two-sinks-pipeline.yaml)
 
-This example has two sinks
+This example has two sinks.
+
+* When using two sinks, you should put the most reliable first in the list, if the message cannot be delivered,
+  then subsequent sinks will get the message.
 
 
 ```

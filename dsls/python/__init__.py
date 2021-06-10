@@ -433,30 +433,24 @@ class HTTPSource(Source):
 
 
 class KafkaSource(Source):
-    def __init__(self, topic, parallel=None, name=None, retryPolicy=None):
+    def __init__(self, topic,  name=None, retryPolicy=None):
         super().__init__(name=name, retryPolicy=retryPolicy)
         self._topic = topic
-        self._parallel = parallel
 
     def dump(self):
         x = super().dump()
         x['topic'] = self._topic
-        if self._parallel:
-            x['parallel'] = self._parallel
         return {'kafka': x}
 
 
 class STANSource(Source):
-    def __init__(self, subject, name=None, parallel=None, retryPolicy=None):
+    def __init__(self, subject, name=None,  retryPolicy=None):
         super().__init__(name=name, retryPolicy=retryPolicy)
         self._subject = subject
-        self._parallel = parallel
 
     def dump(self):
         x = super().dump()
         y = {'subject': self._subject}
-        if self._parallel:
-            y['parallel'] = self._parallel
         x['stan'] = y
         return x
 
@@ -469,9 +463,9 @@ def http(name=None, retryPolicy=None):
     return HTTPSource(name=name, retryPolicy=retryPolicy)
 
 
-def kafka(topic, parallel=None, name=None, retryPolicy=None):
-    return KafkaSource(topic, parallel, name=name, retryPolicy=retryPolicy)
+def kafka(topic,  name=None, retryPolicy=None):
+    return KafkaSource(topic,  name=name, retryPolicy=retryPolicy)
 
 
-def stan(subject, name=None, parallel=None, retryPolicy=None):
-    return STANSource(subject, name=name, parallel=parallel, retryPolicy=retryPolicy)
+def stan(subject, name=None,  retryPolicy=None):
+    return STANSource(subject, name=name, retryPolicy=retryPolicy)

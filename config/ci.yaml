@@ -731,11 +731,6 @@ spec:
                                   tls:
                                     type: object
                                 type: object
-                              parallel:
-                                default: 1
-                                format: int32
-                                minimum: 1
-                                type: integer
                               topic:
                                 type: string
                               version:
@@ -759,11 +754,6 @@ spec:
                                 type: string
                               natsUrl:
                                 type: string
-                              parallel:
-                                default: 1
-                                format: int32
-                                minimum: 1
-                                type: integer
                               subject:
                                 type: string
                               subjectPrefix:
@@ -807,11 +797,6 @@ spec:
                                   tls:
                                     type: object
                                 type: object
-                              parallel:
-                                default: 1
-                                format: int32
-                                minimum: 1
-                                type: integer
                               topic:
                                 type: string
                               version:
@@ -839,11 +824,6 @@ spec:
                                 type: string
                               natsUrl:
                                 type: string
-                              parallel:
-                                default: 1
-                                format: int32
-                                minimum: 1
-                                type: integer
                               subject:
                                 type: string
                               subjectPrefix:
@@ -2591,11 +2571,6 @@ spec:
                             tls:
                               type: object
                           type: object
-                        parallel:
-                          default: 1
-                          format: int32
-                          minimum: 1
-                          type: integer
                         topic:
                           type: string
                         version:
@@ -2619,11 +2594,6 @@ spec:
                           type: string
                         natsUrl:
                           type: string
-                        parallel:
-                          default: 1
-                          format: int32
-                          minimum: 1
-                          type: integer
                         subject:
                           type: string
                         subjectPrefix:
@@ -2667,11 +2637,6 @@ spec:
                             tls:
                               type: object
                           type: object
-                        parallel:
-                          default: 1
-                          format: int32
-                          minimum: 1
-                          type: integer
                         topic:
                           type: string
                         version:
@@ -2699,11 +2664,6 @@ spec:
                           type: string
                         natsUrl:
                           type: string
-                        parallel:
-                          default: 1
-                          format: int32
-                          minimum: 1
-                          type: integer
                         subject:
                           type: string
                         subjectPrefix:

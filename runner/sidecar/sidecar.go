@@ -121,7 +121,7 @@ func Exec(ctx context.Context) error {
 
 	http.Handle("/metrics", promhttp.Handler())
 
-	if replica == 0 {
+	if leadReplica() {
 		promauto.NewGaugeFunc(prometheus.GaugeOpts{
 			Name: "replicas",
 			Help: "Number of replicas, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#replicas",
@@ -314,7 +314,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		}
 		sources[sourceName] = true
 
-		if replica == 0 { // only replica zero updates this value, so it the only replica that can be accurate
+		if leadReplica() { // only replica zero updates this value, so it the only replica that can be accurate
 			promauto.NewCounterFunc(prometheus.CounterOpts{
 				Subsystem:   "sources",
 				Name:        "pending",
@@ -454,7 +454,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					return sub.Close()
 				})
 
-				if replica == 0 {
+				if leadReplica() {
 					go wait.JitterUntil(func() {
 						// queueNameCombo := {durableName}:{queueGroup}
 						queueNameCombo := queueName + ":" + queueName
@@ -488,52 +488,50 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				logger.Info("closing kafka admin client", "source", sourceName)
 				return adminClient.Close()
 			})
-			for i := 0; i < int(x.Parallel); i++ {
-				groupName := pipelineName + "-" + stepName
-				group, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
-				if err != nil {
-					return fmt.Errorf("failed to create kafka consumer group: %w", err)
+			groupName := pipelineName + "-" + stepName
+			group, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
+			if err != nil {
+				return fmt.Errorf("failed to create kafka consumer group: %w", err)
+			}
+			beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+				logger.Info("closing kafka consumer group", "source", sourceName)
+				return group.Close()
+			})
+			handler := &handler{f: f}
+			go wait.JitterUntil(func() {
+				if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
+					logger.Error(err, "failed to create kafka consumer")
 				}
-				beforeClosers = append(beforeClosers, func(ctx context.Context) error {
-					logger.Info("closing kafka consumer group", "source", sourceName)
-					return group.Close()
-				})
-				handler := &handler{f: f}
+			}, 10*time.Second, 1.2, true, ctx.Done())
+			beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+				logger.Info("closing kafka handler", "source", sourceName)
+				return handler.Close()
+			})
+			if leadReplica() {
 				go wait.JitterUntil(func() {
-					if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
-						logger.Error(err, "failed to create kafka consumer")
+					partitions, err := client.Partitions(x.Topic)
+					if err != nil {
+						logger.Error(err, "failed to get partitions", "source", sourceName)
+						return
 					}
-				}, 10*time.Second, 1.2, true, ctx.Done())
-				beforeClosers = append(beforeClosers, func(ctx context.Context) error {
-					logger.Info("closing kafka handler", "source", sourceName)
-					return handler.Close()
-				})
-				if i == 0 && replica == 0 {
-					go wait.JitterUntil(func() {
-						partitions, err := client.Partitions(x.Topic)
+					totalLags := int64(0)
+					rep, err := adminClient.ListConsumerGroupOffsets(groupName, map[string][]int32{x.Topic: partitions})
+					if err != nil {
+						logger.Error(err, "failed to list consumer group offsets", "source", sourceName)
+						return
+					}
+					for _, partition := range partitions {
+						partitionOffset, err := client.GetOffset(x.Topic, partition, sarama.OffsetNewest)
 						if err != nil {
-							logger.Error(err, "failed to get partitions", "source", sourceName)
+							logger.Error(err, "failed to get topic/partition offset", "source", sourceName, "topic", x.Topic, "partition", partition)
 							return
 						}
-						totalLags := int64(0)
-						rep, err := adminClient.ListConsumerGroupOffsets(groupName, map[string][]int32{x.Topic: partitions})
-						if err != nil {
-							logger.Error(err, "failed to list consumer group offsets", "source", sourceName)
-							return
-						}
-						for _, partition := range partitions {
-							partitionOffset, err := client.GetOffset(x.Topic, partition, sarama.OffsetNewest)
-							if err != nil {
-								logger.Error(err, "failed to get topic/partition offset", "source", sourceName, "topic", x.Topic, "partition", partition)
-								return
-							}
-							block := rep.GetBlock(x.Topic, partition)
-							totalLags += partitionOffset - block.Offset
-						}
-						logger.Info("setting pending", "source", sourceName, "pending", totalLags)
-						withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, uint64(totalLags)) })
-					}, updateInterval, 1.2, true, ctx.Done())
-				}
+						block := rep.GetBlock(x.Topic, partition)
+						totalLags += partitionOffset - block.Offset
+					}
+					logger.Info("setting pending", "source", sourceName, "pending", totalLags)
+					withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, uint64(totalLags)) })
+				}, updateInterval, 1.2, true, ctx.Done())
 			}
 		} else if x := source.HTTP; x != nil {
 			http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
@@ -556,6 +554,10 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		}
 	}
 	return nil
+}
+
+func leadReplica() bool {
+	return replica == 0
 }
 
 func rateToResourceQuantity(rateCounter *ratecounter.RateCounter) resource.Quantity {

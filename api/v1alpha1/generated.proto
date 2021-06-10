@@ -142,10 +142,6 @@ message Kafka {
   optional string version = 4;
 
   optional KafkaNET net = 5;
-
-  // +kubebuilder:validation:Minimum=1
-  // +kubebuilder:default=1
-  optional uint32 parallel = 6;
 }
 
 message KafkaNET {
@@ -222,10 +218,6 @@ message STAN {
   optional string subject = 3;
 
   optional string subjectPrefix = 6;
-
-  // +kubebuilder:validation:Minimum=1
-  // +kubebuilder:default=1
-  optional uint32 parallel = 7;
 }
 
 message Scale {
