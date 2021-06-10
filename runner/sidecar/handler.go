@@ -1,13 +1,14 @@
 package sidecar
 
 import (
+	"context"
 	"sync"
 
 	"github.com/Shopify/sarama"
 )
 
 type handler struct {
-	f         func([]byte) error
+	f         func(context.Context, []byte) error
 	partition int32
 	offset    int64
 	wg        sync.WaitGroup
@@ -32,7 +33,7 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 	for m := range claim.Messages() {
 		h.partition = m.Partition
 		h.offset = m.Offset
-		if err := h.f(m.Value); err != nil {
+		if err := h.f(context.Background(), m.Value); err != nil {
 			// noop
 		} else {
 			sess.MarkMessage(m, "")
