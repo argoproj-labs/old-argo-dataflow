@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.46 (2021-06-09)
+
+ * [268b1ec](https://github.com/argoproj/argo-workflows/commit/268b1ecd89e9cd86be2384e44eeda441d4d190b8) fix: removed parallel
+ * [4cd5e8b](https://github.com/argoproj/argo-workflows/commit/4cd5e8b248142a8baec7170935de4658fca7ea62) feat: switch to manual ack
+ * [e09e8e9](https://github.com/argoproj/argo-workflows/commit/e09e8e9084900013b1d13fe78832d07135c53af6) fix: clean up parallel for stan
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.45 (2021-06-09)
 
  * [b8e88fe](https://github.com/argoproj/argo-workflows/commit/b8e88fe3ba1aa1c62cb965560ccbcfddbeb6e61b) fix: nats pending messages type assersion error
