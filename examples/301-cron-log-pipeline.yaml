@@ -14,11 +14,13 @@ metadata:
       By default, the layout is RFC3339.
 
       * Cron sources are **unreliable**. Messages will not be sent when a pod is not running, which can happen at any time in Kubernetes.
-      * Cron sources must not be scaled to zero.
+      * Cron sources must not be scaled to zero. They will stop working.
 
       ## Log
 
       This logs the message.
+
+      * Log sinks are totally reliable.
     dataflow.argoproj.io/owner: argoproj-labs
   name: 301-cron-log
 spec:
