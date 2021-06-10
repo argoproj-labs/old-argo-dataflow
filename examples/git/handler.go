@@ -1,5 +1,7 @@
 package main
 
-func Handler(m []byte) ([]byte, error) {
+import "context"
+
+func Handler(context context.Context, m []byte) ([]byte, error) {
 	return []byte("hi " + string(m)), nil
 }
