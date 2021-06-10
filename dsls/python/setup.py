@@ -3,6 +3,7 @@ from distutils.core import setup
 setup(
     name='argo_dataflow',
     packages=['argo_dataflow'],
+    install_requires=['kubernetes'],
     version='v0.0.48',
     license='apache-2.0',
     description='Argo Dataflow',
