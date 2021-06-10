@@ -21,5 +21,5 @@ yarn --cwd ui start
 
 ## Docker for Desktop vs K3D
 
-* Docker for Desktop does not support Kubernetes RBAC. 
+* Docker for Desktop does not support Kubernetes RBAC.
 * K3D requires you to import images.
