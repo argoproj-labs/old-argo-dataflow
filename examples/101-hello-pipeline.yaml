@@ -9,6 +9,7 @@ metadata:
     dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'true'
   name: 101-hello
+  namespace: argo-dataflow-system
 spec:
   steps:
   - cat: {}

@@ -1,6 +1,12 @@
 import getpass
 import inspect
+import json
+import kubernetes
 import yaml
+
+RESOURCE_PLURAL = 'pipelines'
+VERSION = 'v1alpha1'
+GROUP = 'dataflow.argoproj.io'
 
 DEFAULT_RUNTIME = 'python3-9'
 GROUPS_VOLUME_NAME = 'groups'
@@ -16,9 +22,11 @@ def str_presenter(dumper, data):
 yaml.add_representer(str, str_presenter)
 
 
-class PipelineBuilder():
+class PipelineBuilder:
     def __init__(self, name):
         self._name = name
+        self._resourceVersion = None
+        self._namespace = None
         self._annotations = {}
         self._steps = []
         self.owner(USER)
@@ -33,18 +41,27 @@ class PipelineBuilder():
     def describe(self, value):
         return self.annotate('dataflow.argoproj.io/description', value)
 
+    def namespace(self, namespace):
+        self._namespace = namespace
+        return self
+
     def step(self, step):
         self._steps.append(step)
         return self
 
     def dump(self):
+        m = {
+            'name': self._name,
+            'annotations': self._annotations
+        }
+        if self._namespace:
+            m['namespace'] = self._namespace
+        if self._resourceVersion:
+            m['resourceVersion'] = self._resourceVersion
         return {
             'apiVersion': 'dataflow.argoproj.io/v1alpha1',
             'kind': 'Pipeline',
-            'metadata': {
-                'name': self._name,
-                'annotations': self._annotations
-            },
+            'metadata': m,
             'spec': {
                 'steps': [x.dump() for x in self._steps]
             }
@@ -53,10 +70,44 @@ class PipelineBuilder():
     def yaml(self):
         return yaml.dump(self.dump())
 
+    def json(self):
+        return json.dumps(self.dump())
+
     def save(self):
         with open(self._name + '-pipeline.yaml', "w") as f:
             f.write(self.yaml())
 
+    def start(self):
+        # https://github.com/kubernetes-client/python
+        kubernetes.config.load_kube_config()
+
+        # https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md
+        api = kubernetes.client.CustomObjectsApi()
+        try:
+            x = api.get_namespaced_custom_object(GROUP, VERSION, self._namespace, RESOURCE_PLURAL, self._name)
+            self._resourceVersion = x['metadata']['resourceVersion']
+            api.replace_namespaced_custom_object(GROUP, VERSION, self._namespace, RESOURCE_PLURAL, self._name,
+                                                 self.dump())
+            print('updated pipeline ' + self._namespace + '/' + self._name)
+        except kubernetes.client.rest.ApiException as e:
+            if e.status == 404:
+                pass
+                api.create_namespaced_custom_object(GROUP, VERSION, self._namespace, RESOURCE_PLURAL, self.dump())
+                print('created pipeline ' + self._namespace + '/' + self._name)
+        return self
+
+    def watch(self):
+        api = kubernetes.client.CustomObjectsApi()
+
+        for event in kubernetes.watch.Watch().stream(api.list_namespaced_custom_object, GROUP, VERSION, self._namespace,
+                                                     RESOURCE_PLURAL,
+                                                     field_selector='metadata.name=' + self._name, watch=True):
+            status = (event['object'].get('status') or {})
+            print((status.get('phase') or 'Unknown') + ': ' + (status.get('message') or ''))
+
+    def run(self):
+        self.start()
+        self.watch()
 
 def pipeline(name):
     return PipelineBuilder(name)
