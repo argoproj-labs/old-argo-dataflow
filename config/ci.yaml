@@ -808,7 +808,7 @@ spec:
                             default: default
                             type: string
                           retryPolicy:
-                            default: Never
+                            default: Always
                             enum:
                             - Always
                             - Never
@@ -2648,7 +2648,7 @@ spec:
                       default: default
                       type: string
                     retryPolicy:
-                      default: Never
+                      default: Always
                       enum:
                       - Always
                       - Never

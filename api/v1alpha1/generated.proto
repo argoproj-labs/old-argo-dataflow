@@ -254,7 +254,7 @@ message Source {
 
   optional HTTPSource http = 5;
 
-  // +kubebuilder:default=Never
+  // +kubebuilder:default=Always
   optional string retryPolicy = 6;
 }
 
