@@ -154,8 +154,11 @@ config/stan/single-server-stan.yml:
 
 examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 
-examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/__init__.py
-	cd examples && PYTHONPATH=.. python3 $*-pipeline.py
+install-dsls: /dev/null
+	pip3 install dsls/python
+
+examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
+	cd examples && python3 $*-pipeline.py
 
 .PHONY: test-examples
 test-examples: examples

@@ -1,4 +1,4 @@
-from dsls.python import pipeline, stan
+from argo_dataflow import pipeline, stan
 
 if __name__ == '__main__':
     (pipeline("301-stan")

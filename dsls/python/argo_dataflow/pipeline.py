@@ -103,11 +103,14 @@ class PipelineBuilder:
                                                      RESOURCE_PLURAL,
                                                      field_selector='metadata.name=' + self._name, watch=True):
             status = (event['object'].get('status') or {})
-            print((status.get('phase') or 'Unknown') + ': ' + (status.get('message') or ''))
+            phase = status.get('phase') or 'Unknown'
+            message = status.get('message') or ''
+            print(phase + ': ' + message)
 
     def run(self):
         self.start()
         self.watch()
+
 
 def pipeline(name):
     return PipelineBuilder(name)

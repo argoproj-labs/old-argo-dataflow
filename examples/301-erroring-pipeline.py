@@ -1,4 +1,4 @@
-from dsls.python import pipeline, cron
+from argo_dataflow import pipeline, cron
 
 
 def handler(msg):

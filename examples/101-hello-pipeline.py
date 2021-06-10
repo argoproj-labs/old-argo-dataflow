@@ -1,4 +1,4 @@
-from dsls.python import cron, pipeline
+from argo_dataflow import cron, pipeline
 
 if __name__ == '__main__':
     (pipeline("101-hello")

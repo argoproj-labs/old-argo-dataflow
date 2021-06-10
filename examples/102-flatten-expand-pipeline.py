@@ -1,4 +1,4 @@
-from dsls.python import cron, pipeline, stan
+from argo_dataflow import cron, pipeline, stan
 
 if __name__ == '__main__':
     (pipeline("102-flatten-expand")

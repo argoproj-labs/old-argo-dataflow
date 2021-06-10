@@ -1,4 +1,4 @@
-from dsls.python import pipeline, kafka
+from argo_dataflow import pipeline, kafka
 
 if __name__ == '__main__':
     (pipeline("103-autoscaling")

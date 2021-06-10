@@ -1,0 +1,2 @@
+
+git+https://github.com/argoproj-labs/argo-dataflow#subdirectory=dsls/python
