@@ -1,5 +1,4 @@
 import com.sun.net.httpserver.HttpServer;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
@@ -9,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
+import java.util.Collections;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -25,7 +25,7 @@ public class Main {
             }
             isr.close();
             try {
-                var out = Handler.Handle(in.toByteArray());
+                var out = Handler.Handle(in.toByteArray(), Collections.<String,String>emptyMap());
                 if (out != null) {
                     he.sendResponseHeaders(201, 0);
                     try (var os = he.getResponseBody()) {

@@ -8,7 +8,7 @@ USER = getpass.getuser()
 
 
 def str_presenter(dumper, data):
-    if len(data.splitlines()) > 1 or '"' in data or "'" in data:
+    if '\n' in data or '"' in data or "'" in data:
         return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
     return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
@@ -433,7 +433,7 @@ class HTTPSource(Source):
 
 
 class KafkaSource(Source):
-    def __init__(self, topic,  name=None, retryPolicy=None):
+    def __init__(self, topic, name=None, retryPolicy=None):
         super().__init__(name=name, retryPolicy=retryPolicy)
         self._topic = topic
 
@@ -444,7 +444,7 @@ class KafkaSource(Source):
 
 
 class STANSource(Source):
-    def __init__(self, subject, name=None,  retryPolicy=None):
+    def __init__(self, subject, name=None, retryPolicy=None):
         super().__init__(name=name, retryPolicy=retryPolicy)
         self._subject = subject
 
@@ -463,9 +463,9 @@ def http(name=None, retryPolicy=None):
     return HTTPSource(name=name, retryPolicy=retryPolicy)
 
 
-def kafka(topic,  name=None, retryPolicy=None):
-    return KafkaSource(topic,  name=name, retryPolicy=retryPolicy)
+def kafka(topic, name=None, retryPolicy=None):
+    return KafkaSource(topic, name=name, retryPolicy=retryPolicy)
 
 
-def stan(subject, name=None,  retryPolicy=None):
+def stan(subject, name=None, retryPolicy=None):
     return STANSource(subject, name=name, retryPolicy=retryPolicy)

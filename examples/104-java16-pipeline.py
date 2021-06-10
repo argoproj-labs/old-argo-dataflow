@@ -13,8 +13,9 @@ if __name__ == '__main__':
 [Learn about handlers](../docs/HANDLERS.md)""")
      .step(
         (kafka('input-topic')
-         .handler('main', code="""public class Handler {
-    public static byte[] Handle(byte[] msg) throws Exception {
+         .handler('main', code="""import java.util.Map;
+
+public static byte[] Handle(byte[] msg, Map<String,String> context) throws Exception {
         return msg;
     }
 }""", runtime='java16')

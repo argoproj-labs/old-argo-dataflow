@@ -49,6 +49,7 @@ ADD runtimes/go1-16 /workspace
 RUN chown -R 9653 /.cache /workspace
 WORKDIR /workspace
 USER 9653:9653
+RUN go build ./...
 ENTRYPOINT ./entrypoint.sh
 
 FROM openjdk:16 AS java16
@@ -56,6 +57,7 @@ ADD runtimes/java16 /workspace
 RUN chown -R 9653 /workspace
 WORKDIR /workspace
 USER 9653:9653
+RUN javac *.java
 ENTRYPOINT ./entrypoint.sh
 
 FROM python:3.9-alpine AS python3-9
