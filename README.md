@@ -47,7 +47,6 @@ Beginner:
 
 * [Quick start](docs/QUICK_START.md)
 * [Examples](docs/EXAMPLES.md)
-* [Configuration](docs/CONFIGURATION.md)
 * [Sources](docs/SOURCES.md) and [Sinks](docs/SINKS.md)
 
 Intermediate:
