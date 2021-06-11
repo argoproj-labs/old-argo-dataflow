@@ -30,7 +30,7 @@ from argo_dataflow import cron, pipeline
 
 if __name__ == '__main__':
     (pipeline('hello')
-    .namespace('argo-dataflow-system')
+     .namespace('argo-dataflow-system')
      .step(
         (cron('*/3 * * * * *')
          .cat('main')
@@ -41,17 +41,30 @@ if __name__ == '__main__':
 
 ## Documentation
 
+Read in order:
+
+Beginner:
+
 * [Quick start](docs/QUICK_START.md)
 * [Examples](docs/EXAMPLES.md)
 * [Configuration](docs/CONFIGURATION.md)
-* [Handlers](docs/HANDLERS.md)
 * [Sources](docs/SOURCES.md) and [Sinks](docs/SINKS.md)
+
+Intermediate:
+
+* [Handlers](docs/HANDLERS.md)
 * [Git usage](docs/GIT.md)
+* [Reliability](docs/RELIABILITY.md)
 * [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)
+
+Advanced
+
+* [Configuration](docs/CONFIGURATION.md)
 * [Metrics](docs/METRICS.md)
 * [Image Contract](docs/IMAGE_CONTRACT.md)
 * [Reading material](docs/READING.md)
+* [Security](docs/SECURITY.md)
 * [Contributing](docs/CONTRIBUTING.md)
 
 ### Architecture Diagram

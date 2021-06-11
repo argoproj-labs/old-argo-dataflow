@@ -1,4 +1,4 @@
-from dsls.python import pipeline, kafka
+from argo_dataflow import pipeline, kafka
 
 
 def handler(msg, context):

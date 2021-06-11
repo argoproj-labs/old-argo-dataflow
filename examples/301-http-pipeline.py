@@ -1,4 +1,4 @@
-from dsls.python import pipeline, cron, http
+from argo_dataflow import pipeline, cron, http
 
 if __name__ == '__main__':
     (pipeline("301-http")

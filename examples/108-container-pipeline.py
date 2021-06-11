@@ -1,4 +1,4 @@
-from dsls.python import pipeline, container
+from argo_dataflow import pipeline, container
 
 if __name__ == '__main__':
     (pipeline("108-container")

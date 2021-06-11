@@ -16,30 +16,27 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/util"
+	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/stan.go"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/robfig/cron/v3"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/runner/util"
-	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
 var (
@@ -294,7 +291,7 @@ func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) {
 	}
 }
 
-func connectSources(ctx context.Context, toMain func([]byte) error) error {
+func connectSources(ctx context.Context, toMain func(context.Context, []byte) error) error {
 	crn := cron.New(
 		cron.WithParser(cron.NewParser(cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
 		cron.WithChain(cron.Recover(logger)),
@@ -339,7 +336,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		retryPolicy := source.RetryPolicy
-		f := func(msg []byte) error {
+		f := func(ctx context.Context, msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
 				step.Status.SourceStatuses.IncrTotal(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
@@ -354,7 +351,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				case <-ctx.Done():
 					return true, ctx.Err()
 				default:
-					if err := toMain(msg); err != nil {
+					if err := toMain(ctx, msg); err != nil {
 						logger.Error(err, "⚠ →", "source", sourceName)
 						switch retryPolicy {
 						case dfv1.RetryNever:
@@ -374,7 +371,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 		}
 		if x := source.Cron; x != nil {
 			_, err := crn.AddFunc(x.Schedule, func() {
-				_ = f([]byte(time.Now().Format(x.Layout))) // TODO
+				_ = f(context.Background(), []byte(time.Now().Format(x.Layout))) // TODO
 			})
 			if err != nil {
 				return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
@@ -408,7 +405,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 				if resp.StatusCode != 200 {
 					return 0, fmt.Errorf("invalid response: %s", resp.Status)
 				}
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				o := make(obj)
 				if err := json.NewDecoder(resp.Body).Decode(&o); err != nil {
 					return 0, err
@@ -441,7 +438,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 			// https://docs.nats.io/developing-with-nats-streaming/queues
 			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 			if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-				if err := f(msg.Data); err != nil {
+				if err := f(context.Background(), msg.Data); err != nil {
 					if err := msg.Ack(); err != nil {
 						logger.Error(err, "failed to ack message", "msg", msg)
 					}
@@ -542,7 +539,7 @@ func connectSources(ctx context.Context, toMain func([]byte) error) error {
 					_, _ = w.Write([]byte(err.Error()))
 					return
 				}
-				if err := f(msg); err != nil {
+				if err := f(r.Context(), msg); err != nil {
 					w.WriteHeader(500)
 					_, _ = w.Write([]byte(err.Error()))
 				} else {
@@ -582,7 +579,7 @@ func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 	return x, nil
 }
 
-func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error, error) {
+func connectTo(ctx context.Context, sink func([]byte) error) (func(context.Context, []byte) error, error) {
 	inFlight := promauto.NewGauge(prometheus.GaugeOpts{
 		Subsystem:   "input",
 		Name:        "inflight",
@@ -598,7 +595,7 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 	in := step.Spec.GetIn()
 	if in == nil {
 		logger.Info("no in interface configured")
-		return func(i []byte) error {
+		return func(context.Context, []byte) error {
 			return fmt.Errorf("no in interface configured")
 		}, nil
 	} else if in.FIFO {
@@ -611,7 +608,7 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 			logger.Info("closing FIFO")
 			return fifo.Close()
 		})
-		return func(data []byte) error {
+		return func(ctx context.Context, data []byte) error {
 			inFlight.Inc()
 			defer inFlight.Dec()
 			if _, err := fifo.Write(data); err != nil {
@@ -630,7 +627,7 @@ func connectTo(ctx context.Context, sink func([]byte) error) (func([]byte) error
 		afterClosers = append(afterClosers, func(ctx context.Context) error {
 			return waitUnready(ctx)
 		})
-		return func(data []byte) error {
+		return func(ctx context.Context, data []byte) error {
 			inFlight.Inc()
 			defer inFlight.Dec()
 			start := time.Now()

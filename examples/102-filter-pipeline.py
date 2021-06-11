@@ -1,4 +1,4 @@
-from dsls.python import kafka, pipeline
+from argo_dataflow import kafka, pipeline
 
 if __name__ == '__main__':
     (pipeline("102-filter")

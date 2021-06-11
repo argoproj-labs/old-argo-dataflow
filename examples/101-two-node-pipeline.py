@@ -1,4 +1,4 @@
-from dsls.python import kafka, pipeline, stan
+from argo_dataflow import kafka, pipeline, stan
 
 if __name__ == '__main__':
     (pipeline("101-two-node")

@@ -1,4 +1,4 @@
-from dsls.python import pipeline, kafka, stan
+from argo_dataflow import pipeline, kafka, stan
 
 if __name__ == '__main__':
     (pipeline("201-vetinary")
