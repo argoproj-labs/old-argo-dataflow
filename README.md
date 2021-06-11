@@ -47,7 +47,7 @@ Beginner:
 
 * [Quick start](docs/QUICK_START.md)
 * [Examples](docs/EXAMPLES.md)
-* [Sources](docs/SOURCES.md) and [Sinks](docs/SIKNS.md)
+* [Sources](docs/SOURCES.md) and [Sinks](docs/SINKS.md)
 
 Intermediate:
 
