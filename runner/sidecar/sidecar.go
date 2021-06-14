@@ -372,7 +372,8 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		if x := source.Cron; x != nil {
 			_, err := crn.AddFunc(x.Schedule, func() {
 				ctx := context.Background()
-				_ = f(ctx, []byte(time.Now().Format(x.Layout))) // TODO
+				msg := []byte(time.Now().Format(x.Layout))
+				_ = f(ctx, msg)
 			})
 			if err != nil {
 				return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
@@ -440,6 +441,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 			if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
 				ctx := context.Background()
+				logger.Info("message", "type", "stan", "source", sourceName, "msg", msg.Data)
 				if err := f(ctx, msg.Data); err != nil {
 					if err := msg.Ack(); err != nil {
 						logger.Error(err, "failed to ack message", "msg", msg)

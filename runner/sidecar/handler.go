@@ -30,7 +30,8 @@ func (h *handler) Close() error {
 func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	ctx := context.Background()
 	for m := range claim.Messages() {
-		if err := h.f(ctx, m.Value); err != nil {
+		msg := m.Value
+		if err := h.f(ctx, msg); err != nil {
 			// noop
 		} else {
 			sess.MarkMessage(m, "")
