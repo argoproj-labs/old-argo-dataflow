@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"io/ioutil"
 	"net/http"
 )
@@ -16,7 +15,7 @@ func main() {
 			if in, err := ioutil.ReadAll(r.Body); err != nil {
 				return nil, err
 			} else {
-				return Handler(context.Background(), in)
+				return Handler(r.Context(), in)
 			}
 		}()
 		if err != nil {

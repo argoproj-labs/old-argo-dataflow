@@ -371,7 +371,8 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		}
 		if x := source.Cron; x != nil {
 			_, err := crn.AddFunc(x.Schedule, func() {
-				_ = f(context.Background(), []byte(time.Now().Format(x.Layout))) // TODO
+				ctx := context.Background()
+				_ = f(ctx, []byte(time.Now().Format(x.Layout))) // TODO
 			})
 			if err != nil {
 				return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
@@ -438,7 +439,8 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			// https://docs.nats.io/developing-with-nats-streaming/queues
 			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 			if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-				if err := f(context.Background(), msg.Data); err != nil {
+				ctx := context.Background()
+				if err := f(ctx, msg.Data); err != nil {
 					if err := msg.Ack(); err != nil {
 						logger.Error(err, "failed to ack message", "msg", msg)
 					}
