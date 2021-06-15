@@ -1,5 +1,7 @@
 package v1alpha1
 
+import "time"
+
 type SourceStatus struct {
 	LastMessage *Message           `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
 	LastError   *Error             `json:"lastError,omitempty" protobuf:"bytes,5,opt,name=lastError"`
@@ -34,6 +36,6 @@ func (in SourceStatus) AnySunk() bool {
 	return in.GetTotal() > 0
 }
 
-func (in SourceStatus) AnyErrors() bool {
-	return in.GetErrors() > 0
+func (in SourceStatus) RecentErrors() bool {
+	return in.LastError != nil && time.Since(in.LastError.Time.Time) < 15*time.Minute
 }

@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/stretchr/testify/assert"
@@ -106,7 +108,7 @@ func TestSourceStatus_GetPending(t *testing.T) {
 	assert.Equal(t, uint64(1), SourceStatuses{"0": {Pending: &v}}.GetPending())
 }
 
-func TestSourceStatus_AnyErrors(t *testing.T) {
-	assert.False(t, SourceStatuses{}.AnyErrors())
-	assert.True(t, SourceStatuses{"0": {Metrics: map[string]Metrics{"0": {Errors: 1}}}}.AnyErrors())
+func TestSourceStatus_RecentErrors(t *testing.T) {
+	assert.False(t, SourceStatuses{}.RecentErrors())
+	assert.True(t, SourceStatuses{"0": {LastError: &Error{Time: metav1.Now()}}}.RecentErrors())
 }

@@ -59,9 +59,9 @@ func (in SourceStatuses) GetPending() uint64 {
 	return v
 }
 
-func (in SourceStatuses) AnyErrors() bool {
+func (in SourceStatuses) RecentErrors() bool {
 	for _, s := range in {
-		if s.AnyErrors() {
+		if s.RecentErrors() {
 			return true
 		}
 	}

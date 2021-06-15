@@ -19,6 +19,6 @@ func (m StepStatus) GetReplicas() int {
 	return int(m.Replicas)
 }
 
-func (in StepStatus) AnyErrors() bool {
-	return in.SinkStatues.AnyErrors() || in.SourceStatuses.AnyErrors()
+func (in StepStatus) RecentErrors() bool {
+	return in.SinkStatues.RecentErrors() || in.SourceStatuses.RecentErrors()
 }

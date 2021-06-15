@@ -6,6 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStepStatus_AnyErrors(t *testing.T) {
-	assert.False(t, StepStatus{}.AnyErrors())
+func TestStepStatus_RecentErrors(t *testing.T) {
+	assert.False(t, StepStatus{}.RecentErrors())
 }
