@@ -12,4 +12,7 @@ spec:
         - name: argo-server
           image: quay.io/argoproj/argocli:dev-dataflow
           imagePullPolicy: Always
-          args: [ server, --namespaced=true, --auth-mode=server ]
+          args: [ server, --namespaced=true, --auth-mode=server, --secure-false ]
+        - readinessProbe:
+            httpGet:
+              scheme: HTTP
