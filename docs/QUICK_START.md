@@ -3,6 +3,7 @@
 Deploy into the `argo-dataflow-system` namespace:
 
 ```
+kubectl create ns argo-dataflow-system
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/quick-start.yaml
 ```
 
@@ -10,6 +11,12 @@ Change to the installation namespace:
 
 ```
 kubectl config set-context --current --namespace=argo-dataflow-system
+```
+
+Wait for the deployments to be ready:
+
+```
+kubectl get deploy -w
 ```
 
 Access the user interface:

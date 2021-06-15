@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.0.49 (2021-06-10)
+
+ * [23fc919](https://github.com/argoproj/argo-workflows/commit/23fc9195e87a74e798b5045a758a06b16a26d975) fix: Add missing kubernetes requirement in setup.py (#64)
+ * [dbc403d](https://github.com/argoproj/argo-workflows/commit/dbc403d4d23a1a047392861e26d1aedcda04f061) fix: fix Python
+ * [a2fdaaf](https://github.com/argoproj/argo-workflows/commit/a2fdaafbf848434f90f6f5fdd338716ef96d832f) feat: publish Python library
+ * [a411be8](https://github.com/argoproj/argo-workflows/commit/a411be82d23310376b416b23ad9a353473ee300a) feat: publish Python library
+ * [72b3484](https://github.com/argoproj/argo-workflows/commit/72b34845eae532e0c7663dd8eb7f867b2ccb9e71) feat: publish Python library
+ * [361c47c](https://github.com/argoproj/argo-workflows/commit/361c47c3f39a8e6ac67005f0020af43559db2717) feat: add a method to run pipelines in DSL
+
+### Contributors
+
+ * Alex Collins
+ * Yuan Tang
+
+## v0.0.48 (2021-06-10)
+
+ * [e61c307](https://github.com/argoproj/argo-workflows/commit/e61c307d9bed9ae33892c57cde4da5a06c26ffbb) feat: add context to Java runtime
+ * [5becca6](https://github.com/argoproj/argo-workflows/commit/5becca695ef81e26e116d578f6385262ed881638) feat: add context to Git example
+ * [6b922eb](https://github.com/argoproj/argo-workflows/commit/6b922ebd6cb73b352bd3c022167fadee4b3e43bd) feat: add context to Python runtime
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.47 (2021-06-10)
 
  * [34b75ae](https://github.com/argoproj/argo-workflows/commit/34b75ae05de30b1e80fa1eb0312d398c59095c77) fix: change default retryPolicy=Always
