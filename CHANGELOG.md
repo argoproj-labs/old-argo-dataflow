@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.0.50 (2021-06-15)
+
+ * [6f7bb50](https://github.com/argoproj/argo-workflows/commit/6f7bb505b636d5de21921040d1e9f6ca20a66d0a) config: change argo-server to HTTP
+ * [4770ed6](https://github.com/argoproj/argo-workflows/commit/4770ed65d9e0fedd5215157acf6ada268bfd02d4) config: change argo-server to HTTP
+ * [8d4ee45](https://github.com/argoproj/argo-workflows/commit/8d4ee45871d8308a8a84efff7c5e593dbeeceec0) config: change argo-server to HTTP
+ * [7679590](https://github.com/argoproj/argo-workflows/commit/76795903ebe52a8ea9ca957e35cba5669d3b19e5) config: change argo-server to HTTP
+ * [c63a715](https://github.com/argoproj/argo-workflows/commit/c63a715d14c3216089d6faae972f2a69279ba37f) refactor: rename variables
+ * [316abc9](https://github.com/argoproj/argo-workflows/commit/316abc97b680bc4753474bd6276fb67290094e3d) Update README.md (#68)
+
+### Contributors
+
+ * Alex Collins
+ * wanghong230
+
 ## v0.0.49 (2021-06-10)
 
  * [23fc919](https://github.com/argoproj/argo-workflows/commit/23fc9195e87a74e798b5045a758a06b16a26d975) fix: Add missing kubernetes requirement in setup.py (#64)
