@@ -371,7 +371,6 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		}
 		if x := source.Cron; x != nil {
 			_, err := crn.AddFunc(x.Schedule, func() {
-				ctx := context.Background()
 				msg := []byte(time.Now().Format(x.Layout))
 				_ = f(ctx, msg)
 			})
@@ -440,7 +439,6 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			// https://docs.nats.io/developing-with-nats-streaming/queues
 			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 			if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-				ctx := context.Background()
 				logger.Info("message", "type", "stan", "source", sourceName, "msg", msg.Data)
 				if err := f(ctx, msg.Data); err != nil {
 					if err := msg.Ack(); err != nil {
@@ -543,7 +541,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 					_, _ = w.Write([]byte(err.Error()))
 					return
 				}
-				if err := f(r.Context(), msg); err != nil {
+				if err := f(ctx, msg); err != nil {
 					w.WriteHeader(500)
 					_, _ = w.Write([]byte(err.Error()))
 				} else {
