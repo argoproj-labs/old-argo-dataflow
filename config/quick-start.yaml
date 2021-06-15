@@ -4114,7 +4114,7 @@ spec:
           httpGet:
             path: /
             port: 2746
-            scheme: HTTPS
+            scheme: HTTP
           initialDelaySeconds: 10
           periodSeconds: 20
         securityContext:
