@@ -439,11 +439,10 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			// https://docs.nats.io/developing-with-nats-streaming/queues
 			queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 			if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-				logger.Info("message", "type", "stan", "source", sourceName, "msg", msg.Data)
 				if err := f(ctx, msg.Data); err != nil {
-					if err := msg.Ack(); err != nil {
-						logger.Error(err, "failed to ack message", "msg", msg)
-					}
+					// noop
+				} else if err := msg.Ack(); err != nil {
+					logger.Error(err, "failed to ack message", "source", sourceName)
 				}
 			}, stan.DurableName(queueName)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
