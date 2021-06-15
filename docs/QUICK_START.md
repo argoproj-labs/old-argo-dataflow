@@ -25,7 +25,7 @@ Access the user interface:
 kubectl port-forward svc/argo-server 2746:2746
 ```
 
-Open [http://localhost:2746/pipelines](http://localhost:2746/pipelines).
+Open [http://localhost:2746/pipelines/argo-dataflow-system](http://localhost:2746/pipelines/argo-dataflow-system).
 
 Run [one of the examples](EXAMPLES.md).
 
