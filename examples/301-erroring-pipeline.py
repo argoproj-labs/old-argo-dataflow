@@ -1,7 +1,7 @@
 from argo_dataflow import pipeline, cron
 
 
-def handler(msg):
+def handler(msg, context):
     import random
     if random.randint(0, 1) == 1:
         raise Exception("random error")

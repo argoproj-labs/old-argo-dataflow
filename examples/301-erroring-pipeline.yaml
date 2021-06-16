@@ -10,7 +10,7 @@ spec:
   steps:
   - handler:
       code: |
-        def handler(msg):
+        def handler(msg, context):
             import random
             if random.randint(0, 1) == 1:
                 raise Exception("random error")
@@ -25,7 +25,7 @@ spec:
       retryPolicy: Always
   - handler:
       code: |
-        def handler(msg):
+        def handler(msg, context):
             import random
             if random.randint(0, 1) == 1:
                 raise Exception("random error")
