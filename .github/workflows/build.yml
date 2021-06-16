@@ -35,7 +35,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    if: "false"
+    if: "true"
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
