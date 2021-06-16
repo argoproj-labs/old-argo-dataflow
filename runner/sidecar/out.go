@@ -13,7 +13,36 @@ import (
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
-func connectOut(toSink func([]byte) error) {
+func connectOut(toSinks func([]byte) error) {
+	connectOutFIFO(toSinks)
+	connectOutHTTP(toSinks)
+}
+
+func connectOutHTTP(f func([]byte) error) {
+	logger.Info("HTTP out interface configured")
+	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer "+os.Getenv(dfv1.EnvDataflowBearerToken) {
+			w.WriteHeader(403)
+			return
+		}
+		data, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			logger.Error(err, "failed to read message body from main via HTTP")
+			w.WriteHeader(400)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		if err := f(data); err != nil {
+			logger.Error(err, "failed to send message from main to sink")
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+		} else {
+			w.WriteHeader(204)
+		}
+	})
+}
+
+func connectOutFIFO(f func([]byte) error) {
 	logger.Info("FIFO out interface configured")
 	go func() {
 		defer runtimeutil.HandleCrash()
@@ -29,7 +58,7 @@ func connectOut(toSink func([]byte) error) {
 			logger.Info("opened output FIFO")
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
-				if err := toSink(scanner.Bytes()); err != nil {
+				if err := f(scanner.Bytes()); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)
 				}
 			}
@@ -43,25 +72,4 @@ func connectOut(toSink func([]byte) error) {
 			os.Exit(1)
 		}
 	}()
-	logger.Info("HTTP out interface configured")
-	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer "+os.Getenv(dfv1.EnvDataflowBearerToken) {
-			w.WriteHeader(403)
-			return
-		}
-		data, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			logger.Error(err, "failed to read message body from main via HTTP")
-			w.WriteHeader(400)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-		if err := toSink(data); err != nil {
-			logger.Error(err, "failed to send message from main to sink")
-			w.WriteHeader(500)
-			_, _ = w.Write([]byte(err.Error()))
-		} else {
-			w.WriteHeader(204)
-		}
-	})
 }

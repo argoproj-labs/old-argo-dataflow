@@ -11,7 +11,7 @@ import (
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
-	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 
 	"github.com/antonmedv/expr"
 	"github.com/google/uuid"
@@ -32,7 +32,7 @@ func withLock(dir string, f func() ([]byte, error)) ([]byte, error) {
 }
 
 func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.GroupFormat) error {
-	if err := os.Mkdir(dfv1.PathGroups, 0o700); util2.IgnoreExist(err) != nil {
+	if err := os.Mkdir(dfv1.PathGroups, 0o700); sharedutil.IgnoreExist(err) != nil {
 		return fmt.Errorf("failed to create groups dir: %w", err)
 	}
 	prog, err := expr.Compile(key)
@@ -54,7 +54,7 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 		}
 		dir := filepath.Join(dfv1.PathGroups, group)
 		return withLock(dir, func() ([]byte, error) {
-			if err := os.MkdirAll(dir, 0o700); util2.IgnoreExist(err) != nil {
+			if err := os.MkdirAll(dir, 0o700); sharedutil.IgnoreExist(err) != nil {
 				return nil, fmt.Errorf("failed to create group sub-dir %q: %w", dir, err)
 			}
 			path := filepath.Join(dir, uuid.New().String())

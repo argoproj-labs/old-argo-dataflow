@@ -1,17 +1,22 @@
 package sidecar
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	apierr "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/runner/util"
+	runnerutil "github.com/argoproj-labs/argo-dataflow/runner/util"
 	corev1 "k8s.io/api/core/v1"
 )
 
 func init() {
-	sarama.Logger = util.NewSaramaStdLogger(logger)
+	sarama.Logger = runnerutil.NewSaramaStdLogger(logger)
 }
 
 func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) {
@@ -39,3 +44,16 @@ func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 	}
 	return x, nil
 }
+
+func enrichKafka(ctx context.Context, secrets v1.SecretInterface, x *dfv1.Kafka) error {
+	secret, err := secrets.Get(ctx, "dataflow-kafka-"+x.Name, metav1.GetOptions{})
+	if err != nil {
+		if !apierr.IsNotFound(err) {
+			return err
+		}
+	} else {
+		kafkaFromSecret(x, secret)
+	}
+	return nil
+}
+

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -19,11 +19,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var (
-	logger              = util2.NewLogger()
+	logger              = sharedutil.NewLogger()
 	dynamicInterface    dynamic.Interface
 	kubernetesInterface kubernetes.Interface
 	updateInterval      time.Duration
@@ -40,9 +41,9 @@ func Exec(ctx context.Context) error {
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 
-	util2.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
+	sharedutil.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
-	logger.Info("step", "step", util2.MustJSON(step))
+	logger.Info("step", "step", sharedutil.MustJSON(step))
 
 	stepName = step.Spec.Name
 	if step.Status.SourceStatuses == nil {
@@ -80,7 +81,7 @@ func Exec(ctx context.Context) error {
 		return nil
 	})
 
-	toSink, err := connectSink()
+	toSinks, err := connectSinks()
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func Exec(ctx context.Context) error {
 		w.WriteHeader(204)
 	})
 
-	connectOut(toSink)
+	connectOut(toSinks)
 
 	server := &http.Server{Addr: ":3569"}
 	afterClosers = append(afterClosers, func(ctx context.Context) error {
@@ -116,7 +117,7 @@ func Exec(ctx context.Context) error {
 		logger.Info("HTTP server shutdown")
 	}()
 
-	toMain, err := connectIn(ctx, toSink)
+	toMain, err := connectIn(ctx, toSinks)
 	if err != nil {
 		return err
 	}
@@ -135,7 +136,7 @@ func Exec(ctx context.Context) error {
 
 func patchStepStatus(ctx context.Context) {
 	withLock(func() {
-		if notEqual, patch := util2.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status}); notEqual {
+		if notEqual, patch := sharedutil.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status}); notEqual {
 			logger.Info("patching step status", "patch", patch)
 			if un, err := dynamicInterface.
 				Resource(dfv1.StepGroupVersionResource).
@@ -172,58 +173,47 @@ func patchStepStatus(ctx context.Context) {
 
 func enrichSpec(ctx context.Context) error {
 	secrets := kubernetesInterface.CoreV1().Secrets(namespace)
+
+	if err := enrichSources(ctx, secrets); err != nil {
+		return err
+	}
+
+	return enrichSinks(ctx, secrets)
+}
+
+func enrichSources(ctx context.Context, secrets v1.SecretInterface) error {
 	for i, source := range step.Spec.Sources {
 		if x := source.STAN; x != nil {
-			secret, err := secrets.Get(ctx, "dataflow-stan-"+x.Name, metav1.GetOptions{})
-			if err != nil {
-				if !apierr.IsNotFound(err) {
-					return err
-				}
-			} else {
-				stanFromSecret(x, secret)
+			if err := enrichSTAN(ctx, secrets, x); err != nil {
+				return err
 			}
-			subjectiveStan(x)
 			source.STAN = x
 		} else if x := source.Kafka; x != nil {
-			secret, err := secrets.Get(ctx, "dataflow-kafka-"+x.Name, metav1.GetOptions{})
-			if err != nil {
-				if !apierr.IsNotFound(err) {
-					return err
-				}
-			} else {
-				kafkaFromSecret(x, secret)
+			if err := enrichKafka(ctx, secrets, x); err != nil {
+				return err
 			}
 			source.Kafka = x
 		}
 		step.Spec.Sources[i] = source
 	}
+	return nil
+}
 
+func enrichSinks(ctx context.Context, secrets v1.SecretInterface) error {
 	for i, sink := range step.Spec.Sinks {
-		if s := sink.STAN; s != nil {
-			secret, err := secrets.Get(ctx, "dataflow-stan-"+s.Name, metav1.GetOptions{})
-			if err != nil {
-				if !apierr.IsNotFound(err) {
-					return err
-				}
-			} else {
-				stanFromSecret(s, secret)
+		if x := sink.STAN; x != nil {
+			if err := enrichSTAN(ctx, secrets, x); err != nil {
+				return err
 			}
-			subjectiveStan(s)
-			sink.STAN = s
-		} else if k := sink.Kafka; k != nil {
-			secret, err := secrets.Get(ctx, "dataflow-kafka-"+k.Name, metav1.GetOptions{})
-			if err != nil {
-				if !apierr.IsNotFound(err) {
-					return err
-				}
-			} else {
-				kafkaFromSecret(k, secret)
+			sink.STAN = x
+		} else if x := sink.Kafka; x != nil {
+			if err := enrichKafka(ctx, secrets, x); err != nil {
+				return err
 			}
-			sink.Kafka = k
+			sink.Kafka = x
 		}
 		step.Spec.Sinks[i] = sink
 	}
-
 	return nil
 }
 

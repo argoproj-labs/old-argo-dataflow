@@ -8,22 +8,20 @@ import (
 	"os/signal"
 	"syscall"
 
-	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
-
-	"github.com/argoproj-labs/argo-dataflow/runner/expand"
-	"github.com/argoproj-labs/argo-dataflow/runner/flatten"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/cat"
+	"github.com/argoproj-labs/argo-dataflow/runner/expand"
 	"github.com/argoproj-labs/argo-dataflow/runner/filter"
+	"github.com/argoproj-labs/argo-dataflow/runner/flatten"
 	"github.com/argoproj-labs/argo-dataflow/runner/group"
 	_init "github.com/argoproj-labs/argo-dataflow/runner/init"
 	_map "github.com/argoproj-labs/argo-dataflow/runner/map"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
 	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
-var logger = util2.NewLogger()
+var logger = sharedutil.NewLogger()
 
 func main() {
 	ctx := setupSignalsHandler(context.Background())
