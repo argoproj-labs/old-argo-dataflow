@@ -15,7 +15,7 @@ COPY .git/ .git/
 COPY api/ api/
 COPY shared/ shared/
 COPY manager/ manager/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=$(git log -n1 --oneline)'" -o bin/manager ./manager
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -sw -a -ldflags="-X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=$(git log -n1 --oneline)'" -o bin/manager ./manager
 
 FROM gcr.io/distroless/static:nonroot AS controller
 WORKDIR /
@@ -28,11 +28,11 @@ COPY .git/ .git/
 COPY api/ api/
 COPY shared/ shared/
 COPY runner/ runner/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=$(git log -n1 --oneline)'" -o bin/runner ./runner
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -sw -a -ldflags="-X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=$(git log -n1 --oneline)'" -o bin/runner ./runner
 COPY kill/ kill/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/kill ./kill
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -sw -a -o bin/kill ./kill
 COPY prestop/ prestop/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -o bin/prestop ./prestop
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -sw -a -o bin/prestop ./prestop
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
