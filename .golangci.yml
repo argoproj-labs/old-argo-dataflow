@@ -6,7 +6,6 @@ linters:
   enable:
     - deadcode
     - errcheck
-    - gofumpt
     - gosimple
     - govet
     - misspell
