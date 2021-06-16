@@ -20,6 +20,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/stan.go"
+	"github.com/nats-io/stan.go/pb"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -444,7 +445,11 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				} else if err := msg.Ack(); err != nil {
 					logger.Error(err, "failed to ack message", "source", sourceName)
 				}
-			}, stan.DurableName(queueName)); err != nil {
+			},
+				stan.DurableName(queueName),
+				stan.SetManualAckMode(),
+				stan.StartAt(pb.StartPosition_NewOnly),
+				stan.AckWait(1*time.Second)); err != nil {
 				return fmt.Errorf("failed to subscribe: %w", err)
 			} else {
 				beforeClosers = append(beforeClosers, func(ctx context.Context) error {
