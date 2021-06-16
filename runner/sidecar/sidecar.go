@@ -37,11 +37,10 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
-	logger              = zap.New()
+	logger              = util2.NewLogger()
 	preStopCh           = make(chan bool, 16)
 	beforeClosers       []func(ctx context.Context) error // should be closed before main container exits
 	afterClosers        []func(ctx context.Context) error // should be close after the main container exits
