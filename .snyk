@@ -1,0 +1,10 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-GOLANG-GITHUBCOMDGRIJALVAJWTGO-596515:
+    - '*':
+        reason: abandoned project
+        expires: 2021-07-16T21:25:44.804Z
+        created: 2021-06-16T21:25:44.805Z
+patch: {}
