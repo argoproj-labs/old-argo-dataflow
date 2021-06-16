@@ -23,6 +23,9 @@ build: generate manifests
 test:
 	go test -v ./... -coverprofile cover.out
 
+test-e2e:
+	go test -v --tags e2e ./e2e
+
 pre-commit: codegen test install lint start
 
 codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml examples CHANGELOG.md $(GOBIN)/pie

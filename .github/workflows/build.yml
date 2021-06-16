@@ -52,9 +52,9 @@ jobs:
           go-version: "1.16.2"
       - run: make controller
       - run: make deploy CONFIG=ci
-      - run: make runner runtimes
+      - run: make runner
       - run: make wait
-      - run: make test-examples
+      - run: make test-e2e
       - name: list pods
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system get pod
