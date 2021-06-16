@@ -216,7 +216,8 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 		stan.DurableName(queueName),
 		stan.SetManualAckMode(),
 		stan.StartAt(pb.StartPosition_NewOnly),
-		stan.AckWait(1*time.Second)); err != nil {
+		stan.AckWait(30*time.Second),
+		stan.MaxInflight(20)); err != nil {
 		return fmt.Errorf("failed to subscribe: %w", err)
 	} else {
 		beforeClosers = append(beforeClosers, func(ctx context.Context) error {

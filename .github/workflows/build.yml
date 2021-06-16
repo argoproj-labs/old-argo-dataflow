@@ -15,6 +15,14 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: 1.16
+      - uses: actions/cache@v2
+        with:
+          path: /home/runner/.cache/go-build
+          key: GOCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - uses: actions/cache@v2
+        with:
+          path: /home/runner/go/pkg/mod
+          key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
       - run: go version
       - run: go env
       - run: make kubebuilder name=linux
@@ -50,11 +58,19 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "1.16.2"
+      - uses: actions/cache@v2
+        with:
+          path: /home/runner/.cache/go-build
+          key: GOCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - uses: actions/cache@v2
+        with:
+          path: /home/runner/go/pkg/mod
+          key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
       - run: make controller
       - run: make deploy CONFIG=ci
-      - run: make runner runtimes
+      - run: make runner
       - run: make wait
-      - run: make test-examples
+      - run: make test-e2e
       - name: list pods
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system get pod
