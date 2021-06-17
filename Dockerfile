@@ -43,6 +43,16 @@ COPY --from=runner-builder /workspace/bin/prestop /bin/prestop
 USER 9653:9653
 ENTRYPOINT ["/runner"]
 
+FROM builder AS testapi-builder
+COPY testapi/ testapi/
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/testapi ./testapi
+
+FROM gcr.io/distroless/static:nonroot AS testapi
+WORKDIR /
+COPY --from=testapi-builder /workspace/bin/testapi .
+USER 9653:9653
+ENTRYPOINT ["/testapi"]
+
 FROM golang:1.16-alpine AS go1-16
 RUN mkdir /.cache
 ADD runtimes/go1-16 /workspace

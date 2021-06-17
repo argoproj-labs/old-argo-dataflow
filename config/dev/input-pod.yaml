@@ -3,20 +3,20 @@ apiVersion: v1
 metadata:
   name: input
 spec:
-  containers:
-    - name: main
+  initContainers:
+    - name: create-topic
       image: golang:1.16
       command:
-        - sh
-        - -c
+        - curl
       args:
-        - |
-          set -x
-          while true; do
-            go install github.com/argoproj-labs/argo-dataflow/hack/kafka@main
-            kafka -topic input-topic create-topic
-            kafka -topic output-topic create-topic
-            # change sleep to 10ms to flood the topic
-            kafka -topic input-topic -sleep 500ms pump-topic
-            sleep 5s
-          done
+        - -fvN
+        - http://testapi:8378/kafka/create-topic?topic=input-topic
+  containers:
+    - name: pump-topic
+      # use golang because it is common
+      image: golang:1.16
+      command:
+        - curl
+      args:
+        - -fvN
+        - http://testapi:8378/kafka/pump-topic?topic=input-topic&sleep=500ms

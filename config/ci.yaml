@@ -4346,6 +4346,7 @@ metadata:
   namespace: argo-dataflow-system
 stringData:
   clusterId: stan
+  natsMonitoringUrl: http://nats:8222
   natsUrl: nats
   subjectPrefix: NamespacedPipelineName
 ---
@@ -4455,6 +4456,20 @@ spec:
     port: 7777
   selector:
     app: stan
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: testapi
+  name: testapi
+  namespace: argo-dataflow-system
+spec:
+  ports:
+  - port: 8378
+    targetPort: 8378
+  selector:
+    app: testapi
 ---
 apiVersion: v1
 kind: Service
@@ -4590,6 +4605,29 @@ spec:
           name: https
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: testapi
+  name: testapi
+  namespace: argo-dataflow-system
+spec:
+  selector:
+    matchLabels:
+      app: testapi
+  template:
+    metadata:
+      labels:
+        app: testapi
+    spec:
+      containers:
+      - image: quay.io/argoproj/dataflow-testapi
+        imagePullPolicy: IfNotPresent
+        name: main
+        ports:
+        - containerPort: 8378
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -5075,18 +5113,17 @@ metadata:
 spec:
   containers:
   - args:
-    - |
-      set -x
-      while true; do
-        go install github.com/argoproj-labs/argo-dataflow/hack/kafka@main
-        kafka -topic input-topic create-topic
-        kafka -topic output-topic create-topic
-        # change sleep to 10ms to flood the topic
-        kafka -topic input-topic -sleep 500ms pump-topic
-        sleep 5s
-      done
+    - -fvN
+    - http://testapi:8378/kafka/pump-topic?topic=input-topic&sleep=500ms
     command:
-    - sh
-    - -c
+    - curl
     image: golang:1.16
-    name: main
+    name: pump-topic
+  initContainers:
+  - args:
+    - -fvN
+    - http://testapi:8378/kafka/create-topic?topic=input-topic
+    command:
+    - curl
+    image: golang:1.16
+    name: create-topic

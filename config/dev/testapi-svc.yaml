@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: testapi
+  labels:
+    app: testapi
+spec:
+  ports:
+    - port: 8378
+      targetPort: 8378
+  selector:
+    app: testapi

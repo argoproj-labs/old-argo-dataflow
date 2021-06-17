@@ -3,30 +3,28 @@
 package e2e
 
 import (
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	. "github.com/argoproj-labs/argo-dataflow/dsls/golang"
-	"github.com/stretchr/testify/assert"
-	"k8s.io/apimachinery/pkg/api/meta"
+	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
-func TestCron(t *testing.T) {
+func TestCronSource(t *testing.T) {
 
-	Setup(t)
-	defer Teardown(t)
+	setup(t)
+	defer teardown(t)
 
-	pl := Pipeline("cron").
-		Step(
-			Cron("*/3 * * * *").
-				Cat("main").
-				Log(),
-		).
-		Run()
+	pl := &Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: "cron"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{{
+				Name:    "main",
+				Cat:     &Cat{},
+				Sources: []Source{{Cron: &Cron{Schedule: "*/3 * * * * *"}}},
+				Sinks:   []Sink{{Log: &Log{}}},
+			}},
+		},
+	}
 
-	assert.NotEmpty(t, pl.ResourceVersion)
-
-	WatchPipeline(pl.Namespace, pl.Name, func(pl dfv1.Pipeline) bool {
-		return meta.FindStatusCondition(pl.Status.Conditions, dfv1.ConditionSunkMessages) != nil
-	})
-
+	createPipeline(pl)
+	watchPipeline(UtilMessagesSunk)
 }
