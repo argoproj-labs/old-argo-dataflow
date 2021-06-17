@@ -45,6 +45,11 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		if leadReplica() { // only replica zero updates this value, so it the only replica that can be accurate
 			newSourceMetrics(source, sourceName)
 		}
+		retryCountMetrics := promauto.NewCounter(prometheus.CounterOpts{
+			Subsystem: "message",
+			Name:      "retry-counts",
+			Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#re",
+		})
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		retryPolicy := source.RetryPolicy
@@ -69,6 +74,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 						case dfv1.RetryNever:
 							return true, err
 						default:
+							retryCountMetrics.Inc()
 							return false, nil
 						}
 					} else {
