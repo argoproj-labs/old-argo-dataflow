@@ -31,6 +31,7 @@ func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) {
 func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 	x := sarama.NewConfig()
 	x.ClientID = dfv1.CtrSidecar
+	x.Consumer.Offsets.AutoCommit.Enable = false
 	x.Consumer.MaxProcessingTime = 30 * time.Second
 	if k.Version != "" {
 		v, err := sarama.ParseKafkaVersion(k.Version)
