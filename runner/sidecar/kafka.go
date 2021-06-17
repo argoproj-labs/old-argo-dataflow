@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +31,7 @@ func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) {
 func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 	x := sarama.NewConfig()
 	x.ClientID = dfv1.CtrSidecar
+	x.Consumer.MaxProcessingTime = 30 * time.Second
 	if k.Version != "" {
 		v, err := sarama.ParseKafkaVersion(k.Version)
 		if err != nil {
@@ -56,4 +58,3 @@ func enrichKafka(ctx context.Context, secrets v1.SecretInterface, x *dfv1.Kafka)
 	}
 	return nil
 }
-
