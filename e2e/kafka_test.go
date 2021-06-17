@@ -30,19 +30,19 @@ func TestKafkaSource(t *testing.T) {
 		},
 	})
 	waitForPipeline(untilRunning)
+	waitForPod("kafka-main-0", toBeReady)
 	pumpKafkaTopic(topic, 10)
 	waitForPipeline(untilMessagesSunk)
-	// TODO check messages sunk correctly
 }
 
 func createKafkaTopic() string {
 	topic := fmt.Sprintf("test-topic-%d", rand.Int())
-	log.Printf("create kafka topic %q\n", topic)
+	log.Printf("create Kafka topic %q\n", topic)
 	invokeTestAPI("/kafka/create-topic?topic=%s", topic)
 	return topic
 }
 
 func pumpKafkaTopic(topic string, n int) {
-	log.Printf("puming kafka topic %q with %d messages\n", topic, n)
+	log.Printf("puming Kafka topic %q with %d messages\n", topic, n)
 	invokeTestAPI("/kafka/pump-topic?sleep=10ms&topic=%s&n=%d", topic, n)
 }

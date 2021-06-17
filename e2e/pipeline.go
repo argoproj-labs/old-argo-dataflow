@@ -56,7 +56,14 @@ func waitForPipeline(f func(pl Pipeline) bool) {
 			panic(fmt.Errorf("expected *unstructured.Unstructured, got %q", reflect.TypeOf(e.Object).Name()))
 		}
 		pl := FromUnstructured(un)
-		log.Println(fmt.Sprintf("pipeline %q has status %s %q", pl.Name, pl.Status.Phase, pl.Status.Message))
+		s := pl.Status
+		var y []string
+		for _, c := range s.Conditions {
+			if c.Status == metav1.ConditionTrue {
+				y = append(y, c.Type)
+			}
+		}
+		log.Printf("pipeline %q has status %s %q conditions %v\n", pl.Name, s.Phase, s.Message, y)
 		if f(pl) {
 			return
 		}

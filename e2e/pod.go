@@ -50,7 +50,14 @@ func waitForPod(podName string, f func(*corev1.Pod) bool) {
 		if !ok {
 			panic(fmt.Errorf("expected *corev1.Pod, got %q", reflect.TypeOf(e.Object).Name()))
 		}
-		log.Println(fmt.Sprintf("pod %q has status %s %q", p.Name, p.Status.Phase, p.Status.Message))
+		s := p.Status
+		var y []string
+		for _, c := range s.Conditions {
+			if c.Status == corev1.ConditionTrue {
+				y = append(y, string(c.Type))
+			}
+		}
+		log.Printf("pod %q has status %s %q conditions %q\n", p.Name, s.Phase, s.Message, y)
 		if f(p) {
 			return
 		}
