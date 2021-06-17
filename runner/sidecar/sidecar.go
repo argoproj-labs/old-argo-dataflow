@@ -19,7 +19,6 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
@@ -336,6 +335,11 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		retryPolicy := source.RetryPolicy
+		retryCountMetrics := promauto.NewCounter(prometheus.CounterOpts{
+			Subsystem: "message",
+			Name:      "retry-counts",
+			Help:      "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#retry-counts",
+		})
 		f := func(ctx context.Context, msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
@@ -357,6 +361,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 						case dfv1.RetryNever:
 							return true, err
 						default:
+							retryCountMetrics.Inc()
 							return false, nil
 						}
 					} else {
