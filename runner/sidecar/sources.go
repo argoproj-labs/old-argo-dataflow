@@ -186,7 +186,7 @@ func startKafkaSetPendingLoop(ctx context.Context, x *dfv1.Kafka, sourceName str
 				return
 			}
 			block := rep.GetBlock(x.Topic, partition)
-			totalLags += partitionOffset - block.Offset
+			totalLags += partitionOffset - block.Offset - 1
 		}
 		logger.Info("setting pending", "source", sourceName, "pending", totalLags)
 		withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, uint64(totalLags)) })
