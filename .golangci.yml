@@ -2,11 +2,12 @@
 run:
   concurrency: 4
   timeout: 5m
+  build-tags:
+    - e2e
 linters:
   enable:
     - deadcode
     - errcheck
-    - gofumpt
     - gosimple
     - govet
     - misspell

@@ -15,6 +15,14 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: 1.16
+      - uses: actions/cache@v2
+        with:
+          path: /home/runner/.cache/go-build
+          key: GOCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - uses: actions/cache@v2
+        with:
+          path: /home/runner/go/pkg/mod
+          key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
       - run: go version
       - run: go env
       - run: make kubebuilder name=linux
@@ -42,6 +50,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: docker/setup-qemu-action@v1
       - uses: docker/setup-buildx-action@v1
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ hashFiles('**/go.mod') }}
       - name: Install and start K3S
         timeout-minutes: 3
         run: |
@@ -50,11 +65,19 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "1.16.2"
+      - uses: actions/cache@v2
+        with:
+          path: /home/runner/.cache/go-build
+          key: GOCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - uses: actions/cache@v2
+        with:
+          path: /home/runner/go/pkg/mod
+          key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
       - run: make controller
       - run: make deploy CONFIG=ci
-      - run: make runner runtimes
+      - run: make runner
       - run: make wait
-      - run: make test-examples
+      - run: make test-e2e
       - name: list pods
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system get pod

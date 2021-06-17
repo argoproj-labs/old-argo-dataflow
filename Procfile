@@ -2,3 +2,4 @@ controller: ARGO_DATAFLOW_PULL_POLICY=IfNotPresent ARGO_DATAFLOW_UPDATE_INTERVAL
 logs: make logs
 argocli: make argocli
 ui: make ui
+test: kubectl port-forward svc/testapi 8378:8378

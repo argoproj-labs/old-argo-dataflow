@@ -23,6 +23,9 @@ build: generate manifests
 test:
 	go test -v ./... -coverprofile cover.out
 
+test-e2e: runner
+	go test -v --tags e2e ./e2e
+
 pre-commit: codegen test install lint start
 
 codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml examples CHANGELOG.md $(GOBIN)/pie
@@ -51,7 +54,7 @@ install:
 uninstall:
 	kustomize build config/crd | kubectl delete --ignore-not-found -f -
 
-images: controller runner runtimes
+images: controller runner testapi runtimes
 
 config/ci.yaml:
 config/default.yaml:
@@ -64,7 +67,7 @@ config/%.yaml: /dev/null
 	sed -i '' "s/:latest/:$(TAG)/" $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: install
+deploy: install testapi
 	grep -o 'image: .*' config/$(CONFIG).yaml | grep -v dataflow | sort -u | cut -c 8- | xargs -L 1
 	kubectl apply --force -f config/$(CONFIG).yaml
 
@@ -110,8 +113,10 @@ lint:
 controller: controller-image
 
 .PHONY: runner
-
 runner: runner-image
+
+.PHONY: testapi
+testapi: testapi-image
 
 .PHONY: runtimes
 runtimes: go1-16 java16 python3-9

@@ -1,0 +1,21 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: testapi
+  labels:
+    app: testapi
+spec:
+  template:
+    metadata:
+      labels:
+        app: testapi
+    spec:
+      containers:
+        - name: main
+          image: quay.io/argoproj/dataflow-testapi
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8378
+  selector:
+    matchLabels:
+      app: testapi

@@ -5,12 +5,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	util2 "github.com/argoproj-labs/argo-dataflow/shared/util"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
-var logger = util2.NewLogger()
+var logger = sharedutil.NewLogger()
 
 func Do(ctx context.Context, fn func(msg []byte) ([]byte, error)) error {
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {

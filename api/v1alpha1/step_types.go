@@ -94,6 +94,11 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				Ports: []corev1.ContainerPort{
 					{ContainerPort: 3569},
 				},
+				ReadinessProbe: &corev1.Probe{
+					Handler: corev1.Handler{
+						HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3569)},
+					},
+				},
 				Lifecycle: &corev1.Lifecycle{
 					PreStop: &corev1.Handler{
 						HTTPGet: &corev1.HTTPGetAction{

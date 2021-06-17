@@ -5,6 +5,7 @@ ignore:
   - bin
   - config
   - docs
+  - e2e
   - examples
   - hack
   - kill

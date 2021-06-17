@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.0.53 (2021-06-16)
+
+ * [454c0d7](https://github.com/argoproj/argo-workflows/commit/454c0d7e23767f868f00d56e4c4499c4a1db6668) fix: set MaxInFlight and AckWait for stan
+ * [6b7be67](https://github.com/argoproj/argo-workflows/commit/6b7be6738c49daf757f09f96e18cdb1c9710913c) fix: fix logger
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
+## v0.0.52 (2021-06-15)
+
+ * [12a98cd](https://github.com/argoproj/argo-workflows/commit/12a98cd3e549e3fafc727341b7093ee555614911) fix: stan manual ack
+
+### Contributors
+
+ * Derek Wang
+
+## v0.0.51 (2021-06-15)
+
+ * [88f77f7](https://github.com/argoproj/argo-workflows/commit/88f77f7e308d2c1a3ab8277b9ed8011d3de7f4ec) feat: change Errors to RecentErrors
+ * [a4db306](https://github.com/argoproj/argo-workflows/commit/a4db30654f2c198e8582b2a9d424156081dc1842) fix: bug in STAN ack
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.50 (2021-06-15)
 
  * [6f7bb50](https://github.com/argoproj/argo-workflows/commit/6f7bb505b636d5de21921040d1e9f6ca20a66d0a) config: change argo-server to HTTP
