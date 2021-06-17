@@ -51,9 +51,9 @@ Golden metric type: latency.
 
 ### message_retry_count
 
-Use this metric to determine total retries performed for message processing.
+Use this metric to determine how many retries performed for message processing.
 
-Golden metric type: latency.
+Golden metric type: QoS.
 
 ### replicas
 

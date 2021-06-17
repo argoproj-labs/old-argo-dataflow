@@ -45,11 +45,6 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		if leadReplica() { // only replica zero updates this value, so it the only replica that can be accurate
 			newSourceMetrics(source, sourceName)
 		}
-		retryCountMetrics := promauto.NewCounter(prometheus.CounterOpts{
-			Subsystem: "message",
-			Name:      "retry-counts",
-			Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#message-retry-counts",
-		})
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		retryPolicy := source.RetryPolicy
@@ -74,7 +69,10 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 						case dfv1.RetryNever:
 							return true, err
 						default:
-							retryCountMetrics.Inc()
+							withLock(func() {
+								step.Status.SinkStatues.IncrRetryCount(sourceName, replica)
+								newSourceMetrics(source, sourceName)
+							})
 							return false, nil
 						}
 					} else {
@@ -331,4 +329,11 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 		Help:        "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors",
 		ConstLabels: map[string]string{"sourceName": source.Name},
 	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors()) })
+
+	promauto.NewCounterFunc(prometheus.CounterOpts{
+		Subsystem: "message",
+		Name:      "retry_counts",
+		Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#message-retry-counts",
+	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetRetryCount()) })
+
 }

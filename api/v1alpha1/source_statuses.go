@@ -76,3 +76,17 @@ func (in SourceStatuses) AnySunk() bool {
 	}
 	return false
 }
+
+func (in SourceStatuses) IncrRetryCount(name string, replica int) {
+	x := in[name]
+
+	if x.Metrics == nil {
+		x.Metrics = map[string]Metrics{}
+	}
+	m := x.Metrics[strconv.Itoa(replica)]
+	m.RetryCount++
+	x.Metrics[strconv.Itoa(replica)] = m
+	in[name] = x
+}
+
+
