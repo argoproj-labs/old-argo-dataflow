@@ -332,8 +332,8 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 
 	promauto.NewCounterFunc(prometheus.CounterOpts{
 		Subsystem: "message",
-		Name:      "retry_counts",
-		Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#message-retry-counts",
+		Name:      "retry_count",
+		Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#message_retry_count",
 	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetRetryCount()) })
 
 }

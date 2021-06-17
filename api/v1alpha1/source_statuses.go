@@ -77,9 +77,9 @@ func (in SourceStatuses) AnySunk() bool {
 	return false
 }
 
+// IncrRetryCount increase the retry_count metrics by 1
 func (in SourceStatuses) IncrRetryCount(name string, replica int) {
 	x := in[name]
-
 	if x.Metrics == nil {
 		x.Metrics = map[string]Metrics{}
 	}
