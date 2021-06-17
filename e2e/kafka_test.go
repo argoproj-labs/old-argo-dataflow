@@ -6,6 +6,7 @@ import (
 	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"log"
 	"math/rand"
 	"testing"
 )
@@ -17,33 +18,31 @@ func TestKafkaSource(t *testing.T) {
 
 	topic := createKafkaTopic()
 
-	pl := &Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka",},
+	createPipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name: "main",
+				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
 				Sinks:   []Sink{{Log: &Log{}}},
 			}},
 		},
-	}
-
-	createPipeline(pl)
-
-	watchPipeline(UntilRunning)
+	})
+	waitForPipeline(untilRunning)
 	pumpKafkaTopic(topic, 10)
-
-	watchPipeline(UtilMessagesSunk)
-
+	waitForPipeline(untilMessagesSunk)
+	// TODO check messages sunk correctly
 }
 
 func createKafkaTopic() string {
 	topic := fmt.Sprintf("test-topic-%d", rand.Int())
-	getTestAPI("/kafka/create-topic?topic=%s", topic)
+	log.Printf("create kafka topic %q\n", topic)
+	invokeTestAPI("/kafka/create-topic?topic=%s", topic)
 	return topic
 }
 
 func pumpKafkaTopic(topic string, n int) {
-	getTestAPI("/kafka/pump-topic?sleep=10ms&topic=%s&n=%d", topic, n)
+	log.Printf("puming kafka topic %q with %d messages\n", topic, n)
+	invokeTestAPI("/kafka/pump-topic?sleep=10ms&topic=%s&n=%d", topic, n)
 }

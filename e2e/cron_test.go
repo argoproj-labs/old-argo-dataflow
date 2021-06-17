@@ -13,7 +13,7 @@ func TestCronSource(t *testing.T) {
 	setup(t)
 	defer teardown(t)
 
-	pl := &Pipeline{
+	createPipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "cron"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
@@ -23,8 +23,6 @@ func TestCronSource(t *testing.T) {
 				Sinks:   []Sink{{Log: &Log{}}},
 			}},
 		},
-	}
-
-	createPipeline(pl)
-	watchPipeline(UtilMessagesSunk)
+	})
+	waitForPipeline(untilMessagesSunk)
 }

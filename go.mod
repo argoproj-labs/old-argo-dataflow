@@ -25,6 +25,7 @@ require (
 	github.com/onsi/gomega v1.10.2
 	github.com/paulbellamy/ratecounter v0.2.0
 	github.com/prometheus/client_golang v1.7.1
+	github.com/prometheus/common v0.10.0
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect

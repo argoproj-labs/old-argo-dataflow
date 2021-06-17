@@ -9,19 +9,19 @@ import (
 	"net/http"
 )
 
-func getTestAPI(format string, args ...interface{}) {
+func invokeTestAPI(format string, args ...interface{}) {
 	url := "http://localhost:8378" + fmt.Sprintf(format, args...)
-	log.Println(">", url)
+	log.Printf("posting to test API %s\n", url)
 	r, err := http.Get(url)
 	if err != nil {
 		panic(err)
 	}
-	log.Println("<", r.Status)
+	log.Printf("test API: %s", r.Status)
 	if r.StatusCode >= 300 {
 		panic(r.Status)
 	}
 	s := bufio.NewScanner(r.Body)
 	for s.Scan() {
-		log.Println("<", s.Text())
+		log.Printf("test API: %s\n", s.Text())
 	}
 }
