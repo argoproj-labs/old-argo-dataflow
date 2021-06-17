@@ -11,11 +11,11 @@ COPY go.sum go.sum
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 
 FROM builder AS controller-builder
-COPY .git/ .git/
+ARG MESSAGE=unset
 COPY api/ api/
 COPY shared/ shared/
 COPY manager/ manager/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=$(git log -n1 --oneline)'" -o bin/manager ./manager
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=${MESSAGE}'" -o bin/manager ./manager
 
 FROM gcr.io/distroless/static:nonroot AS controller
 WORKDIR /
@@ -24,22 +24,22 @@ USER 9653:9653
 ENTRYPOINT ["/manager"]
 
 FROM builder AS runner-builder
-COPY .git/ .git/
-COPY api/ api/
-COPY shared/ shared/
-COPY runner/ runner/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=$(git log -n1 --oneline)'" -o bin/runner ./runner
+ARG MESSAGE=unset
 COPY kill/ kill/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/kill ./kill
 COPY prestop/ prestop/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/prestop ./prestop
+COPY api/ api/
+COPY shared/ shared/
+COPY runner/ runner/
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=${MESSAGE}'" -o bin/runner ./runner
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
 COPY runtimes runtimes
-COPY --from=runner-builder /workspace/bin/runner .
 COPY --from=runner-builder /workspace/bin/kill /bin/kill
 COPY --from=runner-builder /workspace/bin/prestop /bin/prestop
+COPY --from=runner-builder /workspace/bin/runner .
 USER 9653:9653
 ENTRYPOINT ["/runner"]
 

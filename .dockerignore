@@ -1,6 +1,16 @@
 *.iml
 .github
 .idea
+.snyk
+cover.out
+LICENSE
+Makefile
+Procfile
+PROJECT
 bin
+config
 docs
+dsls
+e2e
 examples
+hack

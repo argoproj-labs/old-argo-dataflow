@@ -36,8 +36,11 @@ $(GOBIN)/pie:
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 
+kubernetes-cluster:
+	kubectl up || kubectl cluster-info
+
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: generate deploy $(GOBIN)/goreman
+start: kubernetes-cluster generate deploy $(GOBIN)/goreman
 	kubectl config set-context --current --namespace=argo-dataflow-system
 	goreman -set-ports=false -logtime=false start
 wait:
@@ -126,7 +129,7 @@ java16: java16-image
 python3-9: python3-9-image
 
 %-image:
-	docker buildx build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG) --load
+	docker buildx build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG) --load --build-arg MESSAGE="$(shell git log -n1 --oneline)"
 ifeq ($(K3D),true)
 	k3d image import quay.io/argoproj/dataflow-$*:$(TAG)
 endif
