@@ -8,7 +8,7 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
-RUN --mount=type=cache,target=/go/pkg/mod go mod download
+RUN go mod download
 
 FROM builder AS controller-builder
 ARG MESSAGE=unset
@@ -26,9 +26,9 @@ ENTRYPOINT ["/manager"]
 FROM builder AS runner-builder
 ARG MESSAGE=unset
 COPY kill/ kill/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/kill ./kill
+RUN CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/kill ./kill
 COPY prestop/ prestop/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/prestop ./prestop
+RUN CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/prestop ./prestop
 COPY api/ api/
 COPY shared/ shared/
 COPY runner/ runner/

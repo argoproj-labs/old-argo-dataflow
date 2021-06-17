@@ -3959,43 +3959,12 @@ rules:
   - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  labels:
-    origin: github.com_Yolean_kubernetes-kafka
-  name: pod-labler
-  namespace: argo-dataflow-system
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-  - update
-  - patch
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: metrics-reader
 rules:
 - nonResourceURLs:
   - /metrics
-  verbs:
-  - get
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  labels:
-    origin: github.com_Yolean_kubernetes-kafka
-  name: node-reader
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - nodes
   verbs:
   - get
 ---
@@ -4029,22 +3998,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: argo-server
-  namespace: argo-dataflow-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  labels:
-    origin: github.com_Yolean_kubernetes-kafka
-  name: kafka-pod-labler
-  namespace: argo-dataflow-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: pod-labler
-subjects:
-- kind: ServiceAccount
-  name: default
   namespace: argo-dataflow-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -4092,21 +4045,6 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  labels:
-    origin: github.com_Yolean_kubernetes-kafka
-  name: kafka-node-reader
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: node-reader
-subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: argo-dataflow-system
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
   name: proxy-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -4115,127 +4053,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: manager
-  namespace: argo-dataflow-system
----
-apiVersion: v1
-data:
-  init.sh: |-
-    #!/bin/bash
-    set -e
-    set -x
-    cp /etc/kafka-configmap/log4j.properties /etc/kafka/
-
-    KAFKA_BROKER_ID=${HOSTNAME##*-}
-    SEDS=("s/#init#broker.id=#init#/broker.id=$KAFKA_BROKER_ID/")
-    LABELS="kafka-broker-id=$KAFKA_BROKER_ID"
-    ANNOTATIONS=""
-
-    hash kubectl 2>/dev/null || {
-      SEDS+=("s/#init#broker.rack=#init#/#init#broker.rack=# kubectl not found in path/")
-    } && {
-      ZONE=$(kubectl get node "$NODE_NAME" -o=go-template='{{index .metadata.labels "failure-domain.beta.kubernetes.io/zone"}}')
-      if [ "x$ZONE" == "x<no value>" ]; then
-        SEDS+=("s/#init#broker.rack=#init#/#init#broker.rack=# zone label not found for node $NODE_NAME/")
-      else
-        SEDS+=("s/#init#broker.rack=#init#/broker.rack=$ZONE/")
-        LABELS="$LABELS kafka-broker-rack=$ZONE"
-      fi
-
-      OUTSIDE_HOST=$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
-      OUTSIDE_PORT=3240${KAFKA_BROKER_ID}
-      SEDS+=("s|#init#advertised.listeners=PLAINTEXT://#init#|advertised.listeners=PLAINTEXT://:9092,OUTSIDE://${OUTSIDE_HOST}:${OUTSIDE_PORT}|")
-      ANNOTATIONS="$ANNOTATIONS kafka-listener-outside-host=$OUTSIDE_HOST kafka-listener-outside-port=$OUTSIDE_PORT"
-
-      if [ ! -z "$LABELS" ]; then
-        kubectl -n $POD_NAMESPACE label pod $POD_NAME $LABELS || echo "Failed to label $POD_NAMESPACE.$POD_NAME - RBAC issue?"
-      fi
-      if [ ! -z "$ANNOTATIONS" ]; then
-        kubectl -n $POD_NAMESPACE annotate pod $POD_NAME $ANNOTATIONS || echo "Failed to annotate $POD_NAMESPACE.$POD_NAME - RBAC issue?"
-      fi
-    }
-    printf '%s\n' "${SEDS[@]}" | sed -f - /etc/kafka-configmap/server.properties > /etc/kafka/server.properties.tmp
-    [ $? -eq 0 ] && mv /etc/kafka/server.properties.tmp /etc/kafka/server.properties
-  log4j.properties: |-
-    # Unspecified loggers and loggers with additivity=true output to server.log and stdout
-    # Note that INFO only applies to unspecified loggers, the log level of the child logger is used otherwise
-    log4j.rootLogger=INFO, stdout
-
-    log4j.appender.stdout=org.apache.log4j.ConsoleAppender
-    log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
-    log4j.appender.stdout.layout.ConversionPattern=[%d] %p %m (%c)%n
-
-    log4j.appender.kafkaAppender=org.apache.log4j.DailyRollingFileAppender
-    log4j.appender.kafkaAppender.DatePattern='.'yyyy-MM-dd-HH
-    log4j.appender.kafkaAppender.File=${kafka.logs.dir}/server.log
-    log4j.appender.kafkaAppender.layout=org.apache.log4j.PatternLayout
-    log4j.appender.kafkaAppender.layout.ConversionPattern=[%d] %p %m (%c)%n
-
-    log4j.appender.stateChangeAppender=org.apache.log4j.DailyRollingFileAppender
-    log4j.appender.stateChangeAppender.DatePattern='.'yyyy-MM-dd-HH
-    log4j.appender.stateChangeAppender.File=${kafka.logs.dir}/state-change.log
-    log4j.appender.stateChangeAppender.layout=org.apache.log4j.PatternLayout
-    log4j.appender.stateChangeAppender.layout.ConversionPattern=[%d] %p %m (%c)%n
-
-    log4j.appender.requestAppender=org.apache.log4j.DailyRollingFileAppender
-    log4j.appender.requestAppender.DatePattern='.'yyyy-MM-dd-HH
-    log4j.appender.requestAppender.File=${kafka.logs.dir}/kafka-request.log
-    log4j.appender.requestAppender.layout=org.apache.log4j.PatternLayout
-    log4j.appender.requestAppender.layout.ConversionPattern=[%d] %p %m (%c)%n
-
-    log4j.appender.cleanerAppender=org.apache.log4j.DailyRollingFileAppender
-    log4j.appender.cleanerAppender.DatePattern='.'yyyy-MM-dd-HH
-    log4j.appender.cleanerAppender.File=${kafka.logs.dir}/log-cleaner.log
-    log4j.appender.cleanerAppender.layout=org.apache.log4j.PatternLayout
-    log4j.appender.cleanerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n
-
-    log4j.appender.controllerAppender=org.apache.log4j.DailyRollingFileAppender
-    log4j.appender.controllerAppender.DatePattern='.'yyyy-MM-dd-HH
-    log4j.appender.controllerAppender.File=${kafka.logs.dir}/controller.log
-    log4j.appender.controllerAppender.layout=org.apache.log4j.PatternLayout
-    log4j.appender.controllerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n
-
-    log4j.appender.authorizerAppender=org.apache.log4j.DailyRollingFileAppender
-    log4j.appender.authorizerAppender.DatePattern='.'yyyy-MM-dd-HH
-    log4j.appender.authorizerAppender.File=${kafka.logs.dir}/kafka-authorizer.log
-    log4j.appender.authorizerAppender.layout=org.apache.log4j.PatternLayout
-    log4j.appender.authorizerAppender.layout.ConversionPattern=[%d] %p %m (%c)%n
-
-    # Change the two lines below to adjust ZK client logging
-    log4j.logger.org.I0Itec.zkclient.ZkClient=INFO
-    log4j.logger.org.apache.zookeeper=INFO
-
-    # Change the two lines below to adjust the general broker logging level (output to server.log and stdout)
-    log4j.logger.kafka=INFO
-    log4j.logger.org.apache.kafka=INFO
-
-    # Change to DEBUG or TRACE to enable request logging
-    log4j.logger.kafka.request.logger=WARN, requestAppender
-    log4j.additivity.kafka.request.logger=false
-
-    # Uncomment the lines below and change log4j.logger.kafka.network.RequestChannel$ to TRACE for additional output
-    # related to the handling of requests
-    #log4j.logger.kafka.network.Processor=TRACE, requestAppender
-    #log4j.logger.kafka.server.KafkaApis=TRACE, requestAppender
-    #log4j.additivity.kafka.server.KafkaApis=false
-    log4j.logger.kafka.network.RequestChannel$=WARN, requestAppender
-    log4j.additivity.kafka.network.RequestChannel$=false
-
-    log4j.logger.kafka.controller=TRACE, controllerAppender
-    log4j.additivity.kafka.controller=false
-
-    log4j.logger.kafka.log.LogCleaner=INFO, cleanerAppender
-    log4j.additivity.kafka.log.LogCleaner=false
-
-    log4j.logger.state.change.logger=TRACE, stateChangeAppender
-    log4j.additivity.state.change.logger=false
-
-    # Change to DEBUG to enable audit log for the authorizer
-    log4j.logger.kafka.authorizer.logger=WARN, authorizerAppender
-    log4j.additivity.kafka.authorizer.logger=false
-  server.properties: "############################# Log Basics #############################\n\n# A comma seperated list of directories under which to store log files\n# Overrides log.dir\nlog.dirs=/var/lib/kafka/data/topics\n\n# The default number of log partitions per topic. More partitions allow greater\n# parallelism for consumption, but this will also result in more files across\n# the brokers.\nnum.partitions=12\n\ndefault.replication.factor=3\n\nmin.insync.replicas=2\n\nauto.create.topics.enable=false\n\n# The number of threads per data directory to be used for log recovery at startup and flushing at shutdown.\n# This value is recommended to be increased for installations with data dirs located in RAID array.\n#num.recovery.threads.per.data.dir=1\n\n############################# Server Basics #############################\n\n# The id of the broker. This must be set to a unique integer for each broker.\n#init#broker.id=#init#\n\n#init#broker.rack=#init#\n\n############################# Socket Server Settings #############################\n\n# The address the socket server listens on. It will get the value returned from \n# java.net.InetAddress.getCanonicalHostName() if not configured.\n#   FORMAT:\n#     listeners = listener_name://host_name:port\n#   EXAMPLE:\n#     listeners = PLAINTEXT://your.host.name:9092\n#listeners=PLAINTEXT://:9092\nlisteners=PLAINTEXT://:9092,OUTSIDE://:9094\n\n# Hostname and port the broker will advertise to producers and consumers. If not set, \n# it uses the value for \"listeners\" if configured.  Otherwise, it will use the value\n# returned from java.net.InetAddress.getCanonicalHostName().\n#advertised.listeners=PLAINTEXT://your.host.name:9092\n#init#advertised.listeners=PLAINTEXT://#init#\n\n# Maps listener names to security protocols, the default is for them to be the same. See the config documentation for more details\n#listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL\nlistener.security.protocol.map=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL,OUTSIDE:PLAINTEXT\ninter.broker.listener.name=PLAINTEXT\n\n# The number of threads that the server uses for receiving requests from the network and sending responses to the network\n#num.network.threads=3\n\n# The number of threads that the server uses for processing requests, which may include disk I/O\n#num.io.threads=8\n\n# The send buffer (SO_SNDBUF) used by the socket server\n#socket.send.buffer.bytes=102400\n\n# The receive buffer (SO_RCVBUF) used by the socket server\n#socket.receive.buffer.bytes=102400\n\n# The maximum size of a request that the socket server will accept (protection against OOM)\n#socket.request.max.bytes=104857600\n\n############################# Internal Topic Settings  #############################\n# The replication factor for the group metadata internal topics \"__consumer_offsets\" and \"__transaction_state\"\n# For anything other than development testing, a value greater than 1 is recommended for to ensure availability such as 3.\n#offsets.topic.replication.factor=1\n#transaction.state.log.replication.factor=1\n#transaction.state.log.min.isr=1\n\n############################# Log Flush Policy #############################\n\n# Messages are immediately written to the filesystem but by default we only fsync() to sync\n# the OS cache lazily. The following configurations control the flush of data to disk.\n# There are a few important trade-offs here:\n#    1. Durability: Unflushed data may be lost if you are not using replication.\n#    2. Latency: Very large flush intervals may lead to latency spikes when the flush does occur as there will be a lot of data to flush.\n#    3. Throughput: The flush is generally the most expensive operation, and a small flush interval may lead to excessive seeks.\n# The settings below allow one to configure the flush policy to flush data after a period of time or\n# every N messages (or both). This can be done globally and overridden on a per-topic basis.\n\n# The number of messages to accept before forcing a flush of data to disk\n#log.flush.interval.messages=10000\n\n# The maximum amount of time a message can sit in a log before we force a flush\n#log.flush.interval.ms=1000\n\n############################# Log Retention Policy #############################\n\n# The following configurations control the disposal of log segments. The policy can\n# be set to delete segments after a period of time, or after a given size has accumulated.\n# A segment will be deleted whenever *either* of these criteria are met. Deletion always happens\n# from the end of the log.\n\n# https://cwiki.apache.org/confluence/display/KAFKA/KIP-186%3A+Increase+offsets+retention+default+to+7+days\noffsets.retention.minutes=10080\n\n# The minimum age of a log file to be eligible for deletion due to age\nlog.retention.hours=-1\n\n# A size-based retention policy for logs. Segments are pruned from the log unless the remaining\n# segments drop below log.retention.bytes. Functions independently of log.retention.hours.\n#log.retention.bytes=1073741824\n\n# The maximum size of a log segment file. When this size is reached a new log segment will be created.\n#log.segment.bytes=1073741824\n\n# The interval at which log segments are checked to see if they can be deleted according\n# to the retention policies\n#log.retention.check.interval.ms=300000\n\n############################# Zookeeper #############################\n\n# Zookeeper connection string (see zookeeper docs for details).\n# This is a comma separated host:port pairs, each corresponding to a zk\n# server. e.g. \"127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002\".\n# You can also append an optional chroot string to the urls to specify the\n# root directory for all kafka znodes.\nzookeeper.connect=zookeeper:2181\n\n# Timeout in ms for connecting to zookeeper\n#zookeeper.connection.timeout.ms=6000\n\n\n############################# Group Coordinator Settings #############################\n\n# The following configuration specifies the time, in milliseconds, that the GroupCoordinator will delay the initial consumer rebalance.\n# The rebalance will be further delayed by the value of group.initial.rebalance.delay.ms as new members join the group, up to a maximum of max.poll.interval.ms.\n# The default value for this is 3 seconds.\n# We override this to 0 here as it makes for a better out-of-the-box experience for development and testing.\n# However, in production environments the default value of 3 seconds is more suitable as this will help to avoid unnecessary, and potentially expensive, rebalances during application startup.\n#group.initial.rebalance.delay.ms=0"
-kind: ConfigMap
-metadata:
-  name: broker-config
   namespace: argo-dataflow-system
 ---
 apiVersion: v1
@@ -4266,51 +4083,6 @@ metadata:
   namespace: argo-dataflow-system
 ---
 apiVersion: v1
-data:
-  init.sh: |-
-    #!/bin/bash
-    set -e
-    set -x
-
-    [ -d /var/lib/zookeeper/data ] || mkdir /var/lib/zookeeper/data
-    [ -z "$ID_OFFSET" ] && ID_OFFSET=1
-    export ZOOKEEPER_SERVER_ID=$((${HOSTNAME##*-} + $ID_OFFSET))
-    echo "${ZOOKEEPER_SERVER_ID:-1}" | tee /var/lib/zookeeper/data/myid
-    cp -Lur /etc/kafka-configmap/* /etc/kafka/
-    [ ! -z "$PZOO_REPLICAS" ] && [ ! -z "$ZOO_REPLICAS" ] && {
-      sed -i "s/^server\\./#server./" /etc/kafka/zookeeper.properties
-      for N in $(seq $PZOO_REPLICAS); do echo "server.$N=pzoo-$(( $N - 1 )).pzoo:2888:3888:participant" >> /etc/kafka/zookeeper.properties; done
-      for N in $(seq $ZOO_REPLICAS); do echo "server.$(( $PZOO_REPLICAS + $N ))=zoo-$(( $N - 1 )).zoo:2888:3888:participant" >> /etc/kafka/zookeeper.properties; done
-    }
-    sed -i "s/server\.$ZOOKEEPER_SERVER_ID\=[a-z0-9.-]*/server.$ZOOKEEPER_SERVER_ID=0.0.0.0/" /etc/kafka/zookeeper.properties
-  log4j.properties: |-
-    log4j.rootLogger=INFO, stdout
-    log4j.appender.stdout=org.apache.log4j.ConsoleAppender
-    log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
-    log4j.appender.stdout.layout.ConversionPattern=[%d] %p %m (%c)%n
-
-    # Suppress connection log messages, three lines per livenessProbe execution
-    log4j.logger.org.apache.zookeeper.server.NIOServerCnxnFactory=WARN
-    log4j.logger.org.apache.zookeeper.server.NIOServerCnxn=WARN
-  zookeeper.properties: |
-    tickTime=2000
-    dataDir=/var/lib/zookeeper/data
-    dataLogDir=/var/lib/zookeeper/log
-    clientPort=2181
-    maxClientCnxns=2
-    initLimit=5
-    syncLimit=2
-    server.1=pzoo-0.pzoo:2888:3888:participant
-    server.2=pzoo-1.pzoo:2888:3888:participant
-    server.3=pzoo-2.pzoo:2888:3888:participant
-    server.4=zoo-0.zoo:2888:3888:participant
-    server.5=zoo-1.zoo:2888:3888:participant
-kind: ConfigMap
-metadata:
-  name: zookeeper-config
-  namespace: argo-dataflow-system
----
-apiVersion: v1
 kind: Secret
 metadata:
   annotations:
@@ -4330,7 +4102,7 @@ metadata:
   name: dataflow-kafka-default
   namespace: argo-dataflow-system
 stringData:
-  brokers: kafka-0.broker:9092
+  brokers: kafka-broker:9092
 ---
 apiVersion: v1
 kind: Secret
@@ -4366,29 +4138,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: bootstrap
-  namespace: argo-dataflow-system
-spec:
-  ports:
-  - port: 9092
-  selector:
-    app: kafka
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: broker
-  namespace: argo-dataflow-system
-spec:
-  clusterIP: None
-  ports:
-  - port: 9092
-  selector:
-    app: kafka
----
-apiVersion: v1
-kind: Service
-metadata:
   labels:
     control-plane: controller-manager
   name: controller-manager-metrics-service
@@ -4400,6 +4149,17 @@ spec:
     targetPort: https
   selector:
     control-plane: controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-broker
+  namespace: argo-dataflow-system
+spec:
+  ports:
+  - port: 9092
+  selector:
+    app: kafka-broker
 ---
 apiVersion: v1
 kind: Service
@@ -4425,22 +4185,6 @@ spec:
     port: 7522
   selector:
     app: nats
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: pzoo
-  namespace: argo-dataflow-system
-spec:
-  clusterIP: None
-  ports:
-  - name: peer
-    port: 2888
-  - name: leader-election
-    port: 3888
-  selector:
-    app: zookeeper
-    storage: persistent
 ---
 apiVersion: v1
 kind: Service
@@ -4474,28 +4218,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: zoo
-  namespace: argo-dataflow-system
-spec:
-  clusterIP: None
-  ports:
-  - name: peer
-    port: 2888
-  - name: leader-election
-    port: 3888
-  selector:
-    app: zookeeper
-    storage: persistent-regional
----
-apiVersion: v1
-kind: Service
-metadata:
   name: zookeeper
   namespace: argo-dataflow-system
 spec:
   ports:
   - name: client
     port: 2181
+  - name: follower
+    port: 2888
+  - name: leader
+    port: 3888
   selector:
     app: zookeeper
 ---
@@ -4576,8 +4308,6 @@ spec:
         env:
         - name: PULL_POLICY
           value: Never
-        - name: INSTALLER
-          value: "true"
         - name: ARGO_DATAFLOW_NAMESPACE
           value: argo-dataflow-system
         - name: ARGO_DATAFLOW_IMAGE_FORMAT
@@ -4632,130 +4362,33 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: kafka
+  name: kafka-broker
   namespace: argo-dataflow-system
 spec:
-  podManagementPolicy: Parallel
-  replicas: 1
   selector:
     matchLabels:
-      app: kafka
-  serviceName: broker
+      app: kafka-broker
+  serviceName: kafka-broker
   template:
     metadata:
       labels:
-        app: kafka
+        app: kafka-broker
     spec:
       containers:
-      - command:
-        - ./bin/kafka-server-start.sh
-        - /etc/kafka/server.properties
-        - --override
-        - default.replication.factor=1
-        - --override
-        - min.insync.replicas=1
-        - --override
-        - offsets.topic.replication.factor=1
-        - --override
-        - offsets.topic.num.partitions=1
-        - --override
-        - advertised.listeners=PLAINTEXT://:9092,OUTSIDE://localhost:9094
-        - --override
-        - auto.create.topics.enable=true
-        - --override
-        - num.partitions=1
-        - --override
-        - advertised.listeners=PLAINTEXT://:9092,OUTSIDE://localhost:9094
-        - --override
-        - auto.create.topics.enable=true
-        - --override
-        - num.partitions=1
-        env:
-        - name: JMX_PORT
-          value: ""
-        - name: CLASSPATH
-          value: /opt/kafka/libs/extensions/*
-        - name: KAFKA_LOG4J_OPTS
-          value: -Dlog4j.configuration=file:/etc/kafka/log4j.properties
-        image: solsson/kafka:2.2.1@sha256:450c6fdacae3f89ca28cecb36b2f120aad9b19583d68c411d551502ee8d0b09b
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - sh
-              - -ce
-              - kill -s TERM 1; while $(kill -0 1 2>/dev/null); do sleep 1; done
-        name: broker
+      - env:
+        - name: KAFKA_ADVERTISED_PORT
+          value: "9092"
+        - name: KAFKA_ADVERTISED_HOST_NAME
+          value: kafka-broker
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: zookeeper:2181
+        - name: KAFKA_BROKER_ID
+          value: "0"
+        image: wurstmeister/kafka
+        imagePullPolicy: IfNotPresent
+        name: main
         ports:
         - containerPort: 9092
-          name: inside
-        - containerPort: 9094
-          name: outside
-        - containerPort: 5555
-          name: jmx
-        readinessProbe:
-          tcpSocket:
-            port: 9092
-          timeoutSeconds: 1
-        resources:
-          limits:
-            memory: 600Mi
-          requests:
-            cpu: 100m
-            memory: 100Mi
-        volumeMounts:
-        - mountPath: /etc/kafka
-          name: config
-        - mountPath: /var/lib/kafka/data
-          name: data
-        - mountPath: /opt/kafka/libs/extensions
-          name: extensions
-      initContainers:
-      - args:
-        - sleep
-        - 10s
-        image: quay.io/argoproj/dataflow-runner:latest
-        imagePullPolicy: IfNotPresent
-        name: wait
-      - command:
-        - /bin/bash
-        - /etc/kafka-configmap/init.sh
-        env:
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        image: solsson/kafka-initutils@sha256:f6d9850c6c3ad5ecc35e717308fddb47daffbde18eb93e98e031128fe8b899ef
-        name: init-config
-        volumeMounts:
-        - mountPath: /etc/kafka-configmap
-          name: configmap
-        - mountPath: /etc/kafka
-          name: config
-        - mountPath: /opt/kafka/libs/extensions
-          name: extensions
-      terminationGracePeriodSeconds: 30
-      volumes:
-      - emptyDir: {}
-        name: data
-      - configMap:
-          name: broker-config
-        name: configmap
-      - emptyDir: {}
-        name: config
-      - emptyDir: {}
-        name: extensions
-  updateStrategy:
-    type: RollingUpdate
-  volumeClaimTemplates: []
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -4842,96 +4475,6 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: pzoo
-  namespace: argo-dataflow-system
-spec:
-  podManagementPolicy: Parallel
-  replicas: 1
-  selector:
-    matchLabels:
-      app: zookeeper
-      storage: persistent
-  serviceName: pzoo
-  template:
-    metadata:
-      labels:
-        app: zookeeper
-        storage: persistent
-    spec:
-      containers:
-      - command:
-        - ./bin/zookeeper-server-start.sh
-        - /etc/kafka/zookeeper.properties
-        env:
-        - name: KAFKA_LOG4J_OPTS
-          value: -Dlog4j.configuration=file:/etc/kafka/log4j.properties
-        image: solsson/kafka:2.2.1@sha256:450c6fdacae3f89ca28cecb36b2f120aad9b19583d68c411d551502ee8d0b09b
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - sh
-              - -ce
-              - kill -s TERM 1; while $(kill -0 1 2>/dev/null); do sleep 1; done
-        name: zookeeper
-        ports:
-        - containerPort: 2181
-          name: client
-        - containerPort: 2888
-          name: peer
-        - containerPort: 3888
-          name: leader-election
-        readinessProbe:
-          exec:
-            command:
-            - /bin/sh
-            - -c
-            - '[ "imok" = "$(echo ruok | nc -w 1 -q 1 127.0.0.1 2181)" ]'
-        resources:
-          limits:
-            memory: 120Mi
-          requests:
-            cpu: 10m
-            memory: 100Mi
-        volumeMounts:
-        - mountPath: /etc/kafka
-          name: config
-        - mountPath: /var/lib/zookeeper
-          name: data
-      initContainers:
-      - command:
-        - /bin/bash
-        - /etc/kafka-configmap/init.sh
-        env:
-        - name: PZOO_REPLICAS
-          value: "1"
-        - name: ZOO_REPLICAS
-          value: "0"
-        image: solsson/kafka-initutils@sha256:f6d9850c6c3ad5ecc35e717308fddb47daffbde18eb93e98e031128fe8b899ef
-        name: init-config
-        volumeMounts:
-        - mountPath: /etc/kafka-configmap
-          name: configmap
-        - mountPath: /etc/kafka
-          name: config
-        - mountPath: /var/lib/zookeeper
-          name: data
-      terminationGracePeriodSeconds: 10
-      volumes:
-      - emptyDir: {}
-        name: data
-      - configMap:
-          name: zookeeper-config
-        name: configmap
-      - emptyDir: {}
-        name: config
-  updateStrategy:
-    type: RollingUpdate
-  volumeClaimTemplates: []
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
   labels:
     app: stan
   name: stan
@@ -4993,9 +4536,11 @@ spec:
           name: stan-sts-vol
       initContainers:
       - args:
-        - sleep
-        - 20s
-        image: quay.io/argoproj/dataflow-runner:latest
+        - -fvN
+        - nats:8222
+        command:
+        - curl
+        image: golang:1.16
         imagePullPolicy: IfNotPresent
         name: wait
       volumes:
@@ -5010,100 +4555,35 @@ spec:
       - ReadWriteOnce
       resources:
         requests:
-          storage: 16Gi
+          storage: 1Gi
       volumeMode: Filesystem
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: zoo
+  name: zookeeper
   namespace: argo-dataflow-system
 spec:
-  podManagementPolicy: Parallel
-  replicas: 0
   selector:
     matchLabels:
       app: zookeeper
-      storage: persistent-regional
-  serviceName: zoo
+  serviceName: zookeeper
   template:
     metadata:
       labels:
         app: zookeeper
-        storage: persistent-regional
     spec:
       containers:
-      - command:
-        - ./bin/zookeeper-server-start.sh
-        - /etc/kafka/zookeeper.properties
-        env:
-        - name: KAFKA_LOG4J_OPTS
-          value: -Dlog4j.configuration=file:/etc/kafka/log4j.properties
-        image: solsson/kafka:2.2.1@sha256:450c6fdacae3f89ca28cecb36b2f120aad9b19583d68c411d551502ee8d0b09b
-        lifecycle:
-          preStop:
-            exec:
-              command:
-              - sh
-              - -ce
-              - kill -s TERM 1; while $(kill -0 1 2>/dev/null); do sleep 1; done
-        name: zookeeper
+      - env:
+        - name: ZOOKEEPER_ID
+          value: "1"
+        - name: ZOOKEEPER_SERVER_1
+          value: zoo
+        image: digitalwonderland/zookeeper
+        imagePullPolicy: IfNotPresent
+        name: main
         ports:
         - containerPort: 2181
-          name: client
-        - containerPort: 2888
-          name: peer
-        - containerPort: 3888
-          name: leader-election
-        readinessProbe:
-          exec:
-            command:
-            - /bin/sh
-            - -c
-            - '[ "imok" = "$(echo ruok | nc -w 1 -q 1 127.0.0.1 2181)" ]'
-        resources:
-          limits:
-            memory: 120Mi
-          requests:
-            cpu: 10m
-            memory: 100Mi
-        volumeMounts:
-        - mountPath: /etc/kafka
-          name: config
-        - mountPath: /var/lib/zookeeper
-          name: data
-      initContainers:
-      - command:
-        - /bin/bash
-        - /etc/kafka-configmap/init.sh
-        env:
-        - name: PZOO_REPLICAS
-          value: "1"
-        - name: ZOO_REPLICAS
-          value: "0"
-        - name: ID_OFFSET
-          value: "2"
-        image: solsson/kafka-initutils@sha256:f6d9850c6c3ad5ecc35e717308fddb47daffbde18eb93e98e031128fe8b899ef
-        name: init-config
-        volumeMounts:
-        - mountPath: /etc/kafka-configmap
-          name: configmap
-        - mountPath: /etc/kafka
-          name: config
-        - mountPath: /var/lib/zookeeper
-          name: data
-      terminationGracePeriodSeconds: 10
-      volumes:
-      - emptyDir: {}
-        name: data
-      - configMap:
-          name: zookeeper-config
-        name: configmap
-      - emptyDir: {}
-        name: config
-  updateStrategy:
-    type: RollingUpdate
-  volumeClaimTemplates: []
 ---
 apiVersion: v1
 kind: Pod
@@ -5126,4 +4606,11 @@ spec:
     command:
     - curl
     image: golang:1.16
-    name: create-topic
+    name: create-input-topic
+  - args:
+    - -fvN
+    - http://testapi:8378/kafka/create-topic?topic=output-topic
+    command:
+    - curl
+    image: golang:1.16
+    name: create-output-topic

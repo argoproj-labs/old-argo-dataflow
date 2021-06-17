@@ -4153,13 +4153,21 @@ spec:
     spec:
       containers:
       - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:9090/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+      - args:
         - --metrics-addr=127.0.0.1:9090
         - --enable-leader-election
         command:
         - /manager
         env:
-        - name: INSTALLER
-          value: "true"
         - name: ARGO_DATAFLOW_NAMESPACE
           value: argo-dataflow-system
         - name: ARGO_DATAFLOW_IMAGE_FORMAT
@@ -4175,15 +4183,5 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
-      - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:9090/
-        - --logtostderr=true
-        - --v=10
-        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10

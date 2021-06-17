@@ -1,5 +1,0 @@
-namespace: argo-dataflow-system
-resources:
-  - dev-small.yaml
-patchesStrategicMerge:
-  - kafka-statefulset.yml

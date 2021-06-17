@@ -2,9 +2,9 @@ namespace: argo-dataflow-system
 
 resources:
   - ../quick-start
-  - ../kafka-default
+  - ../kafka-dev
   - ../../examples/dataflow-kafka-default-secret.yaml
-  - ../stan-default
+  - ../stan-dev
   - ../../examples/dataflow-stan-default-secret.yaml
   - testapi-deploy.yaml
   - testapi-svc.yaml

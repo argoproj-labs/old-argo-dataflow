@@ -4,16 +4,22 @@ metadata:
   name: input
 spec:
   initContainers:
-    - name: create-topic
+    - name: create-input-topic
       image: golang:1.16
       command:
         - curl
       args:
         - -fvN
         - http://testapi:8378/kafka/create-topic?topic=input-topic
+    - name: create-output-topic
+      image: golang:1.16
+      command:
+        - curl
+      args:
+        - -fvN
+        - http://testapi:8378/kafka/create-topic?topic=output-topic
   containers:
     - name: pump-topic
-      # use golang because it is common
       image: golang:1.16
       command:
         - curl

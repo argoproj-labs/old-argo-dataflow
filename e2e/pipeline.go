@@ -63,7 +63,7 @@ func waitForPipeline(f func(pl Pipeline) bool) {
 				y = append(y, c.Type)
 			}
 		}
-		log.Printf("pipeline %q has status %s %q conditions %v\n", pl.Name, s.Phase, s.Message, y)
+		log.Printf("pipeline %q is %s %q conditions %v\n", pl.Name, s.Phase, s.Message, y)
 		if f(pl) {
 			return
 		}

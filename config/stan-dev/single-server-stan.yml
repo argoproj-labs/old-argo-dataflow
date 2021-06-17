@@ -1,3 +1,4 @@
+# https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-streaming-server/single-server-stan.yml
 ---
 apiVersion: v1
 kind: ConfigMap

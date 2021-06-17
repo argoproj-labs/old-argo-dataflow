@@ -211,9 +211,11 @@ spec:
           name: stan-sts-vol
       initContainers:
       - args:
-        - sleep
-        - 20s
-        image: quay.io/argoproj/dataflow-runner:latest
+        - -fvN
+        - nats:8222
+        command:
+        - curl
+        image: golang:1.16
         imagePullPolicy: IfNotPresent
         name: wait
       volumes:
@@ -228,5 +230,5 @@ spec:
       - ReadWriteOnce
       resources:
         requests:
-          storage: 16Gi
+          storage: 1Gi
       volumeMode: Filesystem

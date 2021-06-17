@@ -14,7 +14,7 @@ func init() {
 	sarama.Logger = log.New(os.Stdout, "", log.LstdFlags)
 	config := sarama.NewConfig()
 	config.ClientID = "dataflow-testapi"
-	addrs := []string{"kafka-0.broker:9092"}
+	addrs := []string{"kafka-broker:9092"}
 
 	http.HandleFunc("/kafka/create-topic", func(w http.ResponseWriter, r *http.Request) {
 		topics := r.URL.Query()["topic"]

@@ -4,7 +4,6 @@ package e2e
 
 import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
@@ -38,15 +37,11 @@ func TestHTTPSource(t *testing.T) {
 	sendMessageViaHTTP("my-msg")
 
 	waitForPipeline(untilMessagesSunk)
-	waitForStep(func(x Step) bool {
-		s := x.Status
-		assert.Equal(t, uint32(1), s.Replicas)
-		assert.Equal(t, uint64(0), s.SourceStatuses.GetPending())
-		assert.Equal(t, uint64(1), s.SourceStatuses.GetTotal())
-		assert.Equal(t, uint64(0), s.SinkStatues.GetPending())
-		assert.Equal(t, uint64(1), s.SinkStatues.GetTotal())
-		return true
-	})
+	waitForStep(func(s Step) bool { return s.Status.Replicas == 1 })
+	waitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetPending() == 0 })
+	waitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
+	waitForStep(func(s Step) bool { return s.Status.SinkStatues.GetPending() == 0 })
+	waitForStep(func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
 
 	expectMetric("input_inflight", 0)
 	expectMetric("replicas", 1)

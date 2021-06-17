@@ -30,7 +30,7 @@ func waitForStep(f func(Step) bool) {
 			panic(fmt.Errorf("expected *unstructured.Unstructured, got %q", reflect.TypeOf(e.Object).Name()))
 		}
 		x := StepFromUnstructured(un)
-		log.Println(fmt.Sprintf("pipeline %q has status %s %q", x.Name, x.Status.Phase, x.Status.Message))
+		log.Println(fmt.Sprintf("step %q is %s %q", x.Name, x.Status.Phase, x.Status.Message))
 		if f(x) {
 			return
 		}

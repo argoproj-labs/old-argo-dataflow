@@ -28,7 +28,7 @@ test-e2e: runner
 
 pre-commit: codegen test install lint start
 
-codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-default.yaml config/quick-start.yaml config/stan-default.yaml examples CHANGELOG.md $(GOBIN)/pie
+codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md $(GOBIN)/pie
 	go generate ./...
 
 $(GOBIN)/pie:
@@ -62,9 +62,9 @@ images: controller runner testapi runtimes
 config/ci.yaml:
 config/default.yaml:
 config/dev.yaml:
-config/kafka-default.yaml:
+config/kafka-dev.yaml:
 config/quick-start.yaml:
-config/stan-default.yaml:
+config/stan-dev.yaml:
 config/%.yaml: /dev/null
 	kustomize build --load_restrictor=none config/$* -o $@
 	sed -i '' "s/:latest/:$(TAG)/" $@
@@ -151,15 +151,6 @@ kubebuilder:
 	tar -zxvf kubebuilder_$(version)_$(name)_$(arch).tar.gz
 	mv kubebuilder_$(version)_$(name)_$(arch) kubebuilder && sudo mv kubebuilder /usr/local/
 
-config/kafka/dev-small.yaml:
-	kustomize build -o config/kafka/dev-small.yaml github.com/Yolean/kubernetes-kafka/variants/dev-small/?ref=v6.0.3
-
-config/nats/single-server-nats.yml:
-	curl -o config/nats/single-server-nats.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-server/single-server-nats.yml
-
-config/stan/single-server-stan.yml:
-	curl -o config/stan/single-server-stan.yml https://raw.githubusercontent.com/nats-io/k8s/v0.7.4/nats-streaming-server/single-server-stan.yml
-
 examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 
 install-dsls: /dev/null
@@ -168,7 +159,6 @@ install-dsls: /dev/null
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
 	cd examples && python3 $*-pipeline.py
 
-.PHONY: test-examples
 test-examples: examples
 	go test -timeout 20m -tags examples -v -count 1 ./examples
 

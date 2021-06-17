@@ -10,9 +10,9 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 If you want to experiment with Kafka or NATS Streaming (aka STAN):
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/kafka-default.yaml 
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/kafka-dev.yaml 
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default.yaml 
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/stan-default.yaml 
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/stan-dev.yaml 
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-stan-default.yaml
 ```
 

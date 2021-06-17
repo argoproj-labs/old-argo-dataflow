@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: stan
+spec:
+  template:
+    spec:
+      # stan depends on nats, and will go into CrashloopBackoff if that is not ready
+      initContainers:
+        - name: wait
+          image: golang:1.16
+          imagePullPolicy: IfNotPresent
+          command:
+            - curl
+          args:
+            - -fvN
+            - nats:8222

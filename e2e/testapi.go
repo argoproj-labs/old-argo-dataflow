@@ -17,11 +17,11 @@ func invokeTestAPI(format string, args ...interface{}) {
 		panic(err)
 	}
 	log.Printf("test API: %s", r.Status)
-	if r.StatusCode >= 300 {
-		panic(r.Status)
-	}
 	s := bufio.NewScanner(r.Body)
 	for s.Scan() {
 		log.Printf("test API: %s\n", s.Text())
+	}
+	if r.StatusCode >= 300 {
+		panic(r.Status)
 	}
 }
