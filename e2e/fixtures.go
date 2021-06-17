@@ -20,9 +20,11 @@ var (
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 )
 
-func setup(*testing.T) {
+func setup(t *testing.T) {
 	deletePipelines()
 	waitForPipelinePodsToBeDeleted()
+
+	t.Cleanup(portForward("testapi-0", 8378))
 }
 
 func teardown(*testing.T) {}

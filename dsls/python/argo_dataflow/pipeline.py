@@ -477,12 +477,16 @@ class CronSource(Source):
 
 
 class HTTPSource(Source):
-    def __init__(self, name=None, retryPolicy=None):
+    def __init__(self, name=None, retryPolicy=None, serviceName=None):
         super().__init__(name=name, retryPolicy=retryPolicy)
+        self._serviceName = serviceName
 
     def dump(self):
         x = super().dump()
-        x['http'] = {}
+        h = {}
+        if self._serviceName:
+            h['serviceName'] = self._serviceName
+        x['http'] = h
         return x
 
 
@@ -513,8 +517,8 @@ def cron(schedule, layout=None, name=None, retryPolicy=None):
     return CronSource(schedule, layout=layout, name=name, retryPolicy=retryPolicy)
 
 
-def http(name=None, retryPolicy=None):
-    return HTTPSource(name=name, retryPolicy=retryPolicy)
+def http(name=None, retryPolicy=None, serviceName=None):
+    return HTTPSource(name=name, retryPolicy=retryPolicy, serviceName=serviceName)
 
 
 def kafka(topic, name=None, retryPolicy=None):

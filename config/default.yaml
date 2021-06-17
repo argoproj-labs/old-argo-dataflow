@@ -782,6 +782,9 @@ spec:
                             - schedule
                             type: object
                           http:
+                            properties:
+                              serviceName:
+                                type: string
                             type: object
                           kafka:
                             properties:
@@ -2622,6 +2625,9 @@ spec:
                       - schedule
                       type: object
                     http:
+                      properties:
+                        serviceName:
+                          type: string
                       type: object
                     kafka:
                       properties:

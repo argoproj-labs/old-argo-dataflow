@@ -782,6 +782,9 @@ spec:
                             - schedule
                             type: object
                           http:
+                            properties:
+                              serviceName:
+                                type: string
                             type: object
                           kafka:
                             properties:
@@ -2622,6 +2625,9 @@ spec:
                       - schedule
                       type: object
                     http:
+                      properties:
+                        serviceName:
+                          type: string
                       type: object
                     kafka:
                       properties:
@@ -4337,29 +4343,6 @@ spec:
       terminationGracePeriodSeconds: 10
 ---
 apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: testapi
-  name: testapi
-  namespace: argo-dataflow-system
-spec:
-  selector:
-    matchLabels:
-      app: testapi
-  template:
-    metadata:
-      labels:
-        app: testapi
-    spec:
-      containers:
-      - image: quay.io/argoproj/dataflow-testapi
-        imagePullPolicy: IfNotPresent
-        name: main
-        ports:
-        - containerPort: 8378
----
-apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: kafka-broker
@@ -4557,6 +4540,30 @@ spec:
         requests:
           storage: 1Gi
       volumeMode: Filesystem
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: testapi
+  name: testapi
+  namespace: argo-dataflow-system
+spec:
+  selector:
+    matchLabels:
+      app: testapi
+  serviceName: testapi
+  template:
+    metadata:
+      labels:
+        app: testapi
+    spec:
+      containers:
+      - image: quay.io/argoproj/dataflow-testapi
+        imagePullPolicy: IfNotPresent
+        name: main
+        ports:
+        - containerPort: 8378
 ---
 apiVersion: apps/v1
 kind: StatefulSet

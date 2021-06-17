@@ -174,17 +174,28 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	if step.Spec.Sources.Any(func(s dfv1.Source) bool { return s.HTTP != nil }) {
+	serviceNames := map[string]bool{}
+	for _, s := range step.Spec.Sources {
+		if h := s.HTTP; h != nil {
+			x := h.ServiceName
+			if x == "" {
+				x = stepName
+			}
+			serviceNames[x] = true
+		}
+	}
+
+	for serviceName := range serviceNames {
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Service{
-				ObjectMeta: (metav1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Namespace: step.Namespace,
-					Name:      step.Name,
+					Name:      serviceName,
 					OwnerReferences: []metav1.OwnerReference{
 						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
 					},
-				}),
+				},
 				Spec: corev1.ServiceSpec{
 					Ports: []corev1.ServicePort{
 						{Port: 80, TargetPort: intstr.FromInt(3569)},

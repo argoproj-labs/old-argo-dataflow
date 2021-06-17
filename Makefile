@@ -28,11 +28,9 @@ test-e2e:
 
 pre-commit: codegen test install lint start
 
-codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md $(GOBIN)/pie
+codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md
 	go generate ./...
 
-$(GOBIN)/pie:
-	go install github.com/elliotchance/pie@v1.38.2
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 

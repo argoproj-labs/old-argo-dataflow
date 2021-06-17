@@ -117,6 +117,7 @@ message HTTPSink {
 }
 
 message HTTPSource {
+  optional string serviceName = 1;
 }
 
 message Handler {

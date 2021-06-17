@@ -78,6 +78,8 @@ jobs:
       - run: make runner
       - run: make wait
       - run: make test-e2e
+      - run: make runtimes
+      - run: make test-examples
       - name: list pods
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system get pod

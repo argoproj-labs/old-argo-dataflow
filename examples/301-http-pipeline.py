@@ -10,14 +10,13 @@ messages between steps.
 
 * HTTP sinks are *unreliable* because it is possible for messages to not get delivered when the receiving service is down.
 """)
-     .annotate("dataflow.argoproj.io/test", "true")
      .step(
         (cron('*/3 * * * * *')
          .cat('cron')
          .http('http://http-main/sources/default')
          ))
      .step(
-        (http()
+        (http(serviceName='http-main')
          .cat('main')
          .log()
          ))
