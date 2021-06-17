@@ -22,9 +22,17 @@ func ToUnstructured(pl Pipeline) *unstructured.Unstructured {
 }
 
 func FromUnstructured(un *unstructured.Unstructured) Pipeline {
-	pl := Pipeline{}
-	if err := converter.FromUnstructured(un.Object, &pl); err != nil {
+	x := Pipeline{}
+	if err := converter.FromUnstructured(un.Object, &x); err != nil {
 		panic(err)
 	}
-	return pl
+	return x
+}
+
+func StepFromUnstructured(un *unstructured.Unstructured) Step {
+	x := Step{}
+	if err := converter.FromUnstructured(un.Object, &x); err != nil {
+		panic(err)
+	}
+	return x
 }

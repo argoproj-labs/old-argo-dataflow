@@ -3,12 +3,9 @@
 package e2e
 
 import (
-	"bytes"
-	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"io/ioutil"
+	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"net/http"
 	"testing"
 )
 
@@ -41,7 +38,15 @@ func TestHTTPSource(t *testing.T) {
 	sendMessageViaHTTP("my-msg")
 
 	waitForPipeline(untilMessagesSunk)
-	// TODO check messages sunk correctly
+	waitForStep(func(x Step) bool {
+		s := x.Status
+		assert.Equal(t, uint32(1), s.Replicas)
+		assert.Equal(t, uint64(0), s.SourceStatuses.GetPending())
+		assert.Equal(t, uint64(1), s.SourceStatuses.GetTotal())
+		assert.Equal(t, uint64(0), s.SinkStatues.GetPending())
+		assert.Equal(t, uint64(1), s.SinkStatues.GetTotal())
+		return true
+	})
 
 	expectMetric("input_inflight", 0)
 	expectMetric("replicas", 1)
@@ -50,16 +55,4 @@ func TestHTTPSource(t *testing.T) {
 	expectMetric("sources_total", 1)
 
 	expectLogLine("http-main-0", "sidecar", `my-msg`)
-}
-
-func sendMessageViaHTTP(msg string) {
-	r, err := http.Post(baseUrl+"/sources/default", "text/plain", bytes.NewBufferString(msg))
-	if err != nil {
-		panic(err)
-	} else {
-		body, _ := ioutil.ReadAll(r.Body)
-		if r.StatusCode != 204 {
-			panic(fmt.Errorf("%s: %q", r.Status, body))
-		}
-	}
 }

@@ -59,6 +59,14 @@ func (in SourceStatuses) GetPending() uint64 {
 	return v
 }
 
+func (in SourceStatuses) GetTotal() uint64 {
+	var v uint64
+	for _, s := range in {
+		v += s.GetTotal()
+	}
+	return v
+}
+
 func (in SourceStatuses) RecentErrors() bool {
 	for _, s := range in {
 		if s.RecentErrors() {
