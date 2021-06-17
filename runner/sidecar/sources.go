@@ -48,7 +48,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		retryCountMetrics := promauto.NewCounter(prometheus.CounterOpts{
 			Subsystem: "message",
 			Name:      "retry-counts",
-			Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#re",
+			Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#message-retry-counts",
 		})
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
