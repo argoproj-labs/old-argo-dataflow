@@ -34,6 +34,7 @@ var (
 	namespace           = os.Getenv(dfv1.EnvNamespace)
 	step                = dfv1.Step{} // this is updated on start, and then periodically as we update the status
 	lastStep            = dfv1.Step{}
+	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
 )
 
 func Exec(ctx context.Context) error {
@@ -87,6 +88,13 @@ func Exec(ctx context.Context) error {
 	}
 
 	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		if ready {
+			w.WriteHeader(200)
+		} else {
+			w.WriteHeader(503)
+		}
+	})
 
 	if leadReplica() {
 		promauto.NewGaugeFunc(prometheus.GaugeOpts{
@@ -128,8 +136,10 @@ func Exec(ctx context.Context) error {
 
 	go wait.JitterUntil(func() { patchStepStatus(ctx) }, updateInterval, 1.2, true, ctx.Done())
 
+	ready = true
 	logger.Info("ready")
 	<-ctx.Done()
+	ready = false
 	logger.Info("done")
 	return nil
 }
@@ -161,7 +171,7 @@ func patchStepStatus(ctx context.Context) {
 						v.Status.SourceStatuses = dfv1.SourceStatuses{}
 					}
 					if v.Status.SinkStatues == nil {
-						v.Status.SourceStatuses = dfv1.SourceStatuses{}
+						v.Status.SinkStatues = dfv1.SourceStatuses{}
 					}
 					step = v
 					lastStep = *v.DeepCopy()

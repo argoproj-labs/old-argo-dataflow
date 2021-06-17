@@ -65,6 +65,11 @@ func TestStep_GetPodSpec(t *testing.T) {
 						Ports:        []corev1.ContainerPort{{ContainerPort: 3569}},
 						Resources:    SmallResourceRequirements,
 						VolumeMounts: mounts,
+						ReadinessProbe: &corev1.Probe{
+							Handler: corev1.Handler{
+								HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3569)},
+							},
+						},
 					},
 					{
 						Args: []string{"cat"},
