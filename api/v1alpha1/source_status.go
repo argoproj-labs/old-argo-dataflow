@@ -9,6 +9,7 @@ type SourceStatus struct {
 	Metrics     map[string]Metrics `json:"metrics,omitempty" protobuf:"bytes,4,rep,name=metrics"`
 }
 
+// GetPending returns pending counts
 func (in SourceStatus) GetPending() uint64 {
 	if in.Pending != nil {
 		return *in.Pending
