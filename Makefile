@@ -23,7 +23,7 @@ build: generate manifests
 test:
 	go test -v ./... -coverprofile cover.out
 
-test-e2e: runner
+test-e2e:
 	go test -v --tags e2e ./e2e
 
 pre-commit: codegen test install lint start
