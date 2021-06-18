@@ -11,6 +11,6 @@ bin
 config
 docs
 dsls
-e2e
 examples
 hack
+test

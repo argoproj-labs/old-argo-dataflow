@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func invokeTestAPI(format string, args ...interface{}) {
+func InvokeTestAPI(format string, args ...interface{}) {
 	url := "http://localhost:8378" + fmt.Sprintf(format, args...)
 	log.Printf("posting to test API %s\n", url)
 	r, err := http.Get(url)

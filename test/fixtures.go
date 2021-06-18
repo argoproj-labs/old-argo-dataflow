@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"k8s.io/client-go/dynamic"
@@ -20,11 +20,11 @@ var (
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 )
 
-func setup(t *testing.T) {
-	deletePipelines()
-	waitForPipelinePodsToBeDeleted()
+func Setup(t *testing.T) {
+	DeletePipelines()
+	WaitForPipelinePodsToBeDeleted()
 
-	t.Cleanup(portForward("testapi-0", 8378))
+	t.Cleanup(PortForward("testapi-0", 8378))
 }
 
-func teardown(*testing.T) {}
+func Teardown(*testing.T) {}

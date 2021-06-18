@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"os"
 )
 
-func portForward(podName string, opts ...interface{}) func() {
+func PortForward(podName string, opts ...interface{}) func() {
 	port := 3569
 	for _, opt := range opts {
 		switch v := opt.(type) {

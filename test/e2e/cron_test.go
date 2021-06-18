@@ -1,19 +1,20 @@
-// +build e2e
+// +build test
 
 package e2e
 
 import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
 func TestCronSource(t *testing.T) {
 
-	setup(t)
-	defer teardown(t)
+	Setup(t)
+	defer Teardown(t)
 
-	createPipeline(Pipeline{
+	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "cron"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
@@ -24,5 +25,5 @@ func TestCronSource(t *testing.T) {
 			}},
 		},
 	})
-	waitForPipeline(untilMessagesSunk)
+	WaitForPipeline(UntilMessagesSunk)
 }

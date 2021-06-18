@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 
 var (
 	podInterface = kubernetesInterface.CoreV1().Pods(namespace)
-	toBeReady    = func(p *corev1.Pod) bool {
+	ToBeReady    = func(p *corev1.Pod) bool {
 		for _, c := range p.Status.Conditions {
 			if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
 				return true
@@ -25,7 +25,7 @@ var (
 	}
 )
 
-func waitForPipelinePodsToBeDeleted() {
+func WaitForPipelinePodsToBeDeleted() {
 	log.Printf("waiting for pipeline pods to be deleted\n")
 	ctx := context.Background()
 	for {
@@ -38,7 +38,7 @@ func waitForPipelinePodsToBeDeleted() {
 	}
 }
 
-func waitForPod(podName string, f func(*corev1.Pod) bool) {
+func WaitForPod(podName string, f func(*corev1.Pod) bool) {
 	log.Printf("watching pod %q\n", podName)
 	w, err := podInterface.Watch(context.Background(), metav1.ListOptions{FieldSelector: "metadata.name=" + podName})
 	if err != nil {

@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func expectMetric(name string, value float64) {
+func ExpectMetric(name string, value float64) {
 	log.Printf("expect metric %q to be %f\n", name, value)
 	r, err := http.Get(baseUrl + "/metrics")
 	if err != nil {

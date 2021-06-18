@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func sendMessageViaHTTP(msg string) {
+func SendMessageViaHTTP(msg string) {
 	r, err := http.Post(baseUrl+"/sources/default", "text/plain", bytes.NewBufferString(msg))
 	if err != nil {
 		panic(err)

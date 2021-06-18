@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"context"
@@ -16,16 +16,16 @@ import (
 
 var (
 	pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
-	pipelineName string
-	untilRunning = func(pl Pipeline) bool {
+	pipelineName      string
+	UntilRunning      = func(pl Pipeline) bool {
 		return meta.FindStatusCondition(pl.Status.Conditions, ConditionRunning) != nil
 	}
-	untilMessagesSunk = func(pl Pipeline) bool {
+	UntilMessagesSunk = func(pl Pipeline) bool {
 		return meta.FindStatusCondition(pl.Status.Conditions, ConditionSunkMessages) != nil
 	}
 )
 
-func deletePipelines() {
+func DeletePipelines() {
 	log.Printf("deleting pipelines\n")
 	ctx := context.Background()
 	if err := pipelineInterface.DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{}); err != nil {
@@ -33,7 +33,7 @@ func deletePipelines() {
 	}
 }
 
-func createPipeline(pl Pipeline) {
+func CreatePipeline(pl Pipeline) {
 	log.Printf("creating pipeline %q\n", pl.Name)
 	un := ToUnstructured(pl)
 	_, err := pipelineInterface.Create(context.Background(), un, metav1.CreateOptions{})
@@ -43,7 +43,7 @@ func createPipeline(pl Pipeline) {
 	pipelineName = pl.Name
 }
 
-func waitForPipeline(f func(pl Pipeline) bool) {
+func WaitForPipeline(f func(pl Pipeline) bool) {
 	log.Printf("watching pipeline %q\n", pipelineName)
 	w, err := pipelineInterface.Watch(context.Background(), metav1.ListOptions{FieldSelector: "metadata.name=" + pipelineName, TimeoutSeconds: pointer.Int64Ptr(10)})
 	if err != nil {

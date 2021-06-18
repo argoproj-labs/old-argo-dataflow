@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"context"
@@ -17,7 +17,7 @@ var (
 	stepInterface = dynamicInterface.Resource(StepGroupVersionResource).Namespace(namespace)
 )
 
-func waitForStep(f func(Step) bool) {
+func WaitForStep(f func(Step) bool) {
 	log.Printf("watching steps in pipeline %q\n", pipelineName)
 	w, err := stepInterface.Watch(context.Background(), metav1.ListOptions{LabelSelector: KeyPipelineName + "=" + pipelineName, TimeoutSeconds: pointer.Int64Ptr(10)})
 	if err != nil {

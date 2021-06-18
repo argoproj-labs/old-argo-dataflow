@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	"bufio"
@@ -10,7 +10,7 @@ import (
 	"regexp"
 )
 
-func expectLogLine(podName, containerName, pattern string) {
+func ExpectLogLine(podName, containerName, pattern string) {
 	log.Printf("expect pod %q container %q to log pattern %q", podName, containerName, pattern)
 	ctx := context.Background()
 	stream, err := kubernetesInterface.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{Container: containerName}).Stream(ctx)

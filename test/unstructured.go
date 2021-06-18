@@ -1,6 +1,6 @@
-// +build e2e
+// +build test
 
-package e2e
+package test
 
 import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"

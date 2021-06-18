@@ -1,19 +1,20 @@
-// +build e2e
+// +build test
 
 package e2e
 
 import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
 func TestFilter(t *testing.T) {
 
-	setup(t)
-	defer teardown(t)
+	Setup(t)
+	defer Teardown(t)
 
-	createPipeline(Pipeline{
+	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "filter"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
@@ -27,18 +28,18 @@ func TestFilter(t *testing.T) {
 		},
 	})
 
-	waitForPod("filter-main-0", toBeReady)
+	WaitForPod("filter-main-0", ToBeReady)
 
-	cancel := portForward("filter-main-0")
+	cancel := PortForward("filter-main-0")
 	defer cancel()
 
-	sendMessageViaHTTP("foo-bar")
-	sendMessageViaHTTP("baz-qux")
+	SendMessageViaHTTP("foo-bar")
+	SendMessageViaHTTP("baz-qux")
 
-	waitForPipeline(untilMessagesSunk)
-	waitForStep(func(s Step) bool {
+	WaitForPipeline(UntilMessagesSunk)
+	WaitForStep(func(s Step) bool {
 		return s.Status.SinkStatues.GetTotal() == 1
 	})
 
-	expectLogLine("filter-main-0", "sidecar", `foo-bar`)
+	ExpectLogLine("filter-main-0", "sidecar", `foo-bar`)
 }
