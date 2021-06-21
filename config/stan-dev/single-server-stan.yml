@@ -29,6 +29,8 @@ spec:
   ports:
   - name: metrics
     port: 7777
+  - name: monitor
+    port: 8222
 ---
 apiVersion: apps/v1
 kind: StatefulSet
