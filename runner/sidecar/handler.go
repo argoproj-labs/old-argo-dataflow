@@ -2,28 +2,22 @@ package sidecar
 
 import (
 	"context"
-	"sync"
-
 	"github.com/Shopify/sarama"
 )
 
 type handler struct {
 	f  func(context.Context, []byte) error
-	wg sync.WaitGroup
 }
 
-func (h *handler) Setup(_ sarama.ConsumerGroupSession) error {
-	h.wg.Add(1)
+func (h *handler) Setup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (h *handler) Cleanup(_ sarama.ConsumerGroupSession) error {
-	h.wg.Done()
+func (h *handler) Cleanup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
 func (h *handler) Close() error {
-	h.wg.Wait()
 	return nil
 }
 
@@ -35,7 +29,6 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 			// noop
 		} else {
 			sess.MarkMessage(m, "")
-			sess.Commit()
 		}
 	}
 	return nil

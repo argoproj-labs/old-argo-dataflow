@@ -3,17 +3,14 @@ package sidecar
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
-
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	runnerutil "github.com/argoproj-labs/argo-dataflow/runner/util"
 	corev1 "k8s.io/api/core/v1"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"strings"
 )
 
 func init() {
@@ -31,8 +28,6 @@ func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) {
 func newKafkaConfig(k *dfv1.Kafka) (*sarama.Config, error) {
 	x := sarama.NewConfig()
 	x.ClientID = dfv1.CtrSidecar
-	x.Consumer.Offsets.AutoCommit.Enable = false
-	x.Consumer.MaxProcessingTime = 30 * time.Second
 	if k.Version != "" {
 		v, err := sarama.ParseKafkaVersion(k.Version)
 		if err != nil {
