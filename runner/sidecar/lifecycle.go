@@ -28,8 +28,12 @@ func stop() {
 }
 
 func closeClosers(closers []func(ctx context.Context) error) {
+	if len(closers) == 0 {
+		return // if this is already done, lets return early to avoid excess logging
+	}
+	start := time.Now()
 	logger.Info("closing closers", "len", len(closers))
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	for i := len(closers) - 1; i >= 0; i-- {
 		logger.Info("closing", "i", i)
@@ -37,4 +41,5 @@ func closeClosers(closers []func(ctx context.Context) error) {
 			logger.Error(err, "failed to close", "i", i)
 		}
 	}
+	logger.Info("closing took", "duration", time.Since(start))
 }
