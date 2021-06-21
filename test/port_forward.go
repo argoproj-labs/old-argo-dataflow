@@ -13,7 +13,7 @@ import (
 	"os"
 )
 
-func PortForward(podName string, opts ...interface{}) func() {
+func StartPortForward(podName string, opts ...interface{}) (stopPortForward func()) {
 	port := 3569
 	for _, opt := range opts {
 		switch v := opt.(type) {

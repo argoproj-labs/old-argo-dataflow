@@ -36,7 +36,7 @@ func getValue(m *io_prometheus_client.Metric) float64 {
 	} else if x := m.Gauge; x != nil {
 		return x.GetValue()
 	} else {
-		panic(fmt.Errorf("metric not-supported (not a counter/guage)"))
+		panic(fmt.Errorf("metric not-supported (not a counter/gauge)"))
 	}
 }
 
@@ -57,7 +57,7 @@ func getMetrics() map[string]*io_prometheus_client.MetricFamily {
 	return families
 }
 
-func StartMetricsLogger() func() {
+func StartMetricsLogger() (stopMetricsLogger func()) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
@@ -70,7 +70,6 @@ func StartMetricsLogger() func() {
 			default:
 				for n, family := range getMetrics() {
 					for _, m := range family.Metric {
-						log.Printf(m.String())
 						switch n {
 						case "input_inflight",
 							"replicas",

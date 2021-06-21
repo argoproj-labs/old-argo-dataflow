@@ -32,22 +32,13 @@ func TestHTTPSource(t *testing.T) {
 
 	WaitForPod("http-main-0", ToBeReady)
 
-	defer PortForward("http-main-0")
+	cancel := StartPortForward("http-main-0")
+	defer cancel()
 
 	SendMessageViaHTTP("my-msg")
 
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(func(s Step) bool { return s.Status.Replicas == 1 })
-	WaitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetPending() == 0 })
-	WaitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
-	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetPending() == 0 })
-	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
-
-	ExpectMetric("input_inflight", 0)
-	ExpectMetric("replicas", 1)
-	ExpectMetric("sources_errors", 0)
-	ExpectMetric("sources_pending", 0)
-	ExpectMetric("sources_total", 1)
 
 	ExpectLogLine("http-main-0", "sidecar", `my-msg`)
 }

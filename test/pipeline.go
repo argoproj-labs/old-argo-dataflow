@@ -17,13 +17,15 @@ import (
 var (
 	pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
 	pipelineName      string
-	UntilRunning      = func(pl Pipeline) bool {
-		return meta.FindStatusCondition(pl.Status.Conditions, ConditionRunning) != nil
-	}
-	UntilMessagesSunk = func(pl Pipeline) bool {
-		return meta.FindStatusCondition(pl.Status.Conditions, ConditionSunkMessages) != nil
-	}
 )
+
+func UntilRunning(pl Pipeline) bool {
+	return meta.FindStatusCondition(pl.Status.Conditions, ConditionRunning) != nil
+}
+
+func UntilMessagesSunk(pl Pipeline) bool {
+	return meta.FindStatusCondition(pl.Status.Conditions, ConditionSunkMessages) != nil
+}
 
 func DeletePipelines() {
 	log.Printf("deleting pipelines\n")
@@ -44,7 +46,7 @@ func CreatePipeline(pl Pipeline) {
 }
 
 func WaitForPipeline(f func(pl Pipeline) bool) {
-	log.Printf("watching pipeline %q\n", pipelineName)
+	log.Printf("waiting for pipeline %q %q\n", pipelineName, getFuncName(f))
 	w, err := pipelineInterface.Watch(context.Background(), metav1.ListOptions{FieldSelector: "metadata.name=" + pipelineName, TimeoutSeconds: pointer.Int64Ptr(10)})
 	if err != nil {
 		panic(err)

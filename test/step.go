@@ -18,7 +18,7 @@ var (
 )
 
 func WaitForStep(f func(Step) bool) {
-	log.Printf("watching steps in pipeline %q\n", pipelineName)
+	log.Printf("waiting for steps in pipeline %q\n", pipelineName)
 	w, err := stepInterface.Watch(context.Background(), metav1.ListOptions{LabelSelector: KeyPipelineName + "=" + pipelineName, TimeoutSeconds: pointer.Int64Ptr(10)})
 	if err != nil {
 		panic(err)

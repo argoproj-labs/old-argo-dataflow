@@ -30,7 +30,8 @@ func TestFilter(t *testing.T) {
 
 	WaitForPod("filter-main-0", ToBeReady)
 
-	defer PortForward("filter-main-0")
+	cancel := StartPortForward("filter-main-0")
+	defer cancel()
 
 	SendMessageViaHTTP("foo-bar")
 	SendMessageViaHTTP("baz-qux")

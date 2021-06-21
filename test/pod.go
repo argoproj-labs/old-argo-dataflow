@@ -15,15 +15,16 @@ import (
 
 var (
 	podInterface = kubernetesInterface.CoreV1().Pods(namespace)
-	ToBeReady    = func(p *corev1.Pod) bool {
-		for _, c := range p.Status.Conditions {
-			if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
-				return true
-			}
-		}
-		return false
-	}
 )
+
+func ToBeReady(p *corev1.Pod) bool {
+	for _, c := range p.Status.Conditions {
+		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
+			return true
+		}
+	}
+	return false
+}
 
 func WaitForPipelinePodsToBeDeleted() {
 	log.Printf("waiting for pipeline pods to be deleted\n")
@@ -39,7 +40,7 @@ func WaitForPipelinePodsToBeDeleted() {
 }
 
 func WaitForPod(podName string, f func(*corev1.Pod) bool) {
-	log.Printf("watching pod %q\n", podName)
+	log.Printf("waiting for pod %q %q\n", podName, getFuncName(f))
 	w, err := podInterface.Watch(context.Background(), metav1.ListOptions{FieldSelector: "metadata.name=" + podName})
 	if err != nil {
 		panic(err)
