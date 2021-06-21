@@ -35,9 +35,10 @@ func TestFilter(t *testing.T) {
 	SendMessageViaHTTP("baz-qux")
 
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForStep(func(s Step) bool {
-		return s.Status.SinkStatues.GetTotal() == 1
-	})
+	WaitForStep("main", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
 
 	ExpectLogLine("filter-main-0", "sidecar", `foo-bar`)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }

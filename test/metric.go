@@ -10,6 +10,7 @@ import (
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 )
@@ -73,7 +74,6 @@ func StartMetricsLogger() (stopMetricsLogger func()) {
 				for n, family := range getMetrics() {
 					switch n {
 					case "input_inflight",
-						"replicas",
 						"sources_errors",
 						"sources_pending",
 						"sources_total":
@@ -82,6 +82,7 @@ func StartMetricsLogger() (stopMetricsLogger func()) {
 						}
 					}
 				}
+				sort.Strings(x)
 				log.Println(strings.Join(x, ", "))
 				time.Sleep(15 * time.Second)
 			}

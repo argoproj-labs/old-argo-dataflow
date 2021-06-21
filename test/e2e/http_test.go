@@ -36,7 +36,10 @@ func TestHTTPSource(t *testing.T) {
 	SendMessageViaHTTP("my-msg")
 
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForStep(func(s Step) bool { return s.Status.Replicas == 1 })
+	WaitForStep("main", func(s Step) bool { return s.Status.Replicas == 1 })
 
 	ExpectLogLine("http-main-0", "sidecar", `my-msg`)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }

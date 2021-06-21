@@ -7,9 +7,9 @@ import (
 	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
-	"reflect"
 	"time"
 )
 
@@ -26,22 +26,36 @@ func ToBeReady(p *corev1.Pod) bool {
 	return false
 }
 
-func WaitForPipelinePodsToBeDeleted() {
-	log.Printf("waiting for pipeline pods to be deleted\n")
-	ctx := context.Background()
+func WaitForPodsToBeDeleted() {
+	log.Printf("waiting for pods to be deleted\n")
+
+	// pods MUST exit within 30s, because 30s after SIGTERM, they'll be SIGKILLed which will result in data loss
+	// so we need to be tougher on how long this is allowed to take
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
 	for {
-		if list, err := podInterface.List(ctx, metav1.ListOptions{LabelSelector: KeyPipelineName}); err != nil {
-			panic(err)
-		} else if len(list.Items) == 0 {
-			return
+		select {
+		case <-ctx.Done():
+			panic(fmt.Errorf("failed to wait for pods to be deleted: %w", ctx.Err()))
+		default:
+			list, err := podInterface.List(ctx, metav1.ListOptions{LabelSelector: KeyPipelineName})
+			if err != nil {
+				panic(err)
+			}
+			if len(list.Items) == 0 {
+				return
+			}
+			time.Sleep(time.Second)
 		}
-		time.Sleep(time.Second)
 	}
 }
 
 func WaitForPod(podName string, f func(*corev1.Pod) bool) {
 	log.Printf("waiting for pod %q %q\n", podName, getFuncName(f))
-	w, err := podInterface.Watch(context.Background(), metav1.ListOptions{FieldSelector: "metadata.name=" + podName})
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	w, err := podInterface.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.name=" + podName})
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +63,7 @@ func WaitForPod(podName string, f func(*corev1.Pod) bool) {
 	for e := range w.ResultChan() {
 		p, ok := e.Object.(*corev1.Pod)
 		if !ok {
-			panic(fmt.Errorf("expected *corev1.Pod, got %q", reflect.TypeOf(e.Object).Name()))
+			panic(errors.FromObject(e.Object))
 		}
 		s := p.Status
 		var y []string

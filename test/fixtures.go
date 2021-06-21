@@ -25,19 +25,22 @@ var (
 
 func getFuncName(i interface{}) string {
 	ptr := runtime.FuncForPC(reflect.ValueOf(i).Pointer())
-	parts := strings.Split(ptr.Name(), ".")
+	parts := strings.SplitN(ptr.Name(), ".", 3)
 	return parts[2]
 }
 
+var stopTestAPIPortForward func()
+
 func Setup(t *testing.T) {
 	DeletePipelines()
-	WaitForPipelinePodsToBeDeleted()
+	WaitForPodsToBeDeleted()
 
-	stopPortForward := StartPortForward("testapi-0", 8378)
-	t.Cleanup(stopPortForward)
+	stopTestAPIPortForward = StartPortForward("testapi-0", 8378)
 }
 
-func Teardown(*testing.T) {}
+func Teardown(*testing.T) {
+	stopTestAPIPortForward()
+}
 
 func WaitForever() {
 	select {}

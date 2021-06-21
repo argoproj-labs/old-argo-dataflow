@@ -36,10 +36,10 @@ func TestMetrics(t *testing.T) {
 	SendMessageViaHTTP("ok")
 
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetPending() == 0 })
-	WaitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
-	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetPending() == 0 })
-	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
+	WaitForStep("main", func(s Step) bool { return s.Status.SourceStatuses.GetPending() == 0 })
+	WaitForStep("main", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
+	WaitForStep("main", func(s Step) bool { return s.Status.SinkStatues.GetPending() == 0 })
+	WaitForStep("main", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
 
 	ExpectMetric("input_inflight", 0)
 	ExpectMetric("replicas", 1)

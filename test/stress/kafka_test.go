@@ -1,3 +1,5 @@
+// +build test
+
 package stress
 
 import (
@@ -33,7 +35,8 @@ func TestKafkaStress(t *testing.T) {
 
 	WaitForPipeline(UntilRunning)
 	WaitForPod("kafka-main-0", ToBeReady)
-	PumpKafkaTopic(topic, 10000, 1*time.Millisecond)
+	PumpKafkaTopic(topic, 100, 1*time.Millisecond)
 	WaitForPipeline(UntilMessagesSunk)
+	WaitForStep("main", NothingPending)
 	WaitForever()
 }

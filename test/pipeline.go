@@ -4,19 +4,17 @@ package test
 
 import (
 	"context"
-	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/utils/pointer"
 	"log"
-	"reflect"
+	"time"
 )
 
 var (
 	pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
-	pipelineName      string
 )
 
 func UntilRunning(pl Pipeline) bool {
@@ -42,12 +40,13 @@ func CreatePipeline(pl Pipeline) {
 	if err != nil {
 		panic(err)
 	}
-	pipelineName = pl.Name
 }
 
 func WaitForPipeline(f func(pl Pipeline) bool) {
-	log.Printf("waiting for pipeline %q %q\n", pipelineName, getFuncName(f))
-	w, err := pipelineInterface.Watch(context.Background(), metav1.ListOptions{FieldSelector: "metadata.name=" + pipelineName, TimeoutSeconds: pointer.Int64Ptr(10)})
+	log.Printf("waiting for pipeline %q\n", getFuncName(f))
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	w, err := pipelineInterface.Watch(ctx, metav1.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +54,7 @@ func WaitForPipeline(f func(pl Pipeline) bool) {
 	for e := range w.ResultChan() {
 		un, ok := e.Object.(*unstructured.Unstructured)
 		if !ok {
-			panic(fmt.Errorf("expected *unstructured.Unstructured, got %q", reflect.TypeOf(e.Object).Name()))
+			panic(errors.FromObject(e.Object))
 		}
 		pl := FromUnstructured(un)
 		s := pl.Status

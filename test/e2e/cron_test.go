@@ -26,4 +26,7 @@ func TestCronSource(t *testing.T) {
 		},
 	})
 	WaitForPipeline(UntilMessagesSunk)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
