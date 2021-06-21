@@ -95,7 +95,7 @@ func init() {
 					Topic: topic,
 					Value: sarama.StringEncoder(x),
 				}
-				_, _ = fmt.Fprintf(w, "sent %q (%.0f TPS)\n", x, (1+float64(i))/time.Since(start).Seconds())
+				_, _ = fmt.Fprintf(w, "sent %q (%.0f TPS) to %q\n", x, (1+float64(i))/time.Since(start).Seconds(), topic)
 				time.Sleep(duration)
 			}
 		}
