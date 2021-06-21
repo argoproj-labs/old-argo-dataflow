@@ -35,8 +35,8 @@ func TestKafkaStress(t *testing.T) {
 
 	WaitForPipeline(UntilRunning)
 	WaitForPod("kafka-main-0", ToBeReady)
-	PumpKafkaTopic(topic, 100, 1*time.Millisecond)
-	WaitForPipeline(UntilMessagesSunk)
+	PumpKafkaTopic(topic, 1000, 1*time.Millisecond)
+	WaitForStep("main", MessagesPending)
 	WaitForStep("main", NothingPending)
 	WaitForever()
 }

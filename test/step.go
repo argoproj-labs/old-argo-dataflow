@@ -17,6 +17,10 @@ var (
 	stepInterface = dynamicInterface.Resource(StepGroupVersionResource).Namespace(namespace)
 )
 
+func MessagesPending(s Step) bool {
+	return !NothingPending(s)
+}
+
 func NothingPending(s Step) bool {
 	return s.Status.SourceStatuses.GetPending() == 0
 }
