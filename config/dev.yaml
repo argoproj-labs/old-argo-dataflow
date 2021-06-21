@@ -4124,7 +4124,7 @@ metadata:
   namespace: argo-dataflow-system
 stringData:
   clusterId: stan
-  natsMonitoringUrl: http://nats:8222
+  natsMonitoringUrl: http://stan:8222
   natsUrl: nats
   subjectPrefix: NamespacedPipelineName
 ---
