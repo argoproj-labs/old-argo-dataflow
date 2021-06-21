@@ -3,48 +3,88 @@
 package test
 
 import (
+	"context"
 	"fmt"
+	"github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"log"
 	"net/http"
+	"time"
 )
 
 func ExpectMetric(name string, value float64) {
 	log.Printf("expect metric %q to be %f\n", name, value)
-	r, err := http.Get(baseUrl + "/metrics")
-	if err != nil {
-		panic(err)
-	} else {
-		defer func() { _ = r.Body.Close() }()
-		if r.StatusCode != 200 {
-			panic(r.Status)
-		}
-		p := &expfmt.TextParser{}
-		families, err := p.TextToMetricFamilies(r.Body)
-		if err != nil {
-			panic(err)
-		}
-		for n, family := range families {
-			if n == name {
-				for _, m := range family.Metric {
-					if x := m.Counter; x != nil {
-						if x.GetValue() == value {
-							return
-						} else {
-							panic(fmt.Errorf("count metric %q expected %f, got %f", n, value, x.GetValue()))
-						}
-					} else if x := m.Gauge; x != nil {
-						if x.GetValue() == value {
-							return
-						} else {
-							panic(fmt.Errorf("gauge metric %q expected %f, got %f", n, value, x.GetValue()))
-						}
-					} else {
-						panic(fmt.Errorf("metric %q not-supported (not a counter)", n))
-					}
+	for n, family := range getMetrics() {
+		if n == name {
+			for _, m := range family.Metric {
+				v := getValue(m)
+				if value == v {
+					return
+				} else {
+					panic(fmt.Errorf("metric %q expected %f, got %f", n, value, v))
 				}
 			}
 		}
-		panic(fmt.Errorf("metric named %q not found in %q", name, families))
 	}
+	panic(fmt.Errorf("metric named %q not found in %q", name, getMetrics()))
+}
+
+func getValue(m *io_prometheus_client.Metric) float64 {
+	if x := m.Counter; x != nil {
+		return x.GetValue()
+	} else if x := m.Gauge; x != nil {
+		return x.GetValue()
+	} else {
+		panic(fmt.Errorf("metric not-supported (not a counter/guage)"))
+	}
+}
+
+func getMetrics() map[string]*io_prometheus_client.MetricFamily {
+	r, err := http.Get(baseUrl + "/metrics")
+	if err != nil {
+		panic(err)
+	}
+	defer func() { _ = r.Body.Close() }()
+	if r.StatusCode != 200 {
+		panic(r.Status)
+	}
+	p := &expfmt.TextParser{}
+	families, err := p.TextToMetricFamilies(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	return families
+}
+
+func StartMetricsLogger() func() {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		defer runtimeutil.HandleCrash()
+		for {
+			select {
+			case <-ctx.Done():
+				log.Println("stopping metrics logger")
+				return
+			default:
+				for n, family := range getMetrics() {
+					for _, m := range family.Metric {
+						log.Printf(m.String())
+						switch n {
+						case "input_inflight",
+							"replicas",
+							"sources_errors",
+							"sources_pending",
+							"sources_total":
+							log.Printf("%s=%v", n, getValue(m))
+						}
+					}
+				}
+				time.Sleep(15 * time.Second)
+			}
+		}
+	}()
+
+	return cancel
 }

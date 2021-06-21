@@ -32,8 +32,7 @@ func TestHTTPSource(t *testing.T) {
 
 	WaitForPod("http-main-0", ToBeReady)
 
-	cancel := PortForward("http-main-0")
-	defer cancel()
+	defer PortForward("http-main-0")
 
 	SendMessageViaHTTP("my-msg")
 

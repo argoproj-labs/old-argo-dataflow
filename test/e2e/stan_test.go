@@ -38,8 +38,7 @@ func TestSTAN(t *testing.T) {
 
 	WaitForPod("stan-a-0", ToBeReady)
 
-	cancel := PortForward("stan-a-0")
-	defer cancel()
+	defer PortForward("stan-a-0")
 
 	SendMessageViaHTTP("my-msg")
 

@@ -12,7 +12,6 @@ func TestKafkaStress(t *testing.T) {
 
 	Setup(t)
 	defer Teardown(t)
-
 	topic := CreateKafkaTopic()
 
 	CreatePipeline(Pipeline{
@@ -26,6 +25,10 @@ func TestKafkaStress(t *testing.T) {
 			}},
 		},
 	})
+
+	defer PortForward("kafka-main-0")
+	defer StartMetricsLogger()
+
 	WaitForPipeline(UntilRunning)
 	WaitForPod("kafka-main-0", ToBeReady)
 	PumpKafkaTopic(topic, 100000, 10*time.Millisecond)
