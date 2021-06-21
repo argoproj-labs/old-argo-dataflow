@@ -141,7 +141,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		logger.Info("closing kafka admin client", "source", sourceName)
 		return adminClient.Close()
 	})
-	groupName := pipelineName + "-" + stepName
+	groupName := pipelineName + "-" + stepName + "-source-" + sourceName + "-" + x.Topic
 	group, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
 	if err != nil {
 		return fmt.Errorf("failed to create kafka consumer group: %w", err)
