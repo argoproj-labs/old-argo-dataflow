@@ -31,7 +31,7 @@ func WaitForPodsToBeDeleted() {
 
 	// pods MUST exit within 30s, because 30s after SIGTERM, they'll be SIGKILLed which will result in data loss
 	// so we need to be tougher on how long this is allowed to take
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	for {

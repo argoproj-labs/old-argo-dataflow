@@ -5,6 +5,7 @@ package test
 import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"log"
 	"reflect"
 	"runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -43,5 +44,6 @@ func Teardown(*testing.T) {
 }
 
 func WaitForever() {
+	log.Printf("waiting forever\n")
 	select {}
 }
