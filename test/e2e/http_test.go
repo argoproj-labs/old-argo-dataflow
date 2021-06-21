@@ -30,8 +30,6 @@ func TestHTTPSource(t *testing.T) {
 
 	WaitForPipeline(UntilRunning)
 
-	WaitForPod("http-main-0", ToBeReady)
-
 	cancel := StartPortForward("http-main-0")
 	defer cancel()
 

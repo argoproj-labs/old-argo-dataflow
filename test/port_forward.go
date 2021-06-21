@@ -14,6 +14,9 @@ import (
 )
 
 func StartPortForward(podName string, opts ...interface{}) (stopPortForward func()) {
+
+	WaitForPod(podName, ToBeReady)
+
 	port := 3569
 	for _, opt := range opts {
 		switch v := opt.(type) {

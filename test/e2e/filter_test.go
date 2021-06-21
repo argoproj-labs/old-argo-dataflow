@@ -28,8 +28,6 @@ func TestFilter(t *testing.T) {
 		},
 	})
 
-	WaitForPod("filter-main-0", ToBeReady)
-
 	cancel := StartPortForward("filter-main-0")
 	defer cancel()
 

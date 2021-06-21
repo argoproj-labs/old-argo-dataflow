@@ -38,3 +38,7 @@ func Setup(t *testing.T) {
 }
 
 func Teardown(*testing.T) {}
+
+func WaitForever() {
+	select {}
+}

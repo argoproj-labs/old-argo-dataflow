@@ -30,8 +30,6 @@ func TestMetrics(t *testing.T) {
 
 	WaitForPipeline(UntilRunning)
 
-	WaitForPod("metrics-main-0", ToBeReady)
-
 	stopPortForward := StartPortForward("metrics-main-0")
 	defer stopPortForward()
 

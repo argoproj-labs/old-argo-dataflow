@@ -36,8 +36,6 @@ func TestSTAN(t *testing.T) {
 		},
 	})
 
-	WaitForPod("stan-a-0", ToBeReady)
-
 	cancel := StartPortForward("stan-a-0")
 	defer cancel()
 

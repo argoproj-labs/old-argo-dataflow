@@ -10,6 +10,7 @@ import (
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -68,18 +69,20 @@ func StartMetricsLogger() (stopMetricsLogger func()) {
 				log.Println("stopping metrics logger")
 				return
 			default:
+				var x []string
 				for n, family := range getMetrics() {
-					for _, m := range family.Metric {
-						switch n {
-						case "input_inflight",
-							"replicas",
-							"sources_errors",
-							"sources_pending",
-							"sources_total":
-							log.Printf("%s=%v", n, getValue(m))
+					switch n {
+					case "input_inflight",
+						"replicas",
+						"sources_errors",
+						"sources_pending",
+						"sources_total":
+						for _, m := range family.Metric {
+							x = append(x, fmt.Sprintf("%s=%v", n, getValue(m)))
 						}
 					}
 				}
+				log.Println(strings.Join(x, ", "))
 				time.Sleep(15 * time.Second)
 			}
 		}
