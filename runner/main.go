@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
