@@ -161,12 +161,12 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		return handler.Close()
 	})
 	if leadReplica() {
-		registerKafkaSetPendingHook(ctx, x, sourceName, client, adminClient, groupName)
+		registerKafkaSetPendingHook(x, sourceName, client, adminClient, groupName)
 	}
 	return nil
 }
 
-func registerKafkaSetPendingHook(ctx context.Context, x *dfv1.Kafka, sourceName string, client sarama.Client, adminClient sarama.ClusterAdmin, groupName string) {
+func registerKafkaSetPendingHook(x *dfv1.Kafka, sourceName string, client sarama.Client, adminClient sarama.ClusterAdmin, groupName string) {
 	prePatchHooks = append(prePatchHooks, func() error {
 		partitions, err := client.Partitions(x.Topic)
 		if err != nil {
