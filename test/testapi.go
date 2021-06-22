@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func InvokeTestAPI(format string, args ...interface{}) {
@@ -19,7 +20,11 @@ func InvokeTestAPI(format string, args ...interface{}) {
 	log.Printf("test API: %s", r.Status)
 	s := bufio.NewScanner(r.Body)
 	for s.Scan() {
-		log.Printf("test API: %s\n", s.Text())
+		x := s.Text()
+		if strings.Contains(x, "ERROR") { // hacky way to return an error from an octet-stream
+			panic(x)
+		}
+		log.Printf("test API: %s\n", x)
 	}
 	if r.StatusCode >= 300 {
 		panic(r.Status)

@@ -10,7 +10,7 @@ import (
 )
 
 func RandomSTANSubject() string {
-	subject := fmt.Sprintf("test-subject-%d", rand.Int())
+	subject := fmt.Sprintf("test-subject-%d", rand.Intn(2^16))
 	log.Printf("create STAN subject %q\n", subject)
 	return subject
 }

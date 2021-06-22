@@ -21,24 +21,21 @@ func TestHTTPSource(t *testing.T) {
 				{
 					Name:    "main",
 					Cat:     &Cat{},
-					Sources: []Source{{HTTP: &HTTPSource{}}},
+					Sources: []Source{{HTTP: &HTTPSource{ServiceName: "in"}}},
 					Sinks:   []Sink{{Log: &Log{}}},
 				},
 			},
 		},
 	})
 
-	WaitForPipeline(UntilRunning)
-
-	cancel := StartPortForward("http-main-0")
-	defer cancel()
-
-	SendMessageViaHTTP("my-msg")
+	WaitForPipeline()
+	WaitForService()
+	SendMessageViaHTTP("http://in/sources/default", "my-msg")
 
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForStep("main", func(s Step) bool { return s.Status.Replicas == 1 })
+	WaitForStep( func(s Step) bool { return s.Status.Replicas == 1 })
 
-	ExpectLogLine("http-main-0", "sidecar", `my-msg`)
+	ExpectLogLine("http-main-0", "sidecar", "my-msg") // incidentally test the log sink
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

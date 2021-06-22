@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,30 +52,51 @@ func WaitForPodsToBeDeleted() {
 	}
 }
 
-func WaitForPod(podName string, f func(*corev1.Pod) bool) {
-	log.Printf("waiting for pod %q %q\n", podName, getFuncName(f))
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+func WaitForPod(opts ...interface{}) {
+	// by default, wait for any pod to be ready
+	var (
+		listOptions = metav1.ListOptions{LabelSelector: KeyPipelineName}
+		f           = ToBeReady
+	)
+	for _, o := range opts {
+		switch v := o.(type) {
+		case string:
+			listOptions.LabelSelector = "" // we don't always use this for pipeline pods
+			listOptions.FieldSelector = "metadata.name=" + v
+		case func(*corev1.Pod) bool:
+			f = v
+		default:
+			panic("un-supported option type")
+		}
+	}
+	log.Printf("waiting for pod %q %q\n", sharedutil.MustJSON(listOptions), getFuncName(f))
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	w, err := podInterface.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.name=" + podName})
+	w, err := podInterface.Watch(ctx, listOptions)
 	if err != nil {
 		panic(err)
 	}
 	defer w.Stop()
-	for e := range w.ResultChan() {
-		p, ok := e.Object.(*corev1.Pod)
-		if !ok {
-			panic(errors.FromObject(e.Object))
-		}
-		s := p.Status
-		var y []string
-		for _, c := range s.Conditions {
-			if c.Status == corev1.ConditionTrue {
-				y = append(y, string(c.Type))
+	for {
+		select {
+		case <-ctx.Done():
+			panic(fmt.Errorf("failed to wait for pod: %w", ctx.Err()))
+		case e := <-w.ResultChan():
+			p, ok := e.Object.(*corev1.Pod)
+			if !ok {
+				panic(errors.FromObject(e.Object))
 			}
-		}
-		log.Printf("pod %q has status %s %q conditions %q\n", p.Name, s.Phase, s.Message, y)
-		if f(p) {
-			return
+			s := p.Status
+			var y []string
+			for _, c := range s.Conditions {
+				if c.Status == corev1.ConditionTrue {
+					y = append(y, string(c.Type))
+				}
+			}
+			log.Printf("pod %q has status %s %q conditions %q\n", p.Name, s.Phase, s.Message, y)
+			if f(p) {
+				return
+			}
 		}
 	}
 }

@@ -3,22 +3,16 @@
 package test
 
 import (
-	"bytes"
-	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
+	"net/url"
+	"time"
 )
 
-func SendMessageViaHTTP(msg string) {
-	log.Printf("sending %q via HTTP\n", msg)
-	r, err := http.Post(baseUrl+"/sources/default", "text/plain", bytes.NewBufferString(msg))
-	if err != nil {
-		panic(err)
-	} else {
-		body, _ := ioutil.ReadAll(r.Body)
-		if r.StatusCode != 204 {
-			panic(fmt.Errorf("%s: %q", r.Status, body))
-		}
-	}
+func SendMessageViaHTTP(url, msg string) {
+	PumpHTTP(url, msg, 1, 0)
+}
+
+func PumpHTTP(_url, msg string, n int, sleep time.Duration) {
+	log.Printf("sending %d messages %q via HTTP to %q\n", n, msg, _url)
+	InvokeTestAPI("/http/pump?url=%s&msg=%s&n=%d&sleep=%v", url.QueryEscape(_url), msg, n, sleep)
 }

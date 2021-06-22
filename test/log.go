@@ -5,6 +5,7 @@ package test
 import (
 	"bufio"
 	"context"
+	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"log"
 	"regexp"
@@ -26,4 +27,5 @@ func ExpectLogLine(podName, containerName, pattern string) {
 			return
 		}
 	}
+	panic(fmt.Errorf("no log lines matched %q", pattern))
 }

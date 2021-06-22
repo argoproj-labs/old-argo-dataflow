@@ -36,21 +36,19 @@ func TestSTAN(t *testing.T) {
 		},
 	})
 
-	cancel := StartPortForward("stan-a-0")
-	defer cancel()
-
-	SendMessageViaHTTP("my-msg")
+	WaitForService()
+	SendMessageViaHTTP("http://stan-a/sources/default", "my-msg")
 
 	WaitForPipeline(UntilMessagesSunk)
 
 	ExpectLogLine("stan-b-0", "sidecar", "my-msg")
 
-	WaitForStep("a", NothingPending)
-	WaitForStep("b", NothingPending)
-	WaitForStep("a", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
-	WaitForStep("a", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
-	WaitForStep("b", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
-	WaitForStep("b", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
+	WaitForStep("stan-a", NothingPending)
+	WaitForStep("stan-b", NothingPending)
+	WaitForStep("stan-a", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
+	WaitForStep("stan-a", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
+	WaitForStep("stan-b", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
+	WaitForStep("stan-b", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

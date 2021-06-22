@@ -27,13 +27,13 @@ func TestKafkaSource(t *testing.T) {
 			}},
 		},
 	})
-	WaitForPipeline(UntilRunning)
-	WaitForPod("kafka-main-0", ToBeReady)
+	WaitForPipeline()
+	WaitForPod()
 	PumpKafkaTopic(topic, 17)
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForStep("main", NothingPending)
-	WaitForStep("main", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 17 })
-	WaitForStep("main", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 17 })
+	WaitForStep(NothingPending)
+	WaitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 17 })
+	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 17 })
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
