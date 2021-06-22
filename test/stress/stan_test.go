@@ -11,32 +11,32 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestKafkaStress(t *testing.T) {
+func TestStanStress(t *testing.T) {
 
 	Setup(t)
 	defer Teardown(t)
-	topic := CreateKafkaTopic()
+	subject := RandomSTANSubject()
 
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+		ObjectMeta: metav1.ObjectMeta{Name: "stan"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
 				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
+				Sources: []Source{{STAN: &STAN{Subject: subject}}},
 				Sinks:   []Sink{{Log: &Log{}}},
 			}},
 		},
 	})
 
-	stopPortForward := StartPortForward("kafka-main-0")
+	stopPortForward := StartPortForward("stan-main-0")
 	defer stopPortForward()
 	stopMetricsLogger := StartMetricsLogger()
 	defer stopMetricsLogger()
 
 	WaitForPipeline(UntilRunning)
-	WaitForPod("kafka-main-0", ToBeReady)
-	PumpKafkaTopic(topic, 1000, 1*time.Millisecond)
+	WaitForPod("stan-main-0", ToBeReady)
+	PumpStanSubject("argo-dataflow-system.stan."+subject, 100, 1*time.Millisecond)
 	WaitForStep("main", MessagesPending)
 	WaitForStep("main", NothingPending)
 	WaitForever()
