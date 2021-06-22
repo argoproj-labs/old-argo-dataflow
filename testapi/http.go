@@ -38,7 +38,6 @@ func init() {
 			return
 		}
 		msgs := r.URL.Query()["msg"]
-		w.Header().Set("Content-Type", "application/octet-stream")
 		w.WriteHeader(200)
 
 		start := time.Now()
@@ -66,10 +65,13 @@ func init() {
 			w.WriteHeader(400)
 			return
 		}
+		url := urls[0]
+		w.WriteHeader(200)
 		for {
-			_, err := http.Get(urls[0])
-			if err == nil {
-				w.WriteHeader(204)
+			_, err := http.Get(url)
+			if err != nil {
+				_, _ = fmt.Fprintf(w, "%q is not ready: %v", url, err)
+			} else {
 				return
 			}
 			time.Sleep(1 * time.Second)

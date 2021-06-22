@@ -16,6 +16,7 @@ var (
 )
 
 func WaitForService() {
+	WaitForPod()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	list, err := serviceInterface.List(ctx, metav1.ListOptions{})

@@ -18,8 +18,8 @@ func InvokeTestAPI(format string, args ...interface{}) {
 		panic(err)
 	}
 	log.Printf("test API: %s", r.Status)
-	s := bufio.NewScanner(r.Body)
-	for s.Scan() {
+
+	for s := bufio.NewScanner(r.Body); s.Scan(); {
 		x := s.Text()
 		if strings.Contains(x, "ERROR") { // hacky way to return an error from an octet-stream
 			panic(x)
