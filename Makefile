@@ -20,8 +20,9 @@ build: generate manifests
 	go build ./...
 
 # Run tests
+.PHONY: test
 test:
-	go test -v ./... -coverprofile cover.out
+	go test -v ./... -coverprofile cover.out -race
 
 test-e2e:
 	go test -v --tags test ./test/e2e
