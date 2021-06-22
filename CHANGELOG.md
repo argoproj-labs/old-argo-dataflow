@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.55 (2021-06-21)
+
+ * [e5fa079](https://github.com/argoproj-labs/argo-dataflow/commit/e5fa0791858fda3bdc43ccfd8f7348975e9dc905) feat: pprof sidecar
+ * [3c0d169](https://github.com/argoproj-labs/argo-dataflow/commit/3c0d169b2fd111e313d9a76b62405f1795665edd) fix: Kafka pending wrong when re-using pipeline
+ * [f37aea4](https://github.com/argoproj-labs/argo-dataflow/commit/f37aea4f1cd3283194d0e7a2d7bc59612085188e) fix: revert to auto-commit
+ * [24d91a1](https://github.com/argoproj-labs/argo-dataflow/commit/24d91a120ae641909201bfcc816a5d9944e446fb) fix: negative Kafka pending
+ * [32a73a7](https://github.com/argoproj-labs/argo-dataflow/commit/32a73a7ae8c6e0993ed2a9f96f1bc4e24607caac) fix: expose stan monitoring port (#78)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.54 (2021-06-17)
 
  * [0d68892](https://github.com/argoproj-labs/argo-dataflow/commit/0d688927826574de93aaa8fb9351b108408291ee) feat: add HTTP source service name
