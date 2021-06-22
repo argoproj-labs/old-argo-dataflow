@@ -4316,6 +4316,8 @@ spec:
         env:
         - name: PULL_POLICY
           value: IfNotPresent
+        - name: ARGO_DATAFLOW_UPDATE_INTERVAL
+          value: 10s
         - name: ARGO_DATAFLOW_NAMESPACE
           value: argo-dataflow-system
         - name: ARGO_DATAFLOW_IMAGE_FORMAT
