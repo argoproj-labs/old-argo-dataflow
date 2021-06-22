@@ -118,6 +118,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	step.Status.Phase, step.Status.Reason, step.Status.Message = dfv1.StepUnknown, "", ""
 	step.Status.Selector = selector.String()
 
+	ownerReferences := []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)}
+
 	for replica := 0; replica < desiredReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
 		_labels := map[string]string{}
@@ -142,13 +144,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			ctx,
 			&corev1.Pod{
 				ObjectMeta: (metav1.ObjectMeta{
-					Namespace:   step.Namespace,
-					Name:        podName,
-					Labels:      _labels,
-					Annotations: annotations,
-					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
-					},
+					Namespace:       step.Namespace,
+					Name:            podName,
+					Labels:          _labels,
+					Annotations:     annotations,
+					OwnerReferences: ownerReferences,
 				}),
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
@@ -177,11 +177,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	serviceNames := map[string]bool{}
 	for _, s := range step.Spec.Sources {
 		if h := s.HTTP; h != nil {
-			x := h.ServiceName
-			if x == "" {
-				x = stepName
+			n := h.ServiceName
+			if n == "" {
+				n = pipelineName + "-" + stepName
 			}
-			serviceNames[x] = true
+			serviceNames[n] = true
 		}
 	}
 
@@ -190,11 +190,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			ctx,
 			&corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
-					Namespace: step.Namespace,
-					Name:      serviceName,
-					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind),
-					},
+					Namespace:       step.Namespace,
+					Name:            serviceName,
+					OwnerReferences: ownerReferences,
 				},
 				Spec: corev1.ServiceSpec{
 					Ports: []corev1.ServicePort{
