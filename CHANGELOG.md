@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.56 (2021-06-22)
+
+ * [ed68cb0](https://github.com/argoproj-labs/argo-dataflow/commit/ed68cb02c8ca114c9e39708ec7586b056ce76948) config: ARGO_DATAFLOW_UPDATE_INTERVAL=10s for dev
+ * [c564148](https://github.com/argoproj-labs/argo-dataflow/commit/c564148e90a2fb7cdcc0038f0469e2956b450ec5) fix(controller): correct service name
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.55 (2021-06-21)
 
  * [e5fa079](https://github.com/argoproj-labs/argo-dataflow/commit/e5fa0791858fda3bdc43ccfd8f7348975e9dc905) feat: pprof sidecar
