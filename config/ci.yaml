@@ -4204,6 +4204,8 @@ spec:
   ports:
   - name: metrics
     port: 7777
+  - name: monitor
+    port: 8222
   selector:
     app: stan
 ---
