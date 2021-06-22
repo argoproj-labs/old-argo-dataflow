@@ -59,7 +59,7 @@ func init() {
 			}
 		}
 	})
-	http.HandleFunc("/http/ready", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/http/wait-for", func(w http.ResponseWriter, r *http.Request) {
 		urls := r.URL.Query()["url"]
 		if len(urls) < 1 {
 			w.WriteHeader(400)
@@ -70,7 +70,7 @@ func init() {
 		for {
 			_, err := http.Get(url)
 			if err != nil {
-				_, _ = fmt.Fprintf(w, "%q is not ready: %v", url, err)
+				_, _ = fmt.Fprintf(w, "%q is not ready: %v\n", url, err)
 			} else {
 				return
 			}

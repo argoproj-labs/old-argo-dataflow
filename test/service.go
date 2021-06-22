@@ -26,7 +26,7 @@ func WaitForService() {
 	for _, x := range list.Items {
 		if _, ok := x.Spec.Selector[KeyPipelineName]; ok {
 			log.Printf("waiting for service %q\n", x.Name)
-			InvokeTestAPI("/http/ready?url=%s", url.QueryEscape("http://"+x.Name))
+			InvokeTestAPI("/http/wait-for?url=%s", url.QueryEscape("http://"+x.Name))
 		}
 	}
 }

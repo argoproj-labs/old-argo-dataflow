@@ -34,10 +34,8 @@ func TestStanStress(t *testing.T) {
 	stopMetricsLogger := StartMetricsLogger()
 	defer stopMetricsLogger()
 
-	WaitForPipeline(UntilRunning)
-	WaitForPod("stan-main-0", ToBeReady)
-	PumpStanSubject("argo-dataflow-system.stan."+subject, 100, 1*time.Millisecond)
-	WaitForStep("main", MessagesPending)
-	WaitForStep("main", NothingPending)
+	WaitForPipeline()
+	WaitForPod(ToBeReady)
+	PumpStanSubject("argo-dataflow-system.stan."+subject, 10000, 1*time.Millisecond)
 	WaitForever()
 }

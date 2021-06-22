@@ -15,7 +15,7 @@ ARG MESSAGE=unset
 COPY api/ api/
 COPY shared/ shared/
 COPY manager/ manager/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=${MESSAGE}'" -o bin/manager ./manager
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=${MESSAGE}'" -o bin/manager ./manager
 
 FROM gcr.io/distroless/static:nonroot AS controller
 WORKDIR /
@@ -26,13 +26,13 @@ ENTRYPOINT ["/manager"]
 FROM builder AS runner-builder
 ARG MESSAGE=unset
 COPY kill/ kill/
-RUN CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/kill ./kill
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/kill ./kill
 COPY prestop/ prestop/
-RUN CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/prestop ./prestop
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/prestop ./prestop
 COPY api/ api/
 COPY shared/ shared/
 COPY runner/ runner/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=${MESSAGE}'" -o bin/runner ./runner
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.message=${MESSAGE}'" -o bin/runner ./runner
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
@@ -45,7 +45,7 @@ ENTRYPOINT ["/runner"]
 
 FROM builder AS testapi-builder
 COPY testapi/ testapi/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -a -ldflags="-s -w" -o bin/testapi ./testapi
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/testapi ./testapi
 
 FROM gcr.io/distroless/static:nonroot AS testapi
 WORKDIR /

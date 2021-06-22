@@ -61,7 +61,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			}, func() (done bool, err error) {
 				select {
 				case <-ctx.Done():
-					return true, ctx.Err()
+					return true, fmt.Errorf("could not send message: %w", ctx.Err())
 				default:
 					if err := toMain(ctx, msg); err != nil {
 						logger.Error(err, "⚠ →", "source", sourceName)

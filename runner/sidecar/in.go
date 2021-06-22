@@ -92,13 +92,13 @@ func waitReady(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("failed to wait for ready: %w", ctx.Err())
 		default:
 			if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode < 300 {
 				logger.Info("HTTP in interface ready")
 				return nil
 			}
-			time.Sleep(3 * time.Second)
+			time.Sleep(1 * time.Second)
 		}
 	}
 }
@@ -108,13 +108,13 @@ func waitUnready(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("failed to wait for un-ready: %w", ctx.Err())
 		default:
 			if resp, err := http.Get("http://localhost:8080/ready"); err != nil || resp.StatusCode >= 300 {
 				logger.Info("HTTP in interface unready")
 				return nil
 			}
-			time.Sleep(3 * time.Second)
+			time.Sleep(1 * time.Second)
 		}
 	}
 }

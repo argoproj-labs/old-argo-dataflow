@@ -3,39 +3,36 @@
 package stress
 
 import (
-	"testing"
-	"time"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
-func TestKafkaStress(t *testing.T) {
+func TestHTTPStress(t *testing.T) {
 
 	Setup(t)
 	defer Teardown(t)
-	topic := CreateKafkaTopic()
 
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+		ObjectMeta: metav1.ObjectMeta{Name: "http"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name:    "main",
-				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Name:     "main",
+				Cat:      &Cat{},
+				Sources:  []Source{{HTTP: &HTTPSource{}}},
+				Sinks:    []Sink{{Log: &Log{}}},
 			}},
 		},
 	})
 
-	stopPortForward := StartPortForward("kafka-main-0")
+	stopPortForward := StartPortForward("http-main-0")
 	defer stopPortForward()
 	stopMetricsLogger := StartMetricsLogger()
 	defer stopMetricsLogger()
 
 	WaitForPipeline()
-	WaitForPod()
-	PumpKafkaTopic(topic, 10000, 1*time.Millisecond)
+	WaitForService()
+	PumpHTTP("http://http-main/sources/default", "my-msg", 10000, 0)
 	WaitForever()
 }

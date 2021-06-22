@@ -41,14 +41,14 @@ func TestSTAN(t *testing.T) {
 
 	WaitForPipeline(UntilMessagesSunk)
 
-	ExpectLogLine("stan-b-0", "sidecar", "my-msg")
-
 	WaitForStep("stan-a", NothingPending)
 	WaitForStep("stan-b", NothingPending)
 	WaitForStep("stan-a", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
 	WaitForStep("stan-a", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
 	WaitForStep("stan-b", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
 	WaitForStep("stan-b", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
+
+	ExpectLogLine("stan-b-0", "sidecar", "my-msg")
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

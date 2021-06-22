@@ -6,5 +6,5 @@ import (
 )
 
 func NewLogger() logr.Logger {
-	return zap.New(zap.UseDevMode(true))
+	return zap.New()
 }
