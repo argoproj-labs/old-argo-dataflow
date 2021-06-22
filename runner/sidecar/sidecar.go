@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -35,6 +36,8 @@ var (
 	step                = dfv1.Step{} // this is updated on start, and then periodically as we update the status
 	lastStep            = dfv1.Step{}
 	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
+	patchMu             = sync.Mutex{} // prevents concurrent patching
+	prePatchHooks       []func() error // hooks to run before patching
 )
 
 func Exec(ctx context.Context) error {
@@ -145,40 +148,57 @@ func Exec(ctx context.Context) error {
 }
 
 func patchStepStatus(ctx context.Context) {
-	withLock(func() {
-		if notEqual, patch := sharedutil.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status}); notEqual {
-			logger.Info("patching step status", "patch", patch)
-			if un, err := dynamicInterface.
-				Resource(dfv1.StepGroupVersionResource).
-				Namespace(namespace).
-				Patch(
-					ctx,
-					pipelineName+"-"+stepName,
-					types.MergePatchType,
-					[]byte(patch),
-					metav1.PatchOptions{},
-					"status",
-				); err != nil {
-				if !apierr.IsNotFound(err) { // the step can be deleted before the pod
-					logger.Error(err, "failed to patch step status")
-				}
+	patchMu.Lock()
+	defer patchMu.Unlock()
+	for _, f := range prePatchHooks {
+		n := sharedutil.GetFuncName(f)
+		logger.Info("executing pre-patch hook", "func", n)
+		if err := f(); err != nil {
+			logger.Error(err, "failed to execute hook", "func", n)
+		}
+	}
+	if notEqual, patch := sharedutil.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status}); notEqual {
+		logger.Info("patching step status", "patch", patch)
+		if un, err := dynamicInterface.
+			Resource(dfv1.StepGroupVersionResource).
+			Namespace(namespace).
+			Patch(
+				ctx,
+				pipelineName+"-"+stepName,
+				types.MergePatchType,
+				[]byte(patch),
+				metav1.PatchOptions{},
+				"status",
+			); err != nil {
+			if !apierr.IsNotFound(err) { // the step can be deleted before the pod
+				logger.Error(err, "failed to patch step status")
+			}
+		} else {
+			v := dfv1.Step{}
+			if err := runtime.DefaultUnstructuredConverter.FromUnstructured(un.Object, &v); err != nil {
+				logger.Error(err, "failed to from-unstructured")
 			} else {
-				v := dfv1.Step{}
-				if err := runtime.DefaultUnstructuredConverter.FromUnstructured(un.Object, &v); err != nil {
-					logger.Error(err, "failed to from-unstructured")
-				} else {
-					if v.Status.SourceStatuses == nil {
-						v.Status.SourceStatuses = dfv1.SourceStatuses{}
+				if v.Status.SourceStatuses == nil {
+					v.Status.SourceStatuses = dfv1.SourceStatuses{}
+				}
+				if v.Status.SinkStatues == nil {
+					v.Status.SinkStatues = dfv1.SourceStatuses{}
+				}
+				lastStep = *v.DeepCopy()
+				withLock(func() {
+					// it is possible that the step changes during patching
+					// i.e. that step contains data that v does not
+					if x, ok := step.Status.SourceStatuses[strconv.Itoa(replica)]; ok {
+						v.Status.SourceStatuses[strconv.Itoa(replica)] = x
 					}
-					if v.Status.SinkStatues == nil {
-						v.Status.SinkStatues = dfv1.SourceStatuses{}
+					if x, ok := step.Status.SinkStatues[strconv.Itoa(replica)]; ok {
+						v.Status.SinkStatues[strconv.Itoa(replica)] = x
 					}
 					step = v
-					lastStep = *v.DeepCopy()
-				}
+				})
 			}
 		}
-	})
+	}
 }
 
 func enrichSpec(ctx context.Context) error {

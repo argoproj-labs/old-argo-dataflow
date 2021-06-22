@@ -60,4 +60,19 @@ func init() {
 			}
 		}
 	})
+	http.HandleFunc("/http/ready", func(w http.ResponseWriter, r *http.Request) {
+		urls := r.URL.Query()["url"]
+		if len(urls) < 1 {
+			w.WriteHeader(400)
+			return
+		}
+		for {
+			_, err := http.Get(urls[0])
+			if err == nil {
+				w.WriteHeader(204)
+				return
+			}
+			time.Sleep(1 * time.Second)
+		}
+	})
 }

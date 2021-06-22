@@ -161,29 +161,26 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		return handler.Close()
 	})
 	if leadReplica() {
-		startKafkaSetPendingLoop(ctx, x, sourceName, client, adminClient, groupName)
+		registerKafkaSetPendingHook(ctx, x, sourceName, client, adminClient, groupName)
 	}
 	return nil
 }
 
-func startKafkaSetPendingLoop(ctx context.Context, x *dfv1.Kafka, sourceName string, client sarama.Client, adminClient sarama.ClusterAdmin, groupName string) {
-	go wait.JitterUntil(func() {
+func registerKafkaSetPendingHook(ctx context.Context, x *dfv1.Kafka, sourceName string, client sarama.Client, adminClient sarama.ClusterAdmin, groupName string) {
+	prePatchHooks = append(prePatchHooks, func() error {
 		partitions, err := client.Partitions(x.Topic)
 		if err != nil {
-			logger.Error(err, "failed to get partitions", "source", sourceName)
-			return
+			return fmt.Errorf("failed to get partitions for %q: %w", sourceName, err)
 		}
 		totalLags := int64(0)
 		rep, err := adminClient.ListConsumerGroupOffsets(groupName, map[string][]int32{x.Topic: partitions})
 		if err != nil {
-			logger.Error(err, "failed to list consumer group offsets", "source", sourceName)
-			return
+			return fmt.Errorf("failed to list consumer group offsets for %q: %w", sourceName, err)
 		}
 		for _, partition := range partitions {
 			partitionOffset, err := client.GetOffset(x.Topic, partition, sarama.OffsetNewest)
 			if err != nil {
-				logger.Error(err, "failed to get topic/partition offset", "source", sourceName, "topic", x.Topic, "partition", partition)
-				return
+				return fmt.Errorf("failed to get topic/partition offsets for %q partition %q: %w", sourceName, partition, err)
 			}
 			block := rep.GetBlock(x.Topic, partition)
 			x := partitionOffset - block.Offset - 1
@@ -193,7 +190,8 @@ func startKafkaSetPendingLoop(ctx context.Context, x *dfv1.Kafka, sourceName str
 		}
 		logger.Info("setting pending", "source", sourceName, "pending", totalLags)
 		withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, uint64(totalLags)) })
-	}, updateInterval, 1.2, true, ctx.Done())
+		return nil
+	})
 }
 
 func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f func(ctx context.Context, msg []byte) error) error {
@@ -229,13 +227,13 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 		})
 
 		if leadReplica() {
-			startSTANSetPendingLoop(ctx, sourceName, x, queueName)
+			registerSTANSetPendingHook(ctx, sourceName, x, queueName)
 		}
 	}
 	return nil
 }
 
-func startSTANSetPendingLoop(ctx context.Context, sourceName string, x *dfv1.STAN, queueName string) {
+func registerSTANSetPendingHook(ctx context.Context, sourceName string, x *dfv1.STAN, queueName string) {
 	httpClient := http.Client{
 		Timeout: time.Second * 3,
 	}
@@ -244,7 +242,7 @@ func startSTANSetPendingLoop(ctx context.Context, sourceName string, x *dfv1.STA
 
 	pendingMessages := func(channel, queueNameCombo string) (int64, error) {
 		monitoringEndpoint := fmt.Sprintf("%s/streaming/channelsz?channel=%s&subs=1", x.NATSMonitoringURL, channel)
-		req, err := http.NewRequest("GET", monitoringEndpoint, nil)
+		req, err := http.NewRequestWithContext(ctx, "GET", monitoringEndpoint, nil)
 		if err != nil {
 			return 0, err
 		}
@@ -284,16 +282,17 @@ func startSTANSetPendingLoop(ctx context.Context, sourceName string, x *dfv1.STA
 		}
 		return int64(lastSeq) - int64(maxLastSent), nil
 	}
-	go wait.JitterUntil(func() {
+	prePatchHooks = append(prePatchHooks, func() error {
 		// queueNameCombo := {durableName}:{queueGroup}
 		queueNameCombo := queueName + ":" + queueName
 		if pending, err := pendingMessages(x.Subject, queueNameCombo); err != nil {
-			logger.Error(err, "failed to get pending", "source", sourceName)
+			return fmt.Errorf("failed to get pending for %q: %w", sourceName, err)
 		} else if pending >= 0 {
 			logger.Info("setting pending", "source", sourceName, "pending", pending)
 			withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, uint64(pending)) })
 		}
-	}, updateInterval, 1.2, true, ctx.Done())
+		return nil
+	})
 }
 
 func connectCronSource(ctx context.Context, x *dfv1.Cron, f func(ctx context.Context, msg []byte) error) error {

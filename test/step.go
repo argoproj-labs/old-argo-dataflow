@@ -42,7 +42,7 @@ func WaitForStep(opts ...interface{}) {
 			panic("un-supported option type")
 		}
 	}
-	log.Printf("waiting for step %q %q\n", sharedutil.MustJSON(listOptions), getFuncName(f))
+	log.Printf("waiting for step %q %q\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f))
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

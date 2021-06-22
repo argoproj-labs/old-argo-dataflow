@@ -13,4 +13,4 @@ spec:
             - name: PULL_POLICY
               value: IfNotPresent
             - name: ARGO_DATAFLOW_UPDATE_INTERVAL
-              value: 10s
+              value: 5s

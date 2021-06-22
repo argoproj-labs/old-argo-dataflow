@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,7 +56,7 @@ func WaitForPipeline(opts ...interface{}) {
 			panic("un-supported option type")
 		}
 	}
-	log.Printf("waiting for pipeline %q\n", getFuncName(f))
+	log.Printf("waiting for pipeline %q\n", sharedutil.GetFuncName(f))
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	w, err := pipelineInterface.Watch(ctx, metav1.ListOptions{})

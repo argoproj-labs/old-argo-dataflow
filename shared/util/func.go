@@ -1,4 +1,4 @@
-package test
+package util
 
 import (
 	"reflect"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func getFuncName(i interface{}) string {
+func GetFuncName(i interface{}) string {
 	ptr := runtime.FuncForPC(reflect.ValueOf(i).Pointer())
 	parts := strings.SplitN(ptr.Name(), ".", 3)
 	return parts[2]

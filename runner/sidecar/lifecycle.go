@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"context"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"sync"
 	"time"
 )
@@ -36,9 +37,11 @@ func closeClosers(closers []func(ctx context.Context) error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	for i := len(closers) - 1; i >= 0; i-- {
-		logger.Info("closing", "i", i)
-		if err := closers[i](ctx); err != nil {
-			logger.Error(err, "failed to close", "i", i)
+		f := closers[i]
+		n := sharedutil.GetFuncName(f)
+		logger.Info("closing", "i", i, "func", n)
+		if err := f(ctx); err != nil {
+			logger.Error(err, "failed to close", "i", i, "func", n)
 		}
 	}
 	logger.Info("closing took", "duration", time.Since(start))

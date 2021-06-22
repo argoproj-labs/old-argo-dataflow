@@ -69,7 +69,7 @@ func WaitForPod(opts ...interface{}) {
 			panic("un-supported option type")
 		}
 	}
-	log.Printf("waiting for pod %q %q\n", sharedutil.MustJSON(listOptions), getFuncName(f))
+	log.Printf("waiting for pod %q %q\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f))
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	w, err := podInterface.Watch(ctx, listOptions)
