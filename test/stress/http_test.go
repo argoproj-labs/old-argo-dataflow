@@ -34,6 +34,7 @@ func TestHTTPStress(t *testing.T) {
 	defer stopMetricsLogger()
 
 	WaitForService()
-	PumpHTTP("http://http-main/sources/default", "my-msg", 10000, 0)
-	WaitForever()
+	n := 10000
+	PumpHTTP("http://http-main/sources/default", "my-msg", n, 0)
+	WaitForStep(TotalSunkMessages(n))
 }

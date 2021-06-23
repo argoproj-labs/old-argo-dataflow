@@ -32,8 +32,8 @@ func TestKafkaSource(t *testing.T) {
 	PumpKafkaTopic(topic, 17)
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(NothingPending)
-	WaitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 17 })
-	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 17 })
+	WaitForStep()
+	WaitForStep(TotalSunkMessages(17))
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

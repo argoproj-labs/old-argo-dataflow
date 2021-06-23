@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/runner/dedupe"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/api/resource"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
@@ -31,6 +33,13 @@ func main() {
 		switch os.Args[1] {
 		case "cat":
 			return cat.Exec(ctx)
+		case "dedupe":
+			x := os.Args[3]
+			maxSize, err := resource.ParseQuantity(x)
+			if err != nil {
+				return fmt.Errorf("failed to parse %q as resource quanity: %w", x, err)
+			}
+			return dedupe.Exec(ctx, os.Args[2], maxSize)
 		case "expand":
 			return expand.Exec(ctx)
 		case "filter":

@@ -44,6 +44,11 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     if: "true"
+    strategy:
+      matrix:
+        suite:
+        - e2e
+        - stress
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
@@ -77,7 +82,7 @@ jobs:
       - run: make deploy CONFIG=ci
       - run: make runner
       - run: make wait
-      - run: make test-e2e
+      - run: make test-${{matrix.suite}}
       - name: list pods
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system get pod
