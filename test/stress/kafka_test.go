@@ -29,12 +29,13 @@ func TestKafkaStress(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
+
 	stopPortForward := StartPortForward("kafka-main-0")
 	defer stopPortForward()
 	stopMetricsLogger := StartMetricsLogger()
 	defer stopMetricsLogger()
 
-	WaitForPipeline()
 	WaitForPod()
 	PumpKafkaTopic(topic, 10000, 1*time.Millisecond)
 	WaitForever()

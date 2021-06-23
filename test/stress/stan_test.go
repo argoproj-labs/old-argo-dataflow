@@ -29,13 +29,14 @@ func TestStanStress(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
+
 	stopPortForward := StartPortForward("stan-main-0")
 	defer stopPortForward()
 	stopMetricsLogger := StartMetricsLogger()
 	defer stopMetricsLogger()
 
-	WaitForPipeline()
-	WaitForPod(ToBeReady)
+	WaitForPod()
 	PumpStanSubject("argo-dataflow-system.stan."+subject, 10000, 1*time.Millisecond)
 	WaitForever()
 }

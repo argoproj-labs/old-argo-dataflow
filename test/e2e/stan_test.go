@@ -36,8 +36,13 @@ func TestSTAN(t *testing.T) {
 		},
 	})
 
-	WaitForService()
-	SendMessageViaHTTP("http://stan-a/sources/default", "my-msg")
+	WaitForPipeline()
+	WaitForPod()
+
+	stopPortForward := StartPortForward("stan-main-0")
+	defer stopPortForward()
+
+	SendMessageViaHTTP("my-msg")
 
 	WaitForPipeline(UntilMessagesSunk)
 

@@ -28,10 +28,13 @@ func TestFilter(t *testing.T) {
 		},
 	})
 
-	WaitForService()
+	WaitForPod()
 
-	SendMessageViaHTTP("http://filter-main/sources/default", "foo-bar")
-	SendMessageViaHTTP("http://filter-main/sources/default", "baz-qux")
+	stopPortForward := StartPortForward("filter-main-0")
+	defer stopPortForward()
+
+	SendMessageViaHTTP("foo-bar")
+	SendMessageViaHTTP("baz-qux")
 
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })

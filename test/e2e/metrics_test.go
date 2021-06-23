@@ -29,18 +29,18 @@ func TestMetrics(t *testing.T) {
 	})
 
 	WaitForPipeline()
+	WaitForPod()
 
-	WaitForService()
-	SendMessageViaHTTP("http://metrics-main/sources/default", "my-msg")
+	stopPortForward := StartPortForward("metrics-main-0")
+	defer stopPortForward()
+
+	SendMessageViaHTTP( "my-msg")
 
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetPending() == 0 })
 	WaitForStep(func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
 	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetPending() == 0 })
 	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
-
-	stopPortForward := StartPortForward("metrics-main-0")
-	defer stopPortForward()
 
 	ExpectMetric("input_inflight", 0)
 	ExpectMetric("replicas", 1)

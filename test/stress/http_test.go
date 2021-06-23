@@ -26,12 +26,13 @@ func TestHTTPStress(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
+
 	stopPortForward := StartPortForward("http-main-0")
 	defer stopPortForward()
 	stopMetricsLogger := StartMetricsLogger()
 	defer stopMetricsLogger()
 
-	WaitForPipeline()
 	WaitForService()
 	PumpHTTP("http://http-main/sources/default", "my-msg", 10000, 0)
 	WaitForever()

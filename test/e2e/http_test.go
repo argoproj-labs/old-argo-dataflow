@@ -29,11 +29,15 @@ func TestHTTPSource(t *testing.T) {
 	})
 
 	WaitForPipeline()
-	WaitForService()
-	SendMessageViaHTTP("http://in/sources/default", "my-msg")
+	WaitForPod()
+
+	stopPortForward := StartPortForward("http-main-0")
+	defer stopPortForward()
+
+	SendMessageViaHTTP("my-msg")
 
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForStep( func(s Step) bool { return s.Status.Replicas == 1 })
+	WaitForStep(func(s Step) bool { return s.Status.Replicas == 1 })
 
 	ExpectLogLine("http-main-0", "sidecar", "my-msg") // incidentally test the log sink
 

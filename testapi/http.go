@@ -37,7 +37,11 @@ func init() {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		msgs := r.URL.Query()["msg"]
+		prefixes := r.URL.Query()["prefix"]
+		prefix := FunnyAnimal()
+		if len(prefixes) > 0 {
+			prefix = prefixes[0]
+		}
 		w.WriteHeader(200)
 
 		start := time.Now()
@@ -46,15 +50,12 @@ func init() {
 			case <-r.Context().Done():
 				return
 			default:
-				x := fmt.Sprintf("%s-%d", FunnyAnimal(), i)
-				if len(msgs) > 0 {
-					x = msgs[0]
-				}
-				if _, err := http.Post(url, "application/octet-stream", strings.NewReader(x)); err != nil {
+				msg := fmt.Sprintf("%s-%d", prefix, i)
+				if _, err := http.Post(url, "application/octet-stream", strings.NewReader(msg)); err != nil {
 					_, _ = fmt.Fprintf(w, "ERROR: %v", err)
 					return
 				}
-				_, _ = fmt.Fprintf(w, "sent %q (%.0f TPS) to %q\n", x, (1+float64(i))/time.Since(start).Seconds(), url)
+				_, _ = fmt.Fprintf(w, "sent %q (%.0f TPS) to %q\n", msg, (1+float64(i))/time.Since(start).Seconds(), url)
 				time.Sleep(duration)
 			}
 		}
