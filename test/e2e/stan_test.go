@@ -39,7 +39,7 @@ func TestSTAN(t *testing.T) {
 	WaitForPipeline()
 	WaitForPod()
 
-	stopPortForward := StartPortForward("stan-main-0")
+	stopPortForward := StartPortForward("stan-a-0")
 	defer stopPortForward()
 
 	SendMessageViaHTTP("my-msg")
