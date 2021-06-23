@@ -50,6 +50,14 @@ message Cron {
   optional string layout = 2;
 }
 
+message Dedupe {
+  // +kubebuilder:default="sha1(msg)"
+  optional string uid = 1;
+
+  // +kubebuilder:default="1M"
+  optional k8s.io.apimachinery.pkg.api.resource.Quantity maxSize = 2;
+}
+
 message Error {
   // +kubebuilder:validation:MaxLength=64
   optional string message = 1;
@@ -312,6 +320,8 @@ message StepSpec {
   optional Flatten flatten = 25;
 
   optional Expand expand = 26;
+
+  optional Dedupe dedupe = 27;
 
   // +kubebuilder:default=1
   optional uint32 replicas = 23;

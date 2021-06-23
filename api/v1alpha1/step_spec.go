@@ -18,6 +18,7 @@ type StepSpec struct {
 	Group     *Group     `json:"group,omitempty" protobuf:"bytes,11,opt,name=group"`
 	Flatten   *Flatten   `json:"flatten,omitempty" protobuf:"bytes,25,opt,name=flatten"`
 	Expand    *Expand    `json:"expand,omitempty" protobuf:"bytes,26,opt,name=expand"`
+	Dedupe    *Dedupe    `json:"dedupe,omitempty" protobuf:"bytes,27,opt,name=dedupe"`
 
 	// +kubebuilder:default=1
 	Replicas uint32 `json:"replicas,omitempty" protobuf:"varint,23,opt,name=replicas"`
@@ -65,6 +66,8 @@ func (in StepSpec) getType() containerSupplier {
 	if x := in.Cat; x != nil {
 		return x
 	} else if x := in.Container; x != nil {
+		return x
+	} else if x := in.Dedupe; x != nil {
 		return x
 	} else if x := in.Expand; x != nil {
 		return x

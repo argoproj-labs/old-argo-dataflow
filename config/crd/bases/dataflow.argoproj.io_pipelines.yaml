@@ -848,6 +848,19 @@ spec:
                       required:
                       - image
                       type: object
+                    dedupe:
+                      properties:
+                        maxSize:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          default: 1M
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        uid:
+                          default: sha1(msg)
+                          type: string
+                      type: object
                     expand:
                       type: object
                     filter:
