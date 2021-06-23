@@ -12,7 +12,7 @@ import (
 )
 
 func ExpectLogLine(podName, containerName, pattern string) {
-	log.Printf("expect pod %q container %q to log pattern %q", podName, containerName, pattern)
+	log.Printf("expect pod %q container %q to log pattern %q\n", podName, containerName, pattern)
 	ctx := context.Background()
 	stream, err := kubernetesInterface.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{Container: containerName}).Stream(ctx)
 	if err != nil {
@@ -28,4 +28,17 @@ func ExpectLogLine(podName, containerName, pattern string) {
 		}
 	}
 	panic(fmt.Errorf("no log lines matched %q", pattern))
+}
+
+func TailLogs(podName, containerName string) {
+	log.Printf("dumping logs for %q/%q\n", podName, containerName)
+	ctx := context.Background()
+	stream, err := kubernetesInterface.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{Container: containerName}).Stream(ctx)
+	if err != nil {
+		panic(err)
+	}
+	defer func() { _ = stream.Close() }()
+	for s := bufio.NewScanner(stream); s.Scan(); {
+		log.Println(s.Text())
+	}
 }
