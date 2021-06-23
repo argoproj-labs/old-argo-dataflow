@@ -3,10 +3,11 @@ package util
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
-
 	"github.com/Masterminds/sprig"
+	"strconv"
 )
+
+var _sprig = sprig.GenericFuncMap()
 
 func ExprEnv(msg []byte) map[string]interface{} {
 	return map[string]interface{}{
@@ -18,7 +19,8 @@ func ExprEnv(msg []byte) map[string]interface{} {
 		"json":   _json,
 		"string": _string,
 		"object": object,
-		"sprig":  sprig.GenericFuncMap(),
+		"sprig":  _sprig,
+		"sha1":   _sha1,
 	}
 }
 
