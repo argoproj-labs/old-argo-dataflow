@@ -25,7 +25,9 @@ test:
 	go test -v ./... -coverprofile cover.out -race
 
 test-e2e:
-	go test -v --tags test ./test/e2e
+test-stress:
+test-%:
+	go test -v --tags test ./test/$*
 
 pre-commit: codegen test install lint start
 
