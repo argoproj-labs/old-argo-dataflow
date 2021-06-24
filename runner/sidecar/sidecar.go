@@ -35,7 +35,7 @@ var (
 	namespace           = os.Getenv(dfv1.EnvNamespace)
 	step                = dfv1.Step{} // this is updated on start, and then periodically as we update the status
 	lastStep            = dfv1.Step{}
-	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
+	ready               = false        // we are ready to serve HTTP requests, also updates pod status condition
 	patchMu             = sync.Mutex{} // prevents concurrent patching
 	prePatchHooks       []func() error // hooks to run before patching
 )
@@ -178,21 +178,32 @@ func patchStepStatus(ctx context.Context) {
 			if err := runtime.DefaultUnstructuredConverter.FromUnstructured(un.Object, &v); err != nil {
 				logger.Error(err, "failed to from-unstructured")
 			} else {
-				if v.Status.SourceStatuses == nil {
-					v.Status.SourceStatuses = dfv1.SourceStatuses{}
-				}
-				if v.Status.SinkStatues == nil {
-					v.Status.SinkStatues = dfv1.SourceStatuses{}
-				}
 				lastStep = *v.DeepCopy()
 				withLock(func() {
-					// it is possible that the step changes during patching
-					// i.e. that step contains data that v does not
-					if x, ok := step.Status.SourceStatuses[strconv.Itoa(replica)]; ok {
-						v.Status.SourceStatuses[strconv.Itoa(replica)] = x
+					if v.Status.SourceStatuses == nil {
+						v.Status.SourceStatuses = dfv1.SourceStatuses{}
 					}
-					if x, ok := step.Status.SinkStatues[strconv.Itoa(replica)]; ok {
-						v.Status.SinkStatues[strconv.Itoa(replica)] = x
+					if v.Status.SinkStatues == nil {
+						v.Status.SinkStatues = dfv1.SourceStatuses{}
+					}
+					// the step with change while this goroutine is running, so we must copy the data for this
+					// replica back to the status
+					r := strconv.Itoa(replica)
+					for name, s := range step.Status.SourceStatuses {
+						if v.Status.SourceStatuses[name].Metrics == nil {
+							x := v.Status.SourceStatuses[name]
+							x.Metrics = map[string]dfv1.Metrics{}
+							v.Status.SourceStatuses[name] = x
+						}
+						v.Status.SourceStatuses[name].Metrics[r] = s.Metrics[r]
+					}
+					for name, s := range step.Status.SinkStatues {
+						if v.Status.SinkStatues[name].Metrics == nil {
+							x := v.Status.SinkStatues[name]
+							x.Metrics = map[string]dfv1.Metrics{}
+							v.Status.SinkStatues[name] = x
+						}
+						v.Status.SinkStatues[name].Metrics[r] = s.Metrics[r]
 					}
 					step = v
 				})
