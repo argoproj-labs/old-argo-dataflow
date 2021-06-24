@@ -21,6 +21,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 		{Name: "ARGO_DATAFLOW_REPLICA", Value: "1"},
 		{Name: "ARGO_DATAFLOW_STEP", Value: `{"metadata":{"creationTimestamp":null},"spec":{"name":"main","cat":{}},"status":{"phase":"","replicas":0,"lastScaledAt":null}}`},
 		{Name: "ARGO_DATAFLOW_UPDATE_INTERVAL", Value: "1m0s"},
+		{Name: "GODEBUG"},
 	}
 	mounts := []corev1.VolumeMount{{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}}
 	tests := []struct {
