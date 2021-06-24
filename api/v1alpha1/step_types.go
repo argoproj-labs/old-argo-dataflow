@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"encoding/json"
+	"os"
 	"strconv"
 	"time"
 
@@ -59,6 +60,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
 		{Name: EnvStep, Value: string(step)},
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
+		{Name: "GODEBUG", Value: os.Getenv("GODEBUG")},
 	}
 	return corev1.PodSpec{
 		Volumes:            append(in.Spec.Volumes, volume),
