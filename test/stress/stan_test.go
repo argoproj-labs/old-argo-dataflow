@@ -31,10 +31,12 @@ func TestStanStress(t *testing.T) {
 
 	stopPortForward := StartPortForward("stan-main-0")
 	defer stopPortForward()
+
+	WaitForPod()
+
 	stopMetricsLogger := StartMetricsLogger()
 	defer stopMetricsLogger()
 
-	WaitForPod()
 	n := 10000
 	PumpStanSubject("argo-dataflow-system.stan."+subject, n, 0)
 	WaitForStep(TotalSunkMessages(n))
