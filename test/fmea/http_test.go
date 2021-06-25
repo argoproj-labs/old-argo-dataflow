@@ -13,10 +13,11 @@ import (
 
 func TestHTTPFMEA(t *testing.T) {
 
-	Setup(t)
-	defer Teardown(t)
-
 	t.Run("PodDeletedDisruption,Replicas=1", func(t *testing.T) {
+
+		Setup(t)
+		defer Teardown(t)
+
 		CreatePipeline(Pipeline{
 			ObjectMeta: metav1.ObjectMeta{Name: "http"},
 			Spec: PipelineSpec{
@@ -55,6 +56,10 @@ func TestHTTPFMEA(t *testing.T) {
 	})
 
 	t.Run("PodDeletedDisruption,Replicas=2", func(t *testing.T) {
+
+		Setup(t)
+		defer Teardown(t)
+
 		CreatePipeline(Pipeline{
 			ObjectMeta: metav1.ObjectMeta{Name: "http"},
 			Spec: PipelineSpec{
