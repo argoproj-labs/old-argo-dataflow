@@ -4591,6 +4591,10 @@ spec:
         name: main
         ports:
         - containerPort: 8378
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8378
 ---
 apiVersion: apps/v1
 kind: StatefulSet
