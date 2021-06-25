@@ -80,11 +80,6 @@ func Exec(ctx context.Context) error {
 		stop()
 	}()
 
-	afterClosers = append(afterClosers, func(ctx context.Context) error {
-		patchStepStatus(ctx)
-		return nil
-	})
-
 	toSinks, err := connectSinks()
 	if err != nil {
 		return err
@@ -138,6 +133,11 @@ func Exec(ctx context.Context) error {
 	}
 
 	go wait.JitterUntil(func() { patchStepStatus(ctx) }, updateInterval, 1.2, true, ctx.Done())
+
+	afterClosers = append(afterClosers, func(ctx context.Context) error {
+		patchStepStatus(ctx)
+		return nil
+	})
 
 	ready = true
 	logger.Info("ready")
