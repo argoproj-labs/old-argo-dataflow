@@ -37,7 +37,7 @@ var (
 	lastStep            = dfv1.Step{}
 	ready               = false        // we are ready to serve HTTP requests, also updates pod status condition
 	patchMu             = sync.Mutex{} // prevents concurrent patching
-	prePatchHooks       []func() error // hooks to run before patching
+	prePatchHooks       []func(ctx context.Context) error // hooks to run before patching
 )
 
 func Exec(ctx context.Context) error {
@@ -153,7 +153,7 @@ func patchStepStatus(ctx context.Context) {
 	for _, f := range prePatchHooks {
 		n := sharedutil.GetFuncName(f)
 		logger.Info("executing pre-patch hook", "func", n)
-		if err := f(); err != nil {
+		if err := f(ctx); err != nil {
 			logger.Error(err, "failed to execute hook", "func", n)
 		}
 	}

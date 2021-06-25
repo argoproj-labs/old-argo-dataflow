@@ -167,7 +167,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 }
 
 func registerKafkaSetPendingHook(x *dfv1.Kafka, sourceName string, client sarama.Client, adminClient sarama.ClusterAdmin, groupName string) {
-	prePatchHooks = append(prePatchHooks, func() error {
+	prePatchHooks = append(prePatchHooks, func(ctx context.Context) error {
 		partitions, err := client.Partitions(x.Topic)
 		if err != nil {
 			return fmt.Errorf("failed to get partitions for %q: %w", sourceName, err)
@@ -227,20 +227,20 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 		})
 
 		if leadReplica() {
-			registerSTANSetPendingHook(ctx, sourceName, x, queueName)
+			registerSTANSetPendingHook(sourceName, x, queueName)
 		}
 	}
 	return nil
 }
 
-func registerSTANSetPendingHook(ctx context.Context, sourceName string, x *dfv1.STAN, queueName string) {
+func registerSTANSetPendingHook(sourceName string, x *dfv1.STAN, queueName string) {
 	httpClient := http.Client{
 		Timeout: time.Second * 3,
 	}
 
 	type obj = map[string]interface{}
 
-	pendingMessages := func(channel, queueNameCombo string) (int64, error) {
+	pendingMessages := func(ctx context.Context, channel, queueNameCombo string) (int64, error) {
 		monitoringEndpoint := fmt.Sprintf("%s/streaming/channelsz?channel=%s&subs=1", x.NATSMonitoringURL, channel)
 		req, err := http.NewRequestWithContext(ctx, "GET", monitoringEndpoint, nil)
 		if err != nil {
@@ -282,10 +282,10 @@ func registerSTANSetPendingHook(ctx context.Context, sourceName string, x *dfv1.
 		}
 		return int64(lastSeq) - int64(maxLastSent), nil
 	}
-	prePatchHooks = append(prePatchHooks, func() error {
+	prePatchHooks = append(prePatchHooks, func(ctx context.Context) error {
 		// queueNameCombo := {durableName}:{queueGroup}
 		queueNameCombo := queueName + ":" + queueName
-		if pending, err := pendingMessages(x.Subject, queueNameCombo); err != nil {
+		if pending, err := pendingMessages(ctx, x.Subject, queueNameCombo); err != nil {
 			return fmt.Errorf("failed to get pending for %q: %w", sourceName, err)
 		} else if pending >= 0 {
 			logger.Info("setting pending", "source", sourceName, "pending", pending)

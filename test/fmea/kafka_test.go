@@ -10,21 +10,21 @@ import (
 	"time"
 )
 
-func TestStanFMEA(t *testing.T) {
+func TestKafkaFMEA(t *testing.T) {
 	t.Run("PodDeletedDisruption,Replicas=1", func(t *testing.T) {
 
 		Setup(t)
 		defer Teardown(t)
 
-		longSubject, subject := RandomSTANSubject()
+		topic := CreateKafkaTopic()
 
 		CreatePipeline(Pipeline{
-			ObjectMeta: metav1.ObjectMeta{Name: "stan"},
+			ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 			Spec: PipelineSpec{
 				Steps: []StepSpec{{
 					Name:    "main",
 					Cat:     &Cat{},
-					Sources: []Source{{STAN: &STAN{Subject: subject}}},
+					Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
 					Sinks:   []Sink{{Log: &Log{}}},
 				}},
 			},
@@ -35,11 +35,9 @@ func TestStanFMEA(t *testing.T) {
 		WaitForPod()
 
 		n := 500 * 30 // 500 TPS for 30s
-		go PumpSTANSubject(longSubject, n)
+		go PumpKafkaTopic(topic, n)
 
-		WaitForPipeline(UntilMessagesSunk)
-
-		DeletePod("stan-main-0") // delete the pod to see that we recover and continue to process messages
+		DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
 
 		WaitForStep(LessThanTotalSunkMessages(n))
 		WaitForStep(TotalSunkMessages(n), time.Minute)
