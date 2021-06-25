@@ -29,6 +29,12 @@ test-stress:
 test-%:
 	go test -v --tags test ./test/$*
 
+pprof:
+	go tool pprof -web http://127.0.0.1:3569/debug/pprof/allocs
+	go tool pprof -web http://127.0.0.1:3569/debug/pprof/heap
+	go tool pprof -web http://127.0.0.1:3569/debug/pprof/profile?seconds=10
+	curl -s http://127.0.0.1:3569/debug/pprof/trace\?seconds\=10 | go tool trace /dev/stdin
+
 pre-commit: codegen test install lint start
 
 codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md
@@ -37,11 +43,8 @@ codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 
-kubernetes-cluster:
-	kubectl up || kubectl cluster-info
-
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: kubernetes-cluster generate deploy $(GOBIN)/goreman
+start: generate deploy $(GOBIN)/goreman
 	kubectl config set-context --current --namespace=argo-dataflow-system
 	goreman -set-ports=false -logtime=false start
 wait:
