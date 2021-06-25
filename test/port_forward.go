@@ -15,7 +15,7 @@ import (
 
 func StartPortForward(podName string, opts ...interface{}) (stopPortForward func()) {
 
-	WaitForPod(podName, ToBeReady)
+	WaitForPod(podName)
 
 	port := 3569
 	for _, opt := range opts {
@@ -51,6 +51,6 @@ func StartPortForward(podName string, opts ...interface{}) (stopPortForward func
 	log.Printf("started port-forward to %q\n", podName)
 	return func() {
 		forwarder.Close()
-		log.Printf("stopped port-forward to %q on %d\n", podName,port)
+		log.Printf("stopped port-forward to %q on %d\n", podName, port)
 	}
 }
