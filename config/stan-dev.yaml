@@ -203,9 +203,6 @@ spec:
           name: monitor
         - containerPort: 7777
           name: metrics
-        resources:
-          requests:
-            cpu: 0
         volumeMounts:
         - mountPath: /etc/stan-config
           name: config-volume

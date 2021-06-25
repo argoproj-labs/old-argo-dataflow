@@ -101,11 +101,6 @@ spec:
           - name: stan-sts-vol
             mountPath: /data/stan
 
-        # Disable CPU limits.
-        resources:
-          requests:
-            cpu: 0
-
         livenessProbe:
           httpGet:
             path: /
