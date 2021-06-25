@@ -7,6 +7,7 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
+	"time"
 )
 
 func TestStanStress(t *testing.T) {
@@ -38,6 +39,6 @@ func TestStanStress(t *testing.T) {
 	defer stopMetricsLogger()
 
 	n := 10000
-	PumpStanSubject("argo-dataflow-system.stan."+subject, n, 0)
-	WaitForStep(TotalSunkMessages(n))
+	PumpSTANSubject("argo-dataflow-system.stan."+subject, n)
+	WaitForStep(TotalSunkMessages(n), time.Minute)
 }

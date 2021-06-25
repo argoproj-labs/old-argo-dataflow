@@ -7,22 +7,25 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
+	"time"
 )
 
 func TestKafkaStress(t *testing.T) {
 
 	Setup(t)
 	defer Teardown(t)
+
 	topic := CreateKafkaTopic()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name:    "main",
-				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Name:     "main",
+				Cat:      &Cat{},
+				Replicas: 2,
+				Sources:  []Source{{Kafka: &Kafka{Topic: topic}}},
+				Sinks:    []Sink{{Log: &Log{}}},
 			}},
 		},
 	})
@@ -38,6 +41,6 @@ func TestKafkaStress(t *testing.T) {
 	defer stopMetricsLogger()
 
 	n := 10000
-	PumpKafkaTopic(topic, n, 0)
-	WaitForStep(TotalSunkMessages(n))
+	PumpKafkaTopic(topic, n)
+	WaitForStep(TotalSunkMessages(n), time.Minute)
 }

@@ -7,6 +7,7 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
+	"time"
 )
 
 func TestHTTPStress(t *testing.T) {
@@ -38,5 +39,5 @@ func TestHTTPStress(t *testing.T) {
 
 	n := 10000
 	PumpHTTP("http://http-main/sources/default", "my-msg", n, 0)
-	WaitForStep(TotalSunkMessages(n))
+	WaitForStep(TotalSunkMessages(n), time.Minute)
 }
