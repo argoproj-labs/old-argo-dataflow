@@ -42,4 +42,37 @@ func TestKafkaFMEA(t *testing.T) {
 		WaitForStep(LessThanTotalSunkMessages(n))
 		WaitForStep(TotalSunkMessages(n), time.Minute)
 	})
+	t.Run("KafkaServiceDisruption", func(t *testing.T) {
+
+		Setup(t)
+		defer Teardown(t)
+
+		topic := CreateKafkaTopic()
+
+		CreatePipeline(Pipeline{
+			ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+			Spec: PipelineSpec{
+				Steps: []StepSpec{{
+					Name:    "main",
+					Cat:     &Cat{},
+					Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
+					Sinks:   []Sink{{Log: &Log{}}},
+				}},
+			},
+		})
+
+		WaitForPipeline()
+
+		WaitForPod()
+
+		n := 500 * 30 // 500 TPS for 30s
+		go PumpKafkaTopic(topic, n)
+
+		WaitForStep(LessThanTotalSunkMessages(n))
+
+		restoreService := DeleteService("kafka-broker")
+		defer restoreService()
+
+		WaitForStep(TotalSunkMessages(n), time.Minute)
+	})
 }
