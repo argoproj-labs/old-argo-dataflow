@@ -7,13 +7,18 @@ kubectl create ns argo-dataflow-system
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/quick-start.yaml
 ```
 
-If you want to experiment with Kafka or NATS Streaming (aka STAN):
+If you want to experiment with Kafka:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/kafka-dev.yaml 
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default.yaml 
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml 
+```
+
+If you want to experiment with NATS Streaming (aka STAN):
+
+```bash
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/stan-dev.yaml 
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-stan-default.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-stan-default-secret.yaml
 ```
 
 Change to the installation namespace:
