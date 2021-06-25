@@ -25,6 +25,7 @@ test:
 	go test -v ./... -coverprofile cover.out -race
 
 test-e2e:
+test-fmea:
 test-stress:
 test-%:
 	go test -v --tags test ./test/$*

@@ -4,6 +4,7 @@ package test
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,11 +23,11 @@ func InvokeTestAPI(format string, args ...interface{}) {
 	for s := bufio.NewScanner(r.Body); s.Scan(); {
 		x := s.Text()
 		if strings.Contains(x, "ERROR") { // hacky way to return an error from an octet-stream
-			panic(x)
+			panic(errors.New(x))
 		}
 		log.Printf("test API: %s\n", x)
 	}
 	if r.StatusCode >= 300 {
-		panic(r.Status)
+		panic(errors.New(r.Status))
 	}
 }

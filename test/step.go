@@ -50,7 +50,7 @@ func WaitForStep(opts ...interface{}) {
 		case func(Step) bool:
 			f = v
 		default:
-			panic("un-supported option type")
+			panic(fmt.Errorf("un-supported option type %T", v))
 		}
 	}
 	log.Printf("waiting for step %q %q\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f))

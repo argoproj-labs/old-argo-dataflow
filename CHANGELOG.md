@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.0.57 (2021-06-24)
+
+ * [972ebf0](https://github.com/argoproj-labs/argo-dataflow/commit/972ebf03c232bb37ac72bcd99d39b072381eeca2) fix: increased default CPU resources requests to 250m
+ * [786bc05](https://github.com/argoproj-labs/argo-dataflow/commit/786bc05ceaaa7059202ea20881f7bd00953c1f5e) fix: move patching step status earlier in shutdown sequence
+ * [2f9898b](https://github.com/argoproj-labs/argo-dataflow/commit/2f9898b69c0e580868863153b8877b11cf3d59c8) config: removed invalid resource
+ * [3645436](https://github.com/argoproj-labs/argo-dataflow/commit/3645436785ab591b82b594a980c9ebf44b5378c7) fix: correct metrics
+ * [8a169ca](https://github.com/argoproj-labs/argo-dataflow/commit/8a169ca4d81e75b5b165e2eab9bb0faeb14e01e4) feat: fix test
+ * [752086b](https://github.com/argoproj-labs/argo-dataflow/commit/752086b3fdd517598ad21434d5c8f4edbf941ff0) feat: re-order logging
+ * [4b6a9d6](https://github.com/argoproj-labs/argo-dataflow/commit/4b6a9d6981174d5b24d86a2ef52b5fd931d37b93) feat: pass GODEBUG to runner
+ * [7a08e5e](https://github.com/argoproj-labs/argo-dataflow/commit/7a08e5ea9127573b21693e1ad029d012fa91a6bd) feat: dedupe
+ * [6904aa7](https://github.com/argoproj-labs/argo-dataflow/commit/6904aa7b996849dd0e870f3176201282fd182a9a) feat: add `sha1` func
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.56 (2021-06-22)
 
  * [ed68cb0](https://github.com/argoproj-labs/argo-dataflow/commit/ed68cb02c8ca114c9e39708ec7586b056ce76948) config: ARGO_DATAFLOW_UPDATE_INTERVAL=10s for dev
