@@ -17,7 +17,7 @@ func CreateKafkaTopic() string {
 }
 
 func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
-	sleep := 10 * time.Millisecond
+	var sleep time.Duration
 	for _, opt := range opts {
 		switch v := opt.(type) {
 		case time.Duration:
@@ -26,4 +26,14 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 	}
 	log.Printf("puming Kafka topic %q sleeping %v with %d messages\n", topic, sleep, n)
 	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d", topic, sleep, n)
+}
+
+func RestartKafka() {
+	DeletePod("zookeeper-0")
+	DeletePod("kafka-broker-0")
+}
+
+func WaitForKafka() {
+	WaitForPod("zookeeper-0")
+	WaitForPod("kafka-broker-0")
 }

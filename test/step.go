@@ -38,12 +38,15 @@ func WaitForStep(opts ...interface{}) {
 
 	var (
 		listOptions = metav1.ListOptions{}
+		timeout     = 30 * time.Second
 		f           = func(s Step) bool { return s.Status.Phase == StepRunning }
 	)
 	for _, o := range opts {
 		switch v := o.(type) {
 		case string:
 			listOptions.FieldSelector = "metadata.name=" + v
+		case time.Duration:
+			timeout = v
 		case func(Step) bool:
 			f = v
 		default:
@@ -51,7 +54,7 @@ func WaitForStep(opts ...interface{}) {
 		}
 	}
 	log.Printf("waiting for step %q %q\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f))
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	w, err := stepInterface.Watch(ctx, listOptions)

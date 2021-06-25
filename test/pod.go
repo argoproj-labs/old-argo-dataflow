@@ -100,3 +100,10 @@ func WaitForPod(opts ...interface{}) {
 		}
 	}
 }
+
+func DeletePod(podName string) {
+	log.Printf("deleting pod %q\n", podName)
+	if err := podInterface.Delete(context.Background(), podName, metav1.DeleteOptions{}); err != nil {
+		panic(fmt.Errorf("failed to delete %q: %w", podName, err))
+	}
+}
