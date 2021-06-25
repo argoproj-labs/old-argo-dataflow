@@ -15,6 +15,5 @@ func (in Handler) getContainer(req getContainerReq) corev1.Container {
 	return containerBuilder{}.
 		init(req).
 		image(fmt.Sprintf(req.imageFormat, "dataflow-"+in.Runtime)).
-		resources(LargeResourceRequirements).
 		build()
 }

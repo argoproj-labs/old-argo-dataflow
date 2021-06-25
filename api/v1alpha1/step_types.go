@@ -81,7 +81,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				Args:            []string{"init"},
 				Env:             envVars,
 				VolumeMounts:    volumeMounts,
-				Resources:       SmallResourceRequirements,
+				Resources:       req.ResourceRequirements,
 			},
 		},
 		Containers: []corev1.Container{
@@ -92,7 +92,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				Args:            []string{"sidecar"},
 				Env:             envVars,
 				VolumeMounts:    volumeMounts,
-				Resources:       SmallResourceRequirements,
+				Resources:       req.ResourceRequirements,
 				Ports: []corev1.ContainerPort{
 					{ContainerPort: 3569},
 				},

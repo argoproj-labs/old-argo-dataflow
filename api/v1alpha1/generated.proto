@@ -89,6 +89,8 @@ message GetPodSpecReq {
   optional StepStatus stepStatus = 8;
 
   optional string bearerToken = 9;
+
+  optional k8s.io.api.core.v1.ResourceRequirements resourceRequirements = 10;
 }
 
 message Git {

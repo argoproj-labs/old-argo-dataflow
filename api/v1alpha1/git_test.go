@@ -19,5 +19,4 @@ func TestGit_getContainer(t *testing.T) {
 	assert.Equal(t, x.Command, c.Command)
 	assert.Equal(t, x.Env, c.Env)
 	assert.Equal(t, PathWorkingDir, c.WorkingDir)
-	assert.Equal(t, LargeResourceRequirements, c.Resources)
 }

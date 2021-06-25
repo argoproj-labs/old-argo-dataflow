@@ -22,6 +22,7 @@ func TestStanStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:    "main",
 				Cat:     &Cat{},
+				Replicas: 2,
 				Sources: []Source{{STAN: &STAN{Subject: subject}}},
 				Sinks:   []Sink{{Log: &Log{}}},
 			}},

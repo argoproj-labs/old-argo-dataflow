@@ -64,7 +64,6 @@ func TestStep_GetPodSpec(t *testing.T) {
 							},
 						}},
 						Ports:        []corev1.ContainerPort{{ContainerPort: 3569}},
-						Resources:    SmallResourceRequirements,
 						VolumeMounts: mounts,
 						ReadinessProbe: &corev1.Probe{
 							Handler: corev1.Handler{
@@ -83,7 +82,6 @@ func TestStep_GetPodSpec(t *testing.T) {
 						Lifecycle: &corev1.Lifecycle{PreStop: &corev1.Handler{
 							Exec: &corev1.ExecAction{Command: []string{"/var/run/argo-dataflow/prestop"}},
 						}},
-						Resources:    SmallResourceRequirements,
 						VolumeMounts: mounts,
 					},
 				},
@@ -94,7 +92,6 @@ func TestStep_GetPodSpec(t *testing.T) {
 						Image:           "my-runner",
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            "init",
-						Resources:       SmallResourceRequirements,
 						VolumeMounts:    mounts,
 					},
 				},

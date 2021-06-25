@@ -22,6 +22,5 @@ func (in Git) getContainer(req getContainerReq) corev1.Container {
 		command(in.Command...).
 		appendEnv(in.Env...).
 		workingDir(PathWorkingDir).
-		resources(LargeResourceRequirements).
 		build()
 }

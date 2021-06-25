@@ -11,5 +11,4 @@ func Test_containerBuilder(t *testing.T) {
 		init(getContainerReq{}).
 		build()
 	assert.Equal(t, "main", c.Name)
-	assert.Equal(t, SmallResourceRequirements, c.Resources)
 }

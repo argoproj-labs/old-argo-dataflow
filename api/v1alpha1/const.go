@@ -16,16 +16,17 @@ const (
 	CtrMain    = "main"
 	CtrSidecar = "sidecar"
 	// env vars
-	EnvImageFormat         = "ARGO_DATAFLOW_IMAGE_FORMAT" // default "quay.io/argoproj/%s:latest"
-	EnvNamespace           = "ARGO_DATAFLOW_NAMESPACE"
-	EnvPipelineName        = "ARGO_DATAFLOW_PIPELINE_NAME"
-	EnvReplica             = "ARGO_DATAFLOW_REPLICA"
-	EnvStep                = "ARGO_DATAFLOW_STEP"
-	EnvPeekDelay           = "ARGO_DATAFLOW_PEEK_DELAY"      // how long between peeking (default 4m)
-	EnvPullPolicy          = "ARGO_DATAFLOW_PULL_POLICY"     // default ""
-	EnvScalingDelay        = "ARGO_DATAFLOW_SCALING_DELAY"   // how long to wait between any scaling events (including peeking) default "4m"
-	EnvUpdateInterval      = "ARGO_DATAFLOW_UPDATE_INTERVAL" // default "1m"
-	EnvDataflowBearerToken = "ARGO_DATAFLOW_BEARER_TOKEN"
+	EnvImageFormat                 = "ARGO_DATAFLOW_IMAGE_FORMAT" // default "quay.io/argoproj/%s:latest"
+	EnvNamespace                   = "ARGO_DATAFLOW_NAMESPACE"
+	EnvPipelineName                = "ARGO_DATAFLOW_PIPELINE_NAME"
+	EnvReplica                     = "ARGO_DATAFLOW_REPLICA"
+	EnvDefaultResourceRequirements = "ARGO_DATAFLOW_DEFAULT_RESOURCE_REQUIREMENTS" // default {"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"250m","memory":"64Mi"}}
+	EnvStep                        = "ARGO_DATAFLOW_STEP"
+	EnvPeekDelay                   = "ARGO_DATAFLOW_PEEK_DELAY"      // how long between peeking (default 4m)
+	EnvPullPolicy                  = "ARGO_DATAFLOW_PULL_POLICY"     // default ""
+	EnvScalingDelay                = "ARGO_DATAFLOW_SCALING_DELAY"   // how long to wait between any scaling events (including peeking) default "4m"
+	EnvUpdateInterval              = "ARGO_DATAFLOW_UPDATE_INTERVAL" // default "1m"
+	EnvDataflowBearerToken         = "ARGO_DATAFLOW_BEARER_TOKEN"
 	// label/annotation keys
 	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
 	KeyDescription      = "dataflow.argoproj.io/description"
