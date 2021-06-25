@@ -42,6 +42,6 @@ func TestStanFMEA(t *testing.T) {
 		DeletePod("stan-main-0") // delete the pod to see that we recover and continue to process messages
 
 		WaitForStep(LessThanTotalSunkMessages(n))
-		WaitForStep(TotalSunkMessages(n), time.Minute)
+		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 	})
 }

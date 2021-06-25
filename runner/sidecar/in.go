@@ -63,12 +63,18 @@ func connectIn(ctx context.Context, sink func([]byte) error) (func(context.Conte
 		afterClosers = append(afterClosers, func(ctx context.Context) error {
 			return waitUnready(ctx)
 		})
+		// https://www.loginradius.com/blog/async/tune-the-go-http-client-for-high-performance/
+		t := http.DefaultTransport.(*http.Transport).Clone()
+		t.MaxIdleConns = 100
+		t.MaxConnsPerHost = 100
+		t.MaxIdleConnsPerHost = 100
+		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 		return func(ctx context.Context, data []byte) error {
 			inFlight.Inc()
 			defer inFlight.Dec()
 			start := time.Now()
 			defer func() { messageTimeSeconds.Observe(time.Since(start).Seconds()) }()
-			if resp, err := http.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data)); err != nil {
+			if resp, err := httpClient.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data)); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
 			} else {
 				body, _ := ioutil.ReadAll(resp.Body)
