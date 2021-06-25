@@ -14,17 +14,17 @@ func TestStanStress(t *testing.T) {
 
 	Setup(t)
 	defer Teardown(t)
-	subject := RandomSTANSubject()
+	longSubject, subject := RandomSTANSubject()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "stan"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name:    "main",
-				Cat:     &Cat{},
+				Name:     "main",
+				Cat:      &Cat{},
 				Replicas: 2,
-				Sources: []Source{{STAN: &STAN{Subject: subject}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
+				Sinks:    []Sink{{Log: &Log{}}},
 			}},
 		},
 	})
@@ -40,6 +40,6 @@ func TestStanStress(t *testing.T) {
 	defer stopMetricsLogger()
 
 	n := 10000
-	PumpSTANSubject("argo-dataflow-system.stan."+subject, n)
+	PumpSTANSubject(longSubject, n)
 	WaitForStep(TotalSunkMessages(n), time.Minute)
 }

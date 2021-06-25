@@ -9,10 +9,10 @@ import (
 	"time"
 )
 
-func RandomSTANSubject() string {
-	subject := fmt.Sprintf("test-subject-%d", rand.Intn(2^16))
-	log.Printf("create STAN subject %q\n", subject)
-	return subject
+func RandomSTANSubject() (longSubject string, subject string) {
+	x := fmt.Sprintf("test-subject-%d", rand.Int31())
+	log.Printf("create STAN subject %q\n", x)
+	return "argo-dataflow-system.stan."+x, x
 }
 
 func PumpSTANSubject(subject string, n int, opts ...interface{}) {

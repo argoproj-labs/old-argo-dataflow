@@ -30,6 +30,10 @@ func TotalSourceMessages(n int) func(s Step) bool {
 	return func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == uint64(n) }
 }
 
+func LessThanTotalSunkMessages(n int) func(s Step) bool {
+	return func(s Step) bool { return s.Status.SinkStatues.GetTotal() < uint64(n) }
+}
+
 func TotalSunkMessages(n int) func(s Step) bool {
 	return func(s Step) bool { return s.Status.SinkStatues.GetTotal() == uint64(n) }
 }

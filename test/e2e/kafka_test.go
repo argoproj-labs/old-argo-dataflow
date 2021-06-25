@@ -29,10 +29,12 @@ func TestKafkaSource(t *testing.T) {
 	})
 	WaitForPipeline()
 	WaitForPod()
+
 	PumpKafkaTopic(topic, 17)
+
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForStep(NothingPending)
-	WaitForStep()
+
+	WaitForStep(TotalSourceMessages(17))
 	WaitForStep(TotalSunkMessages(17))
 
 	DeletePipelines()

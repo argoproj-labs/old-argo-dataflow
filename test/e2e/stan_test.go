@@ -14,20 +14,14 @@ func TestSTAN(t *testing.T) {
 	Setup(t)
 	defer Teardown(t)
 
-	subject := RandomSTANSubject()
+	longSubject, subject := RandomSTANSubject()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "stan"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
-					Name:    "a",
-					Cat:     &Cat{},
-					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{STAN: &STAN{Subject: subject}}},
-				},
-				{
-					Name:    "b",
+					Name:    "main",
 					Cat:     &Cat{},
 					Sources: []Source{{STAN: &STAN{Subject: subject}}},
 					Sinks:   []Sink{{Log: &Log{}}},
@@ -39,21 +33,12 @@ func TestSTAN(t *testing.T) {
 	WaitForPipeline()
 	WaitForPod()
 
-	stopPortForward := StartPortForward("stan-a-0")
-	defer stopPortForward()
-
-	SendMessageViaHTTP("my-msg")
+	PumpSTANSubject(longSubject, 7)
 
 	WaitForPipeline(UntilMessagesSunk)
 
-	WaitForStep("stan-a", NothingPending)
-	WaitForStep("stan-b", NothingPending)
-	WaitForStep("stan-a", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
-	WaitForStep("stan-a", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
-	WaitForStep("stan-b", func(s Step) bool { return s.Status.SourceStatuses.GetTotal() == 1 })
-	WaitForStep("stan-b", func(s Step) bool { return s.Status.SinkStatues.GetTotal() == 1 })
-
-	ExpectLogLine("stan-b-0", "sidecar", "my-msg")
+	WaitForStep(TotalSourceMessages(7))
+	WaitForStep(TotalSunkMessages(7))
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

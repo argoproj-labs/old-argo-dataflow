@@ -10,7 +10,7 @@ import (
 )
 
 func CreateKafkaTopic() string {
-	topic := fmt.Sprintf("test-topic-%d", rand.Intn(2^16))
+	topic := fmt.Sprintf("test-topic-%d", rand.Int31())
 	log.Printf("create Kafka topic %q\n", topic)
 	InvokeTestAPI("/kafka/create-topic?topic=%s", topic)
 	return topic
