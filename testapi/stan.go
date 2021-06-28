@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 )
 
@@ -13,6 +14,7 @@ func init() {
 	clusterID := "stan"
 	clientID := "dataflow-testapi"
 	url := "nats"
+	testingToken := "testingtokentestingtoken"
 
 	http.HandleFunc("/stan/pump-subject", func(w http.ResponseWriter, r *http.Request) {
 		subjects := r.URL.Query()["subject"]
@@ -46,7 +48,16 @@ func init() {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.WriteHeader(200)
 
-		sc, err := stan.Connect(clusterID, clientID, stan.NatsURL(url))
+		opts := []nats.Option{nats.Token(testingToken)}
+		nc, err := nats.Connect(url, opts...)
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		defer nc.Close()
+		sc, err := stan.Connect(clusterID, clientID, stan.NatsConn(nc))
 		if err != nil {
 			fmt.Printf("error: %v\n", err)
 			w.WriteHeader(500)

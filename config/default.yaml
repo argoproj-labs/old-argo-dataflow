@@ -759,6 +759,11 @@ spec:
                             type: string
                           stan:
                             properties:
+                              auth:
+                                properties:
+                                  token:
+                                    type: string
+                                type: object
                               clusterId:
                                 type: string
                               name:
@@ -832,6 +837,11 @@ spec:
                             type: string
                           stan:
                             properties:
+                              auth:
+                                properties:
+                                  token:
+                                    type: string
+                                type: object
                               clusterId:
                                 type: string
                               name:
@@ -2616,6 +2626,11 @@ spec:
                       type: string
                     stan:
                       properties:
+                        auth:
+                          properties:
+                            token:
+                              type: string
+                          type: object
                         clusterId:
                           type: string
                         name:
@@ -2689,6 +2704,11 @@ spec:
                       type: string
                     stan:
                       properties:
+                        auth:
+                          properties:
+                            token:
+                              type: string
+                          type: object
                         clusterId:
                           type: string
                         name:
