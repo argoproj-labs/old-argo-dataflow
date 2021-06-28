@@ -44,39 +44,4 @@ func TestStanFMEA(t *testing.T) {
 		WaitForStep(LessThanTotalSunkMessages(n))
 		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 	})
-	t.Run("STANServiceDisruption", func(t *testing.T) {
-
-		Setup(t)
-		defer Teardown(t)
-
-		longSubject, subject := RandomSTANSubject()
-
-		CreatePipeline(Pipeline{
-			ObjectMeta: metav1.ObjectMeta{Name: "stan"},
-			Spec: PipelineSpec{
-				Steps: []StepSpec{{
-					Name:    "main",
-					Cat:     &Cat{},
-					Sources: []Source{{STAN: &STAN{Subject: subject}}},
-					Sinks:   []Sink{{Log: &Log{}}},
-				}},
-			},
-		})
-
-		WaitForPipeline()
-
-		WaitForPod()
-
-		n := 500 * 30 // 500 TPS for 30s
-		go PumpSTANSubject(longSubject, n)
-
-		WaitForPipeline(UntilMessagesSunk)
-
-		WaitForStep(LessThanTotalSunkMessages(n))
-
-		restoreService := DeleteService("stan")
-		defer restoreService()
-
-		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
-	})
 }
