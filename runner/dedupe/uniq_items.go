@@ -27,3 +27,7 @@ func (is *uniqItems) shrink() {
 	i := heap.Pop(&is.items).(*item)
 	delete(is.ids, i.id)
 }
+
+func (is *uniqItems) size() int {
+	return len(is.ids)
+}

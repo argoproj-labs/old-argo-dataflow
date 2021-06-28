@@ -15,9 +15,18 @@ import (
 	"time"
 )
 
-func ExpectMetric(name string, value float64) {
-	log.Printf("expect metric %q to be %f\n", name, value)
-	for n, family := range getMetrics() {
+func ExpectMetric(name string, value float64, opts ...interface{}) {
+	port := 3569
+	for _, opt := range opts {
+		switch v := opt.(type) {
+		case int:
+			port = v
+		default:
+			panic(fmt.Errorf("unsupported option type %T", v))
+		}
+	}
+	log.Printf("expect metric %q to be %f on %d\n", name, value, port)
+	for n, family := range getMetrics(port) {
 		if n == name {
 			for _, m := range family.Metric {
 				v := getValue(m)
@@ -29,7 +38,7 @@ func ExpectMetric(name string, value float64) {
 			}
 		}
 	}
-	panic(fmt.Errorf("metric named %q not found in %q", name, getMetrics()))
+	panic(fmt.Errorf("metric named %q not found in %q on %d", name, getMetrics(port), port))
 }
 
 func getValue(m *io_prometheus_client.Metric) float64 {
@@ -42,8 +51,8 @@ func getValue(m *io_prometheus_client.Metric) float64 {
 	}
 }
 
-func getMetrics() map[string]*io_prometheus_client.MetricFamily {
-	r, err := http.Get(baseUrl + "/metrics")
+func getMetrics(port int) map[string]*io_prometheus_client.MetricFamily {
+	r, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", port))
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +68,16 @@ func getMetrics() map[string]*io_prometheus_client.MetricFamily {
 	return families
 }
 
-func StartMetricsLogger() (stopMetricsLogger func()) {
+func StartMetricsLogger(opts ...interface{}) (stopMetricsLogger func()) {
+	port := 3569
+	for _, opt := range opts {
+		switch v := opt.(type) {
+		case int:
+			port = v
+		default:
+			panic(fmt.Errorf("unsupported option type %T", v))
+		}
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
@@ -67,11 +85,11 @@ func StartMetricsLogger() (stopMetricsLogger func()) {
 		for {
 			select {
 			case <-ctx.Done():
-				log.Println("stopping metrics logger")
+				log.Printf("stopping metrics logger on %d\n",port)
 				return
 			default:
 				var x []string
-				for n, family := range getMetrics() {
+				for n, family := range getMetrics(port) {
 					switch n {
 					case "input_inflight",
 						"sources_errors",

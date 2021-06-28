@@ -13,7 +13,7 @@ import (
 )
 
 func SendMessageViaHTTP(msg string) {
-	r, err := http.Post(baseUrl+"/sources/default", "text/plain", bytes.NewBufferString(msg))
+	r, err := http.Post("http://localhost:3569/sources/default", "text/plain", bytes.NewBufferString(msg))
 	if err != nil {
 		panic(err)
 	} else {

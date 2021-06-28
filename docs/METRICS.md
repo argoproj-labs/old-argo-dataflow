@@ -80,3 +80,9 @@ Use this to track back-pressure.
 Only exposed by replica 0.
 
 Golden metric type: traffic.
+
+### duplicate_messages
+
+Use this to track duplicate messages filtered by a dedupe step.
+
+This is exposed by the main container on port 8080, not by the sidecar or 3569.

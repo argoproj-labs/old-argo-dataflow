@@ -12,7 +12,6 @@ import (
 
 const (
 	namespace = "argo-dataflow-system"
-	baseUrl   = "http://localhost:3569"
 )
 
 var (

@@ -8,10 +8,10 @@ import (
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"reflect"
-	"strconv"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -30,6 +30,8 @@ func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
 		Help: "Duplicates messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#duplicate_messages",
 	}, func() float64 { return float64(duplicates) })
 
+	http.Handle("/metrics", promhttp.Handler())
+
 	prog, err := expr.Compile(x)
 	if err != nil {
 		return fmt.Errorf("failed to compile %q: %w", x, err)
@@ -40,14 +42,16 @@ func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
 	}
 
 	go wait.JitterUntil(func() {
-		size := resource.MustParse(strconv.FormatInt(int64(reflect.TypeOf(db).Size()), 10))
-		logger.Info("garbage collection", "size", size, "maxSize", maxSize, "duplicates", duplicates)
-		for ; int64(reflect.TypeOf(db).Size()) > int64MaxSize; {
-			mu.Lock()
-			db.shrink()
-			mu.Unlock()
+		size := db.size()
+		logger.Info("garbage collection", "size", resource.NewQuantity(int64(size), resource.DecimalSI), "maxSize", maxSize, "duplicates", duplicates)
+		for ; db.size() > int(int64MaxSize); {
+			func() {
+				mu.Lock()
+				defer mu.Unlock()
+				db.shrink()
+			}()
 		}
-	}, 10*time.Second, 1.2, true, ctx.Done())
+	}, 15*time.Second, 1.2, true, ctx.Done())
 
 	return util.Do(ctx, func(msg []byte) ([]byte, error) {
 		r, err := expr.Run(prog, util.ExprEnv(msg))
@@ -61,7 +65,6 @@ func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
 		mu.Lock()
 		defer mu.Unlock()
 		dupe := db.update(id)
-		logger.Info("exec", "message", msg, "dupe", dupe, "id", id)
 		if dupe {
 			duplicates++
 			return nil, nil

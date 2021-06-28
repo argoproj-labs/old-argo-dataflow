@@ -65,13 +65,15 @@ func TestKafkaFMEA(t *testing.T) {
 
 		WaitForPod()
 
-		n := 500 * 30 // 500 TPS for 30s
+		n := 5000 * 30 // 500 TPS for 30s
 		go PumpKafkaTopic(topic, n)
 
 		WaitForStep(LessThanTotalSunkMessages(n))
 
 		restoreService := DeleteService("kafka-broker")
 		defer restoreService()
+
+		time.Sleep(10*time.Second)
 
 		WaitForStep(TotalSunkMessages(n), time.Minute)
 	})
