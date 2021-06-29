@@ -53,6 +53,7 @@ jobs:
         - stress
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      ARGO_DATAFLOW_PULL_POLICY: IfNotPresent
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-qemu-action@v1
