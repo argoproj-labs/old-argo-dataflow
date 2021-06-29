@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.59 (2021-06-29)
+
+ * [778f24a](https://github.com/argoproj-labs/argo-dataflow/commit/778f24a5ab34ad6f8b3b422010e0c149e0be1c0d) fix: prevent Kafka pending loop dieing on disconnection
+ * [f289249](https://github.com/argoproj-labs/argo-dataflow/commit/f2892494ca727f0541b44378796d18beb9bde134) refactor: container killer refactor
+ * [7e793bf](https://github.com/argoproj-labs/argo-dataflow/commit/7e793bf7afdc4a2a4ee2ab647a995e7905274fec) fix: improved dedupe
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.58 (2021-06-28)
 
  * [70acfa7](https://github.com/argoproj-labs/argo-dataflow/commit/70acfa7895545e6c93116b3ae6a918d0549be73e) fix: improved dedupe
