@@ -42,10 +42,6 @@ func TotalSunkMessagesFunc(f func(int) bool) func(s Step) bool {
 	return func(s Step) bool { return f(int(s.Status.SinkStatues.GetTotal())) }
 }
 
-func LessThanTotalSunkMessages(n int) func(s Step) bool {
-	return TotalSunkMessagesFunc(func(t int) bool { return t < n })
-}
-
 func TotalSunkMessages(n int) func(s Step) bool {
 	return TotalSunkMessagesFunc(func(t int) bool { return t == n })
 }
@@ -108,8 +104,8 @@ func formatSourceStatuses(statuses SourceStatuses) string {
 	for _, s := range statuses {
 		for _, m := range s.Metrics {
 			rate, _ := m.Rate.AsInt64()
-			sourceText = append(sourceText, p.Sprintf("%s%s%s%d %d", sym(symbol.Pending, s.GetPending()), sym(symbol.Error, m.Errors), symbol.Rate,  rate, m.Total))
+			sourceText = append(sourceText, p.Sprintf("%s%s%s%d %d", sym(symbol.Pending, s.GetPending()), sym(symbol.Error, m.Errors), symbol.Rate, rate, m.Total))
 		}
 	}
-	return strings.Join(sourceText,",")
+	return strings.Join(sourceText, ",")
 }

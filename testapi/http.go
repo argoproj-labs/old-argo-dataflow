@@ -55,7 +55,7 @@ func init() {
 					_, _ = fmt.Fprintf(w, "ERROR: %v", err)
 					return
 				}
-				_, _ = fmt.Fprintf(w, "sent %q (%.0f TPS) to %q\n", msg, (1+float64(i))/time.Since(start).Seconds(), url)
+				_, _ = fmt.Fprintf(w, "sent %q (%d/%d, %.0f TPS) to %q\n", msg, i+1, n, (1+float64(i))/time.Since(start).Seconds(), url)
 				time.Sleep(duration)
 			}
 		}

@@ -11,7 +11,7 @@ import (
 )
 
 func TestKafkaFMEA(t *testing.T) {
-	t.Run("PodDeletedDisruption,Replicas=1", func(t *testing.T) {
+	t.Run("PodDeletedDisruption", func(t *testing.T) {
 
 		Setup(t)
 		defer Teardown(t)
@@ -34,12 +34,43 @@ func TestKafkaFMEA(t *testing.T) {
 
 		WaitForPod()
 
-		n := 500 * 30 // 500 TPS for 30s
+		n := 500 * 30
 		go PumpKafkaTopic(topic, n)
 
 		DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
 
-		WaitForStep(LessThanTotalSunkMessages(n))
 		WaitForStep(TotalSunkMessages(n), time.Minute)
+	})
+	t.Run("KafkaServiceDisruption", func(t *testing.T) {
+
+		Setup(t)
+		defer Teardown(t)
+
+		WaitForPod("kafka-broker-0")
+
+		topic := CreateKafkaTopic()
+		CreatePipeline(Pipeline{
+			ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+			Spec: PipelineSpec{
+				Steps: []StepSpec{{
+					Name:    "main",
+					Cat:     &Cat{},
+					Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
+					Sinks:   []Sink{{Log: &Log{}}},
+				}},
+			},
+		})
+
+		WaitForPipeline()
+
+		WaitForPod()
+
+		n := 500 * 30
+		go PumpKafkaTopic(topic, n)
+
+		RestartStatefulSet("kafka-broker")
+
+		WaitForStep(TotalSunkMessages(n), time.Minute)
+		ExpectLogLine("kafka-main-0", "sidecar", "Failed to connect to broker kafka-broker:9092")
 	})
 }
