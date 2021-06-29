@@ -3,8 +3,6 @@
 package stress
 
 import (
-	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"testing"
@@ -86,6 +84,6 @@ func TestHTTPFMEA(t *testing.T) {
 
 		DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
 
-		WaitForStep(TotalSunkMessages(n), time.Minute)
+		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 	})
 }
