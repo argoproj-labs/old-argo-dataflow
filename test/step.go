@@ -43,7 +43,11 @@ func TotalSunkMessagesFunc(f func(int) bool) func(s Step) bool {
 }
 
 func TotalSunkMessages(n int) func(s Step) bool {
-	return TotalSunkMessagesFunc(func(t int) bool { return t == n })
+	return TotalSunkMessagesBetween(n, n)
+}
+
+func TotalSunkMessagesBetween(n, m int) func(s Step) bool {
+	return TotalSunkMessagesFunc(func(t int) bool { return n <= t && t <= m })
 }
 
 func WaitForStep(opts ...interface{}) {
