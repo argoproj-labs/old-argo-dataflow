@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.58 (2021-06-28)
+
+ * [70acfa7](https://github.com/argoproj-labs/argo-dataflow/commit/70acfa7895545e6c93116b3ae6a918d0549be73e) fix: improved dedupe
+ * [69e43d6](https://github.com/argoproj-labs/argo-dataflow/commit/69e43d6fbf0858fd042ebafb84c53cfaf4b7e377) test http fmea
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.57 (2021-06-24)
 
  * [972ebf0](https://github.com/argoproj-labs/argo-dataflow/commit/972ebf03c232bb37ac72bcd99d39b072381eeca2) fix: increased default CPU resources requests to 250m
