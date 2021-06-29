@@ -53,7 +53,6 @@ jobs:
         - stress
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-      ARGO_DATAFLOW_PULL_POLICY: IfNotPresent
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-qemu-action@v1
@@ -82,7 +81,7 @@ jobs:
           path: /home/runner/go/pkg/mod
           key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
       - run: make controller
-      - run: make deploy CONFIG=ci
+      - run: make deploy CONFIG=ci ARGO_DATAFLOW_PULL_POLICY=IfNotPresent
       - run: make runner
       - run: make wait
       - run: make test-${{matrix.suite}}
