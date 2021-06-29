@@ -10,7 +10,7 @@ spec:
       containers:
         - name: manager
           env:
-            - name: PULL_POLICY
+            - name: ARGO_DATAFLOW_PULL_POLICY
               value: IfNotPresent
             - name: ARGO_DATAFLOW_UPDATE_INTERVAL
               value: 5s

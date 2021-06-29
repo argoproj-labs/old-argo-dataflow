@@ -81,7 +81,7 @@ jobs:
           path: /home/runner/go/pkg/mod
           key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
       - run: make controller
-      - run: make deploy CONFIG=ci ARGO_DATAFLOW_PULL_POLICY=IfNotPresent
+      - run: make deploy CONFIG=ci
       - run: make runner
       - run: make wait
       - run: make test-${{matrix.suite}}
