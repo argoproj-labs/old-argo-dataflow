@@ -11,8 +11,7 @@ import (
 )
 
 func TestStanFMEA(t *testing.T) {
-	t.Skip("TODO: STAN does not work")
-	t.Run("PodDeletedDisruption,Replicas=1", func(t *testing.T) {
+	t.Run("PodDeletedDisruption", func(t *testing.T) {
 
 		Setup(t)
 		defer Teardown(t)
@@ -42,7 +41,40 @@ func TestStanFMEA(t *testing.T) {
 
 		DeletePod("stan-main-0") // delete the pod to see that we recover and continue to process messages
 
-		WaitForStep(LessThanTotalSunkMessages(n))
-		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
+		WaitForStep(TotalSunkMessages(n+1), 2*time.Minute)
+	})
+	t.Run("STANServiceDisruption", func(t *testing.T) {
+
+		Setup(t)
+		defer Teardown(t)
+
+		WaitForPod("stan-0")
+
+		longSubject, subject := RandomSTANSubject()
+
+		CreatePipeline(Pipeline{
+			ObjectMeta: metav1.ObjectMeta{Name: "stan"},
+			Spec: PipelineSpec{
+				Steps: []StepSpec{{
+					Name:    "main",
+					Cat:     &Cat{},
+					Sources: []Source{{STAN: &STAN{Subject: subject}}},
+					Sinks:   []Sink{{Log: &Log{}}},
+				}},
+			},
+		})
+
+		WaitForPipeline()
+
+		WaitForPod()
+
+		n := 500 * 30
+		go PumpSTANSubject(longSubject, n)
+
+		WaitForPipeline(UntilMessagesSunk)
+
+		RestartStatefulSet("stan")
+
+		WaitForStep(TotalSunkMessages(n+20), 2*time.Minute)
 	})
 }
