@@ -41,7 +41,7 @@ func TestStanFMEA(t *testing.T) {
 
 		DeletePod("stan-main-0") // delete the pod to see that we recover and continue to process messages
 
-		WaitForStep(TotalSunkMessages(n+1), 2*time.Minute)
+		WaitForStep(TotalSunkMessagesBetween(n, n+1), 2*time.Minute)
 	})
 	t.Run("STANServiceDisruption", func(t *testing.T) {
 
@@ -75,6 +75,6 @@ func TestStanFMEA(t *testing.T) {
 
 		RestartStatefulSet("stan")
 
-		WaitForStep(TotalSunkMessages(n+20), 2*time.Minute)
+		WaitForStep(TotalSunkMessagesBetween(n, n+20), 2*time.Minute)
 	})
 }

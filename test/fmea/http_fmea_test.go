@@ -86,6 +86,6 @@ func TestHTTPFMEA(t *testing.T) {
 
 		DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
 
-		WaitForStep(TotalSunkMessages(n), time.Minute)
+		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 	})
 }

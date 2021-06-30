@@ -4421,10 +4421,8 @@ spec:
         command:
         - /manager
         env:
-        - name: PULL_POLICY
-          value: Never
         - name: ARGO_DATAFLOW_PULL_POLICY
-          value: IfNotPresent
+          value: Never
         - name: ARGO_DATAFLOW_UPDATE_INTERVAL
           value: 5s
         - name: ARGO_DATAFLOW_NAMESPACE

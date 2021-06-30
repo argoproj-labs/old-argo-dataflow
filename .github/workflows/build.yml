@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "true"
     strategy:
-      max-parallel: 1
+      fail-fast: false
       matrix:
         suite:
         - e2e

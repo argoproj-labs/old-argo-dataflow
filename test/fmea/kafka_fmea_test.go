@@ -39,7 +39,7 @@ func TestKafkaFMEA(t *testing.T) {
 
 		DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
 
-		WaitForStep(TotalSunkMessages(n), time.Minute)
+		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 	})
 	t.Run("KafkaServiceDisruption", func(t *testing.T) {
 
@@ -70,7 +70,7 @@ func TestKafkaFMEA(t *testing.T) {
 
 		RestartStatefulSet("kafka-broker")
 
-		WaitForStep(TotalSunkMessages(n), time.Minute)
+		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 		ExpectLogLine("kafka-main-0", "sidecar", "Failed to connect to broker kafka-broker:9092")
 	})
 }
