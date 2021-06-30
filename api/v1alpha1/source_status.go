@@ -9,9 +9,10 @@ type SourceStatus struct {
 	Metrics     map[string]Metrics `json:"metrics,omitempty" protobuf:"bytes,4,rep,name=metrics"`
 }
 
-func (m SourceStatus) GetPending() uint64 {
-	if m.Pending != nil {
-		return *m.Pending
+// GetPending returns pending counts
+func (in SourceStatus) GetPending() uint64 {
+	if in.Pending != nil {
+		return *in.Pending
 	}
 	return 0
 }
@@ -38,4 +39,13 @@ func (in SourceStatus) AnySunk() bool {
 
 func (in SourceStatus) RecentErrors() bool {
 	return in.LastError != nil && time.Since(in.LastError.Time.Time) < 15*time.Minute
+}
+
+// GetRetryCount returns total Retries metrics
+func (in SourceStatus) GetRetryCount() uint64 {
+	var x uint64
+	for _, m := range in.Metrics {
+		x += m.Retries
+	}
+	return x
 }

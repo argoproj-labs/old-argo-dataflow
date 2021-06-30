@@ -759,6 +759,24 @@ spec:
                             type: string
                           stan:
                             properties:
+                              auth:
+                                properties:
+                                  token:
+                                    description: SecretKeySelector selects a key of a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                type: object
                               clusterId:
                                 type: string
                               name:
@@ -844,6 +862,24 @@ spec:
                             type: object
                           stan:
                             properties:
+                              auth:
+                                properties:
+                                  token:
+                                    description: SecretKeySelector selects a key of a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                type: object
                               clusterId:
                                 type: string
                               name:
@@ -2628,6 +2664,24 @@ spec:
                       type: string
                     stan:
                       properties:
+                        auth:
+                          properties:
+                            token:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                          type: object
                         clusterId:
                           type: string
                         name:
@@ -2713,6 +2767,24 @@ spec:
                       type: object
                     stan:
                       properties:
+                        auth:
+                          properties:
+                            token:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                          type: object
                         clusterId:
                           type: string
                         name:
@@ -4118,6 +4190,9 @@ data:
   nats.conf: |
     pid_file: "/var/run/nats/nats.pid"
     http: 8222
+    authorization {
+      token: "testingtokentestingtoken"
+    }
 kind: ConfigMap
 metadata:
   name: nats-config
@@ -4128,6 +4203,9 @@ data:
   stan.conf: |
     port: 4222
     http: 8222
+    authorization {
+      token: "testingtokentestingtoken"
+    }
 
     streaming {
      ns: "nats://nats:4222"
@@ -4175,6 +4253,7 @@ metadata:
   name: dataflow-stan-default
   namespace: argo-dataflow-system
 stringData:
+  authToken: testingtokentestingtoken
   clusterId: stan
   natsMonitoringUrl: http://stan:8222
   natsUrl: nats
@@ -4366,7 +4445,7 @@ spec:
         command:
         - /manager
         env:
-        - name: PULL_POLICY
+        - name: ARGO_DATAFLOW_PULL_POLICY
           value: Never
         - name: ARGO_DATAFLOW_UPDATE_INTERVAL
           value: 5s

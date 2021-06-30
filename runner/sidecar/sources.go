@@ -11,6 +11,7 @@ import (
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	"github.com/paulbellamy/ratecounter"
@@ -60,6 +61,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				default:
 					if uint64(backoff.Steps) < source.Retry.Steps { // this is a retry
 						logger.Info("retry", "source", sourceName, "backoff", backoff)
+						withLock(func() { step.Status.SinkStatues.IncrRetryCount(sourceName, replica) })
 					}
 					err := toMain(ctx, msg)
 					if err == nil {
@@ -189,8 +191,30 @@ func registerKafkaSetPendingHook(x *dfv1.Kafka, sourceName string, client sarama
 }
 
 func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f func(ctx context.Context, msg []byte) error) error {
+	opts := []nats.Option{}
+	switch x.AuthStrategy() {
+	case dfv1.STANAuthToken:
+		token, err := getSTANAuthToken(ctx, x)
+		if err != nil {
+			return err
+		}
+		opts = append(opts, nats.Token(token))
+	default:
+	}
+	logger.Info("nats auth strategy: "+string(x.AuthStrategy()), "source", sourceName)
+	nc, err := nats.Connect(x.NATSURL, opts...)
+	if err != nil {
+		return fmt.Errorf("failed to connect to nats url=%s subject=%s: %w", x.NATSURL, x.Subject, err)
+	}
+	beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+		logger.Info("closing nats connection", "source", sourceName)
+		if nc != nil && nc.IsConnected() {
+			nc.Close()
+		}
+		return nil
+	})
 	clientID := fmt.Sprintf("%s-%s-%d-source-%s", pipelineName, stepName, replica, sourceName)
-	sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
+	sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsConn(nc))
 	if err != nil {
 		return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
@@ -321,4 +345,11 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 		Help:        "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors",
 		ConstLabels: map[string]string{"sourceName": source.Name},
 	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors()) })
+
+	promauto.NewCounterFunc(prometheus.CounterOpts{
+		Subsystem: "message",
+		Name:      "retry_count",
+		Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#message_retry_count",
+	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetRetryCount()) })
+
 }

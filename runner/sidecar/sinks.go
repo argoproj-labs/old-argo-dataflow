@@ -10,6 +10,7 @@ import (
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 	"github.com/paulbellamy/ratecounter"
 )
@@ -108,8 +109,30 @@ func connectKafkaSink(x *dfv1.Kafka, sinkName string) (func(msg []byte) error, e
 }
 
 func connectSTANSink(sinkName string, x *dfv1.STAN) (func(msg []byte) error, error) {
+	opts := []nats.Option{}
+	switch x.AuthStrategy() {
+	case dfv1.STANAuthToken:
+		token, err := getSTANAuthToken(context.Background(), x)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, nats.Token(token))
+	default:
+	}
+	logger.Info("nats auth strategy: "+string(x.AuthStrategy()), "sink", sinkName)
+	nc, err := nats.Connect(x.NATSURL, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to nats url=%s subject=%s: %w", x.NATSURL, x.Subject, err)
+	}
+	afterClosers = append(afterClosers, func(ctx context.Context) error {
+		logger.Info("closing nats connection", "sink", sinkName)
+		if nc != nil && nc.IsConnected() {
+			nc.Close()
+		}
+		return nil
+	})
 	clientID := fmt.Sprintf("%s-%s-%d-sink-%s", pipelineName, stepName, replica, sinkName)
-	sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsURL(x.NATSURL))
+	sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsConn(nc))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}

@@ -3,6 +3,9 @@ data:
   nats.conf: |
     pid_file: "/var/run/nats/nats.pid"
     http: 8222
+    authorization {
+      token: "testingtokentestingtoken"
+    }
 kind: ConfigMap
 metadata:
   name: nats-config
@@ -13,6 +16,9 @@ data:
   stan.conf: |
     port: 4222
     http: 8222
+    authorization {
+      token: "testingtokentestingtoken"
+    }
 
     streaming {
      ns: "nats://nats:4222"

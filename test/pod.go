@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/shared/podexec"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -105,5 +106,12 @@ func DeletePod(podName string) {
 	log.Printf("deleting pod %q\n", podName)
 	if err := podInterface.Delete(context.Background(), podName, metav1.DeleteOptions{}); err != nil {
 		panic(fmt.Errorf("failed to delete %q: %w", podName, err))
+	}
+}
+
+func PodExec(podName, container string, commands []string) {
+	log.Printf("pod exec %q %q %q\n", podName, container, commands)
+	if err := podexec.New(kubernetesInterface, restConfig).Exec(namespace, podName, container, commands); err != nil {
+		panic(err)
 	}
 }
