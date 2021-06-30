@@ -383,16 +383,16 @@ class MapStep(Step):
 
 
 class Source:
-    def __init__(self, name=None, retryPolicy=None):
+    def __init__(self, name=None, retry=None):
         self._name = name
-        self._retryPolicy = retryPolicy
+        self._retry = retry
 
     def dump(self):
         x = {}
         if self._name:
             x['name'] = self._name
-        if self._retryPolicy:
-            x['retryPolicy'] = self._retryPolicy
+        if self._retry:
+            x['retry'] = self._retry
         return x
 
     def cat(self, name):
@@ -462,8 +462,8 @@ def map(name, map):
 
 
 class CronSource(Source):
-    def __init__(self, schedule, layout, name=None, retryPolicy=None):
-        super().__init__(name=name, retryPolicy=retryPolicy)
+    def __init__(self, schedule, layout, name=None, retry=None):
+        super().__init__(name=name, retry=retry)
         self._schedule = schedule
         self._layout = layout
 
@@ -477,8 +477,8 @@ class CronSource(Source):
 
 
 class HTTPSource(Source):
-    def __init__(self, name=None, retryPolicy=None, serviceName=None):
-        super().__init__(name=name, retryPolicy=retryPolicy)
+    def __init__(self, name=None, retry=None, serviceName=None):
+        super().__init__(name=name, retry=retry)
         self._serviceName = serviceName
 
     def dump(self):
@@ -491,8 +491,8 @@ class HTTPSource(Source):
 
 
 class KafkaSource(Source):
-    def __init__(self, topic, name=None, retryPolicy=None):
-        super().__init__(name=name, retryPolicy=retryPolicy)
+    def __init__(self, topic, name=None, retry=None):
+        super().__init__(name=name, retry=retry)
         self._topic = topic
 
     def dump(self):
@@ -502,8 +502,8 @@ class KafkaSource(Source):
 
 
 class STANSource(Source):
-    def __init__(self, subject, name=None, retryPolicy=None):
-        super().__init__(name=name, retryPolicy=retryPolicy)
+    def __init__(self, subject, name=None, retry=None):
+        super().__init__(name=name, retry=retry)
         self._subject = subject
 
     def dump(self):
@@ -513,17 +513,17 @@ class STANSource(Source):
         return x
 
 
-def cron(schedule, layout=None, name=None, retryPolicy=None):
-    return CronSource(schedule, layout=layout, name=name, retryPolicy=retryPolicy)
+def cron(schedule, layout=None, name=None, retry=None):
+    return CronSource(schedule, layout=layout, name=name, retry=retry)
 
 
-def http(name=None, retryPolicy=None, serviceName=None):
-    return HTTPSource(name=name, retryPolicy=retryPolicy, serviceName=serviceName)
+def http(name=None, retry=None, serviceName=None):
+    return HTTPSource(name=name, serviceName=serviceName)
 
 
-def kafka(topic, name=None, retryPolicy=None):
-    return KafkaSource(topic, name=name, retryPolicy=retryPolicy)
+def kafka(topic, name=None, retry=None):
+    return KafkaSource(topic, name=name, retry=retry)
 
 
-def stan(subject, name=None, retryPolicy=None):
-    return STANSource(subject, name=name, retryPolicy=retryPolicy)
+def stan(subject, name=None, retry=None):
+    return STANSource(subject, name=name, retry=retry)

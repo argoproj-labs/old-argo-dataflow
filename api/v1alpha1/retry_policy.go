@@ -4,6 +4,6 @@ package v1alpha1
 type RetryPolicy string
 
 const (
-	RetryNever  RetryPolicy = "Never"  // give up straight away
-	RetryAlways RetryPolicy = "Always" // keep trying and never give up
+	RetryNever  RetryPolicy = "Never"
+	RetryAlways RetryPolicy = "Always"
 )

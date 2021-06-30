@@ -12,7 +12,7 @@ spec:
       code: |
         def handler(msg, context):
             import random
-            if random.randint(0, 1) == 1:
+            if random.randint(0, 4) == 1:
                 raise Exception("random error")
             return msg
       runtime: python3-9
@@ -22,12 +22,13 @@ spec:
     sources:
     - cron:
         schedule: '*/3 * * * * *'
-      retryPolicy: Always
+      retry:
+        steps: 99999999
   - handler:
       code: |
         def handler(msg, context):
             import random
-            if random.randint(0, 1) == 1:
+            if random.randint(0, 4) == 1:
                 raise Exception("random error")
             return msg
       runtime: python3-9
@@ -37,4 +38,5 @@ spec:
     sources:
     - cron:
         schedule: '*/3 * * * * *'
-      retryPolicy: Never
+      retry:
+        steps: 0
