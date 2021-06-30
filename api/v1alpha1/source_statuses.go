@@ -84,7 +84,7 @@ func (in SourceStatuses) IncrRetryCount(name string, replica int) {
 		x.Metrics = map[string]Metrics{}
 	}
 	m := x.Metrics[strconv.Itoa(replica)]
-	m.RetryCount++
+	m.Retries++
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
 }

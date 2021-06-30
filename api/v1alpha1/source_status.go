@@ -41,11 +41,11 @@ func (in SourceStatus) RecentErrors() bool {
 	return in.LastError != nil && time.Since(in.LastError.Time.Time) < 15*time.Minute
 }
 
-// GetRetryCount returns total RetryCount metrics
+// GetRetryCount returns total Retries metrics
 func (in SourceStatus) GetRetryCount() uint64 {
 	var x uint64
 	for _, m := range in.Metrics {
-		x += m.RetryCount
+		x += m.Retries
 	}
 	return x
 }

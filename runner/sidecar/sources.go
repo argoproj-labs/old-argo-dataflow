@@ -71,7 +71,6 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 						default:
 							withLock(func() {
 								step.Status.SinkStatues.IncrRetryCount(sourceName, replica)
-								newSourceMetrics(source, sourceName)
 							})
 							return false, nil
 						}
