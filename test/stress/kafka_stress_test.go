@@ -42,5 +42,5 @@ func TestKafkaStress(t *testing.T) {
 
 	n := 10000
 	PumpKafkaTopic(topic, n)
-	WaitForStep(TotalSunkMessages(n), time.Minute)
+	WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 }
