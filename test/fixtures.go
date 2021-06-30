@@ -25,6 +25,11 @@ func Setup(t *testing.T) {
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 
+	WaitForPod("zookeeper-0")
+	WaitForPod("kafka-broker-0")
+	WaitForPod("nats-0")
+	WaitForPod("stan-0")
+
 	stopTestAPIPortForward = StartPortForward("testapi-0", 8378)
 }
 
