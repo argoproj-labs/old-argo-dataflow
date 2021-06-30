@@ -6,11 +6,16 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
 	"testing"
 	"time"
 )
 
 func TestKafkaFMEA(t *testing.T) {
+	if os.Getenv("CI") != "" {
+		t.SkipNow()
+	}
+
 	t.Run("PodDeletedDisruption", func(t *testing.T) {
 
 		Setup(t)
@@ -42,6 +47,9 @@ func TestKafkaFMEA(t *testing.T) {
 		WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 	})
 	t.Run("KafkaServiceDisruption", func(t *testing.T) {
+		if os.Getenv("CI") != "" {
+			t.SkipNow()
+		}
 
 		Setup(t)
 		defer Teardown(t)
