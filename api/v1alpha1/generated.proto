@@ -26,6 +26,18 @@ import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 // Package-wide variables from generator "generated".
 option go_package = "v1alpha1";
 
+// default backoff is 100ms
+message Backoff {
+  // the number of backoff steps, zero means no retries
+  optional uint64 steps = 1;
+
+  // the cap of the backoff, should be >100ms, otherwise backoff is capped immediately
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration cap = 2;
+
+  // the amount of jitter per step, typically 10-20%, >100% is valid, but strange
+  optional uint32 jitterPercentage = 3;
+}
+
 message Cat {
 }
 
@@ -267,8 +279,8 @@ message Source {
 
   optional HTTPSource http = 5;
 
-  // +kubebuilder:default=Always
-  optional string retryPolicy = 6;
+  // +kubebuilder:default={steps: 2, jitterPercentage: 10}
+  optional Backoff retry = 7;
 }
 
 message SourceStatus {

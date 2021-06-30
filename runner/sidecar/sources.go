@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"net/http"
 	"time"
 
@@ -48,42 +47,34 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		}
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
-		retryPolicy := source.RetryPolicy
+		logger.Info("retry", "backoff", source.Retry)
 		f := func(ctx context.Context, msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
 				step.Status.SourceStatuses.IncrTotal(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
 			})
-			err := wait.ExponentialBackoff(wait.Backoff{
-				Duration: 100 * time.Millisecond,
-				Factor:   1.2,
-				Jitter:   1.2,
-				Steps:    math.MaxInt32,
-			}, func() (done bool, err error) {
+			backoff := newBackoff(source.Retry)
+			for {
 				select {
 				case <-ctx.Done():
-					return true, fmt.Errorf("could not send message: %w", ctx.Err())
+					return fmt.Errorf("could not send message: %w", ctx.Err())
 				default:
-					if err := toMain(ctx, msg); err != nil {
-						logger.Error(err, "⚠ →", "source", sourceName)
-						switch retryPolicy {
-						case dfv1.RetryNever:
-							return true, err
-						default:
-							withLock(func() {
-								step.Status.SinkStatues.IncrRetryCount(sourceName, replica)
-							})
-							return false, nil
-						}
-					} else {
-						return true, nil
+					if uint64(backoff.Steps) < source.Retry.Steps { // this is a retry
+						logger.Info("retry", "source", sourceName, "backoff", backoff)
+						withLock(func() { step.Status.SinkStatues.IncrRetryCount(sourceName, replica) })
 					}
+					err := toMain(ctx, msg)
+					if err == nil {
+						return nil
+					}
+					logger.Error(err, "⚠ →", "source", sourceName)
+					if backoff.Steps <= 0 {
+						withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica, err) })
+						return err
+					}
+					time.Sleep(backoff.Step())
 				}
-			})
-			if err != nil {
-				withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica, err) })
 			}
-			return err
 		}
 		if x := source.Cron; x != nil {
 			if err := connectCronSource(ctx, x, f); err != nil {

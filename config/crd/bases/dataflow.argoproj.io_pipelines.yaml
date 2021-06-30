@@ -1217,12 +1217,27 @@ spec:
                           name:
                             default: default
                             type: string
-                          retryPolicy:
-                            default: Always
-                            enum:
-                            - Always
-                            - Never
-                            type: string
+                          retry:
+                            default:
+                              jitterPercentage: 10
+                              steps: 2
+                            description: default backoff is 100ms
+                            properties:
+                              cap:
+                                description: the cap of the backoff, should be >100ms,
+                                  otherwise backoff is capped immediately
+                                type: string
+                              jitterPercentage:
+                                description: the amount of jitter per step, typically
+                                  10-20%, >100% is valid, but strange
+                                format: int32
+                                type: integer
+                              steps:
+                                description: the number of backoff steps, zero means
+                                  no retries
+                                format: int64
+                                type: integer
+                            type: object
                           stan:
                             properties:
                               auth:
