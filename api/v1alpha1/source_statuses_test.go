@@ -112,3 +112,16 @@ func TestSourceStatus_RecentErrors(t *testing.T) {
 	assert.False(t, SourceStatuses{}.RecentErrors())
 	assert.True(t, SourceStatuses{"0": {LastError: &Error{Time: metav1.Now()}}}.RecentErrors())
 }
+
+func TestSourceStatuses_IncrRetryCount(t *testing.T) {
+	sources := SourceStatuses{}
+	sources.IncrRetryCount("one", 1)
+	assert.Equal(t, uint64(1), sources.Get("one").GetRetryCount())
+	sources.IncrRetryCount("one", 2)
+	assert.Equal(t, uint64(2), sources.Get("one").GetRetryCount())
+	sources.IncrRetryCount("one", 1)
+	assert.Equal(t, uint64(3), sources.Get("one").GetRetryCount())
+	sources.IncrRetryCount("two", 1)
+	assert.Equal(t, uint64(3), sources.Get("one").GetRetryCount())
+	assert.Equal(t, uint64(1), sources.Get("two").GetRetryCount())
+}
