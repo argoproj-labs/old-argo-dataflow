@@ -47,7 +47,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		}
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
-		logger.Info("retry", "backoff", source.Retry)
+		logger.Info("retry config", "source", sourceName, "backoff", source.Retry)
 		f := func(ctx context.Context, msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
