@@ -28,7 +28,7 @@ var crn = cron.New(
 
 func connectSources(ctx context.Context, toMain func(context.Context, []byte) error) error {
 	go crn.Run()
-	beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("stopping cron")
 		<-crn.Stop().Done()
 		return nil
@@ -77,7 +77,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			}
 		}
 		if x := source.Cron; x != nil {
-			if err := connectCronSource(ctx, x, f); err != nil {
+			if err := connectCronSource(x, f); err != nil {
 				return err
 			}
 		} else if x := source.STAN; x != nil {
@@ -89,7 +89,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				return err
 			}
 		} else if x := source.HTTP; x != nil {
-			connectHTTPSource(ctx, sourceName, f)
+			connectHTTPSource(sourceName, f)
 		} else {
 			return fmt.Errorf("source misconfigured")
 		}
@@ -97,7 +97,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 	return nil
 }
 
-func connectHTTPSource(ctx context.Context, sourceName string, f func(ctx context.Context, msg []byte) error) {
+func connectHTTPSource(sourceName string, f func(ctx context.Context, msg []byte) error) {
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
 		msg, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -106,7 +106,7 @@ func connectHTTPSource(ctx context.Context, sourceName string, f func(ctx contex
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		if err := f(ctx, msg); err != nil {
+		if err := f(context.Background(), msg); err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 		} else {
@@ -124,7 +124,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 	if err != nil {
 		return err
 	}
-	beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing kafka client", "source", sourceName)
 		return client.Close()
 	})
@@ -133,7 +133,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 	if err != nil {
 		return fmt.Errorf("failed to create kafka consumer group: %w", err)
 	}
-	beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing kafka consumer group", "source", sourceName)
 		return group.Close()
 	})
@@ -143,7 +143,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 			logger.Error(err, "failed to create kafka consumer")
 		}
 	}, 10*time.Second, 1.2, true, ctx.Done())
-	beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing kafka handler", "source", sourceName)
 		return handler.Close()
 	})
@@ -206,7 +206,7 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 	if err != nil {
 		return fmt.Errorf("failed to connect to nats url=%s subject=%s: %w", x.NATSURL, x.Subject, err)
 	}
-	beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing nats connection", "source", sourceName)
 		if nc != nil && nc.IsConnected() {
 			nc.Close()
@@ -218,7 +218,7 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 	if err != nil {
 		return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
-	beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing stan connection", "source", sourceName)
 		return sc.Close()
 	})
@@ -226,7 +226,7 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 	// https://docs.nats.io/developing-with-nats-streaming/queues
 	queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 	if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-		if err := f(ctx, msg.Data); err != nil {
+		if err := f(context.Background(), msg.Data); err != nil {
 			// noop
 		} else if err := msg.Ack(); err != nil {
 			logger.Error(err, "failed to ack message", "source", sourceName)
@@ -239,7 +239,7 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 		stan.MaxInflight(20)); err != nil {
 		return fmt.Errorf("failed to subscribe: %w", err)
 	} else {
-		beforeClosers = append(beforeClosers, func(ctx context.Context) error {
+		addPreStopHook(func(ctx context.Context) error {
 			logger.Info("closing stan subscription", "source", sourceName)
 			return sub.Close()
 		})
@@ -313,10 +313,10 @@ func registerSTANSetPendingHook(sourceName string, x *dfv1.STAN, queueName strin
 	})
 }
 
-func connectCronSource(ctx context.Context, x *dfv1.Cron, f func(ctx context.Context, msg []byte) error) error {
+func connectCronSource(x *dfv1.Cron, f func(ctx context.Context, msg []byte) error) error {
 	_, err := crn.AddFunc(x.Schedule, func() {
 		msg := []byte(time.Now().Format(x.Layout))
-		_ = f(ctx, msg)
+		_ = f(context.Background(), msg)
 	})
 	if err != nil {
 		return fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)

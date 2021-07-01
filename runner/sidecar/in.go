@@ -40,7 +40,7 @@ func connectIn(ctx context.Context, sink func([]byte) error) (func(context.Conte
 		if err != nil {
 			return nil, fmt.Errorf("failed to open input FIFO: %w", err)
 		}
-		afterClosers = append(afterClosers, func(ctx context.Context) error {
+		addStopHook(func(ctx context.Context) error {
 			logger.Info("closing FIFO")
 			return fifo.Close()
 		})
@@ -60,7 +60,7 @@ func connectIn(ctx context.Context, sink func([]byte) error) (func(context.Conte
 		if err := waitReady(ctx); err != nil {
 			return nil, err
 		}
-		afterClosers = append(afterClosers, func(ctx context.Context) error {
+		addStopHook(func(ctx context.Context) error {
 			return waitUnready(ctx)
 		})
 		// https://www.loginradius.com/blog/async/tune-the-go-http-client-for-high-performance/

@@ -51,7 +51,7 @@ func connectOutFIFO(f func([]byte) error) {
 			if err != nil {
 				return fmt.Errorf("failed to open output FIFO: %w", err)
 			}
-			afterClosers = append(afterClosers, func(ctx context.Context) error {
+			addStopHook(func(ctx context.Context) error {
 				logger.Info("closing out FIFO")
 				return fifo.Close()
 			})

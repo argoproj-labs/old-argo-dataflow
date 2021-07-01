@@ -7,42 +7,52 @@ import (
 	"time"
 )
 
+type hook = func(ctx context.Context) error
+
 var (
-	preStopCh     = make(chan bool, 16)
-	beforeClosers []func(ctx context.Context) error // should be closed before main container exits
-	afterClosers  []func(ctx context.Context) error // should be close after the main container exits
-	preStopMu     = sync.Mutex{}
+	preStopCh    = make(chan bool, 16)
+	preStopHooks []hook // should be closed before main container exits
+	stopHooks    []hook // should be close after the main container exits
+	preStopMu    = sync.Mutex{}
 )
+
+func addPreStopHook(x hook) {
+	preStopHooks = append(preStopHooks, x)
+}
+
+func addStopHook(x hook) {
+	stopHooks = append(stopHooks, x)
+}
 
 func preStop() {
 	logger.Info("pre-stop")
 	preStopMu.Lock()
 	defer preStopMu.Unlock()
-	closeClosers(beforeClosers)
-	beforeClosers = nil
+	runHooks(preStopHooks)
+	preStopHooks = nil
 	preStopCh <- true
 	logger.Info("pre-stop done")
 }
 
 func stop() {
-	closeClosers(afterClosers)
+	runHooks(stopHooks)
 }
 
-func closeClosers(closers []func(ctx context.Context) error) {
-	if len(closers) == 0 {
+func runHooks(hooks []hook) {
+	if len(hooks) == 0 {
 		return // if this is already done, lets return early to avoid excess logging
 	}
 	start := time.Now()
-	logger.Info("closing closers", "len", len(closers))
+	logger.Info("running hooks", "len", len(hooks))
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	for i := len(closers) - 1; i >= 0; i-- {
-		f := closers[i]
+	for i := len(hooks) - 1; i >= 0; i-- {
+		f := hooks[i]
 		n := sharedutil.GetFuncName(f)
-		logger.Info("closing", "i", i, "func", n)
+		logger.Info("running hook", "func", n)
 		if err := f(ctx); err != nil {
-			logger.Error(err, "failed to close", "i", i, "func", n)
+			logger.Error(err, "failed to run hook", "func", n)
 		}
 	}
-	logger.Info("closing took", "duration", time.Since(start))
+	logger.Info("running hooks took", "duration", time.Since(start))
 }

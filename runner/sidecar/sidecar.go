@@ -35,8 +35,8 @@ var (
 	namespace           = os.Getenv(dfv1.EnvNamespace)
 	step                = dfv1.Step{} // this is updated on start, and then periodically as we update the status
 	lastStep            = dfv1.Step{}
-	ready               = false        // we are ready to serve HTTP requests, also updates pod status condition
-	patchMu             = sync.Mutex{} // prevents concurrent patching
+	ready               = false                           // we are ready to serve HTTP requests, also updates pod status condition
+	patchMu             = sync.Mutex{}                    // prevents concurrent patching
 	prePatchHooks       []func(ctx context.Context) error // hooks to run before patching
 )
 
@@ -75,10 +75,8 @@ func Exec(ctx context.Context) error {
 
 	logger.Info("sidecar config", "stepName", stepName, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
 
-	defer func() {
-		preStop()
-		stop()
-	}()
+	defer stop()
+	defer preStop()
 
 	toSinks, err := connectSinks()
 	if err != nil {
@@ -111,9 +109,9 @@ func Exec(ctx context.Context) error {
 	connectOut(toSinks)
 
 	server := &http.Server{Addr: ":3569"}
-	afterClosers = append(afterClosers, func(ctx context.Context) error {
+	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing HTTP server")
-		return server.Shutdown(ctx)
+		return server.Shutdown(context.Background())
 	})
 	go func() {
 		logger.Info("starting HTTP server")
@@ -132,10 +130,10 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	go wait.JitterUntil(func() { patchStepStatus(ctx) }, updateInterval, 1.2, true, ctx.Done())
+	go wait.JitterUntil(func() { patchStepStatus() }, updateInterval, 1.2, true, ctx.Done())
 
-	afterClosers = append(afterClosers, func(ctx context.Context) error {
-		patchStepStatus(ctx)
+	addStopHook(func(ctx context.Context) error {
+		patchStepStatus()
 		return nil
 	})
 
@@ -143,11 +141,12 @@ func Exec(ctx context.Context) error {
 	logger.Info("ready")
 	<-ctx.Done()
 	ready = false
-	logger.Info("done")
+	logger.Info("un-ready")
 	return nil
 }
 
-func patchStepStatus(ctx context.Context) {
+func patchStepStatus() {
+	ctx := context.Background()
 	patchMu.Lock()
 	defer patchMu.Unlock()
 	for _, f := range prePatchHooks {

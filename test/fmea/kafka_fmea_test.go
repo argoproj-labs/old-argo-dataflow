@@ -69,7 +69,6 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	n := 500 * 30
 	go PumpKafkaTopic(topic, n)
 
-	//PodExec("kafka-broker-0", "main", []string{"kill", "-1", "1"})
 	RestartStatefulSet("kafka-broker")
 	WaitForPod("kafka-broker-0")
 

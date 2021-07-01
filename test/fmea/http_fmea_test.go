@@ -31,16 +31,13 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 
 	WaitForPipeline()
 
-	stopPortForward := StartPortForward("http-main-0")
-	defer stopPortForward()
-
 	n := 30
 
 	// with a single replica, if you loose a replica, you loose service
 	go func() {
 		for i := 0; i < n; {
 			CatchPanic(func() {
-				SendMessageViaHTTP(fmt.Sprintf("my-msg-%d", i))
+				PumpHTTP("http://http-main/sources/default", fmt.Sprintf("my-msg-%d", i), 1, 0)
 				i++
 				time.Sleep(time.Second)
 			}, func(err error) {
@@ -58,6 +55,8 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 }
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
+
+	t.SkipNow()
 
 	Setup(t)
 	defer Teardown(t)
@@ -88,8 +87,8 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 
 	WaitForPipeline(UntilMessagesSunk)
 
-	DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
-	WaitForPod("http-main-0")
+	DeletePod("http-main-1") // delete the pod to see that we recover and continue to process messages
+	WaitForPod("http-main-1")
 
 	WaitForStep(TotalSunkMessages(n), 2*time.Minute)
 }

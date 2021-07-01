@@ -94,7 +94,7 @@ func connectKafkaSink(x *dfv1.Kafka, sinkName string) (func(msg []byte) error, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kafka producer: %w", err)
 	}
-	afterClosers = append(afterClosers, func(ctx context.Context) error {
+	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing stan producer", "sink", sinkName)
 		return producer.Close()
 	})
@@ -124,7 +124,7 @@ func connectSTANSink(sinkName string, x *dfv1.STAN) (func(msg []byte) error, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to nats url=%s subject=%s: %w", x.NATSURL, x.Subject, err)
 	}
-	afterClosers = append(afterClosers, func(ctx context.Context) error {
+	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing nats connection", "sink", sinkName)
 		if nc != nil && nc.IsConnected() {
 			nc.Close()
@@ -136,7 +136,7 @@ func connectSTANSink(sinkName string, x *dfv1.STAN) (func(msg []byte) error, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
-	afterClosers = append(afterClosers, func(ctx context.Context) error {
+	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing stan connection", "sink", sinkName)
 		return sc.Close()
 	})
