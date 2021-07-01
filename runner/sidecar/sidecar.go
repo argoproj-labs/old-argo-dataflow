@@ -91,6 +91,10 @@ func Exec(ctx context.Context) error {
 			w.WriteHeader(503)
 		}
 	})
+	addPreStopHook(func(context.Context) error {
+		ready = false
+		return nil
+	})
 
 	if leadReplica() {
 		promauto.NewGaugeFunc(prometheus.GaugeOpts{
@@ -140,7 +144,6 @@ func Exec(ctx context.Context) error {
 	ready = true
 	logger.Info("ready")
 	<-ctx.Done()
-	ready = false
 	logger.Info("un-ready")
 	return nil
 }

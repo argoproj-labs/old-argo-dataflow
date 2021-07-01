@@ -56,8 +56,6 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 
-	t.SkipNow()
-
 	Setup(t)
 	defer Teardown(t)
 
