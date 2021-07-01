@@ -31,6 +31,7 @@ metadata:
   name: kafka-broker
   namespace: argo-dataflow-system
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: kafka-broker
@@ -45,11 +46,13 @@ spec:
         - name: KAFKA_ADVERTISED_PORT
           value: "9092"
         - name: KAFKA_ADVERTISED_HOST_NAME
-          value: kafka-broker
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         - name: KAFKA_ZOOKEEPER_CONNECT
           value: zookeeper:2181
-        - name: KAFKA_BROKER_ID
-          value: "0"
+        - name: KAFKA_CREATE_TOPICS
+          value: __consumer_offsets:1:1
         image: wurstmeister/kafka
         imagePullPolicy: IfNotPresent
         name: main

@@ -192,9 +192,12 @@ message Metadata {
 message Metrics {
   optional uint64 total = 1;
 
-  optional uint64 errors = 5;
+  optional uint64 errors = 2;
 
-  optional k8s.io.apimachinery.pkg.api.resource.Quantity rate = 6;
+  optional k8s.io.apimachinery.pkg.api.resource.Quantity rate = 3;
+
+  // current rate of messages per second
+  optional uint64 retries = 4;
 }
 
 // +kubebuilder:object:root=true
@@ -243,6 +246,12 @@ message STAN {
   optional string subject = 3;
 
   optional string subjectPrefix = 6;
+
+  optional STANAuth auth = 7;
+}
+
+message STANAuth {
+  optional k8s.io.api.core.v1.SecretKeySelector token = 1;
 }
 
 message Scale {

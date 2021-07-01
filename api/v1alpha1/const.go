@@ -30,6 +30,7 @@ const (
 	// label/annotation keys
 	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
 	KeyDescription      = "dataflow.argoproj.io/description"
+	KeyFinalizer        = "dataflow.argoproj.io/finalizer"
 	KeyOwner            = "dataflow.argoproj.io/owner"
 	KeyPipelineName     = "dataflow.argoproj.io/pipeline-name"
 	KeyReplica          = "dataflow.argoproj.io/replica"

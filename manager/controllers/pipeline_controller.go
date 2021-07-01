@@ -62,10 +62,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if pipeline.GetDeletionTimestamp() != nil {
+	if !pipeline.GetDeletionTimestamp().IsZero() {
 		return ctrl.Result{}, nil
 	}
-
 	log.Info("reconciling")
 
 	for _, step := range pipeline.Spec.Steps {
@@ -197,6 +196,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if notEqual, patch := util.NotEqual(pipeline.Status, newStatus); notEqual {
 		log.Info("updating pipeline status", "phase", newStatus.Phase, "message", newStatus.Message, "patch", patch)
 		pipeline.Status = newStatus
+		pipeline.Status.LastUpdated = metav1.Now()
 		if err := r.Status().Update(ctx, pipeline); util.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}
