@@ -3,6 +3,7 @@
 package stress
 
 import (
+	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,7 +31,8 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 
 	WaitForPipeline()
 
-	WaitForService()
+	stopPortForward := StartPortForward("http-main-0")
+	defer stopPortForward()
 
 	n := 30
 
@@ -38,10 +40,11 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	go func() {
 		for i := 0; i < n; {
 			CatchPanic(func() {
-				PumpHTTP("http://http-main/sources/default", "my-msg", 1, time.Second)
+				SendMessageViaHTTP(fmt.Sprintf("my-msg-%d", i))
 				i++
+				time.Sleep(time.Second)
 			}, func(err error) {
-				log.Printf("ignoring: %v", err)
+				log.Printf("ignoring: %v\n", err)
 			})
 		}
 	}()
