@@ -61,12 +61,7 @@ func main() {
 			return fmt.Errorf("unknown comand")
 		}
 	}()
-	is := errors.Is(err, context.Canceled)
-	logger.Info("is", "is", is)
-
-
-
-	if is {
+	if errors.Is(err, context.Canceled) {
 		println(fmt.Errorf("ignoring context cancelled error, expected"))
 	} else if err != nil {
 		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 0o600); err != nil {
