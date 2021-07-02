@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -65,6 +66,15 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if !pipeline.GetDeletionTimestamp().IsZero() {
 		return ctrl.Result{}, nil
 	}
+
+	if pipeline.Status.Phase.Completed() {
+		deleteAt := pipeline.Status.LastUpdated.Time.Add(deletionDelay)
+		if time.Now().After(deleteAt) {
+			log.Info("deleting pipeline", "lastUpdated", pipeline.Status.LastUpdated)
+			return ctrl.Result{}, r.Delete(ctx, pipeline)
+		}
+	}
+
 	log.Info("reconciling")
 
 	for _, step := range pipeline.Spec.Steps {
@@ -195,8 +205,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if notEqual, patch := util.NotEqual(pipeline.Status, newStatus); notEqual {
 		log.Info("updating pipeline status", "phase", newStatus.Phase, "message", newStatus.Message, "patch", patch)
+
+		newStatus.LastUpdated = metav1.Now()
 		pipeline.Status = newStatus
-		pipeline.Status.LastUpdated = metav1.Now()
+
 		if err := r.Status().Update(ctx, pipeline); util.IgnoreConflict(err) != nil { // conflict is ok, we will reconcile again soon
 			return ctrl.Result{}, fmt.Errorf("failed to update status: %w", err)
 		}
