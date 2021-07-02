@@ -56,6 +56,7 @@ Intermediate:
 * [Reliability](docs/RELIABILITY.md)
 * [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)
+* [Garbage collection](docs/GC.md)
 
 Advanced
 
