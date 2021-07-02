@@ -5,8 +5,13 @@ import (
 	"github.com/Shopify/sarama"
 )
 
+func newHandler(f func(ctx context.Context, msg []byte) error) *handler {
+	return &handler{f: f}
+}
+
 type handler struct {
-	f  func(context.Context, []byte) error
+	f       func(context.Context, []byte) error
+	started bool
 }
 
 func (h *handler) Setup(sarama.ConsumerGroupSession) error {
@@ -22,6 +27,7 @@ func (h *handler) Close() error {
 }
 
 func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	h.started = true
 	for m := range claim.Messages() {
 		msg := m.Value
 		if err := h.f(context.Background(), msg); err != nil {

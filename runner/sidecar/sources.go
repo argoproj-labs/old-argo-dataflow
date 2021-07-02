@@ -137,7 +137,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		logger.Info("closing kafka consumer group", "source", sourceName)
 		return group.Close()
 	})
-	handler := &handler{f: f}
+	handler := newHandler(f)
 	go wait.JitterUntil(func() {
 		if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
 			logger.Error(err, "failed to create kafka consumer")
@@ -147,6 +147,9 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		logger.Info("closing kafka handler", "source", sourceName)
 		return handler.Close()
 	})
+	for ; !handler.started; {
+		time.Sleep(time.Second)
+	}
 	if leadReplica() {
 		registerKafkaSetPendingHook(x, sourceName, client, config, groupName)
 	}
