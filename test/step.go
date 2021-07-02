@@ -68,7 +68,8 @@ func WaitForStep(opts ...interface{}) {
 			panic(fmt.Errorf("un-supported option type %T", v))
 		}
 	}
-	log.Printf("waiting for step %q %q\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f))
+	funcName := sharedutil.GetFuncName(f)
+	log.Printf("waiting for step %q %q\n", sharedutil.MustJSON(listOptions), funcName)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -80,7 +81,7 @@ func WaitForStep(opts ...interface{}) {
 	for {
 		select {
 		case <-ctx.Done():
-			panic(fmt.Errorf("failed to wait for step: %w", ctx.Err()))
+			panic(fmt.Errorf("failed to wait for step %s: %w", funcName, ctx.Err()))
 		case e := <-w.ResultChan():
 			un, ok := e.Object.(*unstructured.Unstructured)
 			if !ok {
