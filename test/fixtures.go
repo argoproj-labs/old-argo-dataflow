@@ -3,9 +3,11 @@
 package test
 
 import (
+	"fmt"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"runtime/debug"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 )
@@ -21,7 +23,7 @@ var (
 	stopTestAPIPortForward func()
 )
 
-func Setup(t *testing.T) {
+func Setup(*testing.T) {
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 
@@ -33,6 +35,12 @@ func Setup(t *testing.T) {
 	stopTestAPIPortForward = StartPortForward("testapi-0", 8378)
 }
 
-func Teardown(*testing.T) {
+func Teardown(t *testing.T) {
 	stopTestAPIPortForward()
+	r := recover() // test typically panic on error, so the fail fast, we recover so we can run other tests
+	if r != nil {
+		t.Log(fmt.Sprintf("❌: %v", r))
+		debug.PrintStack()
+		t.Fail()
+	}
 }
