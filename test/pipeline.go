@@ -60,7 +60,8 @@ func WaitForPipeline(opts ...interface{}) {
 			panic("un-supported option type")
 		}
 	}
-	log.Printf("waiting for pipeline %q\n", sharedutil.GetFuncName(f))
+	funcName := sharedutil.GetFuncName(f)
+	log.Printf("waiting for pipeline %q\n", funcName)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	w, err := pipelineInterface.Watch(ctx, metav1.ListOptions{})
@@ -71,7 +72,7 @@ func WaitForPipeline(opts ...interface{}) {
 	for {
 		select {
 		case <-ctx.Done():
-			panic(fmt.Errorf("failed to wait for pipeline: %w", ctx.Err()))
+			panic(fmt.Errorf("failed to wait for pipeline %q: %w", funcName, ctx.Err()))
 		case e := <-w.ResultChan():
 			un, ok := e.Object.(*unstructured.Unstructured)
 			if !ok {
