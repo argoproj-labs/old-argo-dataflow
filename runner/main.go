@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/argoproj-labs/argo-dataflow/runner/dedupe"
 	"io/ioutil"
@@ -60,7 +61,14 @@ func main() {
 			return fmt.Errorf("unknown comand")
 		}
 	}()
-	if err != nil && err != context.Canceled {
+	is := errors.Is(err, context.Canceled)
+	logger.Info("is", "is", is)
+
+
+
+	if is {
+		println(fmt.Errorf("ignoring context cancelled error, expected"))
+	} else if err != nil {
 		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 0o600); err != nil {
 			println(fmt.Sprintf("failed to write termination-log: %v", err))
 		}

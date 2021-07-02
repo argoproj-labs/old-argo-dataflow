@@ -27,6 +27,10 @@ func UntilMessagesSunk(pl Pipeline) bool {
 	return meta.FindStatusCondition(pl.Status.Conditions, ConditionSunkMessages) != nil
 }
 
+func UntilSucceeded(pl Pipeline) bool {
+	return pl.Status.Phase == PipelineSucceeded
+}
+
 func DeletePipelines() {
 	log.Printf("deleting pipelines\n")
 	ctx := context.Background()

@@ -29,7 +29,8 @@ var (
 			"memory": resource.MustParse("64Mi"),
 		},
 	}
-	logger = util.NewLogger()
+	deletionDelay = util.GetEnvDuration(dfv1.EnvDeletionDelay, 30*time.Minute)
+	logger        = util.NewLogger()
 )
 
 func init() {
@@ -52,8 +53,9 @@ func init() {
 		"runnerImage", runnerImage,
 		"pullPolicy", pullPolicy,
 		"updateInterval", updateInterval.String(),
-		"scalingDelay", scalingDelay,
-		"peekDelay", peekDelay,
+		"scalingDelay", scalingDelay.String(),
+		"peekDelay", peekDelay.String(),
 		"defaultResourceRequirements", defaultResourceRequirements,
+		"deletionDelay", deletionDelay.String(),
 	)
 }

@@ -231,6 +231,8 @@ message PipelineStatus {
   optional string message = 2;
 
   repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 3;
+
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastUpdated = 4;
 }
 
 message STAN {
