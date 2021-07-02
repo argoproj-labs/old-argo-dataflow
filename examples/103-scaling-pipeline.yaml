@@ -8,7 +8,7 @@ metadata:
       Steps can be manually scaled using `kubectl`:
 
       ```
-      kubectl scale step/scaling-main --replicas 3
+      kubectl scale step/103-scaling-main --replicas 3
       ```
     dataflow.argoproj.io/owner: argoproj-labs
   name: 103-scaling
