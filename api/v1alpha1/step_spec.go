@@ -8,7 +8,7 @@ import (
 
 type StepSpec struct {
 	// +kubebuilder:default=default
-	Name      string     `json:"name" protobuf:"bytes,6,opt,name=name"`
+	Name string `json:"name" protobuf:"bytes,6,opt,name=name"`
 
 	Cat       *Cat       `json:"cat,omitempty" protobuf:"bytes,15,opt,name=cat"`
 	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`

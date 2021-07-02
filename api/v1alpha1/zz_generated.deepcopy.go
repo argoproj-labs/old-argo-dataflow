@@ -829,9 +829,19 @@ func (in *StepSpec) DeepCopyInto(out *StepSpec) {
 		*out = new(Container)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.Handler != nil {
-		in, out := &in.Handler, &out.Handler
-		*out = new(Handler)
+	if in.Dedupe != nil {
+		in, out := &in.Dedupe, &out.Dedupe
+		*out = new(Dedupe)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.Expand != nil {
+		in, out := &in.Expand, &out.Expand
+		*out = new(Expand)
+		**out = **in
+	}
+	if in.Flatten != nil {
+		in, out := &in.Flatten, &out.Flatten
+		*out = new(Flatten)
 		**out = **in
 	}
 	if in.Git != nil {
@@ -844,20 +854,10 @@ func (in *StepSpec) DeepCopyInto(out *StepSpec) {
 		*out = new(Group)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.Flatten != nil {
-		in, out := &in.Flatten, &out.Flatten
-		*out = new(Flatten)
+	if in.Handler != nil {
+		in, out := &in.Handler, &out.Handler
+		*out = new(Handler)
 		**out = **in
-	}
-	if in.Expand != nil {
-		in, out := &in.Expand, &out.Expand
-		*out = new(Expand)
-		**out = **in
-	}
-	if in.Dedupe != nil {
-		in, out := &in.Dedupe, &out.Dedupe
-		*out = new(Dedupe)
-		(*in).DeepCopyInto(*out)
 	}
 	if in.Scale != nil {
 		in, out := &in.Scale, &out.Scale

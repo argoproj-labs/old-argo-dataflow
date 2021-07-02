@@ -334,21 +334,21 @@ message StepSpec {
 
   optional Container container = 1;
 
-  optional Handler handler = 7;
-
-  optional Git git = 12;
-
-  optional string filter = 8;
-
-  optional string map = 9;
-
-  optional Group group = 11;
-
-  optional Flatten flatten = 25;
+  optional Dedupe dedupe = 27;
 
   optional Expand expand = 26;
 
-  optional Dedupe dedupe = 27;
+  optional string filter = 8;
+
+  optional Flatten flatten = 25;
+
+  optional Git git = 12;
+
+  optional Group group = 11;
+
+  optional Handler handler = 7;
+
+  optional string map = 9;
 
   // +kubebuilder:default=1
   optional uint32 replicas = 23;
