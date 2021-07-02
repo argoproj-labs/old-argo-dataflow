@@ -1,5 +1,7 @@
 # Prometheus Metrics
 
+## Sidecar Metrics
+
 Each replica's sidecar exposes Prometheus metrics so you can build graphs:
 
 ```
@@ -57,7 +59,7 @@ Golden metric type: error.
 
 ### replicas
 
-Use this to track scaling events. 
+Use this to track scaling events.
 
 Only exposed by replica 0.
 
@@ -73,7 +75,7 @@ Golden metric type: error.
 
 ### sources_total
 
-Use this to track throughput. 
+Use this to track throughput.
 
 Only exposed by replica 0.
 
@@ -92,3 +94,7 @@ Golden metric type: traffic.
 Use this to track duplicate messages filtered by a dedupe step.
 
 This is exposed by the main container on port 8080, not by the sidecar or 3569.
+
+## Main Container Metrics
+
+You may expose Prometheus endpoint on the main container if you want. There is nothing special about this. 

@@ -9,16 +9,17 @@ import (
 type StepSpec struct {
 	// +kubebuilder:default=default
 	Name      string     `json:"name" protobuf:"bytes,6,opt,name=name"`
+
 	Cat       *Cat       `json:"cat,omitempty" protobuf:"bytes,15,opt,name=cat"`
 	Container *Container `json:"container,omitempty" protobuf:"bytes,1,opt,name=container"`
-	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
-	Git       *Git       `json:"git,omitempty" protobuf:"bytes,12,opt,name=git"`
-	Filter    Filter     `json:"filter,omitempty" protobuf:"bytes,8,opt,name=filter,casttype=Filter"`
-	Map       Map        `json:"map,omitempty" protobuf:"bytes,9,opt,name=map,casttype=Map"`
-	Group     *Group     `json:"group,omitempty" protobuf:"bytes,11,opt,name=group"`
-	Flatten   *Flatten   `json:"flatten,omitempty" protobuf:"bytes,25,opt,name=flatten"`
-	Expand    *Expand    `json:"expand,omitempty" protobuf:"bytes,26,opt,name=expand"`
 	Dedupe    *Dedupe    `json:"dedupe,omitempty" protobuf:"bytes,27,opt,name=dedupe"`
+	Expand    *Expand    `json:"expand,omitempty" protobuf:"bytes,26,opt,name=expand"`
+	Filter    Filter     `json:"filter,omitempty" protobuf:"bytes,8,opt,name=filter,casttype=Filter"`
+	Flatten   *Flatten   `json:"flatten,omitempty" protobuf:"bytes,25,opt,name=flatten"`
+	Git       *Git       `json:"git,omitempty" protobuf:"bytes,12,opt,name=git"`
+	Group     *Group     `json:"group,omitempty" protobuf:"bytes,11,opt,name=group"`
+	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
+	Map       Map        `json:"map,omitempty" protobuf:"bytes,9,opt,name=map,casttype=Map"`
 
 	// +kubebuilder:default=1
 	Replicas uint32 `json:"replicas,omitempty" protobuf:"varint,23,opt,name=replicas"`

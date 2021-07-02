@@ -47,16 +47,18 @@ Beginner:
 
 * [Quick start](docs/QUICK_START.md)
 * [Examples](docs/EXAMPLES.md)
+* [Steps](docs/STEPS.md) 
 * [Sources](docs/SOURCES.md) and [Sinks](docs/SINKS.md)
+* [Garbage collection](docs/GC.md)
 
 Intermediate:
 
 * [Handlers](docs/HANDLERS.md)
 * [Git usage](docs/GIT.md)
 * [Reliability](docs/RELIABILITY.md)
+* [Scaling](docs/SCALING.md)
 * [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)
-* [Garbage collection](docs/GC.md)
 
 Advanced
 

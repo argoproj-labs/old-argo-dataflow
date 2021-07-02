@@ -1,6 +1,6 @@
 # Contributing
 
-Install Golang v1.16 and have a Kubernetes cluster ready.
+Install Golang v1.16 and have a Kubernetes cluster ready (e.g. Docker for Desktop).
 
 Start:
 
@@ -8,18 +8,19 @@ Start:
 make start
 ```
 
-To access the user interface, you must use Argo Workflows.
+To access the user interface, you must have checked out Argo Workflows in `../../argoproj/argo-workflows`. The UI will
+appear on port 8080.
+
+Before committing:
 
 ```
-cd ../../argoproj/argo-workflows
-git checkout dev-dataflow
-make ./dist/argo DEV_BRANCH=true
-./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system 
-killall node
-yarn --cwd ui start
+make pre-commit
 ```
 
-## Docker for Desktop vs K3D
+## Docker for Desktop and K3D Known Limitations
 
-* Docker for Desktop does not support Kubernetes RBAC.
-* K3D requires you to import images.
+* Docker for Desktop
+    * Does not enforce Kubernetes RBAC.
+* K3D:
+    * Requires you to import images.
+    * Does not enforce resource requests.
