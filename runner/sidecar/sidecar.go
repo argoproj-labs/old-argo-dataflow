@@ -78,6 +78,11 @@ func Exec(ctx context.Context) error {
 	defer stop()
 	defer preStop()
 
+	addStopHook(func(ctx context.Context) error {
+		patchStepStatus()
+		return nil
+	})
+
 	toSinks, err := connectSinks()
 	if err != nil {
 		return err
@@ -135,11 +140,6 @@ func Exec(ctx context.Context) error {
 	}
 
 	go wait.JitterUntil(func() { patchStepStatus() }, updateInterval, 1.2, true, ctx.Done())
-
-	addStopHook(func(ctx context.Context) error {
-		patchStepStatus()
-		return nil
-	})
 
 	ready = true
 	logger.Info("ready")
