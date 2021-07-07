@@ -63,6 +63,7 @@ Intermediate:
 Advanced
 
 * [Configuration](docs/CONFIGURATION.md)
+* [Features](docs/FEATURES.md)
 * [Metrics](docs/METRICS.md)
 * [Image Contract](docs/IMAGE_CONTRACT.md)
 * [Reading material](docs/READING.md)
