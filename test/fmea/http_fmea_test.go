@@ -51,7 +51,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("http-main-0")
 
-	WaitForStep(TotalSunkMessages(n), 2*time.Minute)
+	WaitForStep(TotalSourceMessages(n), 2*time.Minute)
 }
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
