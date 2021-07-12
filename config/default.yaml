@@ -1925,8 +1925,6 @@ spec:
                 - Succeeded
                 - Failed
                 type: string
-            required:
-            - lastUpdated
             type: object
         required:
         - spec
