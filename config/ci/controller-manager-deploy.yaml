@@ -9,6 +9,7 @@ spec:
     spec:
       containers:
         - name: manager
+          imagePullPolicy: Never
           env:
             - name: ARGO_DATAFLOW_PULL_POLICY
               value: Never

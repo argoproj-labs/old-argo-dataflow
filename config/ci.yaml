@@ -4525,6 +4525,7 @@ spec:
         - name: ARGO_DATAFLOW_NAMESPACE
           value: argo-dataflow-system
         image: quay.io/argoproj/dataflow-controller:latest
+        imagePullPolicy: Never
         name: manager
         ports:
         - containerPort: 9090
