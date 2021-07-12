@@ -113,7 +113,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
-	hash := util.MustHash(step.Spec)
+	hash := util.MustHash(struct {
+		image    string
+		stepSpec dfv1.StepSpec
+	}{
+		runnerImage,
+		step.Spec,
+	})
 	oldStatus := step.Status.DeepCopy()
 	step.Status.Phase, step.Status.Reason, step.Status.Message = dfv1.StepUnknown, "", ""
 	step.Status.Selector = selector.String()
