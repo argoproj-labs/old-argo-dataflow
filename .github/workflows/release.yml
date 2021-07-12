@@ -35,7 +35,7 @@ jobs:
           if [ $tag = "main" ]; then
             tag="latest"
           fi
-          docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:$tag --push --build-arg VERSION="$TAG"
+          docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:$tag --push --build-arg VERSION="$tag"
 
   publish-release:
     runs-on: ubuntu-latest
