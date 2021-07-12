@@ -7,7 +7,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Name | Description | Alpha | Beta | Stable |
 |---|---|---|---|---|
 | API | | | v0.0.59 | |
-| Automatic pipeline garbage collection | | v0.0.59 | | |
+| [Automatic pipeline garbage collection](GC.md) | | v0.0.59 | | |
 | Auto-scaling | | | v0.0.59 | |
 | Cat step | | | v0.0.59 | |
 | Container step | | | v0.0.59 | |
@@ -21,7 +21,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Generator step | | v0.0.59 | | |
 | Graceful step termination | | v0.0.59 | | |
 | Group step | | v0.0.59 | | |
-| Git step | | v0.0.59 | | |
+| [Git step](GIT.md) | | v0.0.59 | | |
 | Golang SDK | | v0.0.59 | | |
 | Golang runtime | | v0.0.59 | | |
 | Kubernetes manifests | | | v0.0.59 | |
@@ -36,7 +36,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | NATS Streaming sink | | v0.0.59 | | |
 | NATS Streaming source | | v0.0.59 | | |
 | Non-terminating pipelines | | | v0.0.59 | |
-| Prometheus metrics | | | v0.0.59 | |
+| [Prometheus metrics](METRICS.md) | | | v0.0.59 | |
 | Python runtime | | v0.0.59 | | |
 | Python SDK | | | v0.0.59 | |
 | Stress tests | | | v0.0.59 | |
