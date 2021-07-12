@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.64 (2021-07-12)
+
+ * [11b2033](https://github.com/argoproj-labs/argo-dataflow/commit/11b2033b81a4ac2ecdd9e449cd3c11bba652e653) feat: update resources to only apply to built-ins
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.63 (2021-07-12)
 
  * [d389e44](https://github.com/argoproj-labs/argo-dataflow/commit/d389e447caa132a668596e5f0c159f9368b572a4) feat: change pod hash when image changes
