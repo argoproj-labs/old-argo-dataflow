@@ -37,7 +37,7 @@ func Setup(*testing.T) {
 
 func Teardown(t *testing.T) {
 	stopTestAPIPortForward()
-	r := recover() // test typically panic on error, so the fail fast, we recover so we can run other tests
+	r := recover() // tests should panic on error, we recover so we can run other tests
 	if r != nil {
 		t.Log(fmt.Sprintf("❌ FAIL: %v", r))
 		debug.PrintStack()

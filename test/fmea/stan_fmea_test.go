@@ -49,8 +49,6 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 	Setup(t)
 	defer Teardown(t)
 
-	WaitForPod("stan-0")
-
 	longSubject, subject := RandomSTANSubject()
 
 	CreatePipeline(Pipeline{
@@ -76,6 +74,42 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 
 	RestartStatefulSet("stan")
 	WaitForPod("stan-0")
+
+	WaitForStep(TotalSunkMessagesBetween(n, n+20), 2*time.Minute)
+}
+
+// when deleted and re-created, the pipeline should start at the same place in the queue
+func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
+
+	Setup(t)
+	defer Teardown(t)
+
+	longSubject, subject := RandomSTANSubject()
+
+	pl := Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: "stan"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{{
+				Name:    "main",
+				Cat:     &Cat{},
+				Sources: []Source{{STAN: &STAN{Subject: subject}}},
+				Sinks:   []Sink{{Log: &Log{}}},
+			}},
+		},
+	}
+	CreatePipeline(pl)
+
+	WaitForPipeline()
+
+	WaitForPod()
+
+	n := 500 * 30
+	go PumpSTANSubject(longSubject, n)
+
+	WaitForPipeline(UntilMessagesSunk)
+
+	DeletePipelines()
+	CreatePipeline(pl)
 
 	WaitForStep(TotalSunkMessagesBetween(n, n+20), 2*time.Minute)
 }
