@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.0.60 (2021-07-12)
+
+ * [6ac6810](https://github.com/argoproj-labs/argo-dataflow/commit/6ac68101dc04c6aefb6cf645331040e0668f25e9) feat(controller): use version from build
+ * [858d717](https://github.com/argoproj-labs/argo-dataflow/commit/858d71754e542564728772d96863549294696a7d) feat: support HTTP headers for HTTP sink
+ * [ad31740](https://github.com/argoproj-labs/argo-dataflow/commit/ad3174034d0c02217c0689acd423aa6e2faaa314) fix: correctly step
+ * [4e1d2ff](https://github.com/argoproj-labs/argo-dataflow/commit/4e1d2ff4c19bdda65d635f001ca8faa757c835fb) fix: delay start-up until Kafka is ready
+ * [810aef7](https://github.com/argoproj-labs/argo-dataflow/commit/810aef721f745f7a90a6aee395a294ef3ff65d75) feat: automatic GC of pipelines 30m after completion
+ * [2135e1d](https://github.com/argoproj-labs/argo-dataflow/commit/2135e1d6f52b1d2d5d9caf45a0e21bc0ee2bb5e0) feat: add lastUpdated field to pipeline
+ * [e9b2218](https://github.com/argoproj-labs/argo-dataflow/commit/e9b2218ad3c20264ecafc78908ad9d979342f2e2) fix: fix HTTP shutdown
+ * [8ac27da](https://github.com/argoproj-labs/argo-dataflow/commit/8ac27daed0feebddc6f0af5799972eb537c9e222) fix: fix HTTP shutdown
+ * [d13284f](https://github.com/argoproj-labs/argo-dataflow/commit/d13284fd5a484beea98ca84c225ba23e7560dee9) config: update config
+ * [7da3df6](https://github.com/argoproj-labs/argo-dataflow/commit/7da3df67b0f626fd357823397a5009ddf9953d31) feat: Update retry (#91)
+ * [9db646a](https://github.com/argoproj-labs/argo-dataflow/commit/9db646a2ef38d498761cbb6cb91a7969bb6a64b9) feat: Enable the Message retry metrics (#75)
+ * [0299cd8](https://github.com/argoproj-labs/argo-dataflow/commit/0299cd80aaa6bafa126ad8c4efc6f98acf212f41) feat: stan supports token auth (#87)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+ * Saravanan Balasubramanian
+
 ## v0.0.59 (2021-06-29)
 
  * [778f24a](https://github.com/argoproj-labs/argo-dataflow/commit/778f24a5ab34ad6f8b3b422010e0c149e0be1c0d) fix: prevent Kafka pending loop dieing on disconnection
