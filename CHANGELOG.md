@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.0.63 (2021-07-12)
+
+ * [d389e44](https://github.com/argoproj-labs/argo-dataflow/commit/d389e447caa132a668596e5f0c159f9368b572a4) feat: change pod hash when image changes
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.62 (2021-07-12)
+
+
+### Contributors
+
+
+## v0.0.61 (2021-07-12)
+
+ * [f306c0c](https://github.com/argoproj-labs/argo-dataflow/commit/f306c0c2bada95e71a44a6a3045812508256e77a) fix: allow lastUpdated to be empty
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.60 (2021-07-12)
 
  * [6ac6810](https://github.com/argoproj-labs/argo-dataflow/commit/6ac68101dc04c6aefb6cf645331040e0668f25e9) feat(controller): use version from build
