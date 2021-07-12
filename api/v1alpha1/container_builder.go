@@ -11,8 +11,8 @@ func (b containerBuilder) init(req getContainerReq) containerBuilder {
 	b.ImagePullPolicy = req.imagePullPolicy
 	b.Env = req.env
 	b.VolumeMounts = []corev1.VolumeMount{req.volumeMount}
-	b.Resources = req.resourceRequirements
 	b.Lifecycle = req.lifecycle
+	b.Resources = standardResources
 	return b
 }
 
@@ -43,6 +43,11 @@ func (b containerBuilder) workingDir(x string) containerBuilder {
 
 func (b containerBuilder) appendVolumeMounts(x ...corev1.VolumeMount) containerBuilder {
 	b.VolumeMounts = append(b.VolumeMounts, x...)
+	return b
+}
+
+func (b containerBuilder) resources(x corev1.ResourceRequirements) containerBuilder {
+	b.Resources = x
 	return b
 }
 

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"os"
 	"time"
 
@@ -20,16 +19,6 @@ var (
 	runnerImage                 = ""
 	pullPolicy                  = corev1.PullPolicy(os.Getenv(dfv1.EnvPullPolicy))
 	updateInterval              = util.GetEnvDuration(dfv1.EnvUpdateInterval, 1*time.Minute)
-	defaultResourceRequirements = corev1.ResourceRequirements{
-		Limits: corev1.ResourceList{
-			"cpu":    resource.MustParse("500m"),
-			"memory": resource.MustParse("256Mi"),
-		},
-		Requests: corev1.ResourceList{
-			"cpu":    resource.MustParse("250m"),
-			"memory": resource.MustParse("64Mi"),
-		},
-	}
 	deletionDelay = util.GetEnvDuration(dfv1.EnvDeletionDelay, 30*time.Minute)
 	logger        = util.NewLogger()
 )
@@ -47,9 +36,6 @@ func init() {
 			updateInterval = v
 		}
 	}
-	if text, ok := os.LookupEnv(dfv1.EnvDefaultResourceRequirements); ok {
-		util.MustUnJSON(text, &defaultResourceRequirements)
-	}
 	logger.Info("reconciler config",
 		"imageFormat", imageFormat,
 		"runnerImage", runnerImage,
@@ -57,7 +43,6 @@ func init() {
 		"updateInterval", updateInterval.String(),
 		"scalingDelay", scalingDelay.String(),
 		"peekDelay", peekDelay.String(),
-		"defaultResourceRequirements", defaultResourceRequirements,
 		"deletionDelay", deletionDelay.String(),
 	)
 }

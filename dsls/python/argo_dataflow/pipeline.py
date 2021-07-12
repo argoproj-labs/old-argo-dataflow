@@ -245,13 +245,14 @@ class CatStep(Step):
 
 
 class ContainerStep(Step):
-    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[], env={}):
+    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[], env={}, resources={}):
         super().__init__(name, sources=sources, volumes=volumes)
         self._image = image
         self._args = args
         self._fifo = fifo
         self._volumeMounts = volumeMounts
         self._env = env
+        self._resources = resources
 
     def dump(self):
         x = super().dump()
@@ -266,6 +267,8 @@ class ContainerStep(Step):
             c['volumeMounts'] = self._volumeMounts
         if self._env:
             c['env'] = [{'name': x, 'value': self._env[x]} for k, x in enumerate(self._env)]
+        if self._resources:
+            c['resources'] = self._resources
         x['container'] = c
         return x
 
@@ -398,9 +401,9 @@ class Source:
     def cat(self, name):
         return CatStep(name, sources=[self])
 
-    def container(self, name, image, args=[], fifo=False, volumes=[], volumeMounts=[], env={}):
+    def container(self, name, image, args=[], fifo=False, volumes=[], volumeMounts=[], env={}, resources={}):
         return ContainerStep(name, sources=[self], image=image, args=args, fifo=fifo, volumes=volumes,
-                             volumeMounts=volumeMounts, env=env)
+                             volumeMounts=volumeMounts, env=env, resources=resources)
 
     def expand(self, name):
         return ExpandStep(name, sources=[self])
@@ -428,9 +431,9 @@ def cat(name):
     return CatStep(name, [])
 
 
-def container(name, image, args, fifo=False, volumes=[], volumeMounts=[], env={}):
+def container(name, image, args, fifo=False, volumes=[], volumeMounts=[], env={}, resources={}):
     return ContainerStep(name, sources=[], image=image, args=args, fifo=fifo, volumes=volumes,
-                         volumeMounts=volumeMounts, env=env)
+                         volumeMounts=volumeMounts, env=env, resources=resources)
 
 
 def expand(name):

@@ -63,13 +63,14 @@ func TestStep_GetPodSpec(t *testing.T) {
 								Port: intstr.FromInt(3569),
 							},
 						}},
-						Ports:        []corev1.ContainerPort{{ContainerPort: 3569}},
-						VolumeMounts: mounts,
+						Ports: []corev1.ContainerPort{{ContainerPort: 3569}},
 						ReadinessProbe: &corev1.Probe{
 							Handler: corev1.Handler{
 								HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3569)},
 							},
 						},
+						Resources:    standardResources,
+						VolumeMounts: mounts,
 					},
 					{
 						Args: []string{"cat"},
@@ -82,6 +83,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 						Lifecycle: &corev1.Lifecycle{PreStop: &corev1.Handler{
 							Exec: &corev1.ExecAction{Command: []string{"/var/run/argo-dataflow/prestop"}},
 						}},
+						Resources:    standardResources,
 						VolumeMounts: mounts,
 					},
 				},
@@ -92,6 +94,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 						Image:           "my-runner",
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            "init",
+						Resources:       standardResources,
 						VolumeMounts:    mounts,
 					},
 				},

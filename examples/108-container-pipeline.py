@@ -10,6 +10,7 @@ if __name__ == '__main__':
                    args=['sh', '-c', 'exit 0'],
                    image='ubuntu:latest',
                    env={'FOO': 'bar'},
+                   resources={'requests': {'cpu': 1}}
                    )
          .annotations({'my-annotation': 'my-value'})
          ))

@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 const (
@@ -16,18 +18,17 @@ const (
 	CtrMain    = "main"
 	CtrSidecar = "sidecar"
 	// env vars
-	EnvImagePrefix                 = "ARGO_DATAFLOW_IMAGE_PREFIX"   // default "quay.io/argoproj"
-	EnvDeletionDelay               = "ARGO_DATAFLOW_DELETION_DELAY" // default "30m"
-	EnvNamespace                   = "ARGO_DATAFLOW_NAMESPACE"
-	EnvPipelineName                = "ARGO_DATAFLOW_PIPELINE_NAME"
-	EnvReplica                     = "ARGO_DATAFLOW_REPLICA"
-	EnvDefaultResourceRequirements = "ARGO_DATAFLOW_DEFAULT_RESOURCE_REQUIREMENTS" // default {"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"250m","memory":"64Mi"}}
-	EnvStep                        = "ARGO_DATAFLOW_STEP"
-	EnvPeekDelay                   = "ARGO_DATAFLOW_PEEK_DELAY"      // how long between peeking (default 4m)
-	EnvPullPolicy                  = "ARGO_DATAFLOW_PULL_POLICY"     // default ""
-	EnvScalingDelay                = "ARGO_DATAFLOW_SCALING_DELAY"   // how long to wait between any scaling events (including peeking) default "4m"
-	EnvUpdateInterval              = "ARGO_DATAFLOW_UPDATE_INTERVAL" // default "1m"
-	EnvDataflowBearerToken         = "ARGO_DATAFLOW_BEARER_TOKEN"
+	EnvImagePrefix         = "ARGO_DATAFLOW_IMAGE_PREFIX"   // default "quay.io/argoproj"
+	EnvDeletionDelay       = "ARGO_DATAFLOW_DELETION_DELAY" // default "30m"
+	EnvNamespace           = "ARGO_DATAFLOW_NAMESPACE"
+	EnvPipelineName        = "ARGO_DATAFLOW_PIPELINE_NAME"
+	EnvReplica             = "ARGO_DATAFLOW_REPLICA"
+	EnvStep                = "ARGO_DATAFLOW_STEP"
+	EnvPeekDelay           = "ARGO_DATAFLOW_PEEK_DELAY"      // how long between peeking (default 4m)
+	EnvPullPolicy          = "ARGO_DATAFLOW_PULL_POLICY"     // default ""
+	EnvScalingDelay        = "ARGO_DATAFLOW_SCALING_DELAY"   // how long to wait between any scaling events (including peeking) default "4m"
+	EnvUpdateInterval      = "ARGO_DATAFLOW_UPDATE_INTERVAL" // default "1m"
+	EnvDataflowBearerToken = "ARGO_DATAFLOW_BEARER_TOKEN"
 	// label/annotation keys
 	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
 	KeyDescription      = "dataflow.argoproj.io/description"
@@ -51,4 +52,16 @@ const (
 
 var KeyKillCmd = func(x string) string {
 	return fmt.Sprintf("dataflow.argoproj.io/kill-cmd.%s", x)
+}
+
+// the standard resources used by the `init`, `sidecar` and built-in step containers
+var standardResources = corev1.ResourceRequirements{
+	Limits: corev1.ResourceList{
+		"cpu":    resource.MustParse("500m"),
+		"memory": resource.MustParse("256Mi"),
+	},
+	Requests: corev1.ResourceList{
+		"cpu":    resource.MustParse("100m"),
+		"memory": resource.MustParse("64Mi"),
+	},
 }

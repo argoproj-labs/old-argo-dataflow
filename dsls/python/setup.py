@@ -4,7 +4,7 @@ setup(
     name='argo_dataflow',
     packages=['argo_dataflow'],
     install_requires=['kubernetes'],
-    version='v0.0.48',
+    version='v0.0.62',
     license='apache-2.0',
     description='Argo Dataflow',
     author='Alex Collins',

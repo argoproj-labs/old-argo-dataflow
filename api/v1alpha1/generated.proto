@@ -53,6 +53,8 @@ message Container {
   repeated string args = 7;
 
   repeated k8s.io.api.core.v1.EnvVar env = 8;
+
+  optional k8s.io.api.core.v1.ResourceRequirements resources = 9;
 }
 
 message Cron {
@@ -103,8 +105,6 @@ message GetPodSpecReq {
   optional StepStatus stepStatus = 8;
 
   optional string bearerToken = 9;
-
-  optional k8s.io.api.core.v1.ResourceRequirements resourceRequirements = 10;
 }
 
 message Git {

@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"k8s.io/apimachinery/pkg/api/resource"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,6 +15,11 @@ func TestContainer_getContainer(t *testing.T) {
 		Command:      []string{"my-cmd"},
 		Args:         []string{"my-args"},
 		Env:          []corev1.EnvVar{{Name: "my-envvar"}},
+		Resources: corev1.ResourceRequirements{
+			Requests: map[corev1.ResourceName]resource.Quantity{
+				"cpu": resource.MustParse("2"),
+			},
+		},
 	}
 	c := x.getContainer(getContainerReq{})
 	assert.Equal(t, x.Image, c.Image)
@@ -21,4 +27,5 @@ func TestContainer_getContainer(t *testing.T) {
 	assert.Equal(t, x.Command, c.Command)
 	assert.Equal(t, x.Args, c.Args)
 	assert.Equal(t, x.Env, c.Env)
+	assert.Equal(t, corev1.ResourceRequirements{Requests: map[corev1.ResourceName]resource.Quantity{"cpu": resource.MustParse("2")}}, c.Resources)
 }

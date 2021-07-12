@@ -17,6 +17,9 @@ spec:
       - name: FOO
         value: bar
       image: ubuntu:latest
+      resources:
+        requests:
+          cpu: 1
     metadata:
       annotations:
         my-annotation: my-value
