@@ -134,7 +134,7 @@ java16: java16-image
 python3-9: python3-9-image
 
 %-image:
-	docker buildx build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG) --load --build-arg MESSAGE="$(shell git log -n1 --oneline)"
+	docker buildx build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG) --load --build-arg VERSION="$(TAG)"
 ifeq ($(K3D),true)
 	k3d image import quay.io/argoproj/dataflow-$*:$(TAG)
 endif

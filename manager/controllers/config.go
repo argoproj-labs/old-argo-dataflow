@@ -15,7 +15,8 @@ import (
 var (
 	scalingDelay                = util.GetEnvDuration(dfv1.EnvScalingDelay, time.Minute)
 	peekDelay                   = util.GetEnvDuration(dfv1.EnvPeekDelay, 4*time.Minute)
-	imageFormat                 = os.Getenv(dfv1.EnvImageFormat)
+	imagePrefix                 = os.Getenv(dfv1.EnvImagePrefix)
+	imageFormat                 = ""
 	runnerImage                 = ""
 	pullPolicy                  = corev1.PullPolicy(os.Getenv(dfv1.EnvPullPolicy))
 	updateInterval              = util.GetEnvDuration(dfv1.EnvUpdateInterval, 1*time.Minute)
@@ -34,9 +35,10 @@ var (
 )
 
 func init() {
-	if imageFormat == "" {
-		imageFormat = "quay.io/argoproj/%s:latest"
+	if imagePrefix == "" {
+		imagePrefix = "quay.io/argoproj"
 	}
+	imageFormat = fmt.Sprintf("%s/%s:%s", imagePrefix, "%s", util.Version())
 	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
 	if text, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
 		if v, err := time.ParseDuration(text); err != nil {
