@@ -103,6 +103,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	WaitForPipeline(UntilMessagesSunk)
 
 	DeletePipelines()
+	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
 	WaitForStep(TotalSunkMessages(n), 2*time.Minute)

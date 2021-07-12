@@ -107,6 +107,7 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 	go PumpSTANSubject(longSubject, n)
 
 	WaitForPipeline(UntilMessagesSunk)
+	WaitForPodsToBeDeleted()
 
 	DeletePipelines()
 	CreatePipeline(pl)
