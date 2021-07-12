@@ -59,13 +59,14 @@ Intermediate:
 * [Scaling](docs/SCALING.md)
 * [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)
+* [Workflow interop](docs/WORKFLOW_INTEROP.md)
 
 Advanced
 
 * [Configuration](docs/CONFIGURATION.md)
 * [Features](docs/FEATURES.md)
 * [Metrics](docs/METRICS.md)
-* [Image Contract](docs/IMAGE_CONTRACT.md)
+* [Image contract](docs/IMAGE_CONTRACT.md)
 * [Reading material](docs/READING.md)
 * [Security](docs/SECURITY.md)
 * [Contributing](docs/CONTRIBUTING.md)

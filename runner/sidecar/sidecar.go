@@ -83,7 +83,7 @@ func Exec(ctx context.Context) error {
 		return nil
 	})
 
-	toSinks, err := connectSinks()
+	toSinks, err := connectSinks(ctx)
 	if err != nil {
 		return err
 	}

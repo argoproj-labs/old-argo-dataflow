@@ -36,7 +36,7 @@ pprof:
 	go tool pprof -web http://127.0.0.1:3569/debug/pprof/profile?seconds=10
 	curl -s http://127.0.0.1:3569/debug/pprof/trace\?seconds\=10 | go tool trace /dev/stdin
 
-pre-commit: codegen test install lint start
+pre-commit: codegen test install runner lint start
 
 codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md
 	go generate ./...

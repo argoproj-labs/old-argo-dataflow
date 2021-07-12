@@ -136,8 +136,22 @@ message Group {
 message HTTP {
 }
 
+message HTTPHeader {
+  optional string name = 1;
+
+  optional string value = 2;
+
+  optional HTTPHeaderSource valueFrom = 3;
+}
+
+message HTTPHeaderSource {
+  optional k8s.io.api.core.v1.SecretKeySelector secretKeyRef = 1;
+}
+
 message HTTPSink {
   optional string url = 1;
+
+  repeated HTTPHeader headers = 2;
 }
 
 message HTTPSource {

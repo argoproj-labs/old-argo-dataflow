@@ -4,18 +4,18 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 	"github.com/paulbellamy/ratecounter"
+	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net/http"
 )
 
-func connectSinks() (func([]byte) error, error) {
+func connectSinks(ctx context.Context) (func([]byte) error, error) {
 	sinks := map[string]func(msg []byte) error{}
 	rateCounters := map[string]*ratecounter.RateCounter{}
 	for _, sink := range step.Spec.Sinks {
@@ -40,7 +40,11 @@ func connectSinks() (func([]byte) error, error) {
 		} else if x := sink.Log; x != nil {
 			sinks[sinkName] = connectLogSink()
 		} else if x := sink.HTTP; x != nil {
-			sinks[sinkName] = connectHTTPSink(x)
+			if f, err := connectHTTPSink(ctx, x); err != nil {
+				return nil, err
+			} else {
+				sinks[sinkName] = f
+			}
 		} else {
 			return nil, fmt.Errorf("sink misconfigured")
 		}
@@ -62,9 +66,28 @@ func connectSinks() (func([]byte) error, error) {
 	}, nil
 }
 
-func connectHTTPSink(x *dfv1.HTTPSink) func(msg []byte) error {
+func connectHTTPSink(ctx context.Context, x *dfv1.HTTPSink) (func(msg []byte) error, error) {
+	header := http.Header{}
+	for _, h := range x.Headers {
+		if h.Value != "" {
+			header.Add(h.Name, h.Value)
+		} else if h.ValueFrom != nil {
+			r := h.ValueFrom.SecretKeyRef
+			secret, err := kubernetesInterface.CoreV1().Secrets(namespace).Get(ctx, r.Name, metav1.GetOptions{})
+			if err != nil {
+				return nil, fmt.Errorf("failed to get secret %q: %w", r.Name, err)
+			}
+			header.Add(h.Name, string(secret.Data[r.Key]))
+		}
+	}
 	return func(msg []byte) error {
-		if resp, err := http.Post(x.URL, "application/octet-stream", bytes.NewBuffer(msg)); err != nil {
+		ctx := context.Background()
+		req, err := http.NewRequestWithContext(ctx, "POST", x.URL, bytes.NewBuffer(msg))
+		if err != nil {
+			return fmt.Errorf("failed to create HTTP request: %w", err)
+		}
+		req.Header = header
+		if resp, err := http.DefaultClient.Do(req); err != nil {
 			return err
 		} else {
 			body, _ := ioutil.ReadAll(resp.Body)
@@ -74,7 +97,7 @@ func connectHTTPSink(x *dfv1.HTTPSink) func(msg []byte) error {
 			}
 		}
 		return nil
-	}
+	}, nil
 }
 
 func connectLogSink() func(msg []byte) error {

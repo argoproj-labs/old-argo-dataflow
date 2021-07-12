@@ -50,7 +50,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		Name:         "var-run-argo-dataflow",
 		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
 	}
-	step, _ := json.Marshal(in)
+	step, _ := json.Marshal(in.withoutManagedFields())
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
 
 	envVars := []corev1.EnvVar{
@@ -126,6 +126,12 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			}),
 		},
 	}
+}
+
+func (in Step) withoutManagedFields() Step {
+	y := *in.DeepCopy()
+	y.ManagedFields = nil
+	return y
 }
 
 func (in Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
