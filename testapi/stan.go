@@ -17,28 +17,19 @@ func init() {
 	testingToken := "testingtokentestingtoken"
 
 	http.HandleFunc("/stan/pump-subject", func(w http.ResponseWriter, r *http.Request) {
-		subjects := r.URL.Query()["subject"]
-		if len(subjects) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		sleeps := r.URL.Query()["sleep"]
-		if len(sleeps) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		duration, err := time.ParseDuration(sleeps[0])
+		subject := r.URL.Query().Get("subject")
+		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
 		if err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 
-		ns := r.URL.Query()["n"]
-		if len(ns) < 1 {
-			ns = []string{"-1"}
+		ns := r.URL.Query().Get("n")
+		if ns == "" {
+			ns = "-1"
 		}
-		n, err := strconv.Atoi(ns[0])
+		n, err := strconv.Atoi(ns)
 		if err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
@@ -77,7 +68,7 @@ func init() {
 				return
 			default:
 				x := fmt.Sprintf("%s-%d", FunnyAnimal(), i)
-				_, err := sc.PublishAsync(subjects[0], []byte(x), func(ackedNuid string, err error) {
+				_, err := sc.PublishAsync(subject, []byte(x), func(ackedNuid string, err error) {
 					if err != nil {
 						fmt.Printf("Warning: error publishing msg id %s: %v\n", ackedNuid, err.Error())
 					} else {
@@ -89,7 +80,7 @@ func init() {
 					_, _ = w.Write([]byte(fmt.Sprintf("Failed to publish message, error: %v\n", err.Error())))
 					return
 				}
-				_, _ = fmt.Fprintf(w, "sent %q (%d/%d %.0f TPS) to %q\n", x, i+1, n, (1+float64(i))/time.Since(start).Seconds(), subjects[0])
+				_, _ = fmt.Fprintf(w, "sent %q (%d/%d %.0f TPS) to %q\n", x, i+1, n, (1+float64(i))/time.Since(start).Seconds(), subject)
 				time.Sleep(duration)
 			}
 		}

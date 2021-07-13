@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -18,13 +17,7 @@ func init() {
 	addrs := []string{"kafka-broker:9092"}
 
 	http.HandleFunc("/kafka/create-topic", func(w http.ResponseWriter, r *http.Request) {
-		topics := r.URL.Query()["topic"]
-		if len(topics) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		topic := topics[0]
-
+		topic := r.URL.Query().Get("topic")
 		admin, err := sarama.NewClusterAdmin(addrs, config)
 		if err != nil {
 			w.WriteHeader(500)
@@ -44,66 +37,20 @@ func init() {
 		}
 		w.WriteHeader(201)
 	})
-	http.HandleFunc("/kafka/count-topic", func(w http.ResponseWriter, r *http.Request) {
-		topics := r.URL.Query()["topic"]
-		if len(topics) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		topic := topics[0]
-		client, err := sarama.NewClient(addrs, config)
-		if err != nil {
-			w.WriteHeader(500)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-
-		partitions, err := client.Partitions(topic)
-		if err != nil {
-			w.WriteHeader(500)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-
-		count := 0
-		for _, p := range partitions {
-			offset, err := client.GetOffset(topic, p, sarama.OffsetNewest)
-			if err != nil {
-				w.WriteHeader(500)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
-			count += int(offset)
-		}
-
-		w.WriteHeader(200)
-		_, _ = w.Write([]byte(strconv.Itoa(count)))
-	})
 	http.HandleFunc("/kafka/pump-topic", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = io.Copy(io.Discard, r.Body)
-		topics := r.URL.Query()["topic"]
-		if len(topics) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		topic := topics[0]
-		sleeps := r.URL.Query()["sleep"]
-		if len(sleeps) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		duration, err := time.ParseDuration(sleeps[0])
+		topic := r.URL.Query().Get("topic")
+		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
 		if err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 
-		ns := r.URL.Query()["n"]
-		if len(ns) < 1 {
-			ns = []string{"-1"}
+		ns := r.URL.Query().Get("n")
+		if ns == "" {
+			ns = "-1"
 		}
-		n, err := strconv.Atoi(ns[0])
+		n, err := strconv.Atoi(ns)
 		if err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))

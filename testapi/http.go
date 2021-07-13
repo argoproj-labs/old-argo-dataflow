@@ -10,37 +10,22 @@ import (
 
 func init() {
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
-		urls := r.URL.Query()["url"]
-		if len(urls) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		url := urls[0]
-		sleeps := r.URL.Query()["sleep"]
-		if len(sleeps) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		duration, err := time.ParseDuration(sleeps[0])
+		url := r.URL.Query().Get("url")
+		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
 		if err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		ns := r.URL.Query()["n"]
-		if len(ns) < 1 {
-			ns = []string{"-1"}
-		}
-		n, err := strconv.Atoi(ns[0])
+		n, err := strconv.Atoi(r.URL.Query().Get("n"))
 		if err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		prefixes := r.URL.Query()["prefix"]
-		prefix := FunnyAnimal()
-		if len(prefixes) > 0 {
-			prefix = prefixes[0]
+		prefix := r.URL.Query().Get("prefix")
+		if prefix == "" {
+			prefix = FunnyAnimal()
 		}
 		w.WriteHeader(200)
 
@@ -61,12 +46,7 @@ func init() {
 		}
 	})
 	http.HandleFunc("/http/wait-for", func(w http.ResponseWriter, r *http.Request) {
-		urls := r.URL.Query()["url"]
-		if len(urls) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		url := urls[0]
+		url := r.URL.Query().Get("url")
 		w.WriteHeader(200)
 		for {
 			_, err := http.Get(url)
