@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type SourceStatuses map[string]SourceStatus // key is replica
+type SourceStatuses map[string]SourceStatus // key is source name
 
 func (in SourceStatuses) IncrTotal(name string, replica int, msg string, rate resource.Quantity) {
 	x := in[name]
