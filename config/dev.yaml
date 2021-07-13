@@ -4462,7 +4462,7 @@ metadata:
   namespace: argo-dataflow-system
 spec:
   ports:
-  - port: 8378
+  - port: 80
     targetPort: 8378
   selector:
     app: testapi
