@@ -4846,7 +4846,7 @@ spec:
   containers:
   - args:
     - -fvN
-    - http://testapi:8378/kafka/pump-topic?topic=input-topic&sleep=500ms
+    - http://testapi/kafka/pump-topic?topic=input-topic&sleep=500ms
     command:
     - curl
     image: golang:1.16
@@ -4854,14 +4854,14 @@ spec:
   initContainers:
   - args:
     - -fvN
-    - http://testapi:8378/kafka/create-topic?topic=input-topic
+    - http://testapi/kafka/create-topic?topic=input-topic
     command:
     - curl
     image: golang:1.16
     name: create-input-topic
   - args:
     - -fvN
-    - http://testapi:8378/kafka/create-topic?topic=output-topic
+    - http://testapi/kafka/create-topic?topic=output-topic
     command:
     - curl
     image: golang:1.16

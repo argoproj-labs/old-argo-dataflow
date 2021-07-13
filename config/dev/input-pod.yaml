@@ -10,14 +10,14 @@ spec:
         - curl
       args:
         - -fvN
-        - http://testapi:8378/kafka/create-topic?topic=input-topic
+        - http://testapi/kafka/create-topic?topic=input-topic
     - name: create-output-topic
       image: golang:1.16
       command:
         - curl
       args:
         - -fvN
-        - http://testapi:8378/kafka/create-topic?topic=output-topic
+        - http://testapi/kafka/create-topic?topic=output-topic
   containers:
     - name: pump-topic
       image: golang:1.16
@@ -25,4 +25,4 @@ spec:
         - curl
       args:
         - -fvN
-        - http://testapi:8378/kafka/pump-topic?topic=input-topic&sleep=500ms
+        - http://testapi/kafka/pump-topic?topic=input-topic&sleep=500ms
