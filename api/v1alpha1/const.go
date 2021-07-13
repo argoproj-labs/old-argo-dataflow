@@ -19,7 +19,7 @@ const (
 	CtrSidecar = "sidecar"
 	// env vars
 	EnvImagePrefix         = "ARGO_DATAFLOW_IMAGE_PREFIX"   // default "quay.io/argoproj"
-	EnvDeletionDelay       = "ARGO_DATAFLOW_DELETION_DELAY" // default "30m"
+	EnvDeletionDelay       = "ARGO_DATAFLOW_DELETION_DELAY" // default "720h" ~= "30d"
 	EnvNamespace           = "ARGO_DATAFLOW_NAMESPACE"
 	EnvPipelineName        = "ARGO_DATAFLOW_PIPELINE_NAME"
 	EnvReplica             = "ARGO_DATAFLOW_REPLICA"
