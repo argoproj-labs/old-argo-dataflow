@@ -18,14 +18,13 @@ spec:
       interval: 10s
 ```
 
-Start a Pipeline like below:
+Start a Pipeline like below, which uses a `log` sink for demostration:
 
 ```yaml
 apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: hello
-  namespace: argo-dataflow-system
+  name: events-pipeline
 spec:
   steps:
     - map: bytes(object(msg).data)
