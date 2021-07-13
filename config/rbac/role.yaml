@@ -3,6 +3,7 @@ kind: Role
 metadata:
   name: manager-role
 rules:
+  # read-only permissions by default, pipelines are owned by users and the controller has no place to be changing them
   - apiGroups:
       - dataflow.argoproj.io
     resources:
