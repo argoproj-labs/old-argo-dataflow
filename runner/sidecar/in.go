@@ -60,9 +60,7 @@ func connectIn(ctx context.Context, sink func([]byte) error) (func(context.Conte
 		if err := waitReady(ctx); err != nil {
 			return nil, err
 		}
-		addStopHook(func(ctx context.Context) error {
-			return waitUnready(ctx)
-		})
+		addStopHook(waitUnready)
 		// https://www.loginradius.com/blog/async/tune-the-go-http-client-for-high-performance/
 		t := http.DefaultTransport.(*http.Transport).Clone()
 		t.MaxIdleConns = 100
@@ -94,12 +92,12 @@ func connectIn(ctx context.Context, sink func([]byte) error) (func(context.Conte
 }
 
 func waitReady(ctx context.Context) error {
-	logger.Info("waiting for HTTP in interface to be ready")
 	for {
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("failed to wait for ready: %w", ctx.Err())
 		default:
+			logger.Info("waiting for HTTP in interface to be ready")
 			if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode < 300 {
 				logger.Info("HTTP in interface ready")
 				return nil
@@ -110,12 +108,12 @@ func waitReady(ctx context.Context) error {
 }
 
 func waitUnready(ctx context.Context) error {
-	logger.Info("waiting for HTTP in interface to be unready")
 	for {
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("failed to wait for un-ready: %w", ctx.Err())
 		default:
+			logger.Info("waiting for HTTP in interface to be unready")
 			if resp, err := http.Get("http://localhost:8080/ready"); err != nil || resp.StatusCode >= 300 {
 				logger.Info("HTTP in interface unready")
 				return nil

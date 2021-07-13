@@ -3,7 +3,7 @@ package main
 import "net/http"
 
 func main() {
-	resp, err := http.Get("http://localhost:3569/pre-stop")
+	resp, err := http.Get("http://localhost:3569/pre-stop?source=main")
 	if err != nil {
 		panic(err)
 	}

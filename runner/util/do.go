@@ -48,7 +48,8 @@ func Do(ctx context.Context, fn func(msg []byte) ([]byte, error)) error {
 		}
 	}()
 
+	logger.Info("ready")
+	defer logger.Info("done")
 	<-ctx.Done()
-
 	return server.Shutdown(context.Background())
 }

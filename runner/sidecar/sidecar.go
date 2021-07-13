@@ -26,19 +26,24 @@ import (
 
 var (
 	logger              = sharedutil.NewLogger()
-	dynamicInterface    dynamic.Interface
-	kubernetesInterface kubernetes.Interface
-	updateInterval      time.Duration
-	replica             = 0
-	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
-	stepName            string
 	namespace           = os.Getenv(dfv1.EnvNamespace)
-	step                = dfv1.Step{} // this is updated on start, and then periodically as we update the status
-	lastStep            = dfv1.Step{}
-	ready               = false                           // we are ready to serve HTTP requests, also updates pod status condition
-	patchMu             = sync.Mutex{}                    // prevents concurrent patching
+	patchMu             = sync.Mutex{}
+	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
+	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
+	dynamicInterface    dynamic.Interface
+	lastStep            dfv1.Step
+	kubernetesInterface kubernetes.Interface
 	prePatchHooks       []func(ctx context.Context) error // hooks to run before patching
+	replica             int
+	step                dfv1.Step // this is updated on start, and then periodically as we update the status
+	stepName            string
+	updateInterval      time.Duration
 )
+
+func becomeUnreadyHook(context.Context) error {
+	ready = false
+	return nil
+}
 
 func Exec(ctx context.Context) error {
 	restConfig := ctrl.GetConfigOrDie()
@@ -75,13 +80,11 @@ func Exec(ctx context.Context) error {
 
 	logger.Info("sidecar config", "stepName", stepName, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
 
+	defer logger.Info("done")
 	defer stop()
-	defer preStop()
+	defer preStop("defer")
 
-	addStopHook(func(ctx context.Context) error {
-		patchStepStatus()
-		return nil
-	})
+	addStopHook(patchStepStatusHook)
 
 	toSinks, err := connectSinks(ctx)
 	if err != nil {
@@ -91,15 +94,12 @@ func Exec(ctx context.Context) error {
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		if ready {
-			w.WriteHeader(200)
+			w.WriteHeader(204)
 		} else {
 			w.WriteHeader(503)
 		}
 	})
-	addPreStopHook(func(context.Context) error {
-		ready = false
-		return nil
-	})
+	addPreStopHook(becomeUnreadyHook)
 
 	if leadReplica() {
 		promauto.NewGaugeFunc(prometheus.GaugeOpts{
@@ -111,7 +111,7 @@ func Exec(ctx context.Context) error {
 	// we listen to this message, but it does not come from Kubernetes, it actually comes from the main container's
 	// pre-stop hook
 	http.HandleFunc("/pre-stop", func(w http.ResponseWriter, r *http.Request) {
-		preStop()
+		preStop(r.URL.Query().Get("source"))
 		w.WriteHeader(204)
 	})
 
@@ -144,7 +144,11 @@ func Exec(ctx context.Context) error {
 	ready = true
 	logger.Info("ready")
 	<-ctx.Done()
-	logger.Info("un-ready")
+	return nil
+}
+
+func patchStepStatusHook(context.Context) error {
+	patchStepStatus()
 	return nil
 }
 

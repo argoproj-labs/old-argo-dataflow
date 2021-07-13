@@ -10,7 +10,6 @@ import (
 type hook = func(ctx context.Context) error
 
 var (
-	preStopCh    = make(chan bool, 16)
 	preStopHooks []hook // should be closed before main container exits
 	stopHooks    []hook // should be close after the main container exits
 	preStopMu    = sync.Mutex{}
@@ -24,17 +23,17 @@ func addStopHook(x hook) {
 	stopHooks = append(stopHooks, x)
 }
 
-func preStop() {
-	logger.Info("pre-stop")
+func preStop(source string) {
+	logger.Info("pre-stop", "source", source)
 	preStopMu.Lock()
 	defer preStopMu.Unlock()
 	runHooks(preStopHooks)
 	preStopHooks = nil
-	preStopCh <- true
-	logger.Info("pre-stop done")
+	logger.Info("pre-stop done", "source", source)
 }
 
 func stop() {
+	logger.Info("stop")
 	runHooks(stopHooks)
 }
 
@@ -54,5 +53,5 @@ func runHooks(hooks []hook) {
 			logger.Error(err, "failed to run hook", "func", n)
 		}
 	}
-	logger.Info("running hooks took", "duration", time.Since(start))
+	logger.Info("running hooks took", "duration", time.Since(start).String())
 }
