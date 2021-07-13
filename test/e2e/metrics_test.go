@@ -47,5 +47,5 @@ func TestMetrics(t *testing.T) {
 	ExpectMetric("sources_errors", 0)
 	ExpectMetric("sources_pending", 0)
 	ExpectMetric("sources_total", 1)
-	ExpectMetric("message_retry_count", 0)
+	ExpectMetric("sources_retries", 0)
 }
