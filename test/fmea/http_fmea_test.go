@@ -3,11 +3,9 @@
 package stress
 
 import (
-	"fmt"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"log"
 	"testing"
 	"time"
 )
@@ -34,17 +32,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	n := 30
 
 	// with a single replica, if you loose a replica, you loose service
-	go func() {
-		for i := 0; i < n; {
-			CatchPanic(func() {
-				PumpHTTP("http://http-main/sources/default", fmt.Sprintf("my-msg-%d", i), 1, 0)
-				i++
-				time.Sleep(time.Second)
-			}, func(err error) {
-				log.Printf("ignoring: %v\n", err)
-			})
-		}
-	}()
+	go PumpHTTPTolerantly(n)
 
 	WaitForPipeline(UntilMessagesSunk)
 
@@ -52,11 +40,10 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	WaitForPod("http-main-0")
 
 	WaitForStep(TotalSourceMessages(n), 2*time.Minute)
+	WaitForStep(NoRecentErrors)
 }
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
-
-	t.SkipNow()
 
 	Setup(t)
 	defer Teardown(t)
@@ -82,13 +69,13 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 
 	n := 30
 
-	// we don't expect panics, because 1 replica should always be available to service requests
-	go PumpHTTP("http://http-main/sources/default", "my-msg", n, time.Second)
+	go PumpHTTPTolerantly(n)
 
 	WaitForPipeline(UntilMessagesSunk)
 
-	DeletePod("http-main-1") // delete the pod to see that we recover and continue to process messages
-	WaitForPod("http-main-1")
+	DeletePod("http-main-0") // delete the pod to see that we continue to process messages
+	WaitForPod("http-main-0")
 
 	WaitForStep(TotalSunkMessages(n), 2*time.Minute)
+	WaitForStep(NoRecentErrors)
 }

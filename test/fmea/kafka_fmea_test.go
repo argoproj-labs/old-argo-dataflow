@@ -42,6 +42,7 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	WaitForPod("kafka-main-0")
 
 	WaitForStep(TotalSunkMessages(n), 2*time.Minute)
+	WaitForStep(NoRecentErrors)
 }
 
 func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
@@ -75,6 +76,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	WaitForPod("kafka-broker-0")
 
 	WaitForStep(TotalSunkMessages(n), 3*time.Minute)
+	WaitForStep(NoRecentErrors)
 	ExpectLogLine("kafka-main-0", "sidecar", "Failed to connect to broker kafka-broker:9092")
 }
 

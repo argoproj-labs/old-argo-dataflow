@@ -1,10 +1,11 @@
 package symbol
 
 const (
-	Error     = "⚠"
+	Error = "⚠"
 	// Failed    = "✖"
-	Pending   = "◷"
-	Rate      = "＊"
+	Pending = "◷"
+	Rate    = "＊"
+	Total   = "Σ"
 	// Running   = "●"
 	// Succeeded = "✔"
 	// Unknown   = "?"

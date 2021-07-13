@@ -22,6 +22,10 @@ var (
 	stepInterface = dynamicInterface.Resource(StepGroupVersionResource).Namespace(namespace)
 )
 
+func NoRecentErrors(s Step) bool {
+	return !s.Status.SourceStatuses.RecentErrors()
+}
+
 func MessagesPending(s Step) bool {
 	return !NothingPending(s)
 }
@@ -90,6 +94,11 @@ func WaitForStep(opts ...interface{}) {
 			x := StepFromUnstructured(un)
 			y := x.Status
 			log.Printf("step %q is %s %q (%s -> %s)\n", x.Name, y.Phase, y.Message, formatSourceStatuses(y.SourceStatuses), formatSourceStatuses(y.SinkStatues))
+			for sourceName, s := range y.SourceStatuses {
+				if s.LastError != nil && s.LastError.Time.After(time.Now().Add(-1*time.Minute)) {
+					log.Printf("\tsource %s: %s\n", sourceName, s.LastError.Message)
+				}
+			}
 			if f(x) {
 				return
 			}
@@ -109,7 +118,7 @@ func formatSourceStatuses(statuses SourceStatuses) string {
 	for _, s := range statuses {
 		for _, m := range s.Metrics {
 			rate, _ := m.Rate.AsInt64()
-			sourceText = append(sourceText, p.Sprintf("%s%s%s%d %d", sym(symbol.Pending, s.GetPending()), sym(symbol.Error, m.Errors), symbol.Rate, rate, m.Total))
+			sourceText = append(sourceText, p.Sprintf("%s%s%s%d %s%d", sym(symbol.Pending, s.GetPending()), sym(symbol.Error, m.Errors), symbol.Rate, rate, symbol.Total, m.Total))
 		}
 	}
 	return strings.Join(sourceText, ",")

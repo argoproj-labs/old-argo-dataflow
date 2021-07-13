@@ -28,3 +28,15 @@ func PumpHTTP(_url, prefix string, n int, sleep time.Duration) {
 	log.Printf("sending %d messages %q via HTTP to %q\n", n, prefix, _url)
 	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=%v", url.QueryEscape(_url), prefix, n, sleep)
 }
+
+func PumpHTTPTolerantly(n int) {
+	for i := 0; i < n; {
+		CatchPanic(func() {
+			PumpHTTP("http://http-main/sources/default", fmt.Sprintf("my-msg-%d", i), 1, 0)
+			i++
+			time.Sleep(time.Second)
+		}, func(err error) {
+			log.Printf("ignoring: %v\n", err)
+		})
+	}
+}
