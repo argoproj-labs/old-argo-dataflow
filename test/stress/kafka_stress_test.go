@@ -12,8 +12,6 @@ import (
 
 func TestKafkaStress(t *testing.T) {
 
-	t.SkipNow() //flake
-
 	Setup(t)
 	defer Teardown(t)
 
