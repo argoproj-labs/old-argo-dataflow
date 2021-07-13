@@ -53,6 +53,11 @@ type StepReconciler struct {
 	DynamicInterface dynamic.Interface
 }
 
+type hash struct {
+	RunnerImage string        `json:"runnerImage"`
+	StepSpec    dfv1.StepSpec `json:"stepSpec"`
+}
+
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=,resources=pods,verbs=get;watch;list;create
@@ -73,7 +78,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	pipelineName := step.GetLabels()[dfv1.KeyPipelineName]
 	stepName := step.Spec.Name
 
-	log.Info("reconciling", "pipelineName", pipelineName, "stepName", stepName)
+	log.Info("reconciling")
 
 	if step.Spec.Scale != nil {
 		desiredReplicas := step.GetTargetReplicas(scalingDelay, peekDelay)
@@ -113,13 +118,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
-	hash := util.MustHash(struct {
-		image    string
-		stepSpec dfv1.StepSpec
-	}{
-		runnerImage,
-		step.Spec,
-	})
+	hash := util.MustHash(hash{runnerImage, step.Spec})
 	oldStatus := step.Status.DeepCopy()
 	step.Status.Phase, step.Status.Reason, step.Status.Message = dfv1.StepUnknown, "", ""
 	step.Status.Selector = selector.String()
