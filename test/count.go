@@ -39,7 +39,7 @@ func WaitForCounter(min, max int) {
 			if count > max {
 				panic(fmt.Errorf("count %d more than max %d", count, max))
 			}
-			time.Sleep(time.Second)
+			time.Sleep(3*time.Second)
 		}
 	}
 }

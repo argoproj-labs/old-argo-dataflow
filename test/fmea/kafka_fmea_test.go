@@ -12,8 +12,6 @@ import (
 
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 
-	t.SkipNow()
-
 	Setup(t)
 	defer Teardown(t)
 
@@ -88,8 +86,6 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	defer Teardown(t)
 
 	topic := CreateKafkaTopic()
-
-	ExpectKafkaTopicCount(topic, 0, time.Second)
 
 	pl := Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
