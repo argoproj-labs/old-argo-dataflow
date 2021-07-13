@@ -46,6 +46,8 @@ func TestStanFMEA_PodDeletedDisruption(t *testing.T) {
 
 func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 
+	t.SkipNow()
+
 	Setup(t)
 	defer Teardown(t)
 
