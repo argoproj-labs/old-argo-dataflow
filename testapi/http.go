@@ -36,8 +36,11 @@ func init() {
 				return
 			default:
 				msg := fmt.Sprintf("%s-%d", prefix, i)
-				if _, err := http.Post(url, "application/octet-stream", strings.NewReader(msg)); err != nil {
+				if resp, err := http.Post(url, "application/octet-stream", strings.NewReader(msg)); err != nil {
 					_, _ = fmt.Fprintf(w, "ERROR: %v", err)
+					return
+				} else if resp.StatusCode >= 300 {
+					_, _ = fmt.Fprintf(w, "ERROR: %s", resp.Status)
 					return
 				}
 				_, _ = fmt.Fprintf(w, "sent %q (%d/%d, %.0f TPS) to %q\n", msg, i+1, n, (1+float64(i))/time.Since(start).Seconds(), url)
