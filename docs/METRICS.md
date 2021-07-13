@@ -51,12 +51,6 @@ Use this metric to determine how long messages are taking to be processed.
 
 Golden metric type: latency.
 
-### message_retry_count
-
-Use this metric to determine how many retries performed for message processing.
-
-Golden metric type: error.
-
 ### replicas
 
 Use this to track scaling events.
@@ -70,6 +64,12 @@ Golden metric type: traffic.
 Use this to track errors.
 
 Only exposed by replica 0.
+
+Golden metric type: error.
+
+### sources_retries
+
+Use this metric to determine how many retries performed for message processing.
 
 Golden metric type: error.
 

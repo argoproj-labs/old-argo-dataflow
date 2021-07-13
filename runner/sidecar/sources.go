@@ -61,7 +61,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				default:
 					if uint64(backoff.Steps) < source.Retry.Steps { // this is a retry
 						logger.Info("retry", "source", sourceName, "backoff", backoff)
-						withLock(func() { step.Status.SinkStatues.IncrRetryCount(sourceName, replica) })
+						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
 					err := toMain(ctx, msg)
 					if err == nil {
@@ -334,7 +334,6 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 		Help:        "Pending messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_pending",
 		ConstLabels: map[string]string{"sourceName": source.Name},
 	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetPending()) })
-
 	promauto.NewCounterFunc(prometheus.CounterOpts{
 		Subsystem:   "sources",
 		Name:        "total",
@@ -350,9 +349,9 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors()) })
 
 	promauto.NewCounterFunc(prometheus.CounterOpts{
-		Subsystem: "message",
-		Name:      "retry_count",
-		Help:      "Number of retry, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#message_retry_count",
-	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetRetryCount()) })
+		Subsystem: "sources",
+		Name:      "retries",
+		Help:      "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
+	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetRetries()) })
 
 }
