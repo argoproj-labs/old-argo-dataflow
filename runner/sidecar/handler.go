@@ -6,20 +6,21 @@ import (
 )
 
 func newHandler(f func(ctx context.Context, msg []byte) error) *handler {
-	return &handler{f: f, ready: make(chan bool)}
+	return &handler{f: f, ready: false}
 }
 
 type handler struct {
-	f       func(context.Context, []byte) error
-	ready chan bool
+	f     func(context.Context, []byte) error
+	ready bool
 }
 
 func (h *handler) Setup(sarama.ConsumerGroupSession) error {
-	close(h.ready)
+	h.ready = true
 	return nil
 }
 
 func (h *handler) Cleanup(sarama.ConsumerGroupSession) error {
+	h.ready = false
 	return nil
 }
 

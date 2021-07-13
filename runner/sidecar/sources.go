@@ -151,10 +151,14 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		logger.Info("closing kafka handler", "source", sourceName)
 		return handler.Close()
 	})
-	select {
-	case <-handler.ready:
-	case <-ctx.Done():
-		return fmt.Errorf("failed to wait for handler to be ready: %w", ctx.Err())
+	for ; !handler.ready; {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("failed to wait for handler to be ready: %w", ctx.Err())
+		default:
+			logger.Info("waiting for Kafka to be ready", "source", sourceName)
+			time.Sleep(time.Second)
+		}
 	}
 	if leadReplica() {
 		registerKafkaSetPendingHook(x, sourceName, client, config, groupName)

@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/Shopify/sarama v1.28.0
+	github.com/Shopify/sarama v1.29.1
 	github.com/antonmedv/expr v1.8.9
 	github.com/doublerebel/bellows v0.0.0-20160303004610-f177d92a03d3
 	github.com/evanphx/json-patch v4.9.0+incompatible
@@ -15,9 +15,11 @@ require (
 	github.com/go-logr/logr v0.3.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
+	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/nats-io/nats-streaming-server v0.21.1 // indirect
 	github.com/nats-io/nats.go v1.11.0
@@ -25,14 +27,16 @@ require (
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	github.com/paulbellamy/ratecounter v0.2.0
+	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.10.0
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449 // indirect
-	golang.org/x/text v0.3.5
+	golang.org/x/text v0.3.6
 	google.golang.org/protobuf v1.25.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	k8s.io/api v0.19.6
