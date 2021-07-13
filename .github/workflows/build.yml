@@ -51,6 +51,10 @@ jobs:
         - e2e
         - fmea
         - stress
+        rep:
+        - "0"
+        - "1"
+        - "2"
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
