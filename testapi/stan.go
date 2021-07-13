@@ -89,7 +89,7 @@ func init() {
 					_, _ = w.Write([]byte(fmt.Sprintf("Failed to publish message, error: %v\n", err.Error())))
 					return
 				}
-				_, _ = fmt.Fprintf(w, "sent %q (%d/%d %.0f TPS) to %q\n", x, i+1,n, (1+float64(i))/time.Since(start).Seconds(), subjects[0])
+				_, _ = fmt.Fprintf(w, "sent %q (%d/%d %.0f TPS) to %q\n", x, i+1, n, (1+float64(i))/time.Since(start).Seconds(), subjects[0])
 				time.Sleep(duration)
 			}
 		}
