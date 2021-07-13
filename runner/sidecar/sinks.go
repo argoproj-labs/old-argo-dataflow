@@ -10,9 +10,10 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 	"github.com/paulbellamy/ratecounter"
-	"io/ioutil"
+	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
+	"time"
 )
 
 func connectSinks(ctx context.Context) (func([]byte) error, error) {
@@ -80,20 +81,22 @@ func connectHTTPSink(ctx context.Context, x *dfv1.HTTPSink) (func(msg []byte) er
 			header.Add(h.Name, string(secret.Data[r.Key]))
 		}
 	}
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
 	return func(msg []byte) error {
-		ctx := context.Background()
-		req, err := http.NewRequestWithContext(ctx, "POST", x.URL, bytes.NewBuffer(msg))
+		req, err := http.NewRequest("POST", x.URL, bytes.NewBuffer(msg))
 		if err != nil {
 			return fmt.Errorf("failed to create HTTP request: %w", err)
 		}
 		req.Header = header
-		if resp, err := http.DefaultClient.Do(req); err != nil {
-			return err
+		if resp, err := client.Do(req); err != nil {
+			return fmt.Errorf("failed to send HTTP request: %w", err)
 		} else {
-			body, _ := ioutil.ReadAll(resp.Body)
 			defer func() { _ = resp.Body.Close() }()
+			_, _ = io.Copy(io.Discard, resp.Body)
 			if resp.StatusCode >= 300 {
-				return fmt.Errorf("failed to send HTTP request: %q %q", resp.Status, body)
+				return fmt.Errorf("failed to send HTTP request: %q", resp.Status)
 			}
 		}
 		return nil
