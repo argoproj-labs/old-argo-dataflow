@@ -4458,8 +4458,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: testapi
   name: testapi
   namespace: argo-dataflow-system
 spec:
@@ -4790,8 +4788,6 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  labels:
-    app: testapi
   name: testapi
   namespace: argo-dataflow-system
 spec:

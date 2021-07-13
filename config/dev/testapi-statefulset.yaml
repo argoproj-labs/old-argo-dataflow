@@ -2,8 +2,6 @@ kind: StatefulSet
 apiVersion: apps/v1
 metadata:
   name: testapi
-  labels:
-    app: testapi
 spec:
   template:
     metadata:
