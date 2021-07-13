@@ -93,7 +93,7 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{STAN: &STAN{Subject: subject}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sinks:   []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
 			}},
 		},
 	}
@@ -107,10 +107,10 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 	go PumpSTANSubject(longSubject, n)
 
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForPodsToBeDeleted()
 
 	DeletePipelines()
+	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
-	WaitForStep(TotalSunkMessagesBetween(n, n+20), 2*time.Minute)
+	WaitForCounter(n, n+20)
 }

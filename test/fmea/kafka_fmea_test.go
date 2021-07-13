@@ -80,6 +80,9 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	defer Teardown(t)
 
 	topic := CreateKafkaTopic()
+
+	ExpectKafkaTopicCount(topic, 0, time.Second)
+
 	pl := Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
@@ -87,7 +90,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sinks:   []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
 			}},
 		},
 	}
@@ -106,5 +109,5 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
-	WaitForStep(TotalSunkMessages(n), 2*time.Minute)
+	WaitForCounter(n, n)
 }
