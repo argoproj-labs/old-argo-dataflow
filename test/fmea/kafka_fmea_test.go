@@ -12,6 +12,8 @@ import (
 
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 
+	t.SkipNow()
+
 	Setup(t)
 	defer Teardown(t)
 
