@@ -99,9 +99,13 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 
 func connectHTTPSource(sourceName string, f func(ctx context.Context, msg []byte) error) {
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
+		if !ready { // if we are not ready, we cannot serve requests
+			w.WriteHeader(503)
+			_, _ = w.Write([]byte("not ready"))
+			return
+		}
 		msg, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			logger.Error(err, "⚠ http →")
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
 			return
