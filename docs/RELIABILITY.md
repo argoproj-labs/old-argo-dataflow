@@ -1,14 +1,12 @@
 # Reliability
 
 Argo Dataflow has to run on Kubernetes, which means that pods can be deleted and processes killed at anytime. It avoids
-using its own storage, and relies on the source or sink for storage. Data can be lost in the following ways:
+using its own storage, and relies on the source or sink for storage. 
 
-* Failure to ack source messages as processed.
-* Failure of main container to process messages.
-* Failure to sink message.
+Argo Dataflow aims for **at-least once** message delivery semantics. 
 
-These can all because be issues such as crashed on network issues.
+The following disruptions are tolerated:
 
-Messages are only acked once they have been successfully sunk.
-
-This means that Argo Dataflow has at-least once message delivery semantics. 
+* Loss of network connection to source or sink
+* Pod deletion
+* Pipeline deletion (some metrics will be lost, but no messages)
