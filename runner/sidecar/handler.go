@@ -6,15 +6,16 @@ import (
 )
 
 func newHandler(f func(ctx context.Context, msg []byte) error) *handler {
-	return &handler{f: f}
+	return &handler{f: f, ready: make(chan bool)}
 }
 
 type handler struct {
 	f       func(context.Context, []byte) error
-	started bool
+	ready chan bool
 }
 
 func (h *handler) Setup(sarama.ConsumerGroupSession) error {
+	close(h.ready)
 	return nil
 }
 
@@ -27,7 +28,6 @@ func (h *handler) Close() error {
 }
 
 func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	h.started = true
 	for m := range claim.Messages() {
 		msg := m.Value
 		if err := h.f(context.Background(), msg); err != nil {

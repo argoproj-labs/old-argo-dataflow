@@ -133,7 +133,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		return client.Close()
 	})
 	groupName := pipelineName + "-" + stepName + "-source-" + sourceName + "-" + x.Topic
-	group, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
+	group, err := sarama.NewConsumerGroupFromClient(groupName, client)
 	if err != nil {
 		return fmt.Errorf("failed to create kafka consumer group: %w", err)
 	}
@@ -146,13 +146,15 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
 			logger.Error(err, "failed to create kafka consumer")
 		}
-	}, 10*time.Second, 1.2, true, ctx.Done())
+	}, 3*time.Second, 1.2, true, ctx.Done())
 	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing kafka handler", "source", sourceName)
 		return handler.Close()
 	})
-	for ; !handler.started; {
-		time.Sleep(time.Second)
+	select {
+	case <-handler.ready:
+	case <-ctx.Done():
+		return fmt.Errorf("failed to wait for handler to be ready: %w", ctx.Err())
 	}
 	if leadReplica() {
 		registerKafkaSetPendingHook(x, sourceName, client, config, groupName)
