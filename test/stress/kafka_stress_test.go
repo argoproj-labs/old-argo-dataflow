@@ -12,6 +12,8 @@ import (
 
 func TestKafkaStress(t *testing.T) {
 
+	SkipIfCI(t)
+
 	Setup(t)
 	defer Teardown(t)
 

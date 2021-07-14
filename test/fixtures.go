@@ -7,6 +7,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"os"
 	"runtime/debug"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
@@ -22,6 +23,12 @@ var (
 	kubernetesInterface    = kubernetes.NewForConfigOrDie(restConfig)
 	stopTestAPIPortForward func()
 )
+
+func SkipIfCI(t *testing.T) {
+	if os.Getenv("CI") == "true" {
+		t.SkipNow()
+	}
+}
 
 func Setup(*testing.T) {
 	DeletePipelines()
