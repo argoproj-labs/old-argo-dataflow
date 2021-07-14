@@ -13,6 +13,7 @@ func newHandler(f func(ctx context.Context, msg []byte) error) *handler {
 type handler struct {
 	f     func(context.Context, []byte) error
 	ready bool
+	i     int
 }
 
 func (h *handler) Setup(sarama.ConsumerGroupSession) error {
@@ -25,20 +26,15 @@ func (h *handler) Cleanup(sarama.ConsumerGroupSession) error {
 	return nil
 }
 
-func (h *handler) Close() error {
-	return nil
-}
-
 func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	i := 0
 	for m := range claim.Messages() {
 		msg := m.Value
 		if err := h.f(context.Background(), msg); err != nil {
 			// noop
 		} else {
 			sess.MarkMessage(m, "")
-			i++
-			if i%dfv1.CommitN == 0 {
+			h.i++
+			if h.i%dfv1.CommitN == 0 {
 				sess.Commit()
 			}
 		}

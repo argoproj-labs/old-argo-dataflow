@@ -148,10 +148,6 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 			logger.Error(err, "failed to create kafka consumer")
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
-	addPreStopHook(func(ctx context.Context) error {
-		logger.Info("closing kafka handler", "source", sourceName)
-		return handler.Close()
-	})
 	for ; !handler.ready; {
 		select {
 		case <-ctx.Done():
