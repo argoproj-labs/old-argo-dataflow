@@ -138,11 +138,23 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 	if err != nil {
 		return fmt.Errorf("failed to create kafka consumer group: %w", err)
 	}
+	handler := newHandler(f)
 	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing kafka consumer group", "source", sourceName)
-		return group.Close()
+		if err := group.Close(); err != nil {
+			return err
+		}
+		for ; handler.ready; {
+			select {
+			case <-ctx.Done():
+				return fmt.Errorf("failed to wait for handler to be un-ready: %w", ctx.Err())
+			default:
+				logger.Info("waiting for Kafka to be un-ready", "source", sourceName)
+				time.Sleep(time.Second)
+			}
+		}
+		return nil
 	})
-	handler := newHandler(f)
 	go wait.JitterUntil(func() {
 		if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
 			logger.Error(err, "failed to create kafka consumer")
