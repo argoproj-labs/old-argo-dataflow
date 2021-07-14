@@ -33,7 +33,7 @@ func TestStanFMEA_PodDeletedDisruption(t *testing.T) {
 
 	WaitForPod()
 
-	n := 500 * 30 // 500 TPS for 30s
+	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
 	WaitForPipeline(UntilMessagesSunk)
@@ -41,7 +41,7 @@ func TestStanFMEA_PodDeletedDisruption(t *testing.T) {
 	DeletePod("stan-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("stan-main-0")
 
-	WaitForStep(TotalSunkMessagesBetween(n, n+1), 2*time.Minute)
+	WaitForStep(TotalSunkMessagesBetween(n, n+1), 1*time.Minute)
 }
 
 func TestStanFMEA_STANServiceDisruption(t *testing.T) {
@@ -67,7 +67,7 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 
 	WaitForPod()
 
-	n := 500 * 30
+	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
 	WaitForPipeline(UntilMessagesSunk)
@@ -75,7 +75,7 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 	RestartStatefulSet("stan")
 	WaitForPod("stan-0")
 
-	WaitForStep(TotalSunkMessagesBetween(n, n+CommitN), 2*time.Minute)
+	WaitForStep(TotalSunkMessagesBetween(n, n+CommitN), 1*time.Minute)
 	WaitForStep(NoRecentErrors)
 }
 
@@ -104,7 +104,7 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 
 	WaitForPod()
 
-	n := 500 * 30
+	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
 	WaitForPipeline(UntilMessagesSunk)

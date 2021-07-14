@@ -33,13 +33,13 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 
 	WaitForPod()
 
-	n := 500 * 30
+	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
 	DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("kafka-main-0")
 
-	WaitForStep(TotalSunkMessagesBetween(n, n+CommitN), 2*time.Minute)
+	WaitForStep(TotalSunkMessagesBetween(n, n+CommitN), 1*time.Minute)
 	WaitForStep(NoRecentErrors)
 }
 
@@ -105,7 +105,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 
 	WaitForPod()
 
-	n := 500 * 30
+	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
 	WaitForPipeline(UntilMessagesSunk)

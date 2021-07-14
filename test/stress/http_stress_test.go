@@ -39,5 +39,5 @@ func TestHTTPStress(t *testing.T) {
 
 	n := 10000
 	PumpHTTP("http://http-main/sources/default", "my-msg", n, 0)
-	WaitForStep(TotalSunkMessages(n), 2*time.Minute)
+	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
 }
