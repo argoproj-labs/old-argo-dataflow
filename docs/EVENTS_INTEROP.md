@@ -66,4 +66,4 @@ status:
       monitoringUrl: http://eventbus-default-stan-svc:8222
 ```
 
-- `subject` is always `eventbus-{namespace}`.
+- `subject` in `stan` config is `eventbus-{namespace}`.
