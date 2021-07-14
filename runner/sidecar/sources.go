@@ -124,6 +124,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 	if err != nil {
 		return err
 	}
+	config.Consumer.Offsets.AutoCommit.Enable = false
 	client, err := sarama.NewClient(x.Brokers, config) // I am not giving any configuration
 	if err != nil {
 		return err
@@ -249,7 +250,7 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 		stan.SetManualAckMode(),
 		stan.StartAt(pb.StartPosition_NewOnly),
 		stan.AckWait(30*time.Second),
-		stan.MaxInflight(20)); err != nil {
+		stan.MaxInflight(dfv1.CommitN)); err != nil {
 		return fmt.Errorf("failed to subscribe: %w", err)
 	} else {
 		addPreStopHook(func(ctx context.Context) error {

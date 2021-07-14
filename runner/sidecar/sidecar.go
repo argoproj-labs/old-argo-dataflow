@@ -156,11 +156,13 @@ func patchStepStatus() {
 	ctx := context.Background()
 	patchMu.Lock()
 	defer patchMu.Unlock()
-	for _, f := range prePatchHooks {
-		n := sharedutil.GetFuncName(f)
-		logger.Info("executing pre-patch hook", "func", n)
-		if err := f(ctx); err != nil {
-			logger.Error(err, "failed to execute hook", "func", n)
+	if ready { // don't run these if we are not ready, pollutes the logs with errors
+		for _, f := range prePatchHooks {
+			n := sharedutil.GetFuncName(f)
+			logger.Info("executing pre-patch hook", "func", n)
+			if err := f(ctx); err != nil {
+				logger.Error(err, "failed to execute hook", "func", n)
+			}
 		}
 	}
 	if notEqual, patch := sharedutil.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status}); notEqual {

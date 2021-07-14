@@ -8,7 +8,7 @@ A cron source creates a message containing the cron schedule time with a layout.
 
 ## HTTP
 
-Exposes a HTTP service
+Exposes a HTTP service.
 
 [Example](../examples/301-http-pipeline.py)
 
@@ -18,7 +18,7 @@ Consumes messages from a Kafka topic.
 
 [Example](../examples/301-kafka-pipeline.py)
 
-# NATS Streaming (STAN)
+## NATS Streaming (STAN)
 
 Consumes messages from a NATS streaming subject.
 

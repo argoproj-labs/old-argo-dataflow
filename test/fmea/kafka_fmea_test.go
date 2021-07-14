@@ -80,8 +80,6 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 
 func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 
-	t.SkipNow()
-
 	Setup(t)
 	defer Teardown(t)
 
@@ -94,7 +92,10 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
-				Sinks:   []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
+				Sinks: []Sink{
+					{Name: "log", Log: &Log{}},
+					{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}},
+				},
 			}},
 		},
 	}
@@ -113,5 +114,5 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
-	WaitForCounter(n, n)
+	WaitForCounter(n, n+CommitN)
 }

@@ -27,7 +27,7 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 		}
 	}
 	log.Printf("puming Kafka topic %q sleeping %v with %d messages\n", topic, sleep, n)
-	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d", topic, sleep, n)
+	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d&prefix=my-msg", topic, sleep, n)
 }
 
 func ExpectKafkaTopicCount(topic string, expectedCount int, timeout time.Duration) {

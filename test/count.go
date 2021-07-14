@@ -23,7 +23,7 @@ func GetCount() int {
 }
 
 func WaitForCounter(min, max int) {
-	timeout := 90 * time.Second
+	timeout := 120 * time.Second
 	log.Printf("waiting %v for counter to be between %d and %d\n", timeout, min, max)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

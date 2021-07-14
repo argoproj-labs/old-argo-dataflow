@@ -75,7 +75,7 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 	RestartStatefulSet("stan")
 	WaitForPod("stan-0")
 
-	WaitForStep(TotalSunkMessagesBetween(n, n+20), 2*time.Minute)
+	WaitForStep(TotalSunkMessagesBetween(n, n+CommitN), 2*time.Minute)
 	WaitForStep(NoRecentErrors)
 }
 
@@ -113,6 +113,6 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
-	WaitForCounter(n, n+20)
+	WaitForCounter(n, n+CommitN)
 	WaitForStep(NoRecentErrors)
 }
