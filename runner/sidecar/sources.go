@@ -259,16 +259,16 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 		return sub, nil
 	}
 
-	if sub, err = subFunc(); err != nil {
+	sub, err = subFunc()
+	if err != nil {
 		return err
-	} else {
-		addPreStopHook(func(ctx context.Context) error {
-			logger.Info("closing stan subscription", "source", sourceName)
-			return sub.Close()
-		})
-		if leadReplica() {
-			registerSTANSetPendingHook(sourceName, x, queueName)
-		}
+	}
+	addPreStopHook(func(ctx context.Context) error {
+		logger.Info("closing stan subscription", "source", sourceName)
+		return sub.Close()
+	})
+	if leadReplica() {
+		registerSTANSetPendingHook(sourceName, x, queueName)
 	}
 
 	go func() {
