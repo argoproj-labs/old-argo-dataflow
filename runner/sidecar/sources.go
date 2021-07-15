@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"time"
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	"github.com/paulbellamy/ratecounter"
@@ -144,7 +144,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 		if err := group.Close(); err != nil {
 			return err
 		}
-		for ; handler.ready; {
+		for handler.ready {
 			select {
 			case <-ctx.Done():
 				return fmt.Errorf("failed to wait for handler to be un-ready: %w", ctx.Err())
@@ -160,7 +160,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 			logger.Error(err, "failed to create kafka consumer")
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
-	for ; !handler.ready; {
+	for !handler.ready {
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("failed to wait for handler to be ready: %w", ctx.Err())
@@ -213,63 +213,94 @@ func registerKafkaSetPendingHook(x *dfv1.Kafka, sourceName string, client sarama
 }
 
 func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f func(ctx context.Context, msg []byte) error) error {
-	opts := []nats.Option{}
-	switch x.AuthStrategy() {
-	case dfv1.STANAuthToken:
-		token, err := getSTANAuthToken(ctx, x)
-		if err != nil {
-			return err
-		}
-		opts = append(opts, nats.Token(token))
-	default:
+	genClientID := func() string {
+		// In a particular situation, the stan connection status is inconsistent between stan server and client,
+		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
+		// the same client ID to reconnect will fail. To avoid that, add a random number in the client ID string.
+		s1 := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(s1)
+		return fmt.Sprintf("%s-%s-%d-source-%s-%v", pipelineName, stepName, replica, sourceName, r1.Intn(100))
 	}
-	logger.Info("nats auth strategy: "+string(x.AuthStrategy()), "source", sourceName)
-	nc, err := nats.Connect(x.NATSURL, opts...)
-	if err != nil {
-		return fmt.Errorf("failed to connect to nats url=%s subject=%s: %w", x.NATSURL, x.Subject, err)
-	}
-	addPreStopHook(func(ctx context.Context) error {
-		logger.Info("closing nats connection", "source", sourceName)
-		if nc != nil && nc.IsConnected() {
-			nc.Close()
-		}
-		return nil
-	})
-	clientID := fmt.Sprintf("%s-%s-%d-source-%s", pipelineName, stepName, replica, sourceName)
-	sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsConn(nc))
+
+	var conn *stanConn
+	var err error
+	clientID := genClientID()
+	conn, err = ConnectSTAN(ctx, sourceName, x, clientID)
 	if err != nil {
 		return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
 	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing stan connection", "source", sourceName)
-		return sc.Close()
+		if conn != nil && !conn.IsClosed() {
+			return conn.Close()
+		}
+		return nil
 	})
 
 	// https://docs.nats.io/developing-with-nats-streaming/queues
+	var sub stan.Subscription
 	queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
-	if sub, err := sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-		if err := f(context.Background(), msg.Data); err != nil {
-			// noop
-		} else if err := msg.Ack(); err != nil {
-			logger.Error(err, "failed to ack message", "source", sourceName)
+	subFunc := func() (stan.Subscription, error) {
+		sub, err := conn.sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
+			if err := f(context.Background(), msg.Data); err != nil {
+				// noop
+			} else if err := msg.Ack(); err != nil {
+				logger.Error(err, "failed to ack message", "source", sourceName)
+			}
+		}, stan.DurableName(queueName),
+			stan.SetManualAckMode(),
+			stan.StartAt(pb.StartPosition_NewOnly),
+			stan.AckWait(30*time.Second),
+			stan.MaxInflight(dfv1.CommitN))
+		if err != nil {
+			return nil, fmt.Errorf("failed to subscribe: %w", err)
 		}
-	},
-		stan.DurableName(queueName),
-		stan.SetManualAckMode(),
-		stan.StartAt(pb.StartPosition_NewOnly),
-		stan.AckWait(30*time.Second),
-		stan.MaxInflight(dfv1.CommitN)); err != nil {
-		return fmt.Errorf("failed to subscribe: %w", err)
+		return sub, nil
+	}
+
+	if sub, err = subFunc(); err != nil {
+		return err
 	} else {
 		addPreStopHook(func(ctx context.Context) error {
 			logger.Info("closing stan subscription", "source", sourceName)
 			return sub.Close()
 		})
-
-		if leadReplica() {
-			registerSTANSetPendingHook(sourceName, x, queueName)
-		}
 	}
+
+	if leadReplica() {
+		registerSTANSetPendingHook(sourceName, x, queueName)
+	}
+
+	go func() {
+		logger.Info("starting stan auto reconnection daemon")
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				logger.Info("exiting stan auto reconnection daemon")
+				return
+			case <-ticker.C:
+				if conn == nil || conn.IsClosed() {
+					_ = sub.Close()
+					logger.Info("stan connection lost, reconnecting...")
+					clientID := genClientID()
+					conn, err = ConnectSTAN(ctx, sourceName, x, clientID)
+					if err != nil {
+						logger.Error(err, "failed to reconnect", "clientID", clientID)
+						continue
+					}
+					logger.Info("reconnected to stan server.", "clientID", clientID)
+					if sub, err = subFunc(); err != nil {
+						logger.Error(err, "failed to subscribe after reconnection", "clientID", clientID)
+						// Close the connection to let it retry
+						_ = conn.Close()
+					}
+				}
+			}
+		}
+	}()
+
 	return nil
 }
 
