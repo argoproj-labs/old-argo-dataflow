@@ -5,16 +5,15 @@ package test
 import (
 	"context"
 	"fmt"
-	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"net/url"
 	"time"
+
+	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var (
-	serviceInterface = kubernetesInterface.CoreV1().Services(namespace)
-)
+var serviceInterface = kubernetesInterface.CoreV1().Services(namespace)
 
 func WaitForService() {
 	WaitForPod()

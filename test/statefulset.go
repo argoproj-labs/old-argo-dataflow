@@ -5,11 +5,12 @@ package test
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
+
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"log"
-	"time"
 )
 
 func RestartStatefulSet(name string) {

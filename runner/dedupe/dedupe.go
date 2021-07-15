@@ -3,6 +3,10 @@ package dedupe
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/antonmedv/expr"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
@@ -11,9 +15,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"net/http"
-	"sync"
-	"time"
 )
 
 var (
@@ -24,7 +25,6 @@ var (
 )
 
 func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
-
 	promauto.NewCounterFunc(prometheus.CounterOpts{
 		Name: "duplicate_messages",
 		Help: "Duplicates messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#duplicate_messages",
@@ -44,7 +44,7 @@ func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
 	go wait.JitterUntil(func() {
 		size := db.size()
 		logger.Info("garbage collection", "size", resource.NewQuantity(int64(size), resource.DecimalSI), "maxSize", maxSize, "duplicates", duplicates)
-		for ; db.size() > int(int64MaxSize); {
+		for db.size() > int(int64MaxSize) {
 			func() {
 				mu.Lock()
 				defer mu.Unlock()

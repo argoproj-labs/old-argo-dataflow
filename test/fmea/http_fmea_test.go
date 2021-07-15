@@ -3,15 +3,15 @@
 package stress
 
 import (
+	"testing"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
-
 	Setup(t)
 	defer Teardown(t)
 
@@ -44,7 +44,6 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 }
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
-
 	Setup(t)
 	defer Teardown(t)
 

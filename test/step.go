@@ -5,6 +5,10 @@ package test
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/symbol"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
@@ -13,14 +17,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"log"
-	"strings"
-	"time"
 )
 
-var (
-	stepInterface = dynamicInterface.Resource(StepGroupVersionResource).Namespace(namespace)
-)
+var stepInterface = dynamicInterface.Resource(StepGroupVersionResource).Namespace(namespace)
 
 func NoRecentErrors(s Step) bool {
 	return !s.Status.SourceStatuses.RecentErrors()

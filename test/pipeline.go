@@ -5,19 +5,18 @@ package test
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"log"
-	"time"
 )
 
-var (
-	pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
-)
+var pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
 
 func UntilRunning(pl Pipeline) bool {
 	return meta.FindStatusCondition(pl.Status.Conditions, ConditionRunning) != nil
@@ -49,9 +48,7 @@ func CreatePipeline(pl Pipeline) {
 }
 
 func WaitForPipeline(opts ...interface{}) {
-	var (
-		f = UntilRunning
-	)
+	f := UntilRunning
 	for _, o := range opts {
 		switch v := o.(type) {
 		case func(Pipeline) bool:

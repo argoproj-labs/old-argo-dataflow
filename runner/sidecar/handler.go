@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"context"
+
 	"github.com/Shopify/sarama"
 )
 

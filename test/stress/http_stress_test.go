@@ -3,15 +3,15 @@
 package stress
 
 import (
+	"testing"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 func TestHTTPStress(t *testing.T) {
-
 	Setup(t)
 	defer Teardown(t)
 
@@ -19,10 +19,10 @@ func TestHTTPStress(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "http"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name:     "main",
-				Cat:      &Cat{},
-				Sources:  []Source{{HTTP: &HTTPSource{}}},
-				Sinks:    []Sink{{Log: &Log{}}},
+				Name:    "main",
+				Cat:     &Cat{},
+				Sources: []Source{{HTTP: &HTTPSource{}}},
+				Sinks:   []Sink{{Log: &Log{}}},
 			}},
 		},
 	})

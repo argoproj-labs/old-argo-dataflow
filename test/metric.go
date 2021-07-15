@@ -5,14 +5,15 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/prometheus/client_model/go"
-	"github.com/prometheus/common/expfmt"
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 func ExpectMetric(name string, value float64, opts ...interface{}) {
@@ -85,7 +86,7 @@ func StartMetricsLogger(opts ...interface{}) (stopMetricsLogger func()) {
 		for {
 			select {
 			case <-ctx.Done():
-				log.Printf("stopping metrics logger on %d\n",port)
+				log.Printf("stopping metrics logger on %d\n", port)
 				return
 			default:
 				var x []string

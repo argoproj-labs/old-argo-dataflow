@@ -3,15 +3,15 @@
 package stress
 
 import (
+	"testing"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 func TestStanFMEA_PodDeletedDisruption(t *testing.T) {
-
 	Setup(t)
 	defer Teardown(t)
 
@@ -45,7 +45,6 @@ func TestStanFMEA_PodDeletedDisruption(t *testing.T) {
 }
 
 func TestStanFMEA_STANServiceDisruption(t *testing.T) {
-
 	Setup(t)
 	defer Teardown(t)
 
@@ -81,7 +80,6 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 
 // when deleted and re-created, the pipeline should start at the same place in the queue
 func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
-
 	Setup(t)
 	defer Teardown(t)
 

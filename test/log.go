@@ -6,9 +6,10 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	corev1 "k8s.io/api/core/v1"
 	"log"
 	"regexp"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 func ExpectLogLine(podName, containerName, pattern string) {

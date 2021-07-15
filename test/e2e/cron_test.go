@@ -11,7 +11,6 @@ import (
 )
 
 func TestCronSource(t *testing.T) {
-
 	Setup(t)
 	defer Teardown(t)
 

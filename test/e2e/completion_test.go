@@ -11,7 +11,6 @@ import (
 )
 
 func TestCompletion(t *testing.T) {
-
 	Setup(t)
 	defer Teardown(t)
 

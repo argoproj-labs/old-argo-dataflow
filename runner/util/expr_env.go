@@ -3,8 +3,9 @@ package util
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Masterminds/sprig"
 	"strconv"
+
+	"github.com/Masterminds/sprig"
 )
 
 var _sprig = sprig.GenericFuncMap()
