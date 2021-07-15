@@ -92,10 +92,7 @@ func (nsc *stanConn) Close() error {
 }
 
 func (nsc *stanConn) IsClosed() bool {
-	if nsc.nc == nil || nsc.sc == nil || !nsc.natsConnected || !nsc.stanConnected || nsc.nc.IsClosed() {
-		return true
-	}
-	return false
+	return nsc.nc == nil || nsc.sc == nil || !nsc.natsConnected || !nsc.stanConnected || nsc.nc.IsClosed()
 }
 
 func ConnectSTAN(ctx context.Context, x *dfv1.STAN, clientID string) (*stanConn, error) {
