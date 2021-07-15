@@ -32,6 +32,7 @@ jobs:
       - name: docker build + push
         run: |
           tag=$(basename $GITHUB_REF)
+          version=$tag
           if [ $tag = "main" ]; then
             tag="latest"
             version="v0.0.0-latest-0"
