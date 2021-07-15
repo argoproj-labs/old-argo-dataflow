@@ -265,10 +265,9 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 			logger.Info("closing stan subscription", "source", sourceName)
 			return sub.Close()
 		})
-	}
-
-	if leadReplica() {
-		registerSTANSetPendingHook(sourceName, x, queueName)
+		if leadReplica() {
+			registerSTANSetPendingHook(sourceName, x, queueName)
+		}
 	}
 
 	go func() {
