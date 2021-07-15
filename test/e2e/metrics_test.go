@@ -11,8 +11,8 @@ import (
 
 func TestMetrics(t *testing.T) {
 
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
+	
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "metrics"},
@@ -31,8 +31,7 @@ func TestMetrics(t *testing.T) {
 	WaitForPipeline()
 	WaitForPod()
 
-	stopPortForward := StartPortForward("metrics-main-0")
-	defer stopPortForward()
+	defer StartPortForward("metrics-main-0")()
 
 	SendMessageViaHTTP( "my-msg")
 

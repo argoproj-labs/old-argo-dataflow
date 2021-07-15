@@ -30,7 +30,7 @@ func SkipIfCI(t *testing.T) {
 	}
 }
 
-func Setup(*testing.T) {
+func Setup(t *testing.T) (teardown func()) {
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 
@@ -43,18 +43,18 @@ func Setup(*testing.T) {
 	stopTestAPIPortForward = StartPortForward("testapi-0", 8378)
 
 	ResetCount()
-}
 
-func Teardown(t *testing.T) {
-	stopTestAPIPortForward()
-	r := recover() // tests should panic on error, we recover so we can run other tests
-	if r != nil {
-		t.Log(fmt.Sprintf("❌ FAIL: %s %v", t.Name(), r))
-		debug.PrintStack()
-		t.Fail()
-	} else if t.Failed() {
-		t.Log(fmt.Sprintf("❌ FAIL: %s", t.Name()))
-	} else {
-		t.Log(fmt.Sprintf("✅ PASS: %s", t.Name()))
+	return func() {
+		stopTestAPIPortForward()
+		r := recover() // tests should panic on error, we recover so we can run other tests
+		if r != nil {
+			t.Log(fmt.Sprintf("❌ FAIL: %s %v", t.Name(), r))
+			debug.PrintStack()
+			t.Fail()
+		} else if t.Failed() {
+			t.Log(fmt.Sprintf("❌ FAIL: %s", t.Name()))
+		} else {
+			t.Log(fmt.Sprintf("✅ PASS: %s", t.Name()))
+		}
 	}
 }

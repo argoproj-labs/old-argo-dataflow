@@ -136,11 +136,14 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 	go wait.JitterUntil(func() {
 		ctx := context.Background()
 		for {
-			m, err := reader.ReadMessage(ctx)
+			m, err := reader.FetchMessage(ctx)
 			if err != nil {
 				logger.Error(err, "failed to read kafka message", "source", sourceName)
 			} else {
 				_ = f(ctx, m.Value)
+				if err := reader.CommitMessages(ctx, m); err != nil {
+					logger.Error(err, "failed to commit kafka message", "source", sourceName)
+				}
 			}
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())

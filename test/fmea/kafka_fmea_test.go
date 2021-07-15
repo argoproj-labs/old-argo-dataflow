@@ -12,8 +12,8 @@ import (
 
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
+	
 
 	topic := CreateKafkaTopic()
 
@@ -47,8 +47,8 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 
 	t.SkipNow()
 
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
+	
 
 	topic := CreateKafkaTopic()
 	CreatePipeline(Pipeline{
@@ -80,8 +80,8 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 
 func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
+	
 
 	topic := CreateKafkaTopic()
 

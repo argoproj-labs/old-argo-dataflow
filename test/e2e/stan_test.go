@@ -11,8 +11,8 @@ import (
 
 func TestSTAN(t *testing.T) {
 
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
+	
 
 	longSubject, subject := RandomSTANSubject()
 
