@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"math/rand"
+	"net/http"
+	"time"
+
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/nats-io/nats.go"
-	"github.com/nats-io/stan.go"
 	"github.com/paulbellamy/ratecounter"
-	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"net/http"
-	"time"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 func connectSinks(ctx context.Context) (func([]byte) error, error) {
@@ -27,7 +28,7 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 		}
 		rateCounters[sinkName] = ratecounter.NewRateCounter(updateInterval)
 		if x := sink.STAN; x != nil {
-			if f, err := connectSTANSink(sinkName, x); err != nil {
+			if f, err := connectSTANSink(ctx, sinkName, x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = f
@@ -134,38 +135,55 @@ func connectKafkaSink(x *dfv1.Kafka, sinkName string) (func(msg []byte) error, e
 	return f, nil
 }
 
-func connectSTANSink(sinkName string, x *dfv1.STAN) (func(msg []byte) error, error) {
-	opts := []nats.Option{}
-	switch x.AuthStrategy() {
-	case dfv1.STANAuthToken:
-		token, err := getSTANAuthToken(context.Background(), x)
-		if err != nil {
-			return nil, err
-		}
-		opts = append(opts, nats.Token(token))
-	default:
+func connectSTANSink(ctx context.Context, sinkName string, x *dfv1.STAN) (func(msg []byte) error, error) {
+	genClientID := func() string {
+		// In a particular situation, the stan connection status is inconsistent between stan server and client,
+		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
+		// the same client ID to reconnect will fail. To avoid that, add a random number in the client ID string.
+		s1 := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(s1)
+		return fmt.Sprintf("%s-%s-%d-sink-%s-%v", pipelineName, stepName, replica, sinkName, r1.Intn(100))
 	}
-	logger.Info("nats auth strategy: "+string(x.AuthStrategy()), "sink", sinkName)
-	nc, err := nats.Connect(x.NATSURL, opts...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to nats url=%s subject=%s: %w", x.NATSURL, x.Subject, err)
-	}
-	addStopHook(func(ctx context.Context) error {
-		logger.Info("closing nats connection", "sink", sinkName)
-		if nc != nil && nc.IsConnected() {
-			nc.Close()
-		}
-		return nil
-	})
-	clientID := fmt.Sprintf("%s-%s-%d-sink-%s", pipelineName, stepName, replica, sinkName)
-	sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsConn(nc))
+
+	var conn *stanConn
+	var err error
+	clientID := genClientID()
+	conn, err = ConnectSTAN(ctx, x, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing stan connection", "sink", sinkName)
-		return sc.Close()
+		if conn != nil && !conn.IsClosed() {
+			return conn.Close()
+		}
+		return nil
 	})
-	f := func(msg []byte) error { return sc.Publish(x.Subject, msg) }
+
+	go func() {
+		defer runtimeutil.HandleCrash()
+		logger.Info("starting stan auto reconnection daemon", "sink", sinkName)
+		for {
+			time.Sleep(5 * time.Second)
+			select {
+			case <-ctx.Done():
+				logger.Info("exiting stan auto reconnection daemon", "sink", sinkName)
+				return
+			default:
+			}
+			if conn == nil || conn.IsClosed() {
+				logger.Info("stan connection lost, reconnecting...", "sink", sinkName)
+				clientID := genClientID()
+				conn, err = ConnectSTAN(ctx, x, clientID)
+				if err != nil {
+					logger.Error(err, "failed to reconnect", "sink", sinkName, "clientID", clientID)
+					continue
+				}
+				logger.Info("reconnected to stan server.", "sink", sinkName, "clientID", clientID)
+			}
+		}
+	}()
+
+	f := func(msg []byte) error { return conn.sc.Publish(x.Subject, msg) }
 	return f, nil
 }
