@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/segmentio/kafka-go"
 	"io"
 	"math/rand"
 	"net/http"
 	"time"
 
-	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/paulbellamy/ratecounter"
@@ -112,25 +112,17 @@ func connectLogSink() func(msg []byte) error {
 }
 
 func connectKafkaSink(x *dfv1.Kafka, sinkName string) (func(msg []byte) error, error) {
-	config, err := newKafkaConfig(x)
-	if err != nil {
-		return nil, err
-	}
-	config.Producer.Return.Successes = true
-	producer, err := sarama.NewSyncProducer(x.Brokers, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create kafka producer: %w", err)
-	}
+	writer := kafka.NewWriter(kafka.WriterConfig{
+		Brokers:      x.Brokers,
+		Dialer:       newKafkaDialer(x),
+		Topic:        x.Topic,
+	})
 	addStopHook(func(ctx context.Context) error {
-		logger.Info("closing stan producer", "sink", sinkName)
-		return producer.Close()
+		logger.Info("closing kafka write", "sink", sinkName)
+		return writer.Close()
 	})
 	f := func(msg []byte) error {
-		_, _, err := producer.SendMessage(&sarama.ProducerMessage{
-			Topic: x.Topic,
-			Value: sarama.ByteEncoder(msg),
-		})
-		return err
+		return writer.WriteMessages(context.Background(), kafka.Message{Value: msg})
 	}
 	return f, nil
 }

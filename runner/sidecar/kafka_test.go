@@ -47,24 +47,6 @@ func Test_kafkaFromSecret(t *testing.T) {
 			assert.NotNil(t, x.NET.TLS)
 		}
 	})
-	t.Run("CommitN", func(t *testing.T) {
-		x := &dfv1.Kafka{}
-		err := kafkaFromSecret(x, &corev1.Secret{
-			Data: map[string][]byte{
-				"commitN": []byte("1"),
-			},
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, 1, int(x.CommitN))
-	})
-	t.Run("ErrCommitN", func(t *testing.T) {
-		err := kafkaFromSecret(&dfv1.Kafka{}, &corev1.Secret{
-			Data: map[string][]byte{
-				"commitN": []byte("not-an-int"),
-			},
-		})
-		assert.Error(t, err)
-	})
 }
 
 func Test_enrichKafka(t *testing.T) {
@@ -73,7 +55,6 @@ func Test_enrichKafka(t *testing.T) {
 		x := &dfv1.Kafka{}
 		err := enrichKafka(context.Background(), k.CoreV1().Secrets(""), x)
 		assert.NoError(t, err)
-		assert.Equal(t, 20, int(x.CommitN))
 	})
 	t.Run("Found", func(t *testing.T) {
 		k := fake.NewSimpleClientset(&corev1.Secret{
@@ -87,6 +68,5 @@ func Test_enrichKafka(t *testing.T) {
 		x := &dfv1.Kafka{Name: "foo"}
 		err := enrichKafka(context.Background(), k.CoreV1().Secrets(""), x)
 		assert.NoError(t, err)
-		assert.Equal(t, 123, int(x.CommitN))
 	})
 }

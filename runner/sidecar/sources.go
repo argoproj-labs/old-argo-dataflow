@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/segmentio/kafka-go"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -121,62 +122,41 @@ func connectHTTPSource(sourceName string, f func(ctx context.Context, msg []byte
 }
 
 func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f func(ctx context.Context, msg []byte) error) error {
-	config, err := newKafkaConfig(x)
-	if err != nil {
-		return err
-	}
-	config.Consumer.Offsets.AutoCommit.Enable = false
-	client, err := sarama.NewClient(x.Brokers, config) // I am not giving any configuration
-	if err != nil {
-		return err
-	}
-	addPreStopHook(func(ctx context.Context) error {
-		logger.Info("closing kafka client", "source", sourceName)
-		return client.Close()
-	})
 	groupName := pipelineName + "-" + stepName + "-source-" + sourceName + "-" + x.Topic
-	group, err := sarama.NewConsumerGroupFromClient(groupName, client)
-	if err != nil {
-		return fmt.Errorf("failed to create kafka consumer group: %w", err)
-	}
-	handler := newHandler(f, int(x.CommitN))
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: x.Brokers,
+		Dialer:  newKafkaDialer(x),
+		GroupID: groupName,
+		Topic:   x.Topic,
+	})
 	addPreStopHook(func(ctx context.Context) error {
-		logger.Info("closing kafka consumer group", "source", sourceName)
-		if err := group.Close(); err != nil {
-			return err
-		}
-		for handler.ready {
-			select {
-			case <-ctx.Done():
-				return fmt.Errorf("failed to wait for handler to be un-ready: %w", ctx.Err())
-			default:
-				logger.Info("waiting for Kafka to be un-ready", "source", sourceName)
-				time.Sleep(time.Second)
-			}
-		}
-		return nil
+		logger.Info("closing kafka reader", "source", sourceName)
+		return reader.Close()
 	})
 	go wait.JitterUntil(func() {
-		if err := group.Consume(ctx, []string{x.Topic}, handler); err != nil {
-			logger.Error(err, "failed to create kafka consumer")
+		ctx := context.Background()
+		for {
+			m, err := reader.ReadMessage(ctx)
+			if err != nil {
+				logger.Error(err, "failed to read kafka message", "source", sourceName)
+			} else if err := f(ctx, m.Value); err != nil {
+				// noop
+			}
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
-	for !handler.ready {
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("failed to wait for handler to be ready: %w", ctx.Err())
-		default:
-			logger.Info("waiting for Kafka to be ready", "source", sourceName)
-			time.Sleep(time.Second)
-		}
-	}
 	if leadReplica() {
-		registerKafkaSetPendingHook(x, sourceName, client, config, groupName)
+		if err := registerKafkaSetPendingHook(x, sourceName, groupName); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func registerKafkaSetPendingHook(x *dfv1.Kafka, sourceName string, client sarama.Client, config *sarama.Config, groupName string) {
+func registerKafkaSetPendingHook(x *dfv1.Kafka, sourceName string, groupName string) error {
+	config, err := newKafkaConfig(x)
+	if err != nil {
+		return err
+	}
 	prePatchHooks = append(prePatchHooks, func(ctx context.Context) error {
 		adminClient, err := sarama.NewClusterAdmin(x.Brokers, config)
 		if err != nil {
@@ -185,6 +165,15 @@ func registerKafkaSetPendingHook(x *dfv1.Kafka, sourceName string, client sarama
 		defer func() {
 			if err := adminClient.Close(); err != nil {
 				logger.Error(err, "failed to close Kafka admin client", "source", sourceName)
+			}
+		}()
+		client, err := sarama.NewClient(x.Brokers, config) // I am not giving any configuration
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if err := client.Close(); err != nil {
+				logger.Error(err, "failed to close Kafka client", "source", sourceName)
 			}
 		}()
 		partitions, err := client.Partitions(x.Topic)
@@ -211,6 +200,7 @@ func registerKafkaSetPendingHook(x *dfv1.Kafka, sourceName string, client sarama
 		withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, uint64(totalLags)) })
 		return nil
 	})
+	return nil
 }
 
 func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f func(ctx context.Context, msg []byte) error) error {
