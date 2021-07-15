@@ -34,11 +34,8 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 				sinks[sinkName] = f
 			}
 		} else if x := sink.Kafka; x != nil {
-			if f, err := connectKafkaSink(x, sinkName); err != nil {
-				return nil, err
-			} else {
-				sinks[sinkName] = f
-			}
+			sinks[sinkName] = connectKafkaSink(x, sinkName)
+
 		} else if x := sink.Log; x != nil {
 			sinks[sinkName] = connectLogSink()
 		} else if x := sink.HTTP; x != nil {
@@ -111,20 +108,19 @@ func connectLogSink() func(msg []byte) error {
 	}
 }
 
-func connectKafkaSink(x *dfv1.Kafka, sinkName string) (func(msg []byte) error, error) {
+func connectKafkaSink(x *dfv1.Kafka, sinkName string) func(msg []byte) error {
 	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:      x.Brokers,
-		Dialer:       newKafkaDialer(x),
-		Topic:        x.Topic,
+		Brokers: x.Brokers,
+		Dialer:  newKafkaDialer(x),
+		Topic:   x.Topic,
 	})
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing kafka write", "sink", sinkName)
 		return writer.Close()
 	})
-	f := func(msg []byte) error {
+	return func(msg []byte) error {
 		return writer.WriteMessages(context.Background(), kafka.Message{Value: msg})
 	}
-	return f, nil
 }
 
 func connectSTANSink(ctx context.Context, sinkName string, x *dfv1.STAN) (func(msg []byte) error, error) {

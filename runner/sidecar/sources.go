@@ -139,8 +139,8 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 			m, err := reader.ReadMessage(ctx)
 			if err != nil {
 				logger.Error(err, "failed to read kafka message", "source", sourceName)
-			} else if err := f(ctx, m.Value); err != nil {
-				// noop
+			} else {
+				_ = f(ctx, m.Value)
 			}
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
