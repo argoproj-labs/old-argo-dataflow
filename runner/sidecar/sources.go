@@ -368,9 +368,10 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors()) })
 
 	promauto.NewCounterFunc(prometheus.CounterOpts{
-		Subsystem: "sources",
-		Name:      "retries",
-		Help:      "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
+		Subsystem:   "sources",
+		Name:        "retries",
+		Help:        "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
+		ConstLabels: map[string]string{"sourceName": source.Name},
 	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetRetries()) })
 
 }
