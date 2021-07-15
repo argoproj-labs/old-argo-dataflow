@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.0.67 (2021-07-15)
+
+ * [573b31c](https://github.com/argoproj-labs/argo-dataflow/commit/573b31c50db92c85aad9fbf640a79bbfb67410cd) feat: stan reliable auto reconnection (#112)
+
+### Contributors
+
+ * Derek Wang
+
+## v0.0.66 (2021-07-15)
+
+ * [8f81586](https://github.com/argoproj-labs/argo-dataflow/commit/8f81586a710505decd2855b02629a60d7d4ac276) feat: add version metrics. Closes #109
+ * [1adec35](https://github.com/argoproj-labs/argo-dataflow/commit/1adec358710bf0af3c84f5de5be7263b0b3bc6ca) fix: add retries labels
+ * [5465d3c](https://github.com/argoproj-labs/argo-dataflow/commit/5465d3c2a8a67f906198fcd65c54ef38516ebfef) fix: wait for Kafka
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.65 (2021-07-13)
 
  * [e8fa437](https://github.com/argoproj-labs/argo-dataflow/commit/e8fa437ccd0f82ed6a2b50a194edb1b738444a22) fix: use shared counter for Kafka commit
