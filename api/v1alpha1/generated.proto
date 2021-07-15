@@ -181,6 +181,8 @@ message Kafka {
   optional string version = 4;
 
   optional KafkaNET net = 5;
+
+  optional uint32 commitN = 6;
 }
 
 message KafkaNET {

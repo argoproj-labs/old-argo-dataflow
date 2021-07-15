@@ -3,25 +3,28 @@ package sidecar
 import (
 	"context"
 	"github.com/Shopify/sarama"
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
-func newHandler(f func(ctx context.Context, msg []byte) error) *handler {
-	return &handler{f: f, ready: false}
+func newHandler(f func(ctx context.Context, msg []byte) error, commitN int) *handler {
+	return &handler{f: f, commitN: commitN}
 }
 
 type handler struct {
-	f     func(context.Context, []byte) error
-	ready bool
-	i     int
+	f       func(context.Context, []byte) error
+	ready   bool
+	i       int
+	commitN int
 }
 
 func (h *handler) Setup(sarama.ConsumerGroupSession) error {
+	logger.Info("setting up Kafka consumer")
 	h.ready = true
 	return nil
 }
 
-func (h *handler) Cleanup(sarama.ConsumerGroupSession) error {
+func (h *handler) Cleanup(sess sarama.ConsumerGroupSession) error {
+	logger.Info("cleaning up Kafka consumer")
+	sess.Commit()
 	h.ready = false
 	return nil
 }
@@ -34,7 +37,7 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 		} else {
 			sess.MarkMessage(m, "")
 			h.i++
-			if h.i%dfv1.CommitN == 0 {
+			if h.i%h.commitN == 0 {
 				sess.Commit()
 			}
 		}

@@ -139,7 +139,7 @@ func connectKafkaSource(ctx context.Context, x *dfv1.Kafka, sourceName string, f
 	if err != nil {
 		return fmt.Errorf("failed to create kafka consumer group: %w", err)
 	}
-	handler := newHandler(f)
+	handler := newHandler(f, int(x.CommitN))
 	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing kafka consumer group", "source", sourceName)
 		if err := group.Close(); err != nil {

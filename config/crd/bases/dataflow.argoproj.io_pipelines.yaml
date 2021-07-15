@@ -1172,6 +1172,9 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                              commitN:
+                                format: int32
+                                type: integer
                               name:
                                 default: default
                                 type: string
@@ -1265,6 +1268,9 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                              commitN:
+                                format: int32
+                                type: integer
                               name:
                                 default: default
                                 type: string

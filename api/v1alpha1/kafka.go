@@ -11,4 +11,5 @@ type Kafka struct {
 	Topic   string    `json:"topic" protobuf:"bytes,3,opt,name=topic"`
 	Version string    `json:"version,omitempty" protobuf:"bytes,4,opt,name=version"`
 	NET     *KafkaNET `json:"net,omitempty" protobuf:"bytes,5,opt,name=net"`
+	CommitN uint32    `json:"commitN,omitempty" protobuf:"varint,6,opt,name=commitN"`
 }
