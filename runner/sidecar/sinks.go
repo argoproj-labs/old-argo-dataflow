@@ -14,6 +14,7 @@ import (
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/paulbellamy/ratecounter"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 func connectSinks(ctx context.Context) (func([]byte) error, error) {
@@ -160,25 +161,25 @@ func connectSTANSink(ctx context.Context, sinkName string, x *dfv1.STAN) (func(m
 	})
 
 	go func() {
+		defer runtimeutil.HandleCrash()
 		logger.Info("starting stan auto reconnection daemon", "sink", sinkName)
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
 		for {
+			time.Sleep(5 * time.Second)
 			select {
 			case <-ctx.Done():
 				logger.Info("exiting stan auto reconnection daemon", "sink", sinkName)
 				return
-			case <-ticker.C:
-				if conn == nil || conn.IsClosed() {
-					logger.Info("stan connection lost, reconnecting...", "sink", sinkName)
-					clientID := genClientID()
-					conn, err = ConnectSTAN(ctx, x, clientID)
-					if err != nil {
-						logger.Error(err, "failed to reconnect", "sink", sinkName, "clientID", clientID)
-						continue
-					}
-					logger.Info("reconnected to stan server.", "sink", sinkName, "clientID", clientID)
+			default:
+			}
+			if conn == nil || conn.IsClosed() {
+				logger.Info("stan connection lost, reconnecting...", "sink", sinkName)
+				clientID := genClientID()
+				conn, err = ConnectSTAN(ctx, x, clientID)
+				if err != nil {
+					logger.Error(err, "failed to reconnect", "sink", sinkName, "clientID", clientID)
+					continue
 				}
+				logger.Info("reconnected to stan server.", "sink", sinkName, "clientID", clientID)
 			}
 		}
 	}()
