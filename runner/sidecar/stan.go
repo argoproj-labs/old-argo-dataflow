@@ -98,7 +98,7 @@ func (nsc *stanConn) IsClosed() bool {
 	return false
 }
 
-func ConnectSTAN(ctx context.Context, sourceName string, x *dfv1.STAN, clientID string) (*stanConn, error) {
+func ConnectSTAN(ctx context.Context, x *dfv1.STAN, clientID string) (*stanConn, error) {
 	conn := &stanConn{}
 	opts := []nats.Option{
 		// Do not reconnect here but handle reconnction outside
@@ -121,7 +121,7 @@ func ConnectSTAN(ctx context.Context, sourceName string, x *dfv1.STAN, clientID 
 		opts = append(opts, nats.Token(token))
 	default:
 	}
-	logger.Info("nats auth strategy: "+string(x.AuthStrategy()), "source", sourceName)
+	logger.Info("nats auth strategy: " + string(x.AuthStrategy()))
 	nc, err := nats.Connect(x.NATSURL, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to nats url=%s subject=%s: %w", x.NATSURL, x.Subject, err)

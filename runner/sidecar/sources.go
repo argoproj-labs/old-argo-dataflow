@@ -225,7 +225,7 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 	var conn *stanConn
 	var err error
 	clientID := genClientID()
-	conn, err = ConnectSTAN(ctx, sourceName, x, clientID)
+	conn, err = ConnectSTAN(ctx, x, clientID)
 	if err != nil {
 		return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
@@ -272,27 +272,27 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 	}
 
 	go func() {
-		logger.Info("starting stan auto reconnection daemon")
+		logger.Info("starting stan auto reconnection daemon", "source", sourceName)
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():
-				logger.Info("exiting stan auto reconnection daemon")
+				logger.Info("exiting stan auto reconnection daemon", "source", sourceName)
 				return
 			case <-ticker.C:
 				if conn == nil || conn.IsClosed() {
 					_ = sub.Close()
-					logger.Info("stan connection lost, reconnecting...")
+					logger.Info("stan connection lost, reconnecting...", "source", sourceName)
 					clientID := genClientID()
-					conn, err = ConnectSTAN(ctx, sourceName, x, clientID)
+					conn, err = ConnectSTAN(ctx, x, clientID)
 					if err != nil {
-						logger.Error(err, "failed to reconnect", "clientID", clientID)
+						logger.Error(err, "failed to reconnect", "source", sourceName, "clientID", clientID)
 						continue
 					}
-					logger.Info("reconnected to stan server.", "clientID", clientID)
+					logger.Info("reconnected to stan server.", "source", sourceName, "clientID", clientID)
 					if sub, err = subFunc(); err != nil {
-						logger.Error(err, "failed to subscribe after reconnection", "clientID", clientID)
+						logger.Error(err, "failed to subscribe after reconnection", "source", sourceName, "clientID", clientID)
 						// Close the connection to let it retry
 						_ = conn.Close()
 					}
