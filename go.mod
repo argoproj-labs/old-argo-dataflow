@@ -5,7 +5,7 @@ go 1.16
 require (
 	cloud.google.com/go v0.52.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
-	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Shopify/sarama v1.29.1
 	github.com/antonmedv/expr v1.8.9

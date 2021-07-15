@@ -34,8 +34,9 @@ jobs:
           tag=$(basename $GITHUB_REF)
           if [ $tag = "main" ]; then
             tag="latest"
+            version="v0.0.0-latest-0"
           fi
-          docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:$tag --push --build-arg VERSION="$tag"
+          docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:$tag --push --build-arg VERSION="$version"
 
   publish-release:
     runs-on: ubuntu-latest

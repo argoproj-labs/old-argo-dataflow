@@ -43,6 +43,9 @@ func TestMetrics(t *testing.T) {
 	WaitForStep(TotalSunkMessages(1))
 
 	ExpectMetric("input_inflight", 0)
+	ExpectMetric("version_major", 0)
+	ExpectMetric("version_minor", 0)
+	ExpectMetric("version_patch", 0)
 	ExpectMetric("replicas", 1)
 	ExpectMetric("sources_errors", 0)
 	ExpectMetric("sources_pending", 0)

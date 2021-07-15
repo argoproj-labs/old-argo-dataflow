@@ -106,6 +106,18 @@ func Exec(ctx context.Context) error {
 			Name: "replicas",
 			Help: "Number of replicas, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#replicas",
 		}, func() float64 { return float64(step.Status.Replicas) })
+		promauto.NewGaugeFunc(prometheus.GaugeOpts{
+			Name: "version_major",
+			Help: "Major version number, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#version_major",
+		}, func() float64 { return float64(sharedutil.Version.Major()) })
+		promauto.NewGaugeFunc(prometheus.GaugeOpts{
+			Name: "version_minor",
+			Help: "Minor version number, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#version_minor",
+		}, func() float64 { return float64(sharedutil.Version.Minor()) })
+		promauto.NewGaugeFunc(prometheus.GaugeOpts{
+			Name: "version_patch",
+			Help: "Patch version number, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#version_patch",
+		}, func() float64 { return float64(sharedutil.Version.Patch()) })
 	}
 
 	// we listen to this message, but it does not come from Kubernetes, it actually comes from the main container's

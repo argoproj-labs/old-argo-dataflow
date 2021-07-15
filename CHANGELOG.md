@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.0.65 (2021-07-13)
+
+ * [e8fa437](https://github.com/argoproj-labs/argo-dataflow/commit/e8fa437ccd0f82ed6a2b50a194edb1b738444a22) fix: use shared counter for Kafka commit
+ * [3ad7cf1](https://github.com/argoproj-labs/argo-dataflow/commit/3ad7cf1ddcf70752ebdd9684bb8ccb10aed0d8f1) fix: stop Kafka dropping messages on disruption
+ * [9a86950](https://github.com/argoproj-labs/argo-dataflow/commit/9a8695069c1d68923e6340d75d6a420c1805a339) fix: return 503 if HTTP source not ready due to pre-stop
+ * [2155591](https://github.com/argoproj-labs/argo-dataflow/commit/2155591cbbe026a403e690a55b51cfece68e2adf) feat: change default deletion delay to 720h (~30d)
+ * [8fb4c17](https://github.com/argoproj-labs/argo-dataflow/commit/8fb4c17eb838023e43e1e647205c185745ac434b) fix!: harmonize `retries`
+ * [0aa7aa4](https://github.com/argoproj-labs/argo-dataflow/commit/0aa7aa40281d0f1844c3a253659c428b6df7e823) fix: add timeout to HTTP sink
+ * [f5e89b9](https://github.com/argoproj-labs/argo-dataflow/commit/f5e89b99ad46240b0f4b175f95476c2f9d4edec0) fix: correct hash
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.64 (2021-07-12)
 
  * [11b2033](https://github.com/argoproj-labs/argo-dataflow/commit/11b2033b81a4ac2ecdd9e449cd3c11bba652e653) feat: update resources to only apply to built-ins

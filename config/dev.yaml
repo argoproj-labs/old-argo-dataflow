@@ -4846,7 +4846,7 @@ spec:
   containers:
   - args:
     - -fvN
-    - http://testapi/kafka/pump-topic?topic=input-topic&sleep=500ms
+    - http://testapi/kafka/pump-topic?topic=input-topic&sleep=2s
     command:
     - curl
     image: golang:1.16

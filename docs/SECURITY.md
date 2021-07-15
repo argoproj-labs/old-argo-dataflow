@@ -4,7 +4,7 @@
 
 * For base images prefer `scratch` then `distroless` then `alpine`.
 * Snyk is used to scan images.
-* Synk is used to scan imported Go modules.
+* Snyk is used to scan imported Go modules.
 
 ## Configuration
 

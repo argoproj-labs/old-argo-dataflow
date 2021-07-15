@@ -3,6 +3,7 @@
 
 # Image URL to use all building/pushing image targets
 TAG ?= latest
+VERSION ?= v0.0.0-latest-0
 CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
@@ -134,10 +135,14 @@ java16: java16-image
 python3-9: python3-9-image
 
 %-image:
-	docker buildx build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG) --load --build-arg VERSION="$(TAG)"
+	docker buildx build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG) --load --build-arg VERSION="$(VERSION)"
 ifeq ($(K3D),true)
 	k3d image import quay.io/argoproj/dataflow-$*:$(TAG)
 endif
+
+scan: scan-controller scan-runner scan-testapi scan-go1-16 scan-java16 scan-python3-9
+	snyk test --severity-threshold=high
+
 scan-%:
 	docker scan --severity=high quay.io/argoproj/dataflow-$*:$(TAG)
 

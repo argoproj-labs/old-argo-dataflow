@@ -27,7 +27,11 @@ func init() {
 	if imagePrefix == "" {
 		imagePrefix = "quay.io/argoproj"
 	}
-	imageFormat = fmt.Sprintf("%s/%s:%s", imagePrefix, "%s", util.Version())
+	tag := util.Version.Original() //we don't use String() because semantic version do not have "v" prefix
+	if tag == "v0.0.0-latest-0" {
+		tag = "latest"
+	}
+	imageFormat = fmt.Sprintf("%s/%s:%s", imagePrefix, "%s", tag)
 	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
 	if text, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
 		if v, err := time.ParseDuration(text); err != nil {
