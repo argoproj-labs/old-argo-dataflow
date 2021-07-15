@@ -151,7 +151,7 @@ func connectSTANSink(ctx context.Context, sinkName string, x *dfv1.STAN) (func(m
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
-	addPreStopHook(func(ctx context.Context) error {
+	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing stan connection", "sink", sinkName)
 		if conn != nil && !conn.IsClosed() {
 			return conn.Close()
