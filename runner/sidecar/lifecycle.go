@@ -2,9 +2,10 @@ package sidecar
 
 import (
 	"context"
-	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"sync"
 	"time"
+
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
 type hook = func(ctx context.Context) error

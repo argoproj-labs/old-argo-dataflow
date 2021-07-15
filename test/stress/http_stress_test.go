@@ -3,15 +3,15 @@
 package stress
 
 import (
+	"testing"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 func TestHTTPSourceStress(t *testing.T) {
-
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
@@ -43,7 +43,6 @@ func TestHTTPSourceStress(t *testing.T) {
 }
 
 func TestHTTPSinkStress(t *testing.T) {
-
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{

@@ -3,17 +3,16 @@
 package stress
 
 import (
+	"testing"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
-
 	defer Setup(t)()
-	
 
 	topic := CreateKafkaTopic()
 
@@ -44,11 +43,9 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 }
 
 func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
-
 	t.SkipNow()
 
 	defer Setup(t)()
-	
 
 	topic := CreateKafkaTopic()
 	CreatePipeline(Pipeline{
@@ -79,9 +76,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 }
 
 func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
-
 	defer Setup(t)()
-	
 
 	topic := CreateKafkaTopic()
 

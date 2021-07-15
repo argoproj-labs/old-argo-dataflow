@@ -4,13 +4,13 @@ package test
 
 import (
 	"context"
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"log"
 	"time"
+
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 func StartTPSLogger(n int) (stopTPSLogger func()) {
-
 	ctx, cancel := context.WithCancel(context.Background())
 	start := time.Now()
 

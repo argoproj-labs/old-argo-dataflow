@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/segmentio/kafka-go"
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -397,5 +398,4 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 		Help:        "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
 		ConstLabels: map[string]string{"sourceName": source.Name},
 	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetRetries()) })
-
 }

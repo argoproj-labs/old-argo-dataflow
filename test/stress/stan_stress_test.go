@@ -3,15 +3,15 @@
 package stress
 
 import (
+	"testing"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 func TestStanSourceStress(t *testing.T) {
-
 	defer Setup(t)()
 
 	longSubject, subject := RandomSTANSubject()
@@ -45,7 +45,6 @@ func TestStanSourceStress(t *testing.T) {
 }
 
 func TestStanSinkStress(t *testing.T) {
-
 	defer Setup(t)()
 
 	longSubject, subject := RandomSTANSubject()

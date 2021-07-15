@@ -3,19 +3,18 @@
 package stress
 
 import (
+	"testing"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 func TestKafkaSourceStress(t *testing.T) {
-
 	SkipIfCI(t)
 
 	defer Setup(t)()
-	
 
 	topic := CreateKafkaTopic()
 
@@ -48,11 +47,9 @@ func TestKafkaSourceStress(t *testing.T) {
 }
 
 func TestKafkaSinkStress(t *testing.T) {
-
 	SkipIfCI(t)
 
 	defer Setup(t)()
-	
 
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()

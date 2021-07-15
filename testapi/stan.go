@@ -78,7 +78,6 @@ func init() {
 						fmt.Printf("Received ack for msg id %s\n", ackedNuid)
 					}
 				})
-
 				if err != nil {
 					_, _ = w.Write([]byte(fmt.Sprintf("Failed to publish message, error: %v\n", err.Error())))
 					return

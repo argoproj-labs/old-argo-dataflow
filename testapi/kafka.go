@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/Shopify/sarama"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/Shopify/sarama"
 )
 
 func init() {

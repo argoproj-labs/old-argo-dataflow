@@ -11,9 +11,7 @@ import (
 )
 
 func TestCronSource(t *testing.T) {
-
 	defer Setup(t)()
-	
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "cron"},

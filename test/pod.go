@@ -5,19 +5,18 @@ package test
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
+
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/podexec"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"log"
-	"time"
 )
 
-var (
-	podInterface = kubernetesInterface.CoreV1().Pods(namespace)
-)
+var podInterface = kubernetesInterface.CoreV1().Pods(namespace)
 
 func ToBeReady(p *corev1.Pod) bool {
 	for _, c := range p.Status.Conditions {

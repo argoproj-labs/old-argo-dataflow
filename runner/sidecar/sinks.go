@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"io"
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/segmentio/kafka-go"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
@@ -35,7 +36,6 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 			}
 		} else if x := sink.Kafka; x != nil {
 			sinks[sinkName] = connectKafkaSink(x, sinkName)
-
 		} else if x := sink.Log; x != nil {
 			sinks[sinkName] = connectLogSink()
 		} else if x := sink.HTTP; x != nil {

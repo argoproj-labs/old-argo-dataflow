@@ -87,6 +87,7 @@ func deletePipelines() {
 		panic(err)
 	}
 }
+
 func waitFor(t *testing.T, pipelineName string, condition string, timeout time.Duration) {
 	ctx := context.Background()
 	w, err := pipelinesInterface.Watch(ctx, metav1.ListOptions{FieldSelector: "metadata.namespace=" + namespace + ",metadata.name=" + pipelineName})
