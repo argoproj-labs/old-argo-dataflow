@@ -250,7 +250,7 @@ func enrichSources(ctx context.Context, secrets v1.SecretInterface) error {
 			}
 			source.STAN = x
 		} else if x := source.Kafka; x != nil {
-			if err := enrichKafka(ctx, secrets, x); err != nil {
+			if err := enrichKafka(ctx, secrets, &x.Kafka); err != nil {
 				return err
 			}
 			source.Kafka = x

@@ -187,6 +187,13 @@ message KafkaNET {
   optional TLS tls = 1;
 }
 
+message KafkaSource {
+  optional Kafka kafka = 1;
+
+  // +kubebuilder:default=Last
+  optional string startOffset = 2;
+}
+
 message Log {
 }
 
@@ -264,6 +271,11 @@ message STAN {
   optional string subjectPrefix = 6;
 
   optional STANAuth auth = 7;
+
+  // Max inflight messages when subscribing to the stan server, which means how many messages
+  // between commits, therefore potential duplicates during disruption
+  // +kubebuilder:default=20
+  optional uint32 maxInflight = 9;
 }
 
 message STANAuth {
@@ -300,7 +312,7 @@ message Source {
 
   optional STAN stan = 3;
 
-  optional Kafka kafka = 4;
+  optional KafkaSource kafka = 4;
 
   optional HTTPSource http = 5;
 

@@ -17,12 +17,12 @@ import (
 var logger = sharedutil.NewLogger()
 
 type kafkaSource struct {
-	source    dfv1.Kafka
+	source    dfv1.KafkaSource
 	reader    *kafka.Reader
 	groupName string
 }
 
-func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.Kafka, f source.Func) (source.Interface, error) {
+func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
 	groupName := pipelineName + "-" + stepName + "-source-" + sourceName + "-" + x.Topic
 	var t *tls.Config
 	if x.NET != nil && x.NET.TLS != nil {
@@ -34,12 +34,16 @@ func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.
 		DualStack: true,
 		TLS:       t,
 	}
+	startOffset := kafka.LastOffset
+	if x.StartOffset == "First" {
+		startOffset = kafka.FirstOffset
+	}
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:     x.Brokers,
 		Dialer:      dialer,
 		GroupID:     groupName,
 		Topic:       x.Topic,
-		StartOffset: kafka.LastOffset,
+		StartOffset: startOffset,
 	})
 	go wait.JitterUntil(func() {
 		ctx := context.Background()
@@ -82,7 +86,7 @@ func newKafkaConfig(k dfv1.Kafka) (*sarama.Config, error) {
 }
 
 func (s kafkaSource) GetPending() (uint64, error) {
-	config, err := newKafkaConfig(s.source)
+	config, err := newKafkaConfig(s.source.Kafka)
 	if err != nil {
 		return 0, err
 	}

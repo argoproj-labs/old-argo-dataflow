@@ -15,6 +15,7 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
@@ -22,8 +23,8 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:    "main",
 				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
+				Sinks:   []Sink{{Kafka: &Kafka{Topic: sinkTopic}}},
 			}},
 		},
 	})
@@ -54,7 +55,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:    "main",
 				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
+				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
 				Sinks:   []Sink{{Log: &Log{}}},
 			}},
 		},
@@ -86,7 +87,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:    "main",
 				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
+				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
 				Sinks: []Sink{
 					{Name: "log", Log: &Log{}},
 					{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}},

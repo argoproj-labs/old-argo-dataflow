@@ -1281,6 +1281,12 @@ spec:
                                   tls:
                                     type: object
                                 type: object
+                              startOffset:
+                                default: Last
+                                enum:
+                                - First
+                                - Last
+                                type: string
                               topic:
                                 type: string
                               version:

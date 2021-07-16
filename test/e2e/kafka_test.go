@@ -22,7 +22,7 @@ func TestKafka(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:    "main",
 				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
+				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
 				Sinks:   []Sink{{Kafka: &Kafka{Topic: sinkTopic}}},
 			}},
 		},
