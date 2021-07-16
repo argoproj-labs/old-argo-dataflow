@@ -29,7 +29,7 @@ func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) {
 	s.ClusterID = dfv1.StringOr(s.ClusterID, string(secret.Data["clusterId"]))
 	s.SubjectPrefix = dfv1.SubjectPrefixOr(s.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
 	if b, ok := secret.Data["maxInflight"]; ok {
-		if i, err := strconv.ParseUint(string(b), 10, 64); err != nil {
+		if i, err := strconv.ParseUint(string(b), 10, 32); err != nil {
 			logger.Error(err, "failed to parse maxInflight")
 			panic(err)
 		} else {
