@@ -42,3 +42,34 @@ func TestHTTPSource(t *testing.T) {
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 }
+
+func TestHTTPSink(t *testing.T) {
+	defer Setup(t)()
+
+	CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: "http"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{
+				{
+					Name:    "main",
+					Cat:     &Cat{},
+					Sources: []Source{{HTTP: &HTTPSource{ServiceName: "in"}}},
+					Sinks:   []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
+				},
+			},
+		},
+	})
+
+	WaitForPipeline()
+	WaitForPod()
+
+	defer StartPortForward("http-main-0")()
+
+	SendMessageViaHTTP("my-msg")
+
+	WaitForPipeline(UntilMessagesSunk)
+	WaitForCounter(1, 1)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
+}
