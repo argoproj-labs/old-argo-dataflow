@@ -21,7 +21,7 @@ func StartTPSLogger(n int) (stopTPSLogger func()) {
 		for {
 			select {
 			case <-ctx.Done():
-				log.Printf("TPS metrics logger\n")
+				log.Printf("stopped TPS logger\n")
 				return
 			case <-t.C:
 				log.Printf("%.f TPS\n", float64(n)/(time.Since(start).Seconds()))

@@ -110,10 +110,10 @@ func connectLogSink() func(msg []byte) error {
 
 func connectKafkaSink(x *dfv1.Kafka, sinkName string) func(msg []byte) error {
 	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:      x.Brokers,
-		Dialer:       newKafkaDialer(x),
-		Topic:        x.Topic,
-		BatchTimeout: 10 * time.Millisecond,
+		Brokers:   x.Brokers,
+		Dialer:    newKafkaDialer(x),
+		Topic:     x.Topic,
+		BatchSize: 1,
 	})
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing kafka write", "sink", sinkName)

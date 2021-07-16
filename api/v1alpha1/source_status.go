@@ -1,6 +1,8 @@
 package v1alpha1
 
-import "time"
+import (
+	"time"
+)
 
 type SourceStatus struct {
 	LastMessage *Message           `json:"lastMessage,omitempty" protobuf:"bytes,2,opt,name=lastMessage"`
