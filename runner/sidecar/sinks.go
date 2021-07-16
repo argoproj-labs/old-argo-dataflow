@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
 	"io"
 	"math/rand"
 	"net/http"
@@ -102,10 +103,7 @@ func connectHTTPSink(ctx context.Context, x *dfv1.HTTPSink) (func(msg []byte) er
 }
 
 func connectLogSink() func(msg []byte) error {
-	return func(msg []byte) error { //nolint:golint,unparam
-		logger.Info(string(msg), "type", "log")
-		return nil
-	}
+	return logsink.New().Sink
 }
 
 func connectKafkaSink(x *dfv1.Kafka, sinkName string) func(msg []byte) error {
