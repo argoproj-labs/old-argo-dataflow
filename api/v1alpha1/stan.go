@@ -20,6 +20,10 @@ type STAN struct {
 	Subject           string        `json:"subject" protobuf:"bytes,3,opt,name=subject"`
 	SubjectPrefix     SubjectPrefix `json:"subjectPrefix,omitempty" protobuf:"bytes,6,opt,name=subjectPrefix,casttype=SubjectPrefix"`
 	Auth              *STANAuth     `json:"auth,omitempty" protobuf:"bytes,7,opt,name=auth"`
+	// Max inflight messages when subscribing to the stan server, which means how many messages
+	// between commits, therefore potential duplicates during disruption
+	// +kubebuilder:default=20
+	MaxInflight uint32 `json:"maxInflight,omitempty" protobuf:"bytes,9,opt,name=maxInflight"`
 }
 
 type STANAuth struct {
@@ -33,4 +37,11 @@ func (s *STAN) AuthStrategy() STANAuthStrategy {
 		}
 	}
 	return STANAuthNone
+}
+
+func (s *STAN) GetMaxInflight() int {
+	if s.MaxInflight < 1 {
+		return CommitN
+	}
+	return int(s.MaxInflight)
 }

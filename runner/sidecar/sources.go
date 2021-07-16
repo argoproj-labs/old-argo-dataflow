@@ -243,7 +243,7 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 			stan.SetManualAckMode(),
 			stan.StartAt(pb.StartPosition_NewOnly),
 			stan.AckWait(30*time.Second),
-			stan.MaxInflight(dfv1.CommitN))
+			stan.MaxInflight(x.GetMaxInflight()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to subscribe: %w", err)
 		}
@@ -265,28 +265,29 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 	go func() {
 		defer runtimeutil.HandleCrash()
 		logger.Info("starting stan auto reconnection daemon", "source", sourceName)
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
 		for {
-			time.Sleep(5 * time.Second)
 			select {
 			case <-ctx.Done():
 				logger.Info("exiting stan auto reconnection daemon", "source", sourceName)
 				return
-			default:
-			}
-			if conn == nil || conn.IsClosed() {
-				_ = sub.Close()
-				logger.Info("stan connection lost, reconnecting...", "source", sourceName)
-				clientID := genClientID()
-				conn, err = ConnectSTAN(ctx, x, clientID)
-				if err != nil {
-					logger.Error(err, "failed to reconnect", "source", sourceName, "clientID", clientID)
-					continue
-				}
-				logger.Info("reconnected to stan server.", "source", sourceName, "clientID", clientID)
-				if sub, err = subFunc(); err != nil {
-					logger.Error(err, "failed to subscribe after reconnection", "source", sourceName, "clientID", clientID)
-					// Close the connection to let it retry
-					_ = conn.Close()
+			case <-ticker.C:
+				if conn == nil || conn.IsClosed() {
+					_ = sub.Close()
+					logger.Info("stan connection lost, reconnecting...", "source", sourceName)
+					clientID := genClientID()
+					conn, err = ConnectSTAN(ctx, x, clientID)
+					if err != nil {
+						logger.Error(err, "failed to reconnect", "source", sourceName, "clientID", clientID)
+						continue
+					}
+					logger.Info("reconnected to stan server.", "source", sourceName, "clientID", clientID)
+					if sub, err = subFunc(); err != nil {
+						logger.Error(err, "failed to subscribe after reconnection", "source", sourceName, "clientID", clientID)
+						// Close the connection to let it retry
+						_ = conn.Close()
+					}
 				}
 			}
 		}

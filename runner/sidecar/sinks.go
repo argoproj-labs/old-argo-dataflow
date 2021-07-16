@@ -152,23 +152,24 @@ func connectSTANSink(ctx context.Context, sinkName string, x *dfv1.STAN) (func(m
 	go func() {
 		defer runtimeutil.HandleCrash()
 		logger.Info("starting stan auto reconnection daemon", "sink", sinkName)
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
 		for {
-			time.Sleep(5 * time.Second)
 			select {
 			case <-ctx.Done():
 				logger.Info("exiting stan auto reconnection daemon", "sink", sinkName)
 				return
-			default:
-			}
-			if conn == nil || conn.IsClosed() {
-				logger.Info("stan connection lost, reconnecting...", "sink", sinkName)
-				clientID := genClientID()
-				conn, err = ConnectSTAN(ctx, x, clientID)
-				if err != nil {
-					logger.Error(err, "failed to reconnect", "sink", sinkName, "clientID", clientID)
-					continue
+			case <-ticker.C:
+				if conn == nil || conn.IsClosed() {
+					logger.Info("stan connection lost, reconnecting...", "sink", sinkName)
+					clientID := genClientID()
+					conn, err = ConnectSTAN(ctx, x, clientID)
+					if err != nil {
+						logger.Error(err, "failed to reconnect", "sink", sinkName, "clientID", clientID)
+						continue
+					}
+					logger.Info("reconnected to stan server.", "sink", sinkName, "clientID", clientID)
 				}
-				logger.Info("reconnected to stan server.", "sink", sinkName, "clientID", clientID)
 			}
 		}
 	}()
