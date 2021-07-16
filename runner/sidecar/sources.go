@@ -87,7 +87,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		}
 		if x, ok := sources[sourceName].(io.Closer); ok {
 			logger.Info("adding pre-stop hook", "source", sourceName)
-			addStopHook(func(ctx context.Context) error {
+			addPreStopHook(func(ctx context.Context) error {
 				logger.Info("closing", "source", sourceName)
 				return x.Close()
 			})
