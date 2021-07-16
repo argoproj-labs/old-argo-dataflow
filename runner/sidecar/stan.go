@@ -3,6 +3,7 @@ package sidecar
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/nats-io/nats.go"
@@ -27,6 +28,14 @@ func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) {
 	s.NATSMonitoringURL = dfv1.StringOr(s.NATSMonitoringURL, string(secret.Data["natsMonitoringUrl"]))
 	s.ClusterID = dfv1.StringOr(s.ClusterID, string(secret.Data["clusterId"]))
 	s.SubjectPrefix = dfv1.SubjectPrefixOr(s.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
+	if b, ok := secret.Data["maxInflight"]; ok {
+		if i, err := strconv.ParseUint(string(b), 10, 64); err != nil {
+			logger.Error(err, "failed to parse maxInflight")
+			panic(err)
+		} else {
+			s.MaxInflight = uint32(i)
+		}
+	}
 	if _, ok := secret.Data["authToken"]; ok {
 		s.Auth = &dfv1.STANAuth{
 			Token: &corev1.SecretKeySelector{
