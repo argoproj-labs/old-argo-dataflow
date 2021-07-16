@@ -41,7 +41,7 @@ func (s *STAN) AuthStrategy() STANAuthStrategy {
 
 func (s *STAN) GetMaxInflight() int {
 	if s.MaxInflight < 1 {
-		return 1
+		return CommitN
 	}
 	return int(s.MaxInflight)
 }

@@ -4402,7 +4402,7 @@ metadata:
 stringData:
   authToken: testingtokentestingtoken
   clusterId: stan
-  maxInflight: 15
+  maxInflight: "15"
   natsMonitoringUrl: http://stan:8222
   natsUrl: nats
   subjectPrefix: NamespacedPipelineName
