@@ -43,6 +43,7 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 			return nil, fmt.Errorf("sink misconfigured")
 		}
 		if closer, ok := sinks[sinkName].(io.Closer); ok {
+			logger.Info("adding stop hook", "sink", sinkName)
 			addStopHook(func(ctx context.Context) error {
 				logger.Info("stopping sink", "sink", sinkName)
 				return closer.Close()
