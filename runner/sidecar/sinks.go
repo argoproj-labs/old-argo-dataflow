@@ -9,7 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/segmentio/kafka-go"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/paulbellamy/ratecounter"
@@ -34,11 +35,7 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 				sinks[sinkName] = f
 			}
 		} else if x := sink.Kafka; x != nil {
-			if f, err := connectKafkaSink(x, sinkName); err != nil {
-				return nil, err
-			} else {
-				sinks[sinkName] = f
-			}
+			sinks[sinkName] = connectKafkaSink(x, sinkName)
 		} else if x := sink.Log; x != nil {
 			sinks[sinkName] = connectLogSink()
 		} else if x := sink.HTTP; x != nil {
@@ -111,28 +108,20 @@ func connectLogSink() func(msg []byte) error {
 	}
 }
 
-func connectKafkaSink(x *dfv1.Kafka, sinkName string) (func(msg []byte) error, error) {
-	config, err := newKafkaConfig(x)
-	if err != nil {
-		return nil, err
-	}
-	config.Producer.Return.Successes = true
-	producer, err := sarama.NewSyncProducer(x.Brokers, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create kafka producer: %w", err)
-	}
-	addStopHook(func(ctx context.Context) error {
-		logger.Info("closing stan producer", "sink", sinkName)
-		return producer.Close()
+func connectKafkaSink(x *dfv1.Kafka, sinkName string) func(msg []byte) error {
+	writer := kafka.NewWriter(kafka.WriterConfig{
+		Brokers:   x.Brokers,
+		Dialer:    newKafkaDialer(x),
+		Topic:     x.Topic,
+		BatchSize: 1,
 	})
-	f := func(msg []byte) error {
-		_, _, err := producer.SendMessage(&sarama.ProducerMessage{
-			Topic: x.Topic,
-			Value: sarama.ByteEncoder(msg),
-		})
-		return err
+	addStopHook(func(ctx context.Context) error {
+		logger.Info("closing kafka write", "sink", sinkName)
+		return writer.Close()
+	})
+	return func(msg []byte) error {
+		return writer.WriteMessages(context.Background(), kafka.Message{Value: msg})
 	}
-	return f, nil
 }
 
 func connectSTANSink(ctx context.Context, sinkName string, x *dfv1.STAN) (func(msg []byte) error, error) {

@@ -12,8 +12,7 @@ import (
 )
 
 func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "http"},
@@ -44,8 +43,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 }
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "http"},

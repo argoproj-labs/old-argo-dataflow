@@ -11,9 +11,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestStanStress(t *testing.T) {
-	Setup(t)
-	defer Teardown(t)
+func TestStanSourceStress(t *testing.T) {
+	defer Setup(t)()
+
 	longSubject, subject := RandomSTANSubject()
 
 	CreatePipeline(Pipeline{
@@ -31,15 +31,48 @@ func TestStanStress(t *testing.T) {
 
 	WaitForPipeline()
 
-	stopPortForward := StartPortForward("stan-main-0")
-	defer stopPortForward()
+	defer StartPortForward("stan-main-0")()
 
 	WaitForPod()
 
-	stopMetricsLogger := StartMetricsLogger()
-	defer stopMetricsLogger()
+	n := 10000
+
+	defer StartMetricsLogger()()
+	defer StartTPSLogger(n)()
+
+	PumpSTANSubject(longSubject, n)
+	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+}
+
+func TestStanSinkStress(t *testing.T) {
+	defer Setup(t)()
+
+	longSubject, subject := RandomSTANSubject()
+	_, sinkSubject := RandomSTANSubject()
+
+	CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: "stan"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{{
+				Name:     "main",
+				Cat:      &Cat{},
+				Replicas: 2,
+				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
+				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}},
+			}},
+		},
+	})
+
+	WaitForPipeline()
+
+	defer StartPortForward("stan-main-0")()
+
+	WaitForPod()
 
 	n := 10000
+	defer StartMetricsLogger()()
+	defer StartTPSLogger(n)()
+
 	PumpSTANSubject(longSubject, n)
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
 }

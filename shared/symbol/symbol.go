@@ -4,7 +4,7 @@ const (
 	Error = "⚠"
 	// Failed    = "✖"
 	Pending = "◷"
-	Rate    = "＊"
+	Rate    = "Δ"
 	Total   = "Σ"
 	// Running   = "●"
 	// Succeeded = "✔"

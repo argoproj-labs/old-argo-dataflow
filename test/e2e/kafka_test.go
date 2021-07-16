@@ -11,8 +11,7 @@ import (
 )
 
 func TestKafkaSource(t *testing.T) {
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
 

@@ -11,8 +11,7 @@ import (
 )
 
 func TestFilter(t *testing.T) {
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "filter"},
@@ -30,8 +29,7 @@ func TestFilter(t *testing.T) {
 
 	WaitForPod()
 
-	stopPortForward := StartPortForward("filter-main-0")
-	defer stopPortForward()
+	defer StartPortForward("filter-main-0")()
 
 	SendMessageViaHTTP("foo-bar")
 	SendMessageViaHTTP("baz-qux")

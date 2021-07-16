@@ -11,11 +11,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestKafkaStress(t *testing.T) {
+func TestKafkaSourceStress(t *testing.T) {
 	SkipIfCI(t)
 
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
 
@@ -34,15 +33,51 @@ func TestKafkaStress(t *testing.T) {
 
 	WaitForPipeline()
 
-	stopPortForward := StartPortForward("kafka-main-0")
-	defer stopPortForward()
+	defer StartPortForward("kafka-main-0")()
 
 	WaitForPod()
 
-	stopMetricsLogger := StartMetricsLogger()
-	defer stopMetricsLogger()
+	n := 10000
+
+	defer StartMetricsLogger()()
+	defer StartTPSLogger(n)()
+
+	PumpKafkaTopic(topic, n)
+	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+}
+
+func TestKafkaSinkStress(t *testing.T) {
+	SkipIfCI(t)
+
+	defer Setup(t)()
+
+	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
+
+	CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{{
+				Name:     "main",
+				Cat:      &Cat{},
+				Replicas: 2,
+				Sources:  []Source{{Kafka: &Kafka{Topic: topic}}},
+				Sinks:    []Sink{{Kafka: &Kafka{Topic: sinkTopic}}},
+			}},
+		},
+	})
+
+	WaitForPipeline()
+
+	defer StartPortForward("kafka-main-0")()
+
+	WaitForPod()
 
 	n := 10000
+
+	defer StartMetricsLogger()()
+	defer StartTPSLogger(n)()
+
 	PumpKafkaTopic(topic, n)
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
 }

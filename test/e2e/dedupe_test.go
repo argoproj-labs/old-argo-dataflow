@@ -13,8 +13,7 @@ import (
 )
 
 func TestDedupe(t *testing.T) {
-	Setup(t)
-	defer Teardown(t)
+	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "dedupe"},
@@ -33,12 +32,10 @@ func TestDedupe(t *testing.T) {
 	WaitForPipeline()
 	WaitForPod()
 
-	stopPortForward := StartPortForward("dedupe-main-0")
-	defer stopPortForward()
+	defer StartPortForward("dedupe-main-0")()
 
 	// check we've got metrics
-	stopMetricsPortForward := StartPortForward("dedupe-main-0", 8080)
-	defer stopMetricsPortForward()
+	defer StartPortForward("dedupe-main-0", 8080)()
 
 	SendMessageViaHTTP("foo")
 	SendMessageViaHTTP("bar")

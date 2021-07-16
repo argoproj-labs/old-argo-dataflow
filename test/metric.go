@@ -69,26 +69,20 @@ func getMetrics(port int) map[string]*io_prometheus_client.MetricFamily {
 	return families
 }
 
-func StartMetricsLogger(opts ...interface{}) (stopMetricsLogger func()) {
+func StartMetricsLogger() (stopMetricsLogger func()) {
 	port := 3569
-	for _, opt := range opts {
-		switch v := opt.(type) {
-		case int:
-			port = v
-		default:
-			panic(fmt.Errorf("unsupported option type %T", v))
-		}
-	}
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
 		defer runtimeutil.HandleCrash()
+		t := time.NewTicker(15 * time.Second)
+		defer t.Stop()
 		for {
 			select {
 			case <-ctx.Done():
 				log.Printf("stopping metrics logger on %d\n", port)
 				return
-			default:
+			case <-t.C:
 				var x []string
 				for n, family := range getMetrics(port) {
 					switch n {
@@ -103,7 +97,6 @@ func StartMetricsLogger(opts ...interface{}) (stopMetricsLogger func()) {
 				}
 				sort.Strings(x)
 				log.Println(strings.Join(x, ", "))
-				time.Sleep(15 * time.Second)
 			}
 		}
 	}()
