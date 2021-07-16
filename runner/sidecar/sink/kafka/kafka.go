@@ -3,10 +3,11 @@ package kafka
 import (
 	"context"
 	"crypto/tls"
+	"time"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	"github.com/segmentio/kafka-go"
-	"time"
 )
 
 type kafkaSink struct {
@@ -36,7 +37,6 @@ func New(x dfv1.Kafka) sink.Interface {
 
 func (h kafkaSink) Sink(msg []byte) error {
 	return h.writer.WriteMessages(context.Background(), kafka.Message{Value: msg})
-
 }
 
 func (h kafkaSink) Close() error {

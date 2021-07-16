@@ -3,6 +3,8 @@ package sidecar
 import (
 	"context"
 	"fmt"
+	"io"
+
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/http"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/kafka"
@@ -10,7 +12,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/stan"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/paulbellamy/ratecounter"
-	"io"
 )
 
 func connectSinks(ctx context.Context) (func([]byte) error, error) {
@@ -45,7 +46,7 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 		if closer, ok := sinks[sinkName].(io.Closer); ok {
 			logger.Info("adding stop hook", "sink", sinkName)
 			addStopHook(func(ctx context.Context) error {
-				logger.Info("stopping sink", "sink", sinkName)
+				logger.Info("closing", "sink", sinkName)
 				return closer.Close()
 			})
 		}

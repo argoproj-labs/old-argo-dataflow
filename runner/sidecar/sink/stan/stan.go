@@ -3,14 +3,15 @@ package stan
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"time"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
-	"math/rand"
-	"time"
 )
 
 var logger = sharedutil.NewLogger()

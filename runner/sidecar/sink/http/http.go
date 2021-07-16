@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	"io"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"net/http"
 	"time"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 type httpSink struct {

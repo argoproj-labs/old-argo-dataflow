@@ -3,6 +3,7 @@ package stan
 import (
 	"context"
 	"fmt"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/nats.go"

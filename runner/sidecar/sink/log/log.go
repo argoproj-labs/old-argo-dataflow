@@ -2,10 +2,10 @@ package logsink
 
 import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
-var logger = util.NewLogger()
+var logger = sharedutil.NewLogger()
 
 type logSink struct{}
 
