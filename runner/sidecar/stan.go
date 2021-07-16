@@ -23,15 +23,14 @@ func subjectiveStan(x *dfv1.STAN) {
 	}
 }
 
-func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) {
+func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) error {
 	s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
 	s.NATSMonitoringURL = dfv1.StringOr(s.NATSMonitoringURL, string(secret.Data["natsMonitoringUrl"]))
 	s.ClusterID = dfv1.StringOr(s.ClusterID, string(secret.Data["clusterId"]))
 	s.SubjectPrefix = dfv1.SubjectPrefixOr(s.SubjectPrefix, dfv1.SubjectPrefix(secret.Data["subjectPrefix"]))
 	if b, ok := secret.Data["maxInflight"]; ok {
 		if i, err := strconv.ParseUint(string(b), 10, 32); err != nil {
-			logger.Error(err, "failed to parse maxInflight")
-			panic(err)
+			return fmt.Errorf("failed to parse maxInflight: %w", err)
 		} else {
 			s.MaxInflight = uint32(i)
 		}
@@ -46,6 +45,7 @@ func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) {
 			},
 		}
 	}
+	return nil
 }
 
 func enrichSTAN(ctx context.Context, secrets v1.SecretInterface, x *dfv1.STAN) error {
@@ -55,7 +55,9 @@ func enrichSTAN(ctx context.Context, secrets v1.SecretInterface, x *dfv1.STAN) e
 			return err
 		}
 	} else {
-		stanFromSecret(x, secret)
+		if err = stanFromSecret(x, secret); err != nil {
+			return err
+		}
 	}
 	subjectiveStan(x)
 	return nil
