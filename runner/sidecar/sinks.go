@@ -1,13 +1,11 @@
 package sidecar
 
 import (
-	"bytes"
 	"context"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/http"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
-	"io"
 	"math/rand"
-	"net/http"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -15,7 +13,6 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/paulbellamy/ratecounter"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
@@ -38,12 +35,12 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 		} else if x := sink.Kafka; x != nil {
 			sinks[sinkName] = connectKafkaSink(x, sinkName)
 		} else if x := sink.Log; x != nil {
-			sinks[sinkName] = connectLogSink()
+			sinks[sinkName] = logsink.New().Sink
 		} else if x := sink.HTTP; x != nil {
-			if f, err := connectHTTPSink(ctx, x); err != nil {
+			if y, err := http.New(ctx, kubernetesInterface, namespace, *x); err != nil {
 				return nil, err
 			} else {
-				sinks[sinkName] = f
+				sinks[sinkName] = y.Sink
 			}
 		} else {
 			return nil, fmt.Errorf("sink misconfigured")
@@ -66,45 +63,6 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 	}, nil
 }
 
-func connectHTTPSink(ctx context.Context, x *dfv1.HTTPSink) (func(msg []byte) error, error) {
-	header := http.Header{}
-	for _, h := range x.Headers {
-		if h.Value != "" {
-			header.Add(h.Name, h.Value)
-		} else if h.ValueFrom != nil {
-			r := h.ValueFrom.SecretKeyRef
-			secret, err := kubernetesInterface.CoreV1().Secrets(namespace).Get(ctx, r.Name, metav1.GetOptions{})
-			if err != nil {
-				return nil, fmt.Errorf("failed to get secret %q: %w", r.Name, err)
-			}
-			header.Add(h.Name, string(secret.Data[r.Key]))
-		}
-	}
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-	return func(msg []byte) error {
-		req, err := http.NewRequest("POST", x.URL, bytes.NewBuffer(msg))
-		if err != nil {
-			return fmt.Errorf("failed to create HTTP request: %w", err)
-		}
-		req.Header = header
-		if resp, err := client.Do(req); err != nil {
-			return fmt.Errorf("failed to send HTTP request: %w", err)
-		} else {
-			defer func() { _ = resp.Body.Close() }()
-			_, _ = io.Copy(io.Discard, resp.Body)
-			if resp.StatusCode >= 300 {
-				return fmt.Errorf("failed to send HTTP request: %q", resp.Status)
-			}
-		}
-		return nil
-	}, nil
-}
-
-func connectLogSink() func(msg []byte) error {
-	return logsink.New().Sink
-}
 
 func connectKafkaSink(x *dfv1.Kafka, sinkName string) func(msg []byte) error {
 	writer := kafka.NewWriter(kafka.WriterConfig{
