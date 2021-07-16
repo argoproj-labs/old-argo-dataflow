@@ -14,6 +14,7 @@ func TestSTAN(t *testing.T) {
 	defer Setup(t)()
 
 	longSubject, subject := RandomSTANSubject()
+	_, sinkSubject := RandomSTANSubject()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "stan"},
@@ -23,7 +24,7 @@ func TestSTAN(t *testing.T) {
 					Name:    "main",
 					Cat:     &Cat{},
 					Sources: []Source{{STAN: &STAN{Subject: subject}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Sinks:   []Sink{{STAN: &STAN{Subject: sinkSubject}}},
 				},
 			},
 		},

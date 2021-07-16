@@ -13,6 +13,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	sharedstan "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
@@ -214,26 +215,23 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 		return fmt.Sprintf("%s-%s-%d-source-%s-%v", pipelineName, stepName, replica, sourceName, r1.Intn(100))
 	}
 
-	var conn *stanConn
+	var conn *sharedstan.Conn
 	var err error
 	clientID := genClientID()
-	conn, err = ConnectSTAN(ctx, x, clientID)
+	conn, err = sharedstan.ConnectSTAN(ctx, kubernetesInterface, namespace, *x, clientID)
 	if err != nil {
 		return fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
 	addPreStopHook(func(ctx context.Context) error {
 		logger.Info("closing stan connection", "source", sourceName)
-		if conn != nil && !conn.IsClosed() {
-			return conn.Close()
-		}
-		return nil
+		return conn.Close()
 	})
 
 	// https://docs.nats.io/developing-with-nats-streaming/queues
 	var sub stan.Subscription
 	queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
 	subFunc := func() (stan.Subscription, error) {
-		sub, err := conn.sc.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
+		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
 			if err := f(context.Background(), msg.Data); err != nil {
 				// noop
 			} else if err := msg.Ack(); err != nil {
@@ -277,7 +275,7 @@ func connectSTANSource(ctx context.Context, sourceName string, x *dfv1.STAN, f f
 					_ = sub.Close()
 					logger.Info("stan connection lost, reconnecting...", "source", sourceName)
 					clientID := genClientID()
-					conn, err = ConnectSTAN(ctx, x, clientID)
+					conn, err = sharedstan.ConnectSTAN(ctx, kubernetesInterface, namespace, *x, clientID)
 					if err != nil {
 						logger.Error(err, "failed to reconnect", "source", sourceName, "clientID", clientID)
 						continue

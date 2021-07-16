@@ -10,10 +10,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestKafkaSource(t *testing.T) {
+func TestKafka(t *testing.T) {
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
@@ -22,7 +23,7 @@ func TestKafkaSource(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &Kafka{Topic: topic}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sinks:   []Sink{{Kafka: &Kafka{Topic: sinkTopic}}},
 			}},
 		},
 	})
