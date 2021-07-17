@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"testing"
 	"time"
 
@@ -39,6 +40,10 @@ func StartTPSReporter(t *testing.T, n int) (stopTPSLogger func()) {
 
 	return func() {
 		cancel()
-		setTestResult(fmt.Sprintf("%s/replicas=%d", t.Name(), params.replicas), "tps", value())
+		setTestResult(fmt.Sprintf("%s/replicas=%d", t.Name(), params.replicas), "tps", roundToNearest50(value()))
 	}
+}
+
+func roundToNearest50(v int) int {
+	return int(math.Round(float64(v)/50.0)) * 50
 }
