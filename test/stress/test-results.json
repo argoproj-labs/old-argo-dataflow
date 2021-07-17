@@ -1,13 +1,14 @@
 {
-  "TestHTTPSinkStress/replicas=1.tps": 313,
-  "TestHTTPSinkStress/replicas=2.tps": 271,
-  "TestHTTPSourceStress/replicas=1.tps": 315,
-  "TestHTTPSourceStress/replicas=2.tps": 424,
-  "TestKafkaSinkStress/replicas=1.tps": 233,
-  "TestKafkaSinkStress/replicas=2.tps": 471,
-  "TestKafkaSourceStress/replicas=1.tps": 317,
-  "TestKafkaSourceStress/replicas=2.tps": 164,
-  "TestStanSinkStress/replicas=1.tps": 208,
-  "TestStanSourceStress/replicas=1.tps": 527,
-  "TestStanSourceStress/replicas=2.tps": 782
+  "TestHTTPSinkStress/replicas=1.tps": 400,
+  "TestHTTPSinkStress/replicas=2.tps": 300,
+  "TestHTTPSourceStress/replicas=1.tps": 750,
+  "TestHTTPSourceStress/replicas=2.tps": 450,
+  "TestKafkaSinkStress/replicas=1.tps": 250,
+  "TestKafkaSinkStress/replicas=2.tps": 550,
+  "TestKafkaSourceStress/replicas=1.tps": 300,
+  "TestKafkaSourceStress/replicas=2.tps": 650,
+  "TestStanSinkStress/replicas=1.tps": 300,
+  "TestStanSinkStress/replicas=2.tps": 350,
+  "TestStanSourceStress/replicas=1.tps": 550,
+  "TestStanSourceStress/replicas=2.tps": 700
 }

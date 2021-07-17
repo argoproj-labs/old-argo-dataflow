@@ -15,6 +15,8 @@ func TestKafkaSourceStress(t *testing.T) {
 	SkipIfCI(t)
 
 	defer Setup(t)()
+	defer DeletePod("zookeeper-0")
+	defer DeletePod("kafka-broker-0")
 
 	topic := CreateKafkaTopic()
 
@@ -50,6 +52,8 @@ func TestKafkaSinkStress(t *testing.T) {
 	SkipIfCI(t)
 
 	defer Setup(t)()
+	defer DeletePod("zookeeper-0")
+	defer DeletePod("kafka-broker-0")
 
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()

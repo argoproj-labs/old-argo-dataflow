@@ -18,7 +18,11 @@ import (
 
 var podInterface = kubernetesInterface.CoreV1().Pods(namespace)
 
-func ToBeReady(p *corev1.Pod) bool {
+func PodRunningAndReady(p *corev1.Pod) bool {
+	return p.Status.Phase == corev1.PodRunning && PodReady(p)
+}
+
+func PodReady(p *corev1.Pod) bool {
 	for _, c := range p.Status.Conditions {
 		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
 			return true
@@ -56,7 +60,7 @@ func WaitForPod(opts ...interface{}) {
 	// by default, wait for any pod to be ready
 	var (
 		listOptions = metav1.ListOptions{LabelSelector: KeyPipelineName}
-		f           = ToBeReady
+		f           = PodRunningAndReady
 	)
 	for _, o := range opts {
 		switch v := o.(type) {
