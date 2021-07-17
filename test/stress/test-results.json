@@ -1,0 +1,13 @@
+{
+  "TestHTTPSinkStress/replicas=1.tps": 313,
+  "TestHTTPSinkStress/replicas=2.tps": 271,
+  "TestHTTPSourceStress/replicas=1.tps": 315,
+  "TestHTTPSourceStress/replicas=2.tps": 424,
+  "TestKafkaSinkStress/replicas=1.tps": 233,
+  "TestKafkaSinkStress/replicas=2.tps": 471,
+  "TestKafkaSourceStress/replicas=1.tps": 317,
+  "TestKafkaSourceStress/replicas=2.tps": 164,
+  "TestStanSinkStress/replicas=1.tps": 208,
+  "TestStanSourceStress/replicas=1.tps": 527,
+  "TestStanSourceStress/replicas=2.tps": 782
+}

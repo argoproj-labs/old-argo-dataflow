@@ -12,6 +12,7 @@ import (
 )
 
 func TestHTTPSourceStress(t *testing.T) {
+
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
@@ -20,7 +21,7 @@ func TestHTTPSourceStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:     "main",
 				Cat:      &Cat{},
-				Replicas: 2,
+				Replicas: params.replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{{Log: &Log{}}},
 			}},
@@ -36,10 +37,11 @@ func TestHTTPSourceStress(t *testing.T) {
 	n := 10000
 
 	defer StartMetricsLogger()()
-	defer StartTPSLogger(n)()
+	defer StartTPSReporter(t, n)()
 
 	PumpHTTP("http://http-main/sources/default", "my-msg", n, 0)
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+
 }
 
 func TestHTTPSinkStress(t *testing.T) {
@@ -51,7 +53,7 @@ func TestHTTPSinkStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:     "main",
 				Cat:      &Cat{},
-				Replicas: 2,
+				Replicas: params.replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
 			}},
@@ -67,7 +69,7 @@ func TestHTTPSinkStress(t *testing.T) {
 	n := 10000
 
 	defer StartMetricsLogger()()
-	defer StartTPSLogger(n)()
+	defer StartTPSReporter(t, n)()
 
 	PumpHTTP("http://http-main/sources/default", "my-msg", n, 0)
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)

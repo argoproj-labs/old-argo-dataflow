@@ -22,7 +22,7 @@ func TestStanSourceStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:     "main",
 				Cat:      &Cat{},
-				Replicas: 2,
+				Replicas: params.replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
 				Sinks:    []Sink{{Log: &Log{}}},
 			}},
@@ -38,10 +38,11 @@ func TestStanSourceStress(t *testing.T) {
 	n := 10000
 
 	defer StartMetricsLogger()()
-	defer StartTPSLogger(n)()
+	defer StartTPSReporter(t, n)()
 
 	PumpSTANSubject(longSubject, n)
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+
 }
 
 func TestStanSinkStress(t *testing.T) {
@@ -56,7 +57,7 @@ func TestStanSinkStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:     "main",
 				Cat:      &Cat{},
-				Replicas: 2,
+				Replicas: params.replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
 				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}},
 			}},
@@ -71,8 +72,9 @@ func TestStanSinkStress(t *testing.T) {
 
 	n := 10000
 	defer StartMetricsLogger()()
-	defer StartTPSLogger(n)()
+	defer StartTPSReporter(t, n)()
 
 	PumpSTANSubject(longSubject, n)
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+
 }

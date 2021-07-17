@@ -33,13 +33,6 @@ func init() {
 	}
 	imageFormat = fmt.Sprintf("%s/%s:%s", imagePrefix, "%s", tag)
 	runnerImage = fmt.Sprintf(imageFormat, "dataflow-runner")
-	if text, ok := os.LookupEnv(dfv1.EnvUpdateInterval); ok {
-		if v, err := time.ParseDuration(text); err != nil {
-			panic(fmt.Errorf("failed to parse duration %q: %w", text, err))
-		} else {
-			updateInterval = v
-		}
-	}
 	logger.Info("reconciler config",
 		"imageFormat", imageFormat,
 		"runnerImage", runnerImage,

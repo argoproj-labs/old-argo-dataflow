@@ -24,8 +24,8 @@ func TestKafkaSourceStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:     "main",
 				Cat:      &Cat{},
-				Replicas: 2,
-				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
+				Replicas: params.replicas,
+				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
 				Sinks:    []Sink{{Log: &Log{}}},
 			}},
 		},
@@ -40,7 +40,7 @@ func TestKafkaSourceStress(t *testing.T) {
 	n := 10000
 
 	defer StartMetricsLogger()()
-	defer StartTPSLogger(n)()
+	defer StartTPSReporter(t, n)()
 
 	PumpKafkaTopic(topic, n)
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
@@ -60,8 +60,8 @@ func TestKafkaSinkStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:     "main",
 				Cat:      &Cat{},
-				Replicas: 2,
-				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
+				Replicas: params.replicas,
+				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
 				Sinks:    []Sink{{Kafka: &Kafka{Topic: sinkTopic}}},
 			}},
 		},
@@ -76,7 +76,7 @@ func TestKafkaSinkStress(t *testing.T) {
 	n := 10000
 
 	defer StartMetricsLogger()()
-	defer StartTPSLogger(n)()
+	defer StartTPSReporter(t, n)()
 
 	PumpKafkaTopic(topic, n)
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
