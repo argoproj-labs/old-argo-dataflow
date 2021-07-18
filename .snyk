@@ -4,7 +4,7 @@ version: v1.19.0
 ignore:
   SNYK-GOLANG-GITHUBCOMDGRIJALVAJWTGO-596515:
     - '*':
-        reason: abandoned project
-        expires: 2021-07-16T21:25:44.804Z
-        created: 2021-06-16T21:25:44.805Z
+        reason: None Given
+        expires: 2021-10-17T22:25:16.559Z
+        created: 2021-07-18T22:25:16.562Z
 patch: {}
