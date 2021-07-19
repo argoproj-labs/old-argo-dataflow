@@ -9,6 +9,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Shopify/sarama v1.29.1
 	github.com/antonmedv/expr v1.8.9
+	github.com/bombsimon/logrusr v1.1.0
 	github.com/doublerebel/bellows v0.0.0-20160303004610-f177d92a03d3
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/go-git/go-git/v5 v5.3.0
@@ -33,6 +34,7 @@ require (
 	github.com/prometheus/common v0.10.0
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/segmentio/kafka-go v0.4.17
+	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect

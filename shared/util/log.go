@@ -1,10 +1,14 @@
 package util
 
 import (
+	"github.com/bombsimon/logrusr"
 	"github.com/go-logr/logr"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"github.com/sirupsen/logrus"
+	"os"
 )
 
 func NewLogger() logr.Logger {
-	return zap.New()
+	l := logrus.New()
+	l.SetOutput(os.Stdout)
+	return logrusr.NewLogger(l)
 }

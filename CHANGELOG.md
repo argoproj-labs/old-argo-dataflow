@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.0.68 (2021-07-16)
+
+ * [6f3cc61](https://github.com/argoproj-labs/argo-dataflow/commit/6f3cc61fda2938432317606ea168d505225b29d7) feat: support configurable Kafka starting offset
+ * [4cdf4bb](https://github.com/argoproj-labs/argo-dataflow/commit/4cdf4bb117833fee39872b3740053a91e32ab038) fix: Kafka should start at LastOffset by default
+ * [af46d66](https://github.com/argoproj-labs/argo-dataflow/commit/af46d66cc6a09b4d1286b06aad714c8c731aa63e) fix: correct source hook to be pre-stop hook
+ * [5544da5](https://github.com/argoproj-labs/argo-dataflow/commit/5544da5a08e64e92f9b68bf02666de506f3175fc) refactor: refactor sources
+ * [4398de4](https://github.com/argoproj-labs/argo-dataflow/commit/4398de44ae42d51607b74f9fa432ba938a50b98d) feat: expose maxInflight for stan config (#117)
+ * [51c21ad](https://github.com/argoproj-labs/argo-dataflow/commit/51c21add95e2176c33016066101ebb57adbd3426) feat: Partially migrate from sarama to kafka-go (#116)
+ * [39cd13a](https://github.com/argoproj-labs/argo-dataflow/commit/39cd13afff9d5aa460c6411cca6035a97cbf566c) feat: make Kafka commitN configurable. Fixes #114
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.67 (2021-07-15)
 
  * [573b31c](https://github.com/argoproj-labs/argo-dataflow/commit/573b31c50db92c85aad9fbf640a79bbfb67410cd) feat: stan reliable auto reconnection (#112)
