@@ -2,91 +2,74 @@ package kafka
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"time"
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/segmentio/kafka-go"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 var logger = sharedutil.NewLogger()
 
 type kafkaSource struct {
-	source    dfv1.KafkaSource
-	reader    *kafka.Reader
-	groupName string
+	source        dfv1.KafkaSource
+	consumerGroup sarama.ConsumerGroup
+	groupName     string
+}
+
+type handler struct {
+	f source.Func
+}
+
+func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	for msg := range claim.Messages() {
+		_ = h.f(context.Background(), msg.Value)
+		sess.MarkMessage(msg, "")
+	}
+	return nil
 }
 
 func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
 	groupName := pipelineName + "-" + stepName + "-source-" + sourceName + "-" + x.Topic
-	var t *tls.Config
-	if x.NET != nil && x.NET.TLS != nil {
-		t = &tls.Config{}
+	config, err := kafka.NewConfig(x.Kafka)
+	if err != nil {
+		return nil, err
 	}
-	dialer := &kafka.Dialer{
-		Timeout:   10 * time.Second,
-		KeepAlive: 20 * time.Second,
-		DualStack: true,
-		TLS:       t,
-	}
-	startOffset := kafka.LastOffset
 	if x.StartOffset == "First" {
-		startOffset = kafka.FirstOffset
+		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     x.Brokers,
-		Dialer:      dialer,
-		GroupID:     groupName,
-		Topic:       x.Topic,
-		StartOffset: startOffset,
-	})
+	consumerGroup, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
+	if err != nil {
+		return nil, err
+	}
+	h := handler{f}
 	go wait.JitterUntil(func() {
 		ctx := context.Background()
 		for {
-			m, err := reader.ReadMessage(ctx)
-			if err != nil {
+			if err := consumerGroup.Consume(ctx, []string{x.Topic}, h); err != nil {
 				logger.Error(err, "failed to read kafka message", "source", sourceName)
-			} else {
-				_ = f(ctx, m.Value)
 			}
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
 	return kafkaSource{
-		reader:    reader,
-		source:    x,
-		groupName: groupName,
+		consumerGroup: consumerGroup,
+		source:        x,
+		groupName:     groupName,
 	}, nil
 }
 
 func (s kafkaSource) Close() error {
-	return s.reader.Close()
-}
-
-func newKafkaConfig(k dfv1.Kafka) (*sarama.Config, error) {
-	x := sarama.NewConfig()
-	x.ClientID = dfv1.CtrSidecar
-	if k.Version != "" {
-		v, err := sarama.ParseKafkaVersion(k.Version)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse kafka version %q: %w", k.Version, err)
-		}
-		x.Version = v
-	}
-	if k.NET != nil {
-		if k.NET.TLS != nil {
-			x.Net.TLS.Enable = true
-		}
-	}
-	return x, nil
+	return s.consumerGroup.Close()
 }
 
 func (s kafkaSource) GetPending() (uint64, error) {
-	config, err := newKafkaConfig(s.source.Kafka)
+	config, err := kafka.NewConfig(s.source.Kafka)
 	if err != nil {
 		return 0, err
 	}

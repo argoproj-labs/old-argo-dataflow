@@ -1,44 +1,34 @@
 package kafka
 
 import (
-	"context"
-	"crypto/tls"
-	"time"
-
+	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
-	"github.com/segmentio/kafka-go"
 )
 
 type kafkaSink struct {
-	writer *kafka.Writer
+	producer sarama.SyncProducer
 }
 
-func New(x dfv1.Kafka) sink.Interface {
-	var t *tls.Config
-	if x.NET != nil && x.NET.TLS != nil {
-		t = &tls.Config{}
+func New(x dfv1.Kafka) (sink.Interface, error) {
+	config, err := kafka.NewConfig(x)
+	if err != nil {
+		return nil, err
 	}
-	dialer := &kafka.Dialer{
-		Timeout:   10 * time.Second,
-		KeepAlive: 20 * time.Second,
-		DualStack: true,
-		TLS:       t,
+	config.Producer.Return.Successes = true
+	producer, err := sarama.NewSyncProducer(x.Brokers, config)
+	if err != nil {
+		return nil, err
 	}
-	return kafkaSink{
-		writer: kafka.NewWriter(kafka.WriterConfig{
-			Brokers:   x.Brokers,
-			Dialer:    dialer,
-			Topic:     x.Topic,
-			BatchSize: 1,
-		}),
-	}
+	return kafkaSink{producer: producer}, nil
 }
 
 func (h kafkaSink) Sink(msg []byte) error {
-	return h.writer.WriteMessages(context.Background(), kafka.Message{Value: msg})
+	_, _, err := h.producer.SendMessage(&sarama.ProducerMessage{Value: sarama.ByteEncoder(msg)})
+	return err
 }
 
 func (h kafkaSink) Close() error {
-	return h.writer.Close()
+	return h.producer.Close()
 }
