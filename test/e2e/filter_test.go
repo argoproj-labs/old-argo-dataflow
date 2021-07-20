@@ -37,7 +37,7 @@ func TestFilter(t *testing.T) {
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectLogLine("filter-main-0", "sidecar", `foo-bar`)
+	ExpectStepLogLine(context.Background(), "filter", "main", "sidecar", `foo-bar`, 1 * time.Mintue)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

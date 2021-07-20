@@ -3,15 +3,19 @@
 package stress
 
 import (
-	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"log"
+	"time"
+
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
 var (
 	params = struct {
 		replicas uint32
+		timeout  time.Duration
 	}{
 		replicas: uint32(sharedutil.GetEnvInt("REPLICAS", 1)),
+		timeout:  3 * time.Minute,
 	}
 )
 
