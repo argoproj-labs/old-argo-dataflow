@@ -7,7 +7,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Name | Description | Alpha | Beta | Stable |
 |---|---|---|---|---|
 | API | | | v0.0.59 | |
-| [Automatic pipeline garbage collection](GC.md) | | v0.0.59 | | |
+| [Automatic pipeline garbage collection](GC.md) | | v0.0.59 | v0.0.60 | |
 | Auto-scaling | | | v0.0.59 | |
 | Cat step | | | v0.0.59 | |
 | Container step | | | v0.0.59 | |
@@ -22,7 +22,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Graceful step termination | | v0.0.59 | | |
 | Group step | | v0.0.59 | | |
 | [Git step](GIT.md) | | v0.0.59 | | |
-| Golang SDK | | v0.0.59 | | |
+| Golang SDK | | v0.0.59 | v0.0.70 | |
 | Golang runtime | | v0.0.59 | | |
 | Kubernetes manifests | | | v0.0.59 | |
 | HPA support | | v0.0.59 | | |
@@ -40,6 +40,6 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Python runtime | | v0.0.59 | | |
 | Python SDK | | | v0.0.59 | |
 | Stress tests | | | v0.0.59 | |
-| Terminating pipelines | | v0.0.59 | | |
-| Terminating steps | | v0.0.59 | | |
+| Terminating pipelines | | v0.0.59 | v0.0.70 | |
+| Terminating steps | | v0.0.59 | v0.0.70 | |
 | User interface | | | v0.0.59 | |
