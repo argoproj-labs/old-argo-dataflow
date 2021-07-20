@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.69 (2021-07-19)
+
+ * [2c3e65f](https://github.com/argoproj-labs/argo-dataflow/commit/2c3e65ff4715e4129ec7b8af6bc5529f8b6b5214) fix: change to use logrus rather than zap
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.68 (2021-07-16)
 
  * [6f3cc61](https://github.com/argoproj-labs/argo-dataflow/commit/6f3cc61fda2938432317606ea168d505225b29d7) feat: support configurable Kafka starting offset

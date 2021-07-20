@@ -31,7 +31,11 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 				sinks[sinkName] = y
 			}
 		} else if x := sink.Kafka; x != nil {
-			sinks[sinkName] = kafka.New(*x)
+			if y, err := kafka.New(*x); err != nil {
+				return nil, err
+			} else {
+				sinks[sinkName] = y
+			}
 		} else if x := sink.Log; x != nil {
 			sinks[sinkName] = logsink.New()
 		} else if x := sink.HTTP; x != nil {
