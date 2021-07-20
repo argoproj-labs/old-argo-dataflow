@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.70 (2021-07-20)
+
+ * [d71b06d](https://github.com/argoproj-labs/argo-dataflow/commit/d71b06dc965fcbb3bcc6131119871becabd2f1ca) fix: report pending Kafka messages
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.69 (2021-07-19)
 
  * [2c3e65f](https://github.com/argoproj-labs/argo-dataflow/commit/2c3e65ff4715e4129ec7b8af6bc5529f8b6b5214) fix: change to use logrus rather than zap
