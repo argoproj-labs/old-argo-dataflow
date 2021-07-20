@@ -16,7 +16,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Cron source | | v0.0.59 | |
 | Dedupe step | | v0.0.59 | || |
 | Expand step | | v0.0.59 | | |
-| Filter step | | v0.0.59 | | |
+| Filter step | | v0.0.59 | v0.0.70 | |
 | FMEA tests | | | v0.0.59 | |
 | Generator step | | v0.0.59 | | |
 | Graceful step termination | | v0.0.59 | | |
