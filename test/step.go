@@ -29,6 +29,10 @@ func MessagesPending(s Step) bool {
 	return !NothingPending(s)
 }
 
+func StepHasPendingMessages(s Step) bool {
+	return s.Status.SourceStatuses.GetPending() > 0
+}
+
 func NothingPending(s Step) bool {
 	return s.Status.SourceStatuses.GetPending() == 0
 }
