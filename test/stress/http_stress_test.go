@@ -37,7 +37,7 @@ func TestHTTPSourceStress(t *testing.T) {
 	prefix := "my-msg"
 
 	defer StartMetricsLogger()()
-	defer StartTPSReporter(t, "http", "main", prefix, n)()
+	defer StartTPSReporter(t, "main", prefix, n)()
 
 	PumpHTTP("http://http-main/sources/default", prefix, n, 0)
 	WaitForStep(TotalSunkMessages(n), params.timeout)
@@ -70,7 +70,7 @@ func TestHTTPSinkStress(t *testing.T) {
 	prefix := "my-msg"
 
 	defer StartMetricsLogger()()
-	defer StartTPSReporter(t, "http", "main", prefix, n)()
+	defer StartTPSReporter(t, "main", prefix, n)()
 
 	PumpHTTP("http://http-main/sources/default", prefix, n, 0)
 	WaitForStep(TotalSunkMessages(n*2), params.timeout)

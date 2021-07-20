@@ -1,6 +1,3 @@
-time="2021-07-20T12:19:27-07:00" level=info msg=cpu numCPU=12
-time="2021-07-20T12:19:27-07:00" level=info msg=process pid=16882
-time="2021-07-20T12:19:27-07:00" level=info msg=version version=v0.0.0-latest-0
 ### Examples
 
 ### [101-hello](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-hello-pipeline.yaml)
@@ -107,16 +104,6 @@ kubectl scale step/scaling-main --replicas 3
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-scaling-pipeline.yaml
-```
-
-### [104-golang1-16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-go1-16-pipeline.yaml)
-
-This example of Go 1.16 handler.
-
-[Learn about handlers](../docs/HANDLERS.md)
-
-```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-go1-16-pipeline.yaml
 ```
 
 ### [104-golang1-16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-golang1-16-pipeline.yaml)

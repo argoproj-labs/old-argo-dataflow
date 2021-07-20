@@ -59,6 +59,9 @@ func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.
 		ctx := context.Background()
 		for {
 			if err := consumerGroup.Consume(ctx, []string{x.Topic}, h); err != nil {
+				if err == sarama.ErrClosedConsumerGroup {
+					return
+				}
 				logger.Error(err, "failed to read kafka message", "source", sourceName)
 			}
 		}

@@ -3,13 +3,10 @@
 package e2e
 
 import (
-	"context"
-	"testing"
-	"time"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
 func TestMapStep(t *testing.T) {
@@ -38,7 +35,7 @@ func TestMapStep(t *testing.T) {
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectStepLogLine(context.Background(), "map", "main", "sidecar", `hi! foo-bar`, 1*time.Minute)
+	ExpectLogLine("main",  `hi! foo-bar`)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

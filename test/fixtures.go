@@ -4,13 +4,12 @@ package test
 
 import (
 	"fmt"
-	"os"
-	"runtime/debug"
-	"testing"
-
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"os"
+	"runtime/debug"
+	"testing"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 )

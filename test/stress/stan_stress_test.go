@@ -40,7 +40,7 @@ func TestStanSourceStress(t *testing.T) {
 	prefix := "stan-source-stress"
 
 	defer StartMetricsLogger()()
-	defer StartTPSReporter(t, "stan", "main", prefix, n)()
+	defer StartTPSReporter(t, "main", prefix, n)()
 
 	PumpSTANSubject(longSubject, n, prefix)
 	WaitForStep(TotalSunkMessages(n), params.timeout)
@@ -77,7 +77,7 @@ func TestStanSinkStress(t *testing.T) {
 	n := 10000
 	prefix := "stan-sink-stress"
 	defer StartMetricsLogger()()
-	defer StartTPSReporter(t, "stan", "main", prefix, n)()
+	defer StartTPSReporter(t, "main", prefix, n)()
 
 	PumpSTANSubject(longSubject, n, prefix)
 	WaitForStep(TotalSunkMessages(n*2), params.timeout) // 2 sinks
