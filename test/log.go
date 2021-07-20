@@ -14,9 +14,28 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func ExpectStepLogLine(ctx context.Context, pipeline, step, containerName, pattern string, timeout time.Duration) {
-	log.Printf("expect pipeline %q step %q container %q to log pattern %q\n", pipeline, step, containerName, pattern)
-	labelSelector := fmt.Sprintf("dataflow.argoproj.io/pipeline-name=%s,dataflow.argoproj.io/step-name=%s", pipeline, step)
+type ContainerName string
+
+func ExpectLogLine(step, pattern string, opts ...interface{}) {
+	var (
+		ctx           = context.Background()
+		timeout       = time.Minute
+		containerName = "sidecar"
+	)
+	for _, opt := range opts {
+		switch v := opt.(type) {
+		case context.Context:
+			ctx = v
+		case time.Duration:
+			timeout = v
+		case ContainerName:
+			containerName = string(v)
+		default:
+			panic(fmt.Errorf("unknown option time %T", opt))
+		}
+	}
+	log.Printf("expect step %q container %q to log pattern %q\n", step, containerName, pattern)
+	labelSelector := fmt.Sprintf("dataflow.argoproj.io/step-name=%s", step)
 	podList, err := kubernetesInterface.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector, FieldSelector: "status.phase=Running"})
 	if err != nil {
 		panic(fmt.Errorf("error getting step pods: %w", err))
@@ -33,7 +52,7 @@ func podsLogContains(ctx context.Context, podList *corev1.PodList, containerName
 	resultChan := make(chan bool)
 	for _, p := range podList.Items {
 		go func(podName string) {
-			log.Printf("Watching POD: %s\n", podName)
+			log.Printf("Watching pod: %s\n", podName)
 			contains, err := podLogContains(cctx, podName, containerName, pattern)
 			if err != nil {
 				errChan <- err

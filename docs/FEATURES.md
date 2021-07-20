@@ -24,10 +24,10 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Group step | | v0.0.59 | | |
 | [Git step](GIT.md) | | v0.0.59 | | |
 | Golang SDK | | v0.0.59 | v0.0.70 | |
-| Golang runtime | | v0.0.59 | | |
+| Golang runtime | | v0.0.59 | v0.0.70 | |
 | Kubernetes manifests | | | v0.0.59 | |
 | HPA support | | v0.0.59 | | |
-| Java runtime | | v0.0.59 | | |
+| Java runtime | | v0.0.59 | v0.0.70 | |
 | HTTP sink | | v0.0.59 | | |
 | HTTP source | | v0.0.59 | | |
 | Kafka sink | | v0.0.59 | | |
@@ -38,7 +38,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | NATS Streaming source | | v0.0.59 | | |
 | Non-terminating pipelines | | | v0.0.59 | |
 | [Prometheus metrics](METRICS.md) | | | v0.0.59 | |
-| Python runtime | | v0.0.59 | | |
+| Python runtime | | v0.0.59 | v0.0.70 | |
 | Python SDK | | | v0.0.59 | |
 | Stress tests | | | v0.0.59 | |
 | Terminating pipelines | | v0.0.59 | v0.0.70 | |

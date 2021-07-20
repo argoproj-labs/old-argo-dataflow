@@ -2,7 +2,7 @@ from argo_dataflow import pipeline, kafka
 
 
 def handler(msg, context):
-    return msg
+    return ("hi! " + msg.decode("UTF-8")).encode("UTF-8")
 
 
 if __name__ == '__main__':

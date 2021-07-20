@@ -14,7 +14,7 @@ spec:
       runtime: python3-9
       source: |
         def handler(msg, context):
-            return msg
+            return ("hi! " + msg.decode("UTF-8")).encode("UTF-8")
     name: main
     sinks:
     - kafka:

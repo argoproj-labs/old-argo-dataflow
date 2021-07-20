@@ -4,14 +4,13 @@ package test
 
 import (
 	"fmt"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/tools/portforward"
+	"k8s.io/client-go/transport/spdy"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
-
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/tools/portforward"
-	"k8s.io/client-go/transport/spdy"
 )
 
 func StartPortForward(podName string, opts ...interface{}) (stopPortForward func()) {

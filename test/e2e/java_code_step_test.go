@@ -9,16 +9,25 @@ import (
 	"testing"
 )
 
-func TestFilterStep(t *testing.T) {
+func TestJavaCodeStep(t *testing.T) {
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "filter"},
+		ObjectMeta: metav1.ObjectMeta{Name: "java"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
-					Name:    "main",
-					Filter:  "string(msg) == 'foo-bar'",
+					Name: "main",
+					Code: &Code{
+						Runtime: "java16",
+						Source: `import java.util.Map;
+
+public class Handler {
+    public static byte[] Handle(byte[] msg, Map<String, String> context) throws Exception {
+        return ("hi! " + new String(msg)).getBytes("UTF-8");
+    }
+}`,
+					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
 					Sinks:   []Sink{{Log: &Log{}}},
 				},
@@ -28,15 +37,13 @@ func TestFilterStep(t *testing.T) {
 
 	WaitForPod()
 
-	defer StartPortForward("filter-main-0")()
+	defer StartPortForward("java-main-0")()
 
 	SendMessageViaHTTP("foo-bar")
-	SendMessageViaHTTP("baz-qux")
 
-	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectLogLine("main",  `foo-bar`)
+	ExpectLogLine("main", `hi! foo-bar`)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

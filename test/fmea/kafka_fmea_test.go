@@ -3,7 +3,6 @@
 package stress
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -74,7 +73,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 
 	WaitForStep(TotalSunkMessages(n), 3*time.Minute)
 	WaitForStep(NoRecentErrors)
-	ExpectStepLogLine(context.Background(), "kafka", "main", "sidecar", "Failed to connect to broker kafka-broker:9092", 1*time.Minute)
+	ExpectLogLine("main",  "Failed to connect to broker kafka-broker:9092")
 }
 
 func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
