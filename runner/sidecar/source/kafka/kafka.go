@@ -74,7 +74,7 @@ func (s kafkaSource) Close() error {
 	return s.consumerGroup.Close()
 }
 
-func (s kafkaSource) GetPending() (uint64, error) {
+func (s kafkaSource) GetPending(context.Context) (uint64, error) {
 	config, err := kafka.NewConfig(s.source.Kafka)
 	if err != nil {
 		return 0, err
