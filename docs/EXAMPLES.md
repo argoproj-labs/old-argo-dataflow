@@ -1,6 +1,3 @@
-time="2021-07-19T16:00:39-07:00" level=info msg=cpu numCPU=12
-time="2021-07-19T16:00:39-07:00" level=info msg=process pid=45783
-time="2021-07-19T16:00:39-07:00" level=info msg=version version=v0.0.0-latest-0
 ### Examples
 
 ### [101-hello](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-hello-pipeline.yaml)

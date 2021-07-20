@@ -9,6 +9,7 @@ import (
 
 type kafkaSink struct {
 	producer sarama.SyncProducer
+	topic    string
 }
 
 func New(x dfv1.Kafka) (sink.Interface, error) {
@@ -21,11 +22,11 @@ func New(x dfv1.Kafka) (sink.Interface, error) {
 	if err != nil {
 		return nil, err
 	}
-	return kafkaSink{producer: producer}, nil
+	return kafkaSink{producer, x.Topic}, nil
 }
 
 func (h kafkaSink) Sink(msg []byte) error {
-	_, _, err := h.producer.SendMessage(&sarama.ProducerMessage{Value: sarama.ByteEncoder(msg)})
+	_, _, err := h.producer.SendMessage(&sarama.ProducerMessage{Value: sarama.ByteEncoder(msg), Topic: h.topic})
 	return err
 }
 
