@@ -23,6 +23,7 @@ type kafkaSource struct {
 
 type handler struct {
 	f source.Func
+	i int
 }
 
 func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
@@ -31,6 +32,10 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 	for msg := range claim.Messages() {
 		_ = h.f(context.Background(), msg.Value)
 		sess.MarkMessage(msg, "")
+		h.i++
+		if h.i%dfv1.CommitN == 0 {
+			sess.Commit()
+		}
 	}
 	return nil
 }
@@ -44,11 +49,12 @@ func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
+	config.Consumer.Offsets.AutoCommit.Enable = false
 	consumerGroup, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
 	if err != nil {
 		return nil, err
 	}
-	h := handler{f}
+	h := handler{f, 0}
 	go wait.JitterUntil(func() {
 		ctx := context.Background()
 		for {
