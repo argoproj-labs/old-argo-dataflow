@@ -17,14 +17,17 @@ func RandomSTANSubject() (longSubject string, subject string) {
 
 func PumpSTANSubject(subject string, n int, opts ...interface{}) {
 	var sleep time.Duration
+	var prefix string
 	for _, opt := range opts {
 		switch v := opt.(type) {
 		case time.Duration:
 			sleep = v
+		case string:
+			prefix = v
 		}
 	}
 	log.Printf("puming stan subject %q sleeping %v with %d messages\n", subject, sleep, n)
-	InvokeTestAPI("/stan/pump-subject?subject=%s&sleep=%v&n=%d", subject, sleep, n)
+	InvokeTestAPI("/stan/pump-subject?subject=%s&sleep=%v&n=%d&prefix=%s", subject, sleep, n, prefix)
 }
 
 func RestartSTAN() {

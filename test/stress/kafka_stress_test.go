@@ -4,7 +4,6 @@ package stress
 
 import (
 	"testing"
-	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -40,12 +39,13 @@ func TestKafkaSourceStress(t *testing.T) {
 	WaitForPod()
 
 	n := 10000
+	prefix := "kafka-source-stress"
 
 	defer StartMetricsLogger()()
-	defer StartTPSReporter(t, n)()
+	defer StartTPSReporter(t, "kafka", "main", prefix, n)()
 
-	PumpKafkaTopic(topic, n)
-	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+	PumpKafkaTopic(topic, n, prefix)
+	WaitForStep(TotalSunkMessages(n), params.timeout)
 }
 
 func TestKafkaSinkStress(t *testing.T) {
@@ -66,7 +66,7 @@ func TestKafkaSinkStress(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: params.replicas,
 				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
-				Sinks:    []Sink{{Kafka: &Kafka{Topic: sinkTopic}}},
+				Sinks:    []Sink{{Kafka: &Kafka{Topic: sinkTopic}}, {Name: "log", Log: &Log{}}},
 			}},
 		},
 	})
@@ -78,10 +78,11 @@ func TestKafkaSinkStress(t *testing.T) {
 	WaitForPod()
 
 	n := 10000
+	prefix := "kafka-sink-stress"
 
 	defer StartMetricsLogger()()
-	defer StartTPSReporter(t, n)()
+	defer StartTPSReporter(t, "kafka", "main", prefix, n)()
 
-	PumpKafkaTopic(topic, n)
-	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+	PumpKafkaTopic(topic, n, prefix)
+	WaitForStep(TotalSunkMessages(n*2), params.timeout) // 2 sinks
 }

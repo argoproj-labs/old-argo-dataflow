@@ -4,7 +4,6 @@ package stress
 
 import (
 	"testing"
-	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -38,12 +37,13 @@ func TestStanSourceStress(t *testing.T) {
 	WaitForPod()
 
 	n := 10000
+	prefix := "stan-source-stress"
 
 	defer StartMetricsLogger()()
-	defer StartTPSReporter(t, n)()
+	defer StartTPSReporter(t, "stan", "main", prefix, n)()
 
-	PumpSTANSubject(longSubject, n)
-	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+	PumpSTANSubject(longSubject, n, prefix)
+	WaitForStep(TotalSunkMessages(n), params.timeout)
 
 }
 
@@ -63,7 +63,7 @@ func TestStanSinkStress(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: params.replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
-				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}},
+				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}, {Name: "log", Log: &Log{}}},
 			}},
 		},
 	})
@@ -75,10 +75,11 @@ func TestStanSinkStress(t *testing.T) {
 	WaitForPod()
 
 	n := 10000
+	prefix := "stan-sink-stress"
 	defer StartMetricsLogger()()
-	defer StartTPSReporter(t, n)()
+	defer StartTPSReporter(t, "stan", "main", prefix, n)()
 
-	PumpSTANSubject(longSubject, n)
-	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
+	PumpSTANSubject(longSubject, n, prefix)
+	WaitForStep(TotalSunkMessages(n*2), params.timeout) // 2 sinks
 
 }

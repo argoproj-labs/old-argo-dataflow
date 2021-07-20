@@ -3,7 +3,9 @@
 package e2e
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -37,7 +39,7 @@ func TestFilter(t *testing.T) {
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectLogLine("filter-main-0", "sidecar", `foo-bar`)
+	ExpectStepLogLine(context.Background(), "filter", "main", "sidecar", `foo-bar`, 1*time.Minute)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

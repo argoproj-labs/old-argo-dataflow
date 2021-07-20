@@ -20,14 +20,17 @@ func CreateKafkaTopic() string {
 
 func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 	var sleep time.Duration
+	var prefix string
 	for _, opt := range opts {
 		switch v := opt.(type) {
 		case time.Duration:
 			sleep = v
+		case string:
+			prefix = v
 		}
 	}
 	log.Printf("puming Kafka topic %q sleeping %v with %d messages\n", topic, sleep, n)
-	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d&prefix=my-msg", topic, sleep, n)
+	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d&prefix=%s", topic, sleep, n, prefix)
 }
 
 func ExpectKafkaTopicCount(topic string, expectedCount int, timeout time.Duration) {
