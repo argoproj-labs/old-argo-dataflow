@@ -1,18 +1,20 @@
-package util
+package golang
 
 import (
 	"context"
 	"io/ioutil"
+	"log"
 	"net/http"
-
-	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
-var logger = sharedutil.NewLogger()
+func Start(handler func(ctx context.Context, msg []byte) ([]byte, error)) {
+	ctx := SetupSignalsHandler(context.Background())
+	if err := StartWithContext(ctx, handler); err != nil {
+		panic(err)
+	}
+}
 
-func Do(ctx context.Context, fn func(msg []byte) ([]byte, error)) error {
+func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg []byte) ([]byte, error)) error {
 	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(204)
 	})
@@ -22,34 +24,35 @@ func Do(ctx context.Context, fn func(msg []byte) ([]byte, error)) error {
 			if in, err := ioutil.ReadAll(r.Body); err != nil {
 				return nil, err
 			} else {
-				return fn(in)
+				return handler(r.Context(), in)
 			}
 		}()
 		if err != nil {
-			logger.Error(err, "failed to marshal message")
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-		if out != nil {
+		} else if out != nil {
 			w.WriteHeader(201)
 			_, _ = w.Write(out)
 		} else {
 			w.WriteHeader(204)
 		}
 	})
-
+	// https://medium.com/honestbee-tw-engineer/gracefully-shutdown-in-go-http-server-5f5e6b83da5a
 	server := &http.Server{Addr: ":8080"}
 
 	go func() {
-		defer runtimeutil.HandleCrash()
+		defer func() {
+			r := recover()
+			if r != nil {
+				println(r)
+			}
+		}()
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
 	}()
-
-	logger.Info("ready")
-	defer logger.Info("done")
+	log.Println("ready")
+	defer log.Println("done")
 	<-ctx.Done()
 	return server.Shutdown(context.Background())
 }
