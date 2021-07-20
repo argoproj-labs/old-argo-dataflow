@@ -12,16 +12,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestMap(t *testing.T) {
+func TestFilterStep(t *testing.T) {
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "map"},
+		ObjectMeta: metav1.ObjectMeta{Name: "filter"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
 					Name:    "main",
-					Map:     "bytes('hi! ' + string(msg))",
+					Filter:  "string(msg) == 'foo-bar'",
 					Sources: []Source{{HTTP: &HTTPSource{}}},
 					Sinks:   []Sink{{Log: &Log{}}},
 				},
@@ -31,14 +31,15 @@ func TestMap(t *testing.T) {
 
 	WaitForPod()
 
-	defer StartPortForward("map-main-0")()
+	defer StartPortForward("filter-main-0")()
 
 	SendMessageViaHTTP("foo-bar")
+	SendMessageViaHTTP("baz-qux")
 
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectStepLogLine(context.Background(), "map", "main", "sidecar", `hi! foo-bar`, 1*time.Minute)
+	ExpectStepLogLine(context.Background(), "filter", "main", "sidecar", `foo-bar`, 1*time.Minute)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

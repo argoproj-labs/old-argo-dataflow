@@ -3,25 +3,25 @@
 package e2e
 
 import (
-	"context"
-	"testing"
-	"time"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
-func TestFilter(t *testing.T) {
+func TestContainerStep(t *testing.T) {
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "filter"},
+		ObjectMeta: metav1.ObjectMeta{Name: "container"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
-					Name:    "main",
-					Filter:  "string(msg) == 'foo-bar'",
+					Name: "main",
+					Container: &Container{
+						Image: "quay.io/argoproj/dataflow-runner",
+						Args:  []string{"cat"},
+					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
 					Sinks:   []Sink{{Log: &Log{}}},
 				},
@@ -31,15 +31,12 @@ func TestFilter(t *testing.T) {
 
 	WaitForPod()
 
-	defer StartPortForward("filter-main-0")()
+	defer StartPortForward("container-main-0")()
 
 	SendMessageViaHTTP("foo-bar")
-	SendMessageViaHTTP("baz-qux")
 
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
-
-	ExpectStepLogLine(context.Background(), "filter", "main", "sidecar", `foo-bar`, 1*time.Minute)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

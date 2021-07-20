@@ -13,6 +13,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Container step | | | v0.0.59 | |
 | Code step | | v0.0.59 | |
 | Container killer | | | v0.0.59 | |
+| Container step | | v0.0.59 | v0.0.70 | |
 | Cron source | | v0.0.59 | |
 | Dedupe step | | v0.0.59 | || |
 | Expand step | | v0.0.59 | | |
