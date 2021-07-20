@@ -32,7 +32,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Kafka sink | | v0.0.59 | | |
 | Kafka source | | v0.0.59 | | |
 | Log sink | | |  v0.0.59 |  |
-| Map step | | v0.0.59 | | |
+| Map step | | v0.0.59 | v0.0.70 | |
 | NATS Streaming sink | | v0.0.59 | | |
 | NATS Streaming source | | v0.0.59 | | |
 | Non-terminating pipelines | | | v0.0.59 | |
