@@ -7,11 +7,11 @@ metadata:
 
       [Learn about handlers](../docs/HANDLERS.md)
     dataflow.argoproj.io/owner: argoproj-labs
-  name: 104-go1-16
+  name: 104-golang1-16
 spec:
   steps:
   - code:
-      runtime: go1-16
+      runtime: golang1-16
       source: |-
         package main
 

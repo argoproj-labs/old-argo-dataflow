@@ -4,18 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	_ "net/http/pprof"
-	"os"
-	"os/signal"
-	"syscall"
-
-	"github.com/argoproj-labs/argo-dataflow/runner/dedupe"
-
-	"k8s.io/apimachinery/pkg/api/resource"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/cat"
+	"github.com/argoproj-labs/argo-dataflow/runner/dedupe"
 	"github.com/argoproj-labs/argo-dataflow/runner/expand"
 	"github.com/argoproj-labs/argo-dataflow/runner/filter"
 	"github.com/argoproj-labs/argo-dataflow/runner/flatten"
@@ -24,13 +15,15 @@ import (
 	_map "github.com/argoproj-labs/argo-dataflow/runner/map"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
 	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
-	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
+	"io/ioutil"
+	"k8s.io/apimachinery/pkg/api/resource"
+	_ "net/http/pprof"
+	"os"
 )
 
-var logger = sharedutil.NewLogger()
-
 func main() {
-	ctx := setupSignalsHandler(context.Background())
+	ctx := golang.SetupSignalsHandler(context.Background())
 
 	err := func() error {
 		switch os.Args[1] {
@@ -71,17 +64,4 @@ func main() {
 		}
 		panic(err)
 	}
-}
-
-func setupSignalsHandler(ctx context.Context) context.Context {
-	ctx, cancel := context.WithCancel(ctx)
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGTERM)
-	go func() {
-		for signal := range signals {
-			logger.Info("received signal", "signal", signal)
-			cancel()
-		}
-	}()
-	return ctx
 }

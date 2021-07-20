@@ -15,7 +15,7 @@ spec:
   steps:
   - git:
       branch: main
-      image: quay.io/argoproj/dataflow-go1-16:latest
+      image: quay.io/argoproj/dataflow-golang1-16:latest
       path: examples/git
       url: https://github.com/argoproj-labs/argo-dataflow
     name: main

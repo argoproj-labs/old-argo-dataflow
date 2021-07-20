@@ -41,6 +41,12 @@ message Backoff {
 message Cat {
 }
 
+message Code {
+  optional string runtime = 4;
+
+  optional string source = 3;
+}
+
 message Container {
   optional string image = 1;
 
@@ -156,12 +162,6 @@ message HTTPSink {
 
 message HTTPSource {
   optional string serviceName = 1;
-}
-
-message Handler {
-  optional string runtime = 4;
-
-  optional string code = 3;
 }
 
 message Interface {
@@ -372,7 +372,7 @@ message StepSpec {
 
   optional Group group = 11;
 
-  optional Handler handler = 7;
+  optional Code code = 7;
 
   optional string map = 9;
 

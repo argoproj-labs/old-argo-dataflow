@@ -394,7 +394,7 @@ spec:
                       properties:
                         runtime:
                           enum:
-                          - go1-16
+                          - golang1-16
                           - java16
                           - python3-9
                           type: string
@@ -2371,7 +2371,7 @@ spec:
                 properties:
                   runtime:
                     enum:
-                    - go1-16
+                    - golang1-16
                     - java16
                     - python3-9
                     type: string

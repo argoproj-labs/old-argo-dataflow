@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [ controller, runner, go1-16, java16, python3-9, testapi ]
+        target: [ controller, runner, golang1-16, java16, python3-9, testapi ]
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-qemu-action@v1

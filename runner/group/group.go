@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -43,7 +44,7 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 	if err != nil {
 		return fmt.Errorf("failed to compile %q: %w", endOfGroup, err)
 	}
-	return util.Do(ctx, func(msg []byte) ([]byte, error) {
+	return golang.StartWithContext(ctx, func(ctx context.Context, msg []byte) ([]byte, error) {
 		res, err := expr.Run(prog, util.ExprEnv(msg))
 		if err != nil {
 			return nil, fmt.Errorf("failed to run program %q: %w", key, err)

@@ -31,6 +31,7 @@ COPY prestop/ prestop/
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/prestop ./prestop
 COPY api/ api/
 COPY shared/ shared/
+COPY sdks/golang sdks/golang
 COPY runner/ runner/
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.version=${VERSION}'" -o bin/runner ./runner
 
@@ -53,12 +54,13 @@ COPY --from=testapi-builder /workspace/bin/testapi .
 USER 9653:9653
 ENTRYPOINT ["/testapi"]
 
-FROM golang:1.16-alpine AS go1-16
+FROM golang:1.16-alpine AS golang1-16
 RUN mkdir /.cache
-ADD runtimes/go1-16 /workspace
+ADD runtimes/golang1-16 /workspace
 RUN chown -R 9653 /.cache /workspace
 WORKDIR /workspace
 USER 9653:9653
+RUN go get -u github.com/argoproj-labs/argo-dataflow
 RUN go build ./...
 ENTRYPOINT ./entrypoint.sh
 

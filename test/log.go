@@ -33,7 +33,7 @@ func podsLogContains(ctx context.Context, podList *corev1.PodList, containerName
 	resultChan := make(chan bool)
 	for _, p := range podList.Items {
 		go func(podName string) {
-			fmt.Printf("Watching POD: %s\n", podName)
+			log.Printf("Watching POD: %s\n", podName)
 			contains, err := podLogContains(cctx, podName, containerName, pattern)
 			if err != nil {
 				errChan <- err

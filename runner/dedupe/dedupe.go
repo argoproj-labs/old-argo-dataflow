@@ -3,6 +3,7 @@ package dedupe
 import (
 	"context"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 	"net/http"
 	"sync"
 	"time"
@@ -53,7 +54,7 @@ func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
 		}
 	}, 15*time.Second, 1.2, true, ctx.Done())
 
-	return util.Do(ctx, func(msg []byte) ([]byte, error) {
+	return golang.StartWithContext(ctx, func(ctx context.Context, msg []byte) ([]byte, error) {
 		r, err := expr.Run(prog, util.ExprEnv(msg))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute program: %w", err)

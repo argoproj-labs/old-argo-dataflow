@@ -11,7 +11,7 @@ your code when the step starts.
 [Learn about Git steps](../docs/GIT.md)""")
      .step(
         (kafka('input-topic')
-         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git', 'quay.io/argoproj/dataflow-go1-16:latest')
+         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git', 'quay.io/argoproj/dataflow-golang1-16:latest')
          .kafka('output-topic')
          ))
      .save())

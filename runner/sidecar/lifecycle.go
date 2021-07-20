@@ -44,7 +44,7 @@ func runHooks(hooks []hook) {
 	}
 	start := time.Now()
 	logger.Info("running hooks", "len", len(hooks))
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	for i := len(hooks) - 1; i >= 0; i-- {
 		f := hooks[i]
