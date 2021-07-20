@@ -10,8 +10,9 @@ metadata:
   name: 104-java16
 spec:
   steps:
-  - handler:
-      code: |-
+  - code:
+      runtime: java16
+      source: |-
         import java.util.Map;
 
         public class Handler {
@@ -19,7 +20,6 @@ spec:
                 return msg;
             }
         }
-      runtime: java16
     name: main
     sinks:
     - kafka:

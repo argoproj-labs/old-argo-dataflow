@@ -13,7 +13,7 @@ if __name__ == '__main__':
 [Learn about handlers](../docs/HANDLERS.md)""")
      .step(
         (kafka('input-topic')
-         .handler('main', code="""package main
+         .code('main', code="""package main
 
 import "context"
 

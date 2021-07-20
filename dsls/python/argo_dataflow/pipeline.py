@@ -353,13 +353,13 @@ class FlattenStep(Step):
         return x
 
 
-class HandlerStep(Step):
-    def __init__(self, name, handler=None, code=None, runtime=None, sources=[]):
+class CodeStep(Step):
+    def __init__(self, name, source=None, code=None, runtime=None, sources=[]):
         super().__init__(name, sources=sources)
-        if handler:
-            self._code = inspect.getsource(handler)
+        if source:
+            self._source = inspect.getsource(source)
         else:
-            self._code = code
+            self._source = code
         if runtime:
             self._runtime = runtime
         else:
@@ -367,9 +367,9 @@ class HandlerStep(Step):
 
     def dump(self):
         x = super().dump()
-        x['handler'] = {
+        x['code'] = {
             'runtime': self._runtime,
-            'code': self._code,
+            'source': self._source,
         }
         return x
 
@@ -420,8 +420,8 @@ class Source:
     def flatten(self, name):
         return FlattenStep(name, sources=[self])
 
-    def handler(self, name, handler=None, code=None, runtime=None):
-        return HandlerStep(name, handler=handler, code=code, runtime=runtime, sources=[self])
+    def code(self, name, source=None, code=None, runtime=None):
+        return CodeStep(name, source=source, code=code, runtime=runtime, sources=[self])
 
     def map(self, name, map):
         return MapStep(name, map, sources=[self])
@@ -457,7 +457,7 @@ def flatten(name):
 
 
 def handler(name, handler=None, code=None, runtime=None):
-    return HandlerStep(name, handler, code, runtime)
+    return CodeStep(name, handler, code, runtime)
 
 
 def map(name, map):

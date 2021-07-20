@@ -18,7 +18,7 @@ type StepSpec struct {
 	Flatten   *Flatten   `json:"flatten,omitempty" protobuf:"bytes,25,opt,name=flatten"`
 	Git       *Git       `json:"git,omitempty" protobuf:"bytes,12,opt,name=git"`
 	Group     *Group     `json:"group,omitempty" protobuf:"bytes,11,opt,name=group"`
-	Handler   *Handler   `json:"handler,omitempty" protobuf:"bytes,7,opt,name=handler"`
+	Code      *Code      `json:"code,omitempty" protobuf:"bytes,7,opt,name=code"`
 	Map       Map        `json:"map,omitempty" protobuf:"bytes,9,opt,name=map,casttype=Map"`
 
 	// +kubebuilder:default=1
@@ -80,7 +80,7 @@ func (in StepSpec) getType() containerSupplier {
 		return x
 	} else if x := in.Group; x != nil {
 		return x
-	} else if x := in.Handler; x != nil {
+	} else if x := in.Code; x != nil {
 		return x
 	} else if x := in.Map; x != "" {
 		return x

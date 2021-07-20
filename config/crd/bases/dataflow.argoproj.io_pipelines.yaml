@@ -674,6 +674,20 @@ spec:
                       type: object
                     cat:
                       type: object
+                    code:
+                      properties:
+                        runtime:
+                          enum:
+                          - go1-16
+                          - java16
+                          - python3-9
+                          type: string
+                        source:
+                          type: string
+                      required:
+                      - runtime
+                      - source
+                      type: object
                     container:
                       properties:
                         args:
@@ -1055,20 +1069,6 @@ spec:
                       required:
                       - endOfGroup
                       - key
-                      type: object
-                    handler:
-                      properties:
-                        code:
-                          type: string
-                        runtime:
-                          enum:
-                          - go1-16
-                          - java16
-                          - python3-9
-                          type: string
-                      required:
-                      - code
-                      - runtime
                       type: object
                     map:
                       type: string

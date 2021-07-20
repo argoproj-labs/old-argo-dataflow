@@ -68,9 +68,9 @@ func Exec() error {
 		if err := os.Rename(path, dfv1.PathWorkingDir); sharedutil.IgnoreExist(err) != nil {
 			return fmt.Errorf("failed to moved checked out path to working dir: %w", err)
 		}
-	} else if h := step.Spec.Handler; h != nil {
-		logger.Info("setting up handler", "runtime", h.Runtime, "code", strings.ShortenString(h.Code, 32)+"...")
-		if err := ioutil.WriteFile(dfv1.PathHandlerFile, []byte(h.Code), 0o600); err != nil {
+	} else if h := step.Spec.Code; h != nil {
+		logger.Info("setting up handler", "runtime", h.Runtime, "code", strings.ShortenString(h.Source, 32)+"...")
+		if err := ioutil.WriteFile(dfv1.PathHandlerFile, []byte(h.Source), 0o600); err != nil {
 			return fmt.Errorf("failed to create code file: %w", err)
 		}
 	}

@@ -10,11 +10,11 @@ metadata:
   name: 104-python3-9
 spec:
   steps:
-  - handler:
-      code: |
+  - code:
+      runtime: python3-9
+      source: |
         def handler(msg, context):
             return msg
-      runtime: python3-9
     name: main
     sinks:
     - kafka:

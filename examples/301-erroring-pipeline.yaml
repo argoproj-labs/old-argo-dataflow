@@ -8,14 +8,14 @@ metadata:
   name: 301-erroring
 spec:
   steps:
-  - handler:
-      code: |
+  - code:
+      runtime: python3-9
+      source: |
         def handler(msg, context):
             import random
             if random.randint(0, 4) == 1:
                 raise Exception("random error")
             return msg
-      runtime: python3-9
     name: always
     sinks:
     - log: {}
@@ -24,14 +24,14 @@ spec:
         schedule: '*/3 * * * * *'
       retry:
         steps: 99999999
-  - handler:
-      code: |
+  - code:
+      runtime: python3-9
+      source: |
         def handler(msg, context):
             import random
             if random.randint(0, 4) == 1:
                 raise Exception("random error")
             return msg
-      runtime: python3-9
     name: never
     sinks:
     - log: {}

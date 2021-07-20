@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandler_getContainer(t *testing.T) {
-	x := Handler{
+func TestCode_getContainer(t *testing.T) {
+	x := Code{
 		Runtime: "my-runtime",
 	}
 	c := x.getContainer(getContainerReq{imageFormat: "fmt-%s"})

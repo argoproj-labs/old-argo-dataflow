@@ -15,11 +15,11 @@ if __name__ == '__main__':
      .annotate('dataflow.argoproj.io/wait-for', 'RecentErrors')
      .step(
         (cron('*/3 * * * * *', retry={'steps': 99999999})
-         .handler('always', handler=handler)
+         .code('always', source=handler)
          .log())
     )
      .step(
         (cron('*/3 * * * * *', retry={'steps': 0})
-         .handler('never', handler=handler)
+         .code('never', source=handler)
          .log())
     ).save())

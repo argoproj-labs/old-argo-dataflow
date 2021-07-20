@@ -10,8 +10,9 @@ metadata:
   name: 104-go1-16
 spec:
   steps:
-  - handler:
-      code: |-
+  - code:
+      runtime: go1-16
+      source: |-
         package main
 
         import "context"
@@ -19,7 +20,6 @@ spec:
         func Handler(ctx context.Context, m []byte) ([]byte, error) {
           return []byte("hi " + string(m)), nil
         }
-      runtime: go1-16
     name: main
     sinks:
     - log: {}
