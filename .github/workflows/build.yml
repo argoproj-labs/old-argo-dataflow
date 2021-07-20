@@ -88,6 +88,7 @@ jobs:
       - run: make testapi
       - run: make deploy CONFIG=ci
       - run: make runner
+      - run: make runtimes
       - run: make wait
       - run: make test-${{matrix.suite}}
       - name: list pods
