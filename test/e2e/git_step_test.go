@@ -45,7 +45,7 @@ func TestGitStep(t *testing.T) {
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectLogLine("main", `hi! foo-bar`)
+	ExpectLogLine("main", `hi foo-bar`)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
