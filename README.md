@@ -60,6 +60,7 @@ Intermediate:
 * [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)
 * [Workflow interop](docs/WORKFLOW_INTEROP.md)
+* [Kubectl](docs/KUBECTL.md)
 
 Advanced
 
