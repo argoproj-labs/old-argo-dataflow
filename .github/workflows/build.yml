@@ -92,15 +92,6 @@ jobs:
         if: "${{matrix.suite}} == e2e"
       - run: make wait
       - run: make test-${{matrix.suite}}
-      - name: list pods
-        if: ${{ failure() }}
-        run: kubectl -n argo-dataflow-system get pod
       - name: controller logs
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system logs deploy/controller-manager -c manager
-      - name: sidecar logs
-        if: ${{ failure() }}
-        run: kubectl -n argo-dataflow-system logs -l dataflow.argoproj.io/pipeline-name -c sidecar
-      - name: main logs
-        if: ${{ failure() }}
-        run: kubectl -n argo-dataflow-system logs -l dataflow.argoproj.io/pipeline-name -c main
