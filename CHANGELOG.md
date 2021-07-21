@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.71 (2021-07-20)
+
+ * [7dce579](https://github.com/argoproj-labs/argo-dataflow/commit/7dce5795f66aa9f26156b846d63c35b5e5677b0d) fix: do not loop logging error
+ * [bc8f72c](https://github.com/argoproj-labs/argo-dataflow/commit/bc8f72c095b059750335dd31b9f5d75fc53136f8) chore!: Change `go1-16` to `golang1-16`
+ * [937e874](https://github.com/argoproj-labs/argo-dataflow/commit/937e874402037cbc677ac010ddc83e30152bc087) feat: add Golang SDKs draft
+ * [391db24](https://github.com/argoproj-labs/argo-dataflow/commit/391db243aef2e41095b3247509831c58a21ab094) feat!: rename "handler" to "code". Fixes #99
+ * [29741e5](https://github.com/argoproj-labs/argo-dataflow/commit/29741e550a205fd0f2692c58d461ab94da774036) tests: add container step test. Fixes #123
+ * [f06c4c8](https://github.com/argoproj-labs/argo-dataflow/commit/f06c4c89818bb6a506b9e11091edb40e9fc87391) tests: add map test. Fixes #126
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.70 (2021-07-20)
 
  * [d71b06d](https://github.com/argoproj-labs/argo-dataflow/commit/d71b06dc965fcbb3bcc6131119871becabd2f1ca) fix: report pending Kafka messages
