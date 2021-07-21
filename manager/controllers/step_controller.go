@@ -198,6 +198,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 					Namespace:       step.Namespace,
 					Name:            serviceName,
 					OwnerReferences: ownerReferences,
+					// useful for auto-detecting the service as exporting Prometheus
+					Labels: map[string]string{
+						dfv1.KeyStepName:     stepName,
+						dfv1.KeyPipelineName: pipelineName,
+					},
 				},
 				Spec: corev1.ServiceSpec{
 					Ports: []corev1.ServicePort{
