@@ -28,7 +28,7 @@ spec:
   steps:
   - group:
       endOfGroup: |-
-        string(msg) contains "excited"
+        string(msg) contains "4"
       format: JSONStringArray
       key: |-
         string(msg) contains "2" ? "even" : "odd"
