@@ -8,7 +8,9 @@ if __name__ == '__main__':
 HTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your
 messages between steps. 
 
-* HTTP sinks are *unreliable* because it is possible for messages to not get delivered when the receiving service is down.
+* A HTTP sink may return and error code, clients will need to re-send messages.
+* Adding replicas will nearly linearly increase throughput.
+* Due to the lack of state, do not use HTTP sources and sinks to connect steps. 
 """)
      .step(
         (cron('*/3 * * * * *')

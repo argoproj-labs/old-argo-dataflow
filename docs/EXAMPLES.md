@@ -1,6 +1,3 @@
-time="2021-07-20T17:32:10-07:00" level=info msg=cpu numCPU=12
-time="2021-07-20T17:32:10-07:00" level=info msg=process pid=65439
-time="2021-07-20T17:32:10-07:00" level=info msg=version version=v0.0.0-latest-0
 ### Examples
 
 ### [101-hello](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-hello-pipeline.yaml)
@@ -285,7 +282,9 @@ This example uses a HTTP sources and sinks.
 HTTP has the advantage that it is stateless and therefore cheap. You not need to set-up any storage for your
 messages between steps. 
 
-* HTTP sinks are *unreliable* because it is possible for messages to not get delivered when the receiving service is down.
+* A HTTP sink may return and error code, clients will need to re-send messages.
+* Adding replicas will nearly linearly increase throughput.
+* Due to the lack of state, do not use HTTP sources and sinks to connect steps. 
 
 
 ```
@@ -296,7 +295,9 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 This example shows reading and writing to a Kafka topic
      
-Kafka topics are typically partitioned. Dataflow will process each partition simultaneously.     
+* Kafka topics are typically partitioned. Dataflow will process each partition simultaneously.
+* Adding replicas will nearly linearly increase throughput.
+* If you scale beyond the number of partitions, those additional replicas will be idle.
      
 
 ```
@@ -305,7 +306,10 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 ### [301-stan](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-stan-pipeline.yaml)
 
-This example shows reading and writing to a STAN subject
+This example shows reading and writing to a STAN subject.
+
+* Adding replicas will nearly linearly increase throughput.       
+
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-stan-pipeline.yaml

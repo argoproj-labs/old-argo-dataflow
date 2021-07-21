@@ -5,7 +5,9 @@ if __name__ == '__main__':
      .owner('argoproj-labs')
      .describe("""This example shows reading and writing to a Kafka topic
      
-Kafka topics are typically partitioned. Dataflow will process each partition simultaneously.     
+* Kafka topics are typically partitioned. Dataflow will process each partition simultaneously.
+* Adding replicas will nearly linearly increase throughput.
+* If you scale beyond the number of partitions, those additional replicas will be idle.
      """)
      .annotate("dataflow.argoproj.io/test", "true")
      .step(

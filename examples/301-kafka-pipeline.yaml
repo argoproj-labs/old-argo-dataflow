@@ -3,8 +3,10 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: "This example shows reading and writing to a\
-      \ Kafka topic\n     \nKafka topics are typically partitioned. Dataflow will\
-      \ process each partition simultaneously.     \n     "
+      \ Kafka topic\n     \n* Kafka topics are typically partitioned. Dataflow will\
+      \ process each partition simultaneously.\n* Adding replicas will nearly linearly\
+      \ increase throughput.\n* If you scale beyond the number of partitions, those\
+      \ additional replicas will be idle.\n     "
     dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/test: 'true'
   name: 301-kafka

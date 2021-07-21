@@ -4,9 +4,10 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: "This example uses a HTTP sources and sinks.\n\
       \nHTTP has the advantage that it is stateless and therefore cheap. You not need\
-      \ to set-up any storage for your\nmessages between steps. \n\n* HTTP sinks are\
-      \ *unreliable* because it is possible for messages to not get delivered when\
-      \ the receiving service is down.\n"
+      \ to set-up any storage for your\nmessages between steps. \n\n* A HTTP sink\
+      \ may return and error code, clients will need to re-send messages.\n* Adding\
+      \ replicas will nearly linearly increase throughput.\n* Due to the lack of state,\
+      \ do not use HTTP sources and sinks to connect steps. \n"
     dataflow.argoproj.io/owner: argoproj-labs
   name: 301-http
 spec:
