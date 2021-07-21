@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.72 (2021-07-21)
+
+ * [40211bf](https://github.com/argoproj-labs/argo-dataflow/commit/40211bfd5f59f84bc7522f3d1d9c2d71f2748625) chore!: remove message and time from status to reduce complexity
+ * [18815b5](https://github.com/argoproj-labs/argo-dataflow/commit/18815b51f53b755d44c111d841683a1472c9c74e) feat: add command to GitStep in Python DSL
+ * [003d94e](https://github.com/argoproj-labs/argo-dataflow/commit/003d94ead7e949597424259c748cce306abccf18) feat: add terminator to Python DSL
+ * [8293394](https://github.com/argoproj-labs/argo-dataflow/commit/82933943b322931e602b791af9eb2c038122c3d9) feat: add terminator to Python DSL
+ * [e5face5](https://github.com/argoproj-labs/argo-dataflow/commit/e5face59462aa88a5e736fbfce6a6a1e28bf4971) feat: label service
+ * [9bc52a6](https://github.com/argoproj-labs/argo-dataflow/commit/9bc52a638d0653e366c34eafdd132e6e3a423ebe) fix: use dumb-init to correctly handle signals with entrypoint.sh scripts (#134)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.71 (2021-07-20)
 
  * [7dce579](https://github.com/argoproj-labs/argo-dataflow/commit/7dce5795f66aa9f26156b846d63c35b5e5677b0d) fix: do not loop logging error
