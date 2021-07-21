@@ -15,6 +15,10 @@ spec:
   steps:
   - git:
       branch: main
+      command:
+      - go
+      - run
+      - .
       env:
       - name: GOCACHE
         value: /tmp/.gocache

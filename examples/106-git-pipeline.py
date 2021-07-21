@@ -12,7 +12,7 @@ your code when the step starts.
      .step(
         (kafka('input-topic')
          .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git', 'golang:1.16',
-              env=[{'name': "GOCACHE", 'value': "/tmp/.gocache"}])
+              env=[{'name': "GOCACHE", 'value': "/tmp/.gocache"}], command=["go", "run", "."])
          .kafka('output-topic')
          ))
      .save())

@@ -295,24 +295,28 @@ class FilterStep(Step):
 
 
 class GitStep(Step):
-    def __init__(self, name, url, branch, path, image, sources=[], env=None, terminator=False):
+    def __init__(self, name, url, branch, path, image, sources=[], env=None, terminator=False, command=None):
         super().__init__(name, sources=sources, terminator=terminator)
         self._url = url
         self._branch = branch
         self._path = path
         self._image = image
         self._env = env
+        self._command = command
 
     def dump(self):
         x = super().dump()
-        x['git'] = {
+        y = {
             'url': self._url,
             'branch': self._branch,
             'path': self._path,
             'image': self._image
         }
+        if self._command:
+            y['command'] = self._command
         if self._env:
-            x['git']['env'] = self._env
+            y['env'] = self._env
+        x['git'] = y
         return x
 
 
@@ -414,8 +418,8 @@ class Source:
     def filter(self, name, filter):
         return FilterStep(name, filter, sources=[self])
 
-    def git(self, name, url, branch, path, image, env=None):
-        return GitStep(name, url, branch, path, image, sources=[self], env=env)
+    def git(self, name, url, branch, path, image, env=None, command=None):
+        return GitStep(name, url, branch, path, image, sources=[self], env=env, command=command)
 
     def group(self, name, key, format, endOfGroup, storage):
         return GroupStep(name, key, format, endOfGroup, storage, sources=[self])

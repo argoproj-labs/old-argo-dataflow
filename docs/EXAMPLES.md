@@ -164,11 +164,10 @@ For a pipeline to terminate one of two things must happen:
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-completion-pipeline.yaml
 ```
 
-### [terminator](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-terminator-pipeline.yaml)
+### [107-terminator](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-terminator-pipeline.yaml)
 
-This example demostrates having a terminator step, and then terminating other steps
-using different terminations strategies.
-
+This example demonstrates having a terminator step, and then terminating other steps
+      using different terminations strategies.
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-terminator-pipeline.yaml
