@@ -35,7 +35,7 @@ func TestExpandStep(t *testing.T) {
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectLogLine("main", `"foo":`)
+	ExpectLogLine("main", `"foo\\":`)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
