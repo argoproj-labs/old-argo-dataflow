@@ -25,13 +25,18 @@ build: generate manifests
 test:
 	go test -v ./... -coverprofile cover.out -race
 
+install-hpa:
+	kubectl -n kube-system apply -f config/metrics-server.yaml
+	kubectl -n kube-system wait deploy/metrics-server --for=condition=available
+
+uninstall-hpa:
+	kubectl -n kube-system delete -f config/metrics-server.yaml
+
 test-e2e:
 test-examples: examples
 	go test -timeout 20m -tags examples -v -count 1 ./examples
 test-fmea:
-test-hpa:
-	kubectl -n kube-system apply -f config/metrics-server.yaml
-	kubectl -n kube-system wait deploy/metrics-server --for=condition=available
+test-hpa: install-hpa
 	kubectl -n argo-dataflow-system delete hpa --all
 	kubectl -n argo-dataflow-system delete pipeline --all
 	kubectl -n argo-dataflow-system apply -f examples/101-hello-pipeline.yaml
