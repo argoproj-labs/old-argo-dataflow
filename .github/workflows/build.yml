@@ -48,13 +48,16 @@ jobs:
       fail-fast: false
       matrix:
         suite:
-          - e2e
           - fmea
           - stress
         rep:
           - "0"
           - "1"
           - "2"
+        include:
+          - suite: e2e
+          - suite: examples
+          - suite: hpa
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
