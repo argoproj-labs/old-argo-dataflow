@@ -4,7 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: This example showcases retry policies.
     dataflow.argoproj.io/owner: argoproj-labs
-    dataflow.argoproj.io/wait-for: RecentErrors
+    dataflow.argoproj.io/test: 'false'
   name: 301-erroring
 spec:
   steps:
