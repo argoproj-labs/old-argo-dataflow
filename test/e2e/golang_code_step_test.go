@@ -9,16 +9,26 @@ import (
 	"testing"
 )
 
-func TestFilterStep(t *testing.T) {
+func TestGolangCodeStep(t *testing.T) {
+
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "filter"},
+		ObjectMeta: metav1.ObjectMeta{Name: "golang"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
-					Name:    "main",
-					Filter:  "string(msg) == 'foo-bar'",
+					Name: "main",
+					Code: &Code{
+						Runtime: "golang1-16",
+						Source: `package main
+
+import "context"
+
+func Handler(ctx context.Context, m []byte) ([]byte, error) {
+  return []byte("hi! " + string(m)), nil
+}`,
+					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
 					Sinks:   []Sink{{Log: &Log{}}},
 				},
@@ -28,15 +38,13 @@ func TestFilterStep(t *testing.T) {
 
 	WaitForPod()
 
-	defer StartPortForward("filter-main-0")()
+	defer StartPortForward("golang-main-0")()
 
 	SendMessageViaHTTP("foo-bar")
-	SendMessageViaHTTP("baz-qux")
 
-	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectLogLine("main",  `foo-bar`)
+	ExpectLogLine("main", `hi! foo-bar`)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

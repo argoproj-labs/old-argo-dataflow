@@ -15,21 +15,21 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/test"
 )
 
-func StartTPSReporter(t *testing.T, pipeline, step, prefix string, n int) (stopTPSLogger func()) {
+func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger func()) {
 
 	var start, end *time.Time
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
 		defer runtimeutil.HandleCrash()
-		ExpectStepLogLine(ctx, pipeline, step, "sidecar", prefix+"-0", params.timeout)
+		ExpectLogLine(step, prefix+"-0", ctx)
 		t := time.Now()
 		start = &t
 	}()
 
 	go func() {
 		defer runtimeutil.HandleCrash()
-		ExpectStepLogLine(ctx, pipeline, step, "sidecar", fmt.Sprintf("%s-%v", prefix, n-1), params.timeout)
+		ExpectLogLine(step, fmt.Sprintf("%s-%v", prefix, n-1), ctx, params.timeout)
 		t := time.Now()
 		end = &t
 	}()

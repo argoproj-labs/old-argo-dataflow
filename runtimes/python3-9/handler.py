@@ -1,2 +1,2 @@
 def handler(msg, context):
-    return bytearray("hi " + str(msg))
+    return ("hi! " + msg.decode("UTF-8")).encode("UTF-8")

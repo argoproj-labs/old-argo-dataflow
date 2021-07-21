@@ -3,34 +3,26 @@
 package e2e
 
 import (
-	"context"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
-	"time"
 )
 
-func TestGoCodeStep(t *testing.T) {
-	t.SkipNow()
-
+func TestPythonCodeStep(t *testing.T) {
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "golang"},
+		ObjectMeta: metav1.ObjectMeta{Name: "python"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
 					Name: "main",
 					Code: &Code{
-						Runtime: "golang1-16",
-						Source: `package main
-
-import "context"
-
-func Handler(ctx context.Context, m []byte) ([]byte, error) {
-  return []byte("hi! " + string(m)), nil
-}`,
+						Runtime: "python3-9",
+						Source: `def handler(msg, context):
+    return ("hi! " + msg.decode("UTF-8")).encode("UTF-8")
+`,
 					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
 					Sinks:   []Sink{{Log: &Log{}}},
@@ -41,14 +33,13 @@ func Handler(ctx context.Context, m []byte) ([]byte, error) {
 
 	WaitForPod()
 
-	defer StartPortForward("golang-main-0")()
+	defer StartPortForward("python-main-0")()
 
 	SendMessageViaHTTP("foo-bar")
 
-	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(1))
 
-	ExpectStepLogLine(context.Background(), "golang", "main", "sidecar", `hi! foo-bar`, 1*time.Minute)
+	ExpectLogLine("main", `hi! foo-bar`)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
