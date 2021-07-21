@@ -23,7 +23,7 @@ spec:
         cat /var/run/argo-dataflow/in | while read line ; do
           echo "hi $line"
         done > /var/run/argo-dataflow/out
-      image: ubuntu:latest
+      image: golang:1.16
       in:
         fifo: true
     name: main

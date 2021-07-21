@@ -27,7 +27,7 @@ Storage can either be:
          .group('main',
                 key='string(msg) contains "2" ? "even" : "odd"',
                 format='JSONStringArray',
-                endOfGroup='string(msg) contains "excited"',
+                endOfGroup='string(msg) contains "4"',
                 storage={'emptyDir': {}}
                 )
          .stan('odd-end')

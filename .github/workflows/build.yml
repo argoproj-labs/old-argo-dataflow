@@ -48,13 +48,16 @@ jobs:
       fail-fast: false
       matrix:
         suite:
-          - e2e
           - fmea
-          - stress
         rep:
           - "0"
           - "1"
           - "2"
+        include:
+          - suite: e2e
+          - suite: examples
+          - suite: hpa
+          - suite: stress
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
@@ -89,7 +92,7 @@ jobs:
       - run: make deploy CONFIG=ci
       - run: make runner
       - run: make runtimes
-        if: "${{matrix.suite}} == e2e"
+        if: "${{matrix.suite}} == 'e2e' || ${{matrix.suite}} == 'examples'"
       - run: make wait
       - run: make test-${{matrix.suite}}
       - name: controller logs

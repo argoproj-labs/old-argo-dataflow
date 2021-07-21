@@ -25,8 +25,26 @@ build: generate manifests
 test:
 	go test -v ./... -coverprofile cover.out -race
 
+install-hpa:
+	kubectl -n kube-system apply -f config/metrics-server.yaml
+	kubectl -n kube-system wait deploy/metrics-server --for=condition=available
+
+uninstall-hpa:
+	kubectl -n kube-system delete -f config/metrics-server.yaml
+
 test-e2e:
+test-examples: examples
+	go test -timeout 20m -tags examples -v -count 1 ./examples
 test-fmea:
+test-hpa: install-hpa
+	kubectl -n argo-dataflow-system delete hpa --all
+	kubectl -n argo-dataflow-system delete pipeline --all
+	kubectl -n argo-dataflow-system apply -f examples/101-hello-pipeline.yaml
+	kubectl -n argo-dataflow-system wait pipeline/101-hello --for=condition=running
+	if [ `kubectl -n argo-dataflow-system get step 101-hello-main -o=jsonpath='{.status.replicas}'` != 1 ]; then exit 1; fi
+	kubectl -n argo-dataflow-system autoscale step 101-hello-main --min 2 --max 2
+	sleep 20s
+	if [ `kubectl -n argo-dataflow-system get step 101-hello-main -o=jsonpath='{.status.replicas}'` != 2 ]; then exit 1; fi
 test-stress:
 test-%:
 	go test -count 1 -v --tags test ./test/$*
@@ -39,7 +57,7 @@ pprof:
 
 pre-commit: codegen test install runner lint start
 
-codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md
+codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/metrics-server.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md
 	go generate ./...
 	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow
 	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow
@@ -53,7 +71,7 @@ start: generate deploy $(GOBIN)/goreman
 	goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
-	kubectl -n argo-dataflow-system wait pod --all --for=condition=Ready --timeout=2m
+	kubectl -n argo-dataflow-system wait deploy --all --for=condition=available --timeout=2m
 logs: $(GOBIN)/stern
 	stern -n argo-dataflow-system --tail=3 .
 
@@ -72,8 +90,9 @@ config/default.yaml:
 config/dev.yaml:
 config/kafka-dev.yaml:
 config/quick-start.yaml:
+config/metrics-server.yaml:
 config/stan-dev.yaml:
-config/%.yaml: /dev/null
+config/%.yaml: config/$*
 	kustomize build --load_restrictor=none config/$* -o $@
 	sed -i '' "s/:latest/:$(TAG)/" $@
 
@@ -170,9 +189,6 @@ install-dsls: /dev/null
 
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
 	cd examples && python3 $*-pipeline.py
-
-test-examples: examples
-	go test -timeout 20m -tags examples -v -count 1 ./examples
 
 argocli:
 	cd ../../argoproj/argo-workflows && git checkout dev-dataflow && make ./dist/argo DEV_BRANCH=true && ./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system
