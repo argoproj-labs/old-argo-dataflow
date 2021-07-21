@@ -93,7 +93,7 @@ generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 docs/EXAMPLES.md: $(shell find examples -name '*.yaml') examples/main.go
-	go run ./examples > docs/EXAMPLES.md
+	go run ./examples | grep -v 'time=' > docs/EXAMPLES.md
 
 .PHONY: CHANGELOG.md
 CHANGELOG.md: /dev/null
