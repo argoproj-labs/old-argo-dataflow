@@ -2,30 +2,26 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: |
-      This example demostrates having a terminator step, and then terminating other steps
-      using different terminations strategies.
+    dataflow.argoproj.io/description: "This example demonstrates having a terminator\
+      \ step, and then terminating other steps\n      using different terminations\
+      \ strategies.\n      "
+    dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/wait-for: Completed
-  creationTimestamp: null
-  name: terminator
+  name: 107-terminator
 spec:
   steps:
   - container:
       args:
       - sh
       - -c
-      - |
-        cat
-      image: ubuntu:latest
-    name: ubuntu
-  - cat: {}
-    name: runner
+      - cat
+      image: golang:1.16
+    name: main
   - container:
       args:
       - sh
       - -c
-      - |
-        exit 0
-      image: ubuntu:latest
+      - exit 0
+      image: golang:1.16
     name: terminator
     terminator: true

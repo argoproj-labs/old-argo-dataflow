@@ -171,13 +171,13 @@ class STANSink(Sink):
 
 
 class Step:
-    def __init__(self, name, sources=[], volumes=[]):
+    def __init__(self, name, sources=[], volumes=[], terminator=False):
         self._name = name
         self._sources = sources
         self._sinks = []
         self._scale = {}
         self._volumes = volumes
-        self._terminator = False
+        self._terminator = terminator
         self._annotations = []
 
     def log(self, name=None):
@@ -245,8 +245,8 @@ class CatStep(Step):
 
 
 class ContainerStep(Step):
-    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[], env={}, resources={}):
-        super().__init__(name, sources=sources, volumes=volumes)
+    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[], env={}, resources={}, terminator=False):
+        super().__init__(name, sources=sources, volumes=volumes,terminator=terminator)
         self._image = image
         self._args = args
         self._fifo = fifo
@@ -295,8 +295,8 @@ class FilterStep(Step):
 
 
 class GitStep(Step):
-    def __init__(self, name, url, branch, path, image, sources=[], env=None):
-        super().__init__(name, sources=sources)
+    def __init__(self, name, url, branch, path, image, sources=[], env=None, terminator=False):
+        super().__init__(name, sources=sources, terminator=terminator)
         self._url = url
         self._branch = branch
         self._path = path
@@ -357,8 +357,8 @@ class FlattenStep(Step):
 
 
 class CodeStep(Step):
-    def __init__(self, name, source=None, code=None, runtime=None, sources=[]):
-        super().__init__(name, sources=sources)
+    def __init__(self, name, source=None, code=None, runtime=None, sources=[], terminator=False):
+        super().__init__(name, sources=sources, terminator=terminator)
         if source:
             self._source = inspect.getsource(source)
         else:
@@ -404,9 +404,9 @@ class Source:
     def cat(self, name):
         return CatStep(name, sources=[self])
 
-    def container(self, name, image, args=[], fifo=False, volumes=[], volumeMounts=[], env={}, resources={}):
+    def container(self, name, image, args=[], fifo=False, volumes=[], volumeMounts=[], env={}, resources={},terminator=False):
         return ContainerStep(name, sources=[self], image=image, args=args, fifo=fifo, volumes=volumes,
-                             volumeMounts=volumeMounts, env=env, resources=resources)
+                             volumeMounts=volumeMounts, env=env, resources=resources,terminator=terminator)
 
     def expand(self, name):
         return ExpandStep(name, sources=[self])
@@ -434,8 +434,8 @@ def cat(name):
     return CatStep(name, [])
 
 
-def container(name, image, args, fifo=False, volumes=[], volumeMounts=[], env={}, resources={}):
-    return ContainerStep(name, sources=[], image=image, args=args, fifo=fifo, volumes=volumes,
+def container(name, image, args, fifo=False, volumes=[], volumeMounts=[], env={}, resources={}, terminator=False):
+    return ContainerStep(name, sources=[], terminator=terminator, image=image, args=args, fifo=fifo, volumes=volumes,
                          volumeMounts=volumeMounts, env=env, resources=resources)
 
 

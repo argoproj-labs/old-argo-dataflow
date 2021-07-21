@@ -8,7 +8,7 @@ if __name__ == '__main__':
      .step(
         (container('main',
                    args=['sh', '-c', 'exit 0'],
-                   image='ubuntu:latest',
+                   image='golang:1.16',
                    env={'FOO': 'bar'},
                    resources={'requests': {'cpu': 1}}
                    )

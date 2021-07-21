@@ -16,7 +16,7 @@ spec:
       env:
       - name: FOO
         value: bar
-      image: ubuntu:latest
+      image: golang:1.16
       resources:
         requests:
           cpu: 1

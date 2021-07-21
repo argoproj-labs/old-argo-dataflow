@@ -15,7 +15,7 @@ For a pipeline to terminate one of two things must happen:
      .step(
         (container('main',
                     args=['sh', '-c', 'exit 0'],
-                    image='ubuntu:latest'
+                    image='golang:1.16'
                     )
          ))
      .save())
