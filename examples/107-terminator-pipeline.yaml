@@ -2,9 +2,9 @@ apiVersion: dataflow.argoproj.io/v1alpha1
 kind: Pipeline
 metadata:
   annotations:
-    dataflow.argoproj.io/description: "This example demonstrates having a terminator\
-      \ step, and then terminating other steps\n      using different terminations\
-      \ strategies.\n      "
+    dataflow.argoproj.io/description: |-
+      This example demonstrates having a terminator step, and then terminating other steps
+            using different terminations strategies.
     dataflow.argoproj.io/owner: argoproj-labs
     dataflow.argoproj.io/wait-for: Completed
   name: 107-terminator

@@ -4,8 +4,7 @@ if __name__ == '__main__':
     (pipeline("107-terminator")
      .owner('argoproj-labs')
      .describe("""This example demonstrates having a terminator step, and then terminating other steps
-      using different terminations strategies.
-      """)
+      using different terminations strategies.""")
      .annotate('dataflow.argoproj.io/wait-for', 'Completed')
      .step(
         (container('main',
