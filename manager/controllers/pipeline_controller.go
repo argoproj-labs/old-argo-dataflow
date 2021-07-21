@@ -120,7 +120,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	pending, running, succeeded, failed := 0, 0, 0, 0
 	newStatus := *pipeline.Status.DeepCopy()
 	newStatus.Phase = dfv1.PipelineUnknown
-	terminate, sunkMessages, recentErrors := false, false, false
+	terminate, sunkMessages := false, false
 	for _, step := range steps.Items {
 		stepName := step.Spec.Name
 		if !pipeline.Spec.HasStep(stepName) { // this happens when a pipeline changes and a step is removed
@@ -148,7 +148,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		terminate = terminate || step.Status.Phase.Completed() && step.Spec.Terminator
 		sunkMessages = sunkMessages || step.Status.SinkStatues.AnySunk()
-		recentErrors = recentErrors || step.Status.RecentErrors()
 	}
 
 	if newStatus.Phase.Completed() {
@@ -176,7 +175,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		dfv1.ConditionRunning:      newStatus.Phase == dfv1.PipelineRunning,
 		dfv1.ConditionCompleted:    newStatus.Phase.Completed(),
 		dfv1.ConditionSunkMessages: sunkMessages,
-		dfv1.ConditionRecentErrors: recentErrors,
 		dfv1.ConditionTerminating:  terminate,
 	} {
 		if ok {

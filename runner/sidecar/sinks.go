@@ -61,10 +61,10 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 			counter := rateCounters[sinkName]
 			counter.Incr(1)
 			withLock(func() {
-				step.Status.SinkStatues.IncrTotal(sinkName, replica, printable(msg), rateToResourceQuantity(counter))
+				step.Status.SinkStatues.IncrTotal(sinkName, replica, rateToResourceQuantity(counter))
 			})
 			if err := f.Sink(msg); err != nil {
-				withLock(func() { step.Status.SinkStatues.IncrErrors(sinkName, replica, err) })
+				withLock(func() { step.Status.SinkStatues.IncrErrors(sinkName, replica) })
 				return err
 			}
 		}

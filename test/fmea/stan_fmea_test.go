@@ -74,7 +74,7 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 	WaitForPod("stan-0")
 
 	WaitForStep(TotalSunkMessagesBetween(n, n+CommitN), 1*time.Minute)
-	WaitForStep(NoRecentErrors)
+	WaitForStep(NoErrors)
 }
 
 // when deleted and re-created, the pipeline should start at the same place in the queue
@@ -110,5 +110,5 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 	CreatePipeline(pl)
 
 	WaitForCounter(n, n+CommitN)
-	WaitForStep(NoRecentErrors)
+	WaitForStep(NoErrors)
 }

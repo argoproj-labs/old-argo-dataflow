@@ -39,7 +39,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	WaitForPod("http-main-0")
 
 	WaitForStep(TotalSourceMessages(n), 1*time.Minute)
-	WaitForStep(NoRecentErrors)
+	WaitForStep(NoErrors)
 }
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
@@ -74,5 +74,5 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 	WaitForPod("http-main-0")
 
 	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
-	WaitForStep(NoRecentErrors)
+	WaitForStep(NoErrors)
 }

@@ -37,7 +37,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		f := func(ctx context.Context, msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
-				step.Status.SourceStatuses.IncrTotal(sourceName, replica, printable(msg), rateToResourceQuantity(rateCounter))
+				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter))
 			})
 			backoff := newBackoff(s.Retry)
 			for {
@@ -55,7 +55,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 					}
 					logger.Error(err, "⚠ →", "source", sourceName)
 					if backoff.Steps <= 0 {
-						withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica, err) })
+						withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica) })
 						return err
 					}
 					time.Sleep(backoff.Step())

@@ -3905,30 +3905,6 @@ spec:
               sinkStatuses:
                 additionalProperties:
                   properties:
-                    lastError:
-                      properties:
-                        message:
-                          maxLength: 64
-                          type: string
-                        time:
-                          format: date-time
-                          type: string
-                      required:
-                      - message
-                      - time
-                      type: object
-                    lastMessage:
-                      properties:
-                        data:
-                          maxLength: 64
-                          type: string
-                        time:
-                          format: date-time
-                          type: string
-                      required:
-                      - data
-                      - time
-                      type: object
                     metrics:
                       additionalProperties:
                         properties:
@@ -3957,30 +3933,6 @@ spec:
               sourceStatuses:
                 additionalProperties:
                   properties:
-                    lastError:
-                      properties:
-                        message:
-                          maxLength: 64
-                          type: string
-                        time:
-                          format: date-time
-                          type: string
-                      required:
-                      - message
-                      - time
-                      type: object
-                    lastMessage:
-                      properties:
-                        data:
-                          maxLength: 64
-                          type: string
-                        time:
-                          format: date-time
-                          type: string
-                      required:
-                      - data
-                      - time
-                      type: object
                     metrics:
                       additionalProperties:
                         properties:

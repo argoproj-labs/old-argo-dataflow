@@ -10,7 +10,6 @@ import (
 const (
 	// conditions
 	ConditionCompleted    = "Completed"    // the pipeline completed
-	ConditionRecentErrors = "RecentErrors" // added if any step encountered an error recently
 	ConditionRunning      = "Running"      // added if any step is currently running
 	ConditionSunkMessages = "SunkMessages" // added if any messages have been written to a sink for any step
 	ConditionTerminating  = "Terminating"  // added if any terminator step terminated

@@ -21,16 +21,8 @@ import (
 
 var stepInterface = dynamicInterface.Resource(StepGroupVersionResource).Namespace(namespace)
 
-func NoRecentErrors(s Step) bool {
-	return !s.Status.SourceStatuses.RecentErrors()
-}
-
-func MessagesPending(s Step) bool {
-	return !NothingPending(s)
-}
-
-func StepHasPendingMessages(s Step) bool {
-	return s.Status.SourceStatuses.GetPending() > 0
+func NoErrors(s Step) bool {
+	return s.Status.SourceStatuses.GetErrors() == 0
 }
 
 func NothingPending(s Step) bool {
@@ -97,11 +89,6 @@ func WaitForStep(opts ...interface{}) {
 			x := StepFromUnstructured(un)
 			y := x.Status
 			log.Printf("step %q is %s %q (%s -> %s)\n", x.Name, y.Phase, y.Message, formatSourceStatuses(y.SourceStatuses), formatSourceStatuses(y.SinkStatues))
-			for sourceName, s := range y.SourceStatuses {
-				if s.LastError != nil && s.LastError.Time.After(time.Now().Add(-1*time.Minute)) {
-					log.Printf("\tsource %s: %s\n", sourceName, s.LastError.Message)
-				}
-			}
 			if f(x) {
 				return
 			}
