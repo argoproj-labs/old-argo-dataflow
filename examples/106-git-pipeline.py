@@ -11,7 +11,8 @@ your code when the step starts.
 [Learn about Git steps](../docs/GIT.md)""")
      .step(
         (kafka('input-topic')
-         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git', 'golang:1.16', env={"GOCACHE": "/tmp/.gocache"})
+         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git', 'golang:1.16',
+              env=[{'name': "GOCACHE", 'value': "/tmp/.gocache"}])
          .kafka('output-topic')
          ))
      .save())

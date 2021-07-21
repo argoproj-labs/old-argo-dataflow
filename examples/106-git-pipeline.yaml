@@ -16,7 +16,8 @@ spec:
   - git:
       branch: main
       env:
-        GOCACHE: /tmp/.gocache
+      - name: GOCACHE
+        value: /tmp/.gocache
       image: golang:1.16
       path: examples/git
       url: https://github.com/argoproj-labs/argo-dataflow
