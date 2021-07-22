@@ -69,7 +69,7 @@ func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger f
 		if start == nil || end == nil {
 			panic("failed to calculate start time or end time")
 		}
-		setTestResult(fmt.Sprintf("%s/replicas=%d", t.Name(), params.replicas), "tps", roundToNearest50(value()))
+		setTestResult(fmt.Sprintf("%s/currentContext=%s,replicas=%d,n=%d", t.Name(), currentContext, params.replicas, params.n), "tps", roundToNearest50(value()))
 	}
 }
 
