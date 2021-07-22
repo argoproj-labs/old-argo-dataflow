@@ -30,7 +30,8 @@ func NewConfig(ctx context.Context, kubernetesInterface kubernetes.Interface, na
 			}
 			x.Net.TLS.Config = tlsConfig
 			x.Net.TLS.Enable = true
-		} else if k.NET.SASL != nil {
+		}
+		if k.NET.SASL != nil {
 			sasl := k.NET.SASL
 			if sasl.UserSecret == nil || sasl.PasswordSecret == nil {
 				return nil, fmt.Errorf("invalid sasl config, user secret or password secret not configured")

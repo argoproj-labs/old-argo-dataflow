@@ -25,7 +25,8 @@ func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) error {
 	sasl := saslFromSecret(secret)
 	if tls != nil {
 		k.NET = &dfv1.KafkaNET{TLS: tls}
-	} else if sasl != nil {
+	}
+	if sasl != nil {
 		k.NET = &dfv1.KafkaNET{SASL: sasl}
 	}
 	return nil
