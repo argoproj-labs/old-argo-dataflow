@@ -178,6 +178,8 @@ message Kafka {
 
 message KafkaNET {
   optional TLS tls = 1;
+
+  optional SASL sasl = 2;
 }
 
 message KafkaSource {
@@ -240,6 +242,20 @@ message PipelineStatus {
   repeated k8s.io.apimachinery.pkg.apis.meta.v1.Condition conditions = 3;
 
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastUpdated = 4;
+}
+
+message SASL {
+  // SASLMechanism is the name of the enabled SASL mechanism.
+  // Possible values: OAUTHBEARER, PLAIN (defaults to PLAIN).
+  // +optional
+  optional string mechanism = 1;
+
+  // User is the authentication identity (authcid) to present for
+  // SASL/PLAIN or SASL/SCRAM authentication
+  optional k8s.io.api.core.v1.SecretKeySelector user = 2;
+
+  // Password for SASL/PLAIN authentication
+  optional k8s.io.api.core.v1.SecretKeySelector password = 3;
 }
 
 message STAN {
@@ -418,5 +434,13 @@ message Storage {
 }
 
 message TLS {
+  // CACertSecret refers to the secret that contains the CA cert
+  optional k8s.io.api.core.v1.SecretKeySelector caCertSecret = 1;
+
+  // CertSecret refers to the secret that contains the cert
+  optional k8s.io.api.core.v1.SecretKeySelector certSecret = 2;
+
+  // KeySecret refers to the secret that contains the key
+  optional k8s.io.api.core.v1.SecretKeySelector keySecret = 3;
 }
 
