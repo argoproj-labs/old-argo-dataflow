@@ -8,7 +8,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/http"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/kafka"
-	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
+	logsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/stan"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/paulbellamy/ratecounter"
@@ -31,7 +31,7 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 				sinks[sinkName] = y
 			}
 		} else if x := sink.Kafka; x != nil {
-			if y, err := kafka.New(*x); err != nil {
+			if y, err := kafka.New(ctx, kubernetesInterface, namespace, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y

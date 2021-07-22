@@ -3,19 +3,22 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"time"
+
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
 )
 
 var logger = sharedutil.NewLogger()
 
 type kafkaSource struct {
+	config        *sarama.Config
 	source        dfv1.KafkaSource
 	consumerGroup sarama.ConsumerGroup
 	groupName     string
@@ -40,9 +43,9 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 	return nil
 }
 
-func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
+func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
 	groupName := pipelineName + "-" + stepName + "-source-" + sourceName + "-" + x.Topic
-	config, err := kafka.NewConfig(x.Kafka)
+	config, err := kafka.NewConfig(ctx, kubernetesInterface, namespace, x.Kafka)
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +70,7 @@ func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
 	return kafkaSource{
+		config:        config,
 		consumerGroup: consumerGroup,
 		source:        x,
 		groupName:     groupName,
@@ -78,11 +82,7 @@ func (s kafkaSource) Close() error {
 }
 
 func (s kafkaSource) GetPending(context.Context) (uint64, error) {
-	config, err := kafka.NewConfig(s.source.Kafka)
-	if err != nil {
-		return 0, err
-	}
-	adminClient, err := sarama.NewClusterAdmin(s.source.Brokers, config)
+	adminClient, err := sarama.NewClusterAdmin(s.source.Brokers, s.config)
 	if err != nil {
 		return 0, err
 	}
@@ -91,7 +91,7 @@ func (s kafkaSource) GetPending(context.Context) (uint64, error) {
 			logger.Error(err, "failed to close Kafka admin client")
 		}
 	}()
-	client, err := sarama.NewClient(s.source.Brokers, config) // I am not giving any configuration
+	client, err := sarama.NewClient(s.source.Brokers, s.config) // I am not giving any configuration
 	if err != nil {
 		return 0, err
 	}
