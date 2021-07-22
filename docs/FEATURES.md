@@ -26,7 +26,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Golang SDK | | v0.0.59 | v0.0.70 | |
 | Golang runtime | | v0.0.59 | v0.0.70 | |
 | Kubernetes manifests | | | v0.0.59 | |
-| HPA support | | v0.0.59 | | |
+| HPA support | | v0.0.59 | v0.0.71 | |
 | Java runtime | | v0.0.59 | v0.0.70 | |
 | HTTP sink | | v0.0.59 | | |
 | HTTP source | | v0.0.59 | | |
