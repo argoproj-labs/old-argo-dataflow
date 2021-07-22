@@ -343,12 +343,18 @@ The secret must be named `dataflow-kafka-${name}`.
 
 # Brokers as a comma-separated list
 brokers: broker.a,broker.b
+# Kafka version
+version: "2.0.0"
+
 # Enable TLS
 net.tls.caCert: ""
 net.tls.cert: ""
 net.tls.key: ""
-# Kafka version
-version: "2.0.0"
+
+# Enable SASL
+net.sasl.mechanism: PLAIN
+net.sasl.user: ""
+net.sasl.password: ""
 
 [Learn about configuration](../docs/CONFIGURATION.md)
 

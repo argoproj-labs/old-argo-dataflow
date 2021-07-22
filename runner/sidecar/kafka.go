@@ -20,6 +20,18 @@ func init() {
 func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) error {
 	k.Brokers = dfv1.StringsOr(k.Brokers, strings.Split(string(secret.Data["brokers"]), ","))
 	k.Version = dfv1.StringOr(k.Version, string(secret.Data["version"]))
+
+	tls := tlsFromSecret(secret)
+	sasl := saslFromSecret(secret)
+	if tls != nil {
+		k.NET = &dfv1.KafkaNET{TLS: tls}
+	} else if sasl != nil {
+		k.NET = &dfv1.KafkaNET{SASL: sasl}
+	}
+	return nil
+}
+
+func tlsFromSecret(secret *corev1.Secret) *dfv1.TLS {
 	caCertExisting, certExisting, keyExisting := false, false, false
 	if _, ok := secret.Data["net.tls.caCert"]; ok {
 		caCertExisting = true
@@ -30,10 +42,12 @@ func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) error {
 	if _, ok := secret.Data["net.tls.key"]; ok {
 		keyExisting = true
 	}
-	var t *dfv1.TLS
-	if caCertExisting || (certExisting && keyExisting) {
-		t = &dfv1.TLS{}
+
+	if !caCertExisting && (!certExisting || !keyExisting) {
+		return nil
 	}
+
+	t := &dfv1.TLS{}
 	if caCertExisting {
 		t.CACertSecret = &corev1.SecretKeySelector{
 			LocalObjectReference: corev1.LocalObjectReference{
@@ -56,10 +70,38 @@ func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) error {
 			Key: "net.tls.key",
 		}
 	}
-	if t != nil {
-		k.NET = &dfv1.KafkaNET{TLS: t}
+	return t
+}
+
+func saslFromSecret(secret *corev1.Secret) *dfv1.SASL {
+	userExisting, passwordExisting := false, false
+	if _, ok := secret.Data["net.sasl.user"]; ok {
+		userExisting = true
 	}
-	return nil
+	if _, ok := secret.Data["net.sasl.password"]; ok {
+		passwordExisting = true
+	}
+	if !userExisting || !passwordExisting {
+		return nil
+	}
+	sasl := &dfv1.SASL{
+		UserSecret: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: secret.Name,
+			},
+			Key: "net.sasl.user",
+		},
+		PasswordSecret: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: secret.Name,
+			},
+			Key: "net.sasl.password",
+		},
+	}
+	if d, ok := secret.Data["net.sasl.mechanism"]; ok {
+		sasl.Mechanism = dfv1.SASLMechanism(d)
+	}
+	return sasl
 }
 
 func enrichKafka(ctx context.Context, secrets v1.SecretInterface, x *dfv1.Kafka) error {

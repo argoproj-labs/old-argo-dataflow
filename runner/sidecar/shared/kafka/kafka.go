@@ -30,6 +30,32 @@ func NewConfig(ctx context.Context, kubernetesInterface kubernetes.Interface, na
 			}
 			x.Net.TLS.Config = tlsConfig
 			x.Net.TLS.Enable = true
+		} else if k.NET.SASL != nil {
+			sasl := k.NET.SASL
+			if sasl.UserSecret == nil || sasl.PasswordSecret == nil {
+				return nil, fmt.Errorf("invalid sasl config, user secret or password secret not configured")
+			}
+			secrets := kubernetesInterface.CoreV1().Secrets(namespace)
+			if userSecret, err := secrets.Get(ctx, sasl.UserSecret.Name, metav1.GetOptions{}); err != nil {
+				return nil, fmt.Errorf("failed to get user secret, %w", err)
+			} else {
+				if d, ok := userSecret.Data[sasl.UserSecret.Key]; !ok {
+					return nil, fmt.Errorf("key %q not found in user secret", sasl.UserSecret.Key)
+				} else {
+					x.Net.SASL.User = string(d)
+				}
+			}
+			if passwordSecret, err := secrets.Get(ctx, sasl.PasswordSecret.Name, metav1.GetOptions{}); err != nil {
+				return nil, fmt.Errorf("failed to get password secret, %w", err)
+			} else {
+				if d, ok := passwordSecret.Data[sasl.PasswordSecret.Key]; !ok {
+					return nil, fmt.Errorf("key %q not found in password secret", sasl.PasswordSecret.Key)
+				} else {
+					x.Net.SASL.Password = string(d)
+				}
+			}
+			x.Net.SASL.Mechanism = sarama.SASLMechanism(sasl.GetMechanism())
+			x.Net.SASL.Enable = true
 		}
 	}
 	return x, nil
