@@ -144,7 +144,6 @@ func (in Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
 
 	pending := in.Status.SourceStatuses.GetPending()
 	targetReplicas := in.Spec.CalculateReplicas(int(pending))
-	println("targetReplicas", targetReplicas)
 	if targetReplicas == -1 {
 		return currentReplicas
 	}
