@@ -36,7 +36,7 @@ func TestStanSourceStress(t *testing.T) {
 
 	WaitForPod()
 
-	n := 10000
+	n := params.n
 	prefix := "stan-source-stress"
 
 	defer StartMetricsLogger()()

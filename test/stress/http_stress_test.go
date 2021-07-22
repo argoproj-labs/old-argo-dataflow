@@ -33,7 +33,7 @@ func TestHTTPSourceStress(t *testing.T) {
 
 	WaitForService()
 
-	n := 10000
+	n := params.n
 	prefix := "my-msg"
 
 	defer StartMetricsLogger()()
@@ -66,7 +66,7 @@ func TestHTTPSinkStress(t *testing.T) {
 
 	WaitForService()
 
-	n := 10000
+	n := params.n
 	prefix := "my-msg"
 
 	defer StartMetricsLogger()()

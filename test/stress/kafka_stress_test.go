@@ -38,7 +38,7 @@ func TestKafkaSourceStress(t *testing.T) {
 
 	WaitForPod()
 
-	n := 10000
+	n := params.n
 	prefix := "kafka-source-stress"
 
 	defer StartMetricsLogger()()
@@ -77,7 +77,7 @@ func TestKafkaSinkStress(t *testing.T) {
 
 	WaitForPod()
 
-	n := 10000
+	n := params.n
 	prefix := "kafka-sink-stress"
 
 	defer StartMetricsLogger()()
