@@ -66,7 +66,7 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 
 	n := 15
 
-	go PumpHTTPTolerantly(n)
+	PumpHTTPTolerantly(n)
 
 	WaitForPipeline(UntilMessagesSunk)
 

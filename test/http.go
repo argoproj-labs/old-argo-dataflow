@@ -37,6 +37,7 @@ func PumpHTTPTolerantly(n int) {
 			time.Sleep(time.Second)
 		}, func(err error) {
 			log.Printf("ignoring: %v\n", err)
+			time.Sleep(time.Second)
 		})
 	}
 }

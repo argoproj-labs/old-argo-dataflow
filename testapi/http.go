@@ -44,9 +44,9 @@ func init() {
 		start := time.Now()
 		wg := sync.WaitGroup{}
 		for worker := 0; worker < 4; worker++ {
+			wg.Add(1)
 			go func() {
 				runtime.HandleCrash()
-				wg.Add(1)
 				defer wg.Done()
 				for {
 					item, shutdown := requests.Get()
@@ -60,14 +60,14 @@ func init() {
 					} else if resp.StatusCode >= 300 {
 						responses.Add(fmt.Errorf("%s", resp.Status))
 					} else {
-						responses.Add(fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q\n", msg, i+1, n, (1+float64(i))/time.Since(start).Seconds(), url))
+						responses.Add(fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q", msg, i+1, n, (1+float64(i))/time.Since(start).Seconds(), url))
 					}
 				}
 			}()
 		}
+		wg.Add(1)
 		go func() {
 			runtime.HandleCrash()
-			wg.Add(1)
 			defer wg.Done()
 			for {
 				res, shutdown := responses.Get()
@@ -76,7 +76,7 @@ func init() {
 				}
 				switch v := res.(type) {
 				case error:
-					_, _ = fmt.Fprintf(w, "ERROR: %s", v)
+					_, _ = fmt.Fprintf(w, "ERROR: %s\n", v)
 				case string:
 					_, _ = fmt.Fprintln(w, v)
 				default:
