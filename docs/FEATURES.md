@@ -16,7 +16,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Container step | | v0.0.59 | v0.0.70 | |
 | Cron source | | v0.0.59 | |
 | Dedupe step | | v0.0.59 | || |
-| Expand step | | v0.0.59 | | |
+| Expand step | | v0.0.59 | v0.0.70 | |
 | Filter step | | v0.0.59 | v0.0.70 | |
 | FMEA tests | | | v0.0.59 | |
 | Generator step | | v0.0.59 | | |
@@ -38,9 +38,9 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | NATS Streaming source | | v0.0.59 | | |
 | Non-terminating pipelines | | | v0.0.59 | |
 | [Prometheus metrics](METRICS.md) | | | v0.0.59 | |
-| Python runtime | | v0.0.59 | 
-v0.0.70 | |
+| Python runtime | | v0.0.59 | v0.0.70 | |
 | Python SDK | | | v0.0.59 | |
+| Scale-to-zero (aka "peeking") | | | v0.0.70 | |
 | Stress tests | | | v0.0.59 | |
 | Terminating pipelines | | v0.0.59 | v0.0.70 | |
 | Terminating steps | | v0.0.59 | v0.0.70 | |

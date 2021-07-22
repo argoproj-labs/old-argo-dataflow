@@ -1,7 +1,8 @@
 package v1alpha1
 
 type KafkaNET struct {
-	TLS *TLS `json:"tls,omitempty" protobuf:"bytes,1,opt,name=tls"`
+	TLS  *TLS  `json:"tls,omitempty" protobuf:"bytes,1,opt,name=tls"`
+	SASL *SASL `json:"sasl,omitempty" protobuf:"bytes,2,opt,name=sasl"`
 }
 
 type Kafka struct {

@@ -1,10 +1,13 @@
 package kafka
 
 import (
+	"context"
+
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
+	"k8s.io/client-go/kubernetes"
 )
 
 type kafkaSink struct {
@@ -12,8 +15,8 @@ type kafkaSink struct {
 	topic    string
 }
 
-func New(x dfv1.Kafka) (sink.Interface, error) {
-	config, err := kafka.NewConfig(x)
+func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, x dfv1.Kafka) (sink.Interface, error) {
+	config, err := kafka.NewConfig(ctx, kubernetesInterface, namespace, x)
 	if err != nil {
 		return nil, err
 	}
