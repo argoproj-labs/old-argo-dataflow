@@ -27,7 +27,7 @@ A `container` step allows you to specify the container images to run. This is fu
 must obey [the image contract](IMAGE_CONTRACT.md).
 
 Both built-in steps, and code steps, could be re-written as container steps (if fact, that is what they all are
-underneath). underneath)
+underneath).
 
 ### Generator Step
 
