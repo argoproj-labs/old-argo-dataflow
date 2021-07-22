@@ -44,7 +44,7 @@ func TestKafkaSourceStress(t *testing.T) {
 	defer StartMetricsLogger()()
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	PumpKafkaTopic(topic, n, prefix)
+	go PumpKafkaTopic(topic, n, prefix)
 	WaitForStep(TotalSunkMessages(n), params.timeout)
 }
 
@@ -83,6 +83,6 @@ func TestKafkaSinkStress(t *testing.T) {
 	defer StartMetricsLogger()()
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	PumpKafkaTopic(topic, n, prefix)
+	go PumpKafkaTopic(topic, n, prefix)
 	WaitForStep(TotalSunkMessages(n*2), params.timeout) // 2 sinks
 }
