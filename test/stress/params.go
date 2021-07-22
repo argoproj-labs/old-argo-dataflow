@@ -17,7 +17,7 @@ var (
 	}{
 		n:        sharedutil.GetEnvInt("N", 10000),
 		replicas: uint32(sharedutil.GetEnvInt("REPLICAS", 1)),
-		timeout:  3 * time.Minute,
+		timeout:  sharedutil.GetEnvDuration("TIMEOUT", 3*time.Minute),
 	}
 )
 

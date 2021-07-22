@@ -14,8 +14,13 @@ var (
 
 func init() {
 	home, _ := os.UserHomeDir()
+	path := home + "/.kube/config"
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		path = ""
+	}
 	r, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(&clientcmd.ClientConfigLoadingRules{
-		ExplicitPath: home + "/.kube/config",
+		ExplicitPath: path,
 	}, &clientcmd.ConfigOverrides{}).RawConfig()
 	if err != nil {
 		panic(err)
