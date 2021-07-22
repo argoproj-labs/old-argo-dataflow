@@ -2,11 +2,19 @@ package main
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/util/workqueue"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
+
+type req struct {
+	i   int
+	msg string
+}
 
 func init() {
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
@@ -29,24 +37,59 @@ func init() {
 		}
 		w.WriteHeader(200)
 
+		requests := workqueue.New()
+		responses := workqueue.New()
 		start := time.Now()
+		wg := sync.WaitGroup{}
+		for worker := 0; worker < 4; worker++ {
+			go func() {
+				runtime.HandleCrash()
+				wg.Add(1)
+				defer wg.Done()
+				for {
+					item, shutdown := requests.Get()
+					if shutdown {
+						return
+					}
+					req := item.(req)
+					i, msg := req.i, req.msg
+					if resp, err := http.Post(url, "application/octet-stream", strings.NewReader(msg)); err != nil {
+						responses.Add(err)
+					} else if resp.StatusCode >= 300 {
+						responses.Add(fmt.Errorf("%s", resp.Status))
+					} else {
+						responses.Add(fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q\n", msg, i+1, n, (1+float64(i))/time.Since(start).Seconds(), url))
+					}
+				}
+			}()
+		}
+		go func() {
+			runtime.HandleCrash()
+			wg.Add(1)
+			defer wg.Done()
+			for {
+				res, shutdown := responses.Get()
+				if shutdown {
+					return
+				}
+				switch v := res.(type) {
+				case error:
+					_, _ = fmt.Fprintf(w, "ERROR: %s", v)
+				case string:
+					_, _ = fmt.Fprintf(w, v)
+				}
+			}
+		}()
 		for i := 0; i < n || n < 0; i++ {
 			select {
 			case <-r.Context().Done():
 				return
 			default:
-				msg := fmt.Sprintf("%s-%d", prefix, i)
-				if resp, err := http.Post(url, "application/octet-stream", strings.NewReader(msg)); err != nil {
-					_, _ = fmt.Fprintf(w, "ERROR: %v", err)
-					return
-				} else if resp.StatusCode >= 300 {
-					_, _ = fmt.Fprintf(w, "ERROR: %s", resp.Status)
-					return
-				}
-				_, _ = fmt.Fprintf(w, "sent %q (%d/%d, %.0f TPS) to %q\n", msg, i+1, n, (1+float64(i))/time.Since(start).Seconds(), url)
+				requests.Add(req{i, fmt.Sprintf("%s-%d", prefix, i)})
 				time.Sleep(duration)
 			}
 		}
+		wg.Wait() //don't close connection until all requests have been made
 	})
 	http.HandleFunc("/http/wait-for", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
