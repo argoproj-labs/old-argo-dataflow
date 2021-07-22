@@ -40,12 +40,25 @@ func Test_kafkaFromSecret(t *testing.T) {
 		x := &dfv1.Kafka{}
 		err := kafkaFromSecret(x, &corev1.Secret{
 			Data: map[string][]byte{
-				"net.tls": []byte(""),
+				"net.tls.caCert": []byte(""),
 			},
 		})
 		assert.NoError(t, err)
 		if assert.NotNil(t, x.NET) {
 			assert.NotNil(t, x.NET.TLS)
+		}
+	})
+	t.Run("NetSASL", func(t *testing.T) {
+		x := &dfv1.Kafka{}
+		err := kafkaFromSecret(x, &corev1.Secret{
+			Data: map[string][]byte{
+				"net.sasl.user":     []byte(""),
+				"net.sasl.password": []byte(""),
+			},
+		})
+		assert.NoError(t, err)
+		if assert.NotNil(t, x.NET) {
+			assert.NotNil(t, x.NET.SASL)
 		}
 	})
 }
