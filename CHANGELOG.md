@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.73 (2021-07-23)
+
+ * [e166364](https://github.com/argoproj-labs/argo-dataflow/commit/e1663641925815d836990c26777061c115aba923) fix: make codegen
+ * [3456b18](https://github.com/argoproj-labs/argo-dataflow/commit/3456b1834813c1249299491579b81f63a7ae2b20) feat: kafka authentication (#141)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.72 (2021-07-21)
 
  * [40211bf](https://github.com/argoproj-labs/argo-dataflow/commit/40211bfd5f59f84bc7522f3d1d9c2d71f2748625) chore!: remove message and time from status to reduce complexity
