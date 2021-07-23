@@ -4,6 +4,8 @@ Create an appropriately sized cluster.
 
 Turn off Netskope if you're running on GCP. 
 
+Run `caffeinate` in a new terminal to prevent your Mac going to sleep.
+
 Check you can connect with `kubectl cluster-info`.
 
 Install using `make deploy`.
