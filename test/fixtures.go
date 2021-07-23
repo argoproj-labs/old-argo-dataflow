@@ -7,6 +7,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"log"
 	"os"
 	"runtime/debug"
 	"testing"
@@ -32,6 +33,7 @@ func SkipIfCI(t *testing.T) {
 }
 
 func Setup(t *testing.T) (teardown func()) {
+	log.Println("set-up")
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 
@@ -46,14 +48,18 @@ func Setup(t *testing.T) (teardown func()) {
 	ResetCount()
 
 	return func() {
+		log.Println("tear-down")
 		stopTestAPIPortForward()
 		r := recover() // tests should panic on error, we recover so we can run other tests
 		if r != nil {
+			t.Log("📄 logs")
+			TailLogs()
 			t.Log(fmt.Sprintf("❌ FAIL: %s %v", t.Name(), r))
 			debug.PrintStack()
 			t.Fail()
 		} else if t.Failed() {
 			t.Log(fmt.Sprintf("❌ FAIL: %s", t.Name()))
+			TailLogs()
 		} else {
 			t.Log(fmt.Sprintf("✅ PASS: %s", t.Name()))
 		}

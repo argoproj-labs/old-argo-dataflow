@@ -47,7 +47,6 @@ func TestDedupe(t *testing.T) {
 	SendMessageViaHTTP("baz")
 	SendMessageViaHTTP("baz")
 
-	TailLogs("dedupe-main-0", "main")
 
 	WaitForStep(TotalSourceMessages(6))
 	WaitForStep(TotalSunkMessages(4))

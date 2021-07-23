@@ -33,8 +33,6 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 
 	WaitForPod()
 
-	go TailLogs("kafka-main-0", "sidecar")
-
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
@@ -75,7 +73,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 
 	WaitForStep(TotalSunkMessages(n), 3*time.Minute)
 	WaitForStep(NoErrors)
-	ExpectLogLine("main",  "Failed to connect to broker kafka-broker:9092")
+	ExpectLogLine("main", "Failed to connect to broker kafka-broker:9092")
 }
 
 func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {

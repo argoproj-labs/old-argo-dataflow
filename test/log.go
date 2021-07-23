@@ -6,8 +6,10 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"log"
 	"regexp"
+	"sync"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -15,6 +17,10 @@ import (
 )
 
 type ContainerName string
+
+var (
+	podsInterface = kubernetesInterface.CoreV1().Pods(namespace)
+)
 
 func ExpectLogLine(step, pattern string, opts ...interface{}) {
 	var (
@@ -36,7 +42,7 @@ func ExpectLogLine(step, pattern string, opts ...interface{}) {
 	}
 	log.Printf("expect step %q container %q to log pattern %q\n", step, containerName, pattern)
 	labelSelector := fmt.Sprintf("dataflow.argoproj.io/step-name=%s", step)
-	podList, err := kubernetesInterface.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector, FieldSelector: "status.phase=Running"})
+	podList, err := podsInterface.List(ctx, metav1.ListOptions{LabelSelector: labelSelector, FieldSelector: "status.phase=Running"})
 	if err != nil {
 		panic(fmt.Errorf("error getting step pods: %w", err))
 	}
@@ -80,7 +86,7 @@ func podsLogContains(ctx context.Context, podList *corev1.PodList, containerName
 
 func podLogContains(ctx context.Context, podName, containerName, pattern string) (bool, error) {
 	log.Printf("expect pod %q container %q to log pattern %q\n", podName, containerName, pattern)
-	stream, err := kubernetesInterface.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{Container: containerName, Follow: true}).Stream(ctx)
+	stream, err := podsInterface.GetLogs(podName, &corev1.PodLogOptions{Container: containerName, Follow: true}).Stream(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -108,10 +114,27 @@ func podLogContains(ctx context.Context, podName, containerName, pattern string)
 	}
 }
 
-func TailLogs(podName, containerName string) {
-	log.Printf("dumping logs for %q/%q\n", podName, containerName)
+func TailLogs() {
 	ctx := context.Background()
-	stream, err := kubernetesInterface.CoreV1().Pods(namespace).GetLogs(podName, &corev1.PodLogOptions{Container: containerName}).Stream(ctx)
+	list, err := podsInterface.List(ctx, metav1.ListOptions{LabelSelector: KeyPipelineName})
+	if err != nil {
+		panic(err)
+	}
+	wg := sync.WaitGroup{}
+	for _, item := range list.Items {
+		wg.Add(1)
+		go func(podName string) {
+			defer wg.Done()
+			tailLogs(podName, "sidecar")
+		}(item.Name)
+	}
+	wg.Wait()
+}
+
+func tailLogs(podName, containerName string) {
+	ctx := context.Background()
+	log.Printf("tailing logs for %q/%q\n", podName, containerName)
+	stream, err := podsInterface.GetLogs(podName, &corev1.PodLogOptions{Container: containerName}).Stream(ctx)
 	if err != nil {
 		panic(err)
 	}
