@@ -33,6 +33,8 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 
 	WaitForPod()
 
+	go TailLogs("kafka-main-0", "sidecar")
+
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
