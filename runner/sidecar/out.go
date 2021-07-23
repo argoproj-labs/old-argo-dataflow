@@ -21,7 +21,7 @@ func connectOut(toSinks func([]byte) error) {
 func connectOutHTTP(f func([]byte) error) {
 	logger.Info("HTTP out interface configured")
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer "+os.Getenv(dfv1.EnvDataflowBearerToken) {
+		if r.Header.Get("Authorization") != "Bearer "+os.Getenv(dfv1.EnvBearerToken) {
 			w.WriteHeader(403)
 			return
 		}

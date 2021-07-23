@@ -45,7 +45,7 @@ func main() {
 		case "group":
 			return group.Exec(ctx, os.Args[2], os.Args[3], dfv1.GroupFormat(os.Args[4]))
 		case "init":
-			return _init.Exec()
+			return _init.Exec(ctx)
 		case "map":
 			return _map.Exec(ctx, os.Args[2])
 		case "sidecar":

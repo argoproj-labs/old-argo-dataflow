@@ -113,6 +113,8 @@ message Git {
 
   optional string url = 2;
 
+  optional k8s.io.api.core.v1.SecretKeySelector sshPrivateKey = 7;
+
   // +kubebuilder:default=.
   optional string path = 3;
 

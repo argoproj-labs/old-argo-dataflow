@@ -5,9 +5,10 @@ import (
 )
 
 type Git struct {
-	Image   string   `json:"image" protobuf:"bytes,1,opt,name=image"`
-	Command []string `json:"command,omitempty" protobuf:"bytes,6,rep,name=command"`
-	URL     string   `json:"url" protobuf:"bytes,2,opt,name=url"`
+	Image         string                    `json:"image" protobuf:"bytes,1,opt,name=image"`
+	Command       []string                  `json:"command,omitempty" protobuf:"bytes,6,rep,name=command"`
+	URL           string                    `json:"url" protobuf:"bytes,2,opt,name=url"`
+	SSHPrivateKey *corev1.SecretKeySelector `json:"sshPrivateKey,omitempty" protobuf:"bytes,7,opt,name=sshPrivateKey"`
 	// +kubebuilder:default=.
 	Path string `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
 	// +kubebuilder:default=main

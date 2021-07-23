@@ -1,11 +1,17 @@
 package init
 
 import (
+	"context"
 	"fmt"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"io"
 	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"os"
 	"path/filepath"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"syscall"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -19,7 +25,7 @@ var logger = sharedutil.NewLogger()
 
 // due to main container crashing, the init container may be started many times, so each operation we perform should be
 // idempontent, i.e. if we copy a file to shared volume, and it already exists, we should ignore that error
-func Exec() error {
+func Exec(ctx context.Context) error {
 	for _, name := range []string{dfv1.PathKill, dfv1.PathPreStop} {
 		logger.Info("copying binary", "name", name)
 		a := filepath.Join("/bin", filepath.Base(name))
@@ -51,12 +57,28 @@ func Exec() error {
 	}
 	if g := step.Spec.Git; g != nil {
 		logger.Info("cloning", "url", g.URL, "checkout", dfv1.PathCheckout)
+		var auth transport.AuthMethod
+
+		if k := g.SSHPrivateKey; k != nil {
+			logger.Info("getting secret for auth", "sshPrivateKey", k)
+			secretInterface := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie()).CoreV1().Secrets(os.Getenv(dfv1.EnvNamespace))
+			if secret, err := secretInterface.Get(ctx, k.Name, metav1.GetOptions{}); err != nil {
+				return fmt.Errorf("failed to get secret %q: %w", k.Name, err)
+			} else {
+				if v, err := ssh.NewPublicKeys("git", secret.Data[k.Key], ""); err != nil {
+					return fmt.Errorf("failed to get create public keys: %w", err)
+				} else {
+					auth = v
+				}
+			}
+		}
 		if _, err := git.PlainClone(dfv1.PathCheckout, false, &git.CloneOptions{
-			URL:           g.URL,
+			Auth:          auth,
+			Depth:         1, // checkout faster
 			Progress:      os.Stdout,
-			SingleBranch:  true, // checkout faster
-			Depth:         1,    // checkout faster
 			ReferenceName: plumbing.NewBranchReferenceName(g.Branch),
+			SingleBranch:  true, // checkout faster
+			URL:           g.URL,
 		}); IgnoreErrRepositoryAlreadyExists(err) != nil {
 			return fmt.Errorf("failed to clone repo: %w", err)
 		}

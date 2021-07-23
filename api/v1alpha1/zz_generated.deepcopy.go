@@ -202,6 +202,11 @@ func (in *Git) DeepCopyInto(out *Git) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.SSHPrivateKey != nil {
+		in, out := &in.SSHPrivateKey, &out.SSHPrivateKey
+		*out = new(v1.SecretKeySelector)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
 		*out = make([]v1.EnvVar, len(*in))
