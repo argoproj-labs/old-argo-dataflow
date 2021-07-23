@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/util/workqueue"
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -15,6 +12,8 @@ type req struct {
 	i   int
 	msg string
 }
+
+var poison = req{}
 
 func init() {
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
@@ -37,63 +36,40 @@ func init() {
 		}
 		w.WriteHeader(200)
 
-		requests := workqueue.New()
-		defer requests.ShutDown()
-		responses := workqueue.New()
-		defer responses.ShutDown()
 		start := time.Now()
-		wg := sync.WaitGroup{}
-		for worker := 0; worker < 4; worker++ {
-			wg.Add(1)
-			go func() {
-				runtime.HandleCrash()
-				defer wg.Done()
-				for {
-					item, shutdown := requests.Get()
-					if shutdown {
-						return
-					}
-					req := item.(req)
-					i, msg := req.i, req.msg
-					if resp, err := http.Post(url, "application/octet-stream", strings.NewReader(msg)); err != nil {
-						responses.Add(err)
-					} else if resp.StatusCode >= 300 {
-						responses.Add(fmt.Errorf("%s", resp.Status))
-					} else {
-						responses.Add(fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q", msg, i+1, n, (1+float64(i))/time.Since(start).Seconds(), url))
-					}
-				}
-			}()
-		}
-		wg.Add(1)
-		go func() {
-			runtime.HandleCrash()
-			defer wg.Done()
-			for {
-				res, shutdown := responses.Get()
-				if shutdown {
-					return
-				}
-				switch v := res.(type) {
-				case error:
-					_, _ = fmt.Fprintf(w, "ERROR: %s\n", v)
-				case string:
-					_, _ = fmt.Fprintln(w, v)
-				default:
-					panic(fmt.Errorf("unexpected result %T", res))
+		// https://gobyexample.com/worker-pools
+		worker := func(id int, jobs <-chan req, results chan<- interface{}) {
+			for j := range jobs {
+				if resp, err := http.Post(url, "application/octet-stream", strings.NewReader(j.msg)); err != nil {
+					results <- err
+				} else if resp.StatusCode >= 300 {
+					results <- fmt.Errorf("%s", resp.Status)
+				} else {
+					results <- fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q", j.msg, j.i+1, n, (1+float64(j.i))/time.Since(start).Seconds(), url)
 				}
 			}
-		}()
-		for i := 0; i < n || n < 0; i++ {
-			select {
-			case <-r.Context().Done():
-				return
+		}
+		jobs := make(chan req, n)
+		results := make(chan interface{}, n)
+		for w := 1; w <= 3; w++ {
+			go worker(w, jobs, results)
+		}
+		for j := 1; j <= n; j++ {
+			jobs <- req{j, fmt.Sprintf("%s-%d", prefix, j)}
+			time.Sleep(duration)
+		}
+		close(jobs)
+		for a := 1; a <= n; a++ {
+			res := <-results
+			switch v := res.(type) {
+			case error:
+				_, _ = fmt.Fprintf(w, "ERROR: %s\n", v)
+			case string:
+				_, _ = fmt.Fprintln(w, v)
 			default:
-				requests.Add(req{i, fmt.Sprintf("%s-%d", prefix, i)})
-				time.Sleep(duration)
+				_, _ = fmt.Fprintf(w, "ERROR: unexpected result %T", res)
 			}
 		}
-		wg.Wait() //don't close connection until all requests have been made, and all responses processed
 	})
 	http.HandleFunc("/http/wait-for", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
