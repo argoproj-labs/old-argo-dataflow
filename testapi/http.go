@@ -13,8 +13,6 @@ type req struct {
 	msg string
 }
 
-var poison = req{}
-
 func init() {
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
@@ -38,7 +36,7 @@ func init() {
 
 		start := time.Now()
 		// https://gobyexample.com/worker-pools
-		worker := func(id int, jobs <-chan req, results chan<- interface{}) {
+		worker := func(jobs <-chan req, results chan<- interface{}) {
 			for j := range jobs {
 				if resp, err := http.Post(url, "application/octet-stream", strings.NewReader(j.msg)); err != nil {
 					results <- err
@@ -52,7 +50,7 @@ func init() {
 		jobs := make(chan req, n)
 		results := make(chan interface{}, n)
 		for w := 1; w <= 3; w++ {
-			go worker(w, jobs, results)
+			go worker(jobs, results)
 		}
 		for j := 1; j <= n; j++ {
 			jobs <- req{j, fmt.Sprintf("%s-%d", prefix, j)}
