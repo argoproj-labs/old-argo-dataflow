@@ -59,8 +59,8 @@ pre-commit: codegen test install runner lint start
 
 codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/metrics-server.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md
 	go generate ./...
-	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow
-	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow
+	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
+	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
 
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
