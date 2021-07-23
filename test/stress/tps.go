@@ -22,7 +22,7 @@ func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger f
 
 	go func() {
 		defer runtimeutil.HandleCrash()
-		ExpectLogLine(step, "msg=ready", ctx)
+		ExpectLogLine(step, prefix+"-0", ctx)
 		t := time.Now()
 		start = &t
 	}()

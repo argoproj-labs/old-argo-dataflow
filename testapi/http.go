@@ -52,7 +52,7 @@ func init() {
 		for w := 1; w <= 3; w++ {
 			go worker(jobs, results)
 		}
-		for j := 1; j <= n; j++ {
+		for j := 0; j < n; j++ {
 			jobs <- req{j, fmt.Sprintf("%s-%d", prefix, j)}
 			time.Sleep(duration)
 		}
