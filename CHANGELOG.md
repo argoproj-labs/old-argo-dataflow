@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.74 (2021-07-26)
+
+ * [eaa0e22](https://github.com/argoproj-labs/argo-dataflow/commit/eaa0e2277765d9048a28d6d2f5db6a0f381d029f) feat: upgrade to Kubernetes v0.20.5
+ * [a9f59e6](https://github.com/argoproj-labs/argo-dataflow/commit/a9f59e68fed3ed9a8c7c5aaaa3a57ec82b1bf1cd) fix: Fix S3 poll period type
+ * [3e9334c](https://github.com/argoproj-labs/argo-dataflow/commit/3e9334c37dac92eb9254d2a2d855a4e1b333b46e) feat: Add S3 source
+ * [9e17d95](https://github.com/argoproj-labs/argo-dataflow/commit/9e17d951a63828052afc2b715c80dbceb359fc69) fix: do not Kafka commit error message
+ * [bb3fcaa](https://github.com/argoproj-labs/argo-dataflow/commit/bb3fcaa6a5b9a642e9b4234bc2afe6b3580d9f88) feat: git ssh private key
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.73 (2021-07-23)
 
  * [e166364](https://github.com/argoproj-labs/argo-dataflow/commit/e1663641925815d836990c26777061c115aba923) fix: make codegen
