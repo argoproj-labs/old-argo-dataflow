@@ -96,7 +96,7 @@ func WaitForPod(opts ...interface{}) {
 					y = append(y, string(c.Type))
 				}
 			}
-			log.Printf("pod %q has status %s %q conditions %q\n", p.Name, s.Phase, s.Message, y)
+			log.Printf("pod %q is %s %q %q\n", p.Name, s.Phase, s.Message, y)
 			if f(p) {
 				return
 			}

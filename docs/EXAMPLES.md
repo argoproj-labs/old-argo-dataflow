@@ -363,6 +363,18 @@ net.sasl.password: ""
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml
 ```
 
+### [dataflow-s3-default](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-s3-default-secret.yaml)
+
+This is an example of providing a namespace named S3 configuration.
+
+The secret must be named `dataflow-s3-${name}`.
+[Learn about configuration](../docs/CONFIGURATION.md)
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-s3-default-secret.yaml
+```
+
 ### [dataflow-stan-default](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-stan-default-secret.yaml)
 
 This is an example of providing a namespace named NATS Streaming configuration.

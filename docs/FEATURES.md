@@ -41,6 +41,7 @@ See [Wikipedia](https://en.wikipedia.org/wiki/Software_release_life_cycle#Stages
 | Python runtime | | v0.0.59 | v0.0.70 | |
 | Python SDK | | | v0.0.59 | |
 | Scale-to-zero (aka "peeking") | | | v0.0.70 | |
+| S3 source | | v0.0.74 | | |
 | Stress tests | | | v0.0.59 | |
 | Terminating pipelines | | v0.0.59 | v0.0.70 | |
 | Terminating steps | | v0.0.59 | v0.0.70 | |

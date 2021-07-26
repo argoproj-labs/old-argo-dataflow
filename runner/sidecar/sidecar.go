@@ -254,6 +254,11 @@ func enrichSources(ctx context.Context, secrets v1.SecretInterface) error {
 				return err
 			}
 			source.Kafka = x
+		} else if x := source.S3; x != nil {
+			if err := enrichS3Source(ctx, secrets, x); err != nil {
+				return err
+			}
+			source.S3 = x
 		}
 		step.Spec.Sources[i] = source
 	}

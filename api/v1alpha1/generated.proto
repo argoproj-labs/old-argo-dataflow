@@ -26,6 +26,16 @@ import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 // Package-wide variables from generator "generated".
 option go_package = "v1alpha1";
 
+message AWSCredentials {
+  optional k8s.io.api.core.v1.SecretKeySelector accessKeyId = 1;
+
+  optional k8s.io.api.core.v1.SecretKeySelector secretAccessKey = 2;
+}
+
+message AWSEndpoint {
+  optional string url = 1;
+}
+
 // default backoff is 100ms
 message Backoff {
   // the number of backoff steps, zero means no retries
@@ -246,6 +256,22 @@ message PipelineStatus {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastUpdated = 4;
 }
 
+message S3Source {
+  // +kubebuilder:default=default
+  optional string name = 1;
+
+  optional string bucket = 2;
+
+  optional string region = 3;
+
+  optional AWSCredentials credentials = 4;
+
+  optional AWSEndpoint endpoint = 5;
+
+  // +kubebuilder:default="1m"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration pollPeriod = 6;
+}
+
 message SASL {
   // SASLMechanism is the name of the enabled SASL mechanism.
   // Possible values: OAUTHBEARER, PLAIN (defaults to PLAIN).
@@ -319,6 +345,8 @@ message Source {
   optional KafkaSource kafka = 4;
 
   optional HTTPSource http = 5;
+
+  optional S3Source files = 8;
 
   // +kubebuilder:default={steps: 2, jitterPercentage: 10}
   optional Backoff retry = 7;

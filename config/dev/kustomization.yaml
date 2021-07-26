@@ -6,6 +6,9 @@ resources:
   - ../../examples/dataflow-kafka-default-secret.yaml
   - ../stan-dev
   - ../../examples/dataflow-stan-default-secret.yaml
+  - minio-statefulset.yaml
+  - minio-svc.yaml
+  - ../../examples/dataflow-s3-default-secret.yaml
   - testapi-statefulset.yaml
   - testapi-svc.yaml
   - input-pod.yaml

@@ -1,8 +1,13 @@
 package source
 
-import "context"
+import (
+	"context"
+	"io"
+)
 
-type Interface interface{}
+type Interface interface {
+	io.Closer
+}
 
 type Func func(ctx context.Context, msg []byte) error
 
