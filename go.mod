@@ -3,7 +3,6 @@ module github.com/argoproj-labs/argo-dataflow
 go 1.16
 
 require (
-	cloud.google.com/go v0.52.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -17,7 +16,6 @@ require (
 	github.com/go-git/go-git/v5 v5.3.0
 	github.com/go-logr/logr v0.3.0
 	github.com/gogo/protobuf v1.3.2
-	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/huandu/xstrings v1.3.2 // indirect
@@ -38,15 +36,12 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449 // indirect
 	golang.org/x/text v0.3.6
-	google.golang.org/protobuf v1.25.0 // indirect
-	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
-	k8s.io/api v0.19.6
-	k8s.io/apimachinery v0.19.6
-	k8s.io/client-go v0.19.6
-	k8s.io/utils v0.0.0-20200912215256-4140de9c8800
+	k8s.io/api v0.20.4
+	k8s.io/apimachinery v0.20.4
+	k8s.io/client-go v0.20.4
+	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
 	sigs.k8s.io/controller-runtime v0.7.0
 	sigs.k8s.io/yaml v1.2.0
 )
