@@ -24,7 +24,7 @@ func TestS3SourceStep(t *testing.T) {
 					Map:  "io.cat(string(msg))",
 					Sources: []Source{{S3: &S3Source{
 						Bucket:     "my-bucket",
-						PollPeriod: metav1.Duration{Duration: time.Minute},
+						PollPeriod: metav1.Duration{Duration: time.Second},
 					}}},
 					Sinks: []Sink{{Log: &Log{}}},
 				},
