@@ -7,6 +7,7 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
+	"time"
 )
 
 func TestS3SourceStep(t *testing.T) {
@@ -19,10 +20,13 @@ func TestS3SourceStep(t *testing.T) {
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
-					Name:    "main",
-					Map:     "io.cat(string(msg))",
-					Sources: []Source{{S3: &S3Source{Bucket: "my-bucket"}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Name: "main",
+					Map:  "io.cat(string(msg))",
+					Sources: []Source{{S3: &S3Source{
+						Bucket:     "my-bucket",
+						PollPeriod: metav1.Duration{Duration: time.Minute},
+					}}},
+					Sinks: []Sink{{Log: &Log{}}},
 				},
 			},
 		},
