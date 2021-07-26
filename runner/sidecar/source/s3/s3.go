@@ -105,7 +105,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 		// create leader Goroutine to poll for new files
 		go func() {
 			defer runtime.HandleCrash()
-			ticker := time.NewTicker(x.PollPeriod)
+			ticker := time.NewTicker(x.PollPeriod.Duration)
 			defer ticker.Stop()
 			for {
 				select {
