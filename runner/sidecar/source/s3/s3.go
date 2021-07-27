@@ -43,7 +43,6 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 		}
 		accessKeyID = string(secret.Data[x.Credentials.AccessKeyID.Key])
 	}
-
 	var secretAccessKey string
 	{
 		secretName := x.Credentials.SecretAccessKey.Name
@@ -53,7 +52,6 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 		}
 		secretAccessKey = string(secret.Data[x.Credentials.SecretAccessKey.Key])
 	}
-
 	options := s3.Options{
 		Region: x.Region,
 		Credentials: aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
@@ -78,7 +76,6 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 				defer runtime.HandleCrash()
 				for j := range jobs {
 					key := string(j)
-					logger.Info("dispatching", "key", key)
 					resp, err := http.Post(endpoint, "application/octet-stream", bytes.NewBufferString(key))
 					if err != nil {
 						logger.Error(err, "failed to process object", "key", key)
@@ -127,7 +124,6 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 	return &s3Source{
 		httpsource.New(sourceName, func(ctx context.Context, msg []byte) error {
 			key := string(msg)
-			logger.Info("received", "key", key)
 			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &bucket, Key: &key})
 			if err != nil {
 				return fmt.Errorf("failed to get object %q %q: %w", bucket, key, err)
@@ -151,7 +147,6 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
 			}()
-			logger.Info("invoking f", "key", key)
 			return f(ctx, []byte(path))
 		}),
 		jobs,

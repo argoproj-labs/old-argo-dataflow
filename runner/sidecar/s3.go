@@ -9,7 +9,7 @@ import (
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-func s3SourceFromSecret(x *dfv1.S3Source, secret *corev1.Secret) error {
+func s3FromSecret(x *dfv1.S3, secret *corev1.Secret) error {
 	if x.Region == "" {
 		x.Region = string(secret.Data["region"])
 	}
@@ -35,13 +35,13 @@ func s3SourceFromSecret(x *dfv1.S3Source, secret *corev1.Secret) error {
 	return nil
 }
 
-func enrichS3Source(ctx context.Context, secrets v1.SecretInterface, x *dfv1.S3Source) error {
+func enrichS3(ctx context.Context, secrets v1.SecretInterface, x *dfv1.S3) error {
 	secret, err := secrets.Get(ctx, "dataflow-s3-"+x.Name, metav1.GetOptions{})
 	if err != nil {
 		if !apierr.IsNotFound(err) {
 			return err
 		}
-	} else if err := s3SourceFromSecret(x, secret); err != nil {
+	} else if err := s3FromSecret(x, secret); err != nil {
 		return err
 	}
 	return nil

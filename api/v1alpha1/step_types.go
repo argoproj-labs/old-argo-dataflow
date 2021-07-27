@@ -63,7 +63,15 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		{Name: "GODEBUG", Value: os.Getenv("GODEBUG")},
 	}
 	return corev1.PodSpec{
-		Volumes:            append(in.Spec.Volumes, volume),
+		Volumes: append(in.Spec.Volumes, volume, corev1.Volume{
+			Name: "ssh",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  "ssh",
+					DefaultMode: pointer.Int32Ptr(0o644),
+				},
+			},
+		}),
 		RestartPolicy:      in.Spec.RestartPolicy,
 		NodeSelector:       in.Spec.NodeSelector,
 		ServiceAccountName: in.Spec.ServiceAccountName,
@@ -80,8 +88,12 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				ImagePullPolicy: req.PullPolicy,
 				Args:            []string{"init"},
 				Env:             envVars,
-				VolumeMounts:    volumeMounts,
-				Resources:       standardResources,
+				VolumeMounts: append(volumeMounts, corev1.VolumeMount{
+					Name:      "ssh",
+					ReadOnly:  true,
+					MountPath: "/.ssh",
+				}),
+				Resources: standardResources,
 			},
 		},
 		Containers: []corev1.Container{

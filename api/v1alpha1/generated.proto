@@ -256,7 +256,7 @@ message PipelineStatus {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastUpdated = 4;
 }
 
-message S3Source {
+message S3 {
   // +kubebuilder:default=default
   optional string name = 1;
 
@@ -267,6 +267,17 @@ message S3Source {
   optional AWSCredentials credentials = 4;
 
   optional AWSEndpoint endpoint = 5;
+}
+
+message S3Sink {
+  optional S3 s3 = 4;
+
+  // an expression over the message, e.g. `"subpath/"+string(msg)`
+  optional string bucket = 3;
+}
+
+message S3Source {
+  optional S3 s3 = 7;
 
   // +kubebuilder:default="1m"
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration pollPeriod = 6;
@@ -332,6 +343,8 @@ message Sink {
   optional Log log = 4;
 
   optional HTTPSink http = 5;
+
+  optional S3Sink s3 = 6;
 }
 
 message Source {
