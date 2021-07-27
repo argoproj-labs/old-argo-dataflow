@@ -915,39 +915,55 @@ spec:
                       type: object
                     git:
                       properties:
-                        authPasswordKey:
-                          description: SecretKeySelector selects a key of a Secret.
+                        passwordSecret:
+                          description: passwordSecret selects a key of a Secret.
                           properties:
                             key:
+                              type: string
                               description: The key of the secret to select from.  Must
                                 be a valid secret key.
-                              type: string
                             name:
+                              type: string
                               description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                                 TODO: Add other useful fields. apiVersion, kind, uid?'
-                              type: string
                             optional:
+                              type: boolean
                               description: Specify whether the Secret or its key must
                                 be defined
-                              type: boolean
                           required:
                           - key
                           type: object
-                        authUsernameKey:
-                          description: SecretKeySelector selects a key of a Secret.
+                        sshPrivateKeySecret:
                           properties:
                             key:
+                              type: string
                               description: The key of the secret to select from.  Must
                                 be a valid secret key.
-                              type: string
                             name:
+                              type: string
                               description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                                 TODO: Add other useful fields. apiVersion, kind, uid?'
-                              type: string
                             optional:
+                              type: boolean
                               description: Specify whether the Secret or its key must
                                 be defined
+                          required:
+                          - key
+                          type: object
+                        usernameSecret:
+                          properties:
+                            key:
+                              type: string
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                            name:
+                              type: string
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                            optional:
                               type: boolean
+                              description: Specify whether the Secret or its key must
+                                be defined
                           required:
                           - key
                           type: object

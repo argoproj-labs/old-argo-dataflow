@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -60,15 +61,15 @@ func Exec(ctx context.Context) error {
 		logger.Info("cloning", "url", g.URL, "checkout", dfv1.PathCheckout)
 		var auth transport.AuthMethod
 
-		if k := g.AuthPasswordKey; k != nil {
-			if v := g.AuthUsernameKey; v != nil {
-				logger.Info("getting secret for auth", "authPasswordKey", k, "authUsernameKey", v)
+		if k := g.UsernameSecret; k != nil {
+			if v := g.PasswordSecret; v != nil {
+				logger.Info("getting secret for auth", "UsernameSecret", k, "PasswordSecret", v)
 				secretInterface := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie()).CoreV1().Secrets(os.Getenv(dfv1.EnvNamespace))
 
-				if pwdSecret, err := secretInterface.Get(ctx, k.Name, metav1.GetOptions{}); err != nil {
+				if usernameSecret, err := secretInterface.Get(ctx, k.Name, metav1.GetOptions{}); err != nil {
 					return fmt.Errorf("failed to get secret %q: %w", k.Name, err)
 				} else {
-					if usernameSecret, err := secretInterface.Get(ctx, v.Name, metav1.GetOptions{}); err != nil {
+					if pwdSecret, err := secretInterface.Get(ctx, v.Name, metav1.GetOptions{}); err != nil {
 						return fmt.Errorf("failed to get secret %q: %w", v.Name, err)
 					} else {
 						auth = &http.BasicAuth{
@@ -79,6 +80,22 @@ func Exec(ctx context.Context) error {
 				}
 			}
 		}
+
+		if k := g.SSHPrivateKeySecret; k != nil {
+			logger.Info("getting secret for auth", "SSHPrivateKeySecret", k)
+			secretInterface := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie()).CoreV1().Secrets(os.Getenv(dfv1.EnvNamespace))
+
+			if sshPrivateKey, err := secretInterface.Get(ctx, k.Name, metav1.GetOptions{}); err != nil {
+				return fmt.Errorf("failed to get secret %q: %w", k.Name, err)
+			} else {
+				if v, err := ssh.NewPublicKeys("git", sshPrivateKey.Data[k.Key], ""); err != nil {
+					return fmt.Errorf("failed to get create public keys: %w", err)
+				} else {
+					auth = v
+				}
+			}
+		}
+
 		if _, err := git.PlainClone(dfv1.PathCheckout, false, &git.CloneOptions{
 			Auth:          auth,
 			Depth:         1, // checkout faster
