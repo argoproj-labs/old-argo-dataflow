@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func TestS3(t *testing.T) {
+func TestS3Source(t *testing.T) {
 	defer Setup(t)()
 
 	InvokeTestAPI("/minio/create-object")
@@ -26,13 +26,7 @@ func TestS3(t *testing.T) {
 						S3:         S3{Bucket: "my-bucket"},
 						PollPeriod: metav1.Duration{Duration: time.Second},
 					}}},
-					Sinks: []Sink{
-						{Name: "s3", S3: &S3Sink{
-							S3:  S3{Bucket: "my-bucket"},
-							Key: `"my-sink-key"`,
-						}},
-						{Name: "log", Log: &Log{}},
-					},
+					Sinks: []Sink{{Log: &Log{}}},
 				},
 			},
 		},
@@ -41,7 +35,7 @@ func TestS3(t *testing.T) {
 	WaitForPod()
 
 	WaitForPipeline(UntilMessagesSunk)
-	WaitForStep(TotalSunkMessages(2))
+	WaitForStep(TotalSunkMessages(1))
 
 	ExpectLogLine("main", "my-content")
 
