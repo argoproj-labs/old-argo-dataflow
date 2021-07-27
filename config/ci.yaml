@@ -907,6 +907,65 @@ spec:
                           name:
                             default: default
                             type: string
+                          s3:
+                            properties:
+                              bucket:
+                                type: string
+                              credentials:
+                                properties:
+                                  accessKeyId:
+                                    description: SecretKeySelector selects a key of a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                  secretAccessKey:
+                                    description: SecretKeySelector selects a key of a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                required:
+                                - accessKeyId
+                                - secretAccessKey
+                                type: object
+                              endpoint:
+                                properties:
+                                  url:
+                                    type: string
+                                required:
+                                - url
+                                type: object
+                              key:
+                                description: an expression over the message, e.g. `"subpath/"+string(msg)`
+                                type: string
+                              name:
+                                default: default
+                                type: string
+                              region:
+                                type: string
+                            required:
+                            - bucket
+                            - key
+                            type: object
                           stan:
                             properties:
                               auth:
@@ -3119,6 +3178,65 @@ spec:
                     name:
                       default: default
                       type: string
+                    s3:
+                      properties:
+                        bucket:
+                          type: string
+                        credentials:
+                          properties:
+                            accessKeyId:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                            secretAccessKey:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                          required:
+                          - accessKeyId
+                          - secretAccessKey
+                          type: object
+                        endpoint:
+                          properties:
+                            url:
+                              type: string
+                          required:
+                          - url
+                          type: object
+                        key:
+                          description: an expression over the message, e.g. `"subpath/"+string(msg)`
+                          type: string
+                        name:
+                          default: default
+                          type: string
+                        region:
+                          type: string
+                      required:
+                      - bucket
+                      - key
+                      type: object
                     stan:
                       properties:
                         auth:
@@ -4857,6 +4975,18 @@ stringData:
   natsMonitoringUrl: http://stan:8222
   natsUrl: nats
   subjectPrefix: NamespacedPipelineName
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ssh
+  namespace: argo-dataflow-system
+stringData:
+  known_hosts: |
+    # github.com:22 SSH-2.0-babeld-83b59434
+    # github.com:22 SSH-2.0-babeld-83b59434
+    github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
+    # github.com:22 SSH-2.0-babeld-83b59434
 ---
 apiVersion: v1
 kind: Service
