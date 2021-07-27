@@ -26,8 +26,6 @@ const concurrency = 4
 
 var logger = sharedutil.NewLogger()
 
-type job string
-
 type s3Source struct {
 	httpSource source.Interface
 	jobs       workqueue.Interface
