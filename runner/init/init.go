@@ -3,16 +3,17 @@ package init
 import (
 	"context"
 	"fmt"
-	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"io"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"os"
 	"path/filepath"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"syscall"
+
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
@@ -59,16 +60,22 @@ func Exec(ctx context.Context) error {
 		logger.Info("cloning", "url", g.URL, "checkout", dfv1.PathCheckout)
 		var auth transport.AuthMethod
 
-		if k := g.SSHPrivateKey; k != nil {
-			logger.Info("getting secret for auth", "sshPrivateKey", k)
-			secretInterface := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie()).CoreV1().Secrets(os.Getenv(dfv1.EnvNamespace))
-			if secret, err := secretInterface.Get(ctx, k.Name, metav1.GetOptions{}); err != nil {
-				return fmt.Errorf("failed to get secret %q: %w", k.Name, err)
-			} else {
-				if v, err := ssh.NewPublicKeys("git", secret.Data[k.Key], ""); err != nil {
-					return fmt.Errorf("failed to get create public keys: %w", err)
+		if k := g.AuthPasswordKey; k != nil {
+			if v := g.AuthUsernameKey; v != nil {
+				logger.Info("getting secret for auth", "authPasswordKey", k, "authUsernameKey", v)
+				secretInterface := kubernetes.NewForConfigOrDie(ctrl.GetConfigOrDie()).CoreV1().Secrets(os.Getenv(dfv1.EnvNamespace))
+
+				if pwdSecret, err := secretInterface.Get(ctx, k.Name, metav1.GetOptions{}); err != nil {
+					return fmt.Errorf("failed to get secret %q: %w", k.Name, err)
 				} else {
-					auth = v
+					if usernameSecret, err := secretInterface.Get(ctx, v.Name, metav1.GetOptions{}); err != nil {
+						return fmt.Errorf("failed to get secret %q: %w", v.Name, err)
+					} else {
+						auth = &http.BasicAuth{
+							Username: string(usernameSecret.Data[v.Key]),
+							Password: string(pwdSecret.Data[k.Key]),
+						}
+					}
 				}
 			}
 		}
