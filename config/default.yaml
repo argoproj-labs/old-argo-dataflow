@@ -907,6 +907,65 @@ spec:
                           name:
                             default: default
                             type: string
+                          s3:
+                            properties:
+                              bucket:
+                                type: string
+                              credentials:
+                                properties:
+                                  accessKeyId:
+                                    description: SecretKeySelector selects a key of a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                  secretAccessKey:
+                                    description: SecretKeySelector selects a key of a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                required:
+                                - accessKeyId
+                                - secretAccessKey
+                                type: object
+                              endpoint:
+                                properties:
+                                  url:
+                                    type: string
+                                required:
+                                - url
+                                type: object
+                              key:
+                                description: an expression over the message, e.g. `"subpath/"+string(msg)`
+                                type: string
+                              name:
+                                default: default
+                                type: string
+                              region:
+                                type: string
+                            required:
+                            - bucket
+                            - key
+                            type: object
                           stan:
                             properties:
                               auth:
@@ -967,6 +1026,64 @@ spec:
                                 type: string
                             required:
                             - schedule
+                            type: object
+                          files:
+                            properties:
+                              bucket:
+                                type: string
+                              credentials:
+                                properties:
+                                  accessKeyId:
+                                    description: SecretKeySelector selects a key of a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                  secretAccessKey:
+                                    description: SecretKeySelector selects a key of a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                required:
+                                - accessKeyId
+                                - secretAccessKey
+                                type: object
+                              endpoint:
+                                properties:
+                                  url:
+                                    type: string
+                                required:
+                                - url
+                                type: object
+                              name:
+                                default: default
+                                type: string
+                              pollPeriod:
+                                default: 1m
+                                type: string
+                              region:
+                                type: string
+                            required:
+                            - bucket
                             type: object
                           http:
                             properties:
@@ -1442,7 +1559,7 @@ spec:
                                           type: string
                                         type: array
                                       dataSource:
-                                        description: 'This field can be used to specify either: * An existing VolumeSnapshot object (snapshot.storage.k8s.io/VolumeSnapshot - Beta) * An existing PVC (PersistentVolumeClaim) * An existing custom resource/object that implements data population (Alpha) In order to use VolumeSnapshot object types, the appropriate feature gate must be enabled (VolumeSnapshotDataSource or AnyVolumeDataSource) If the provisioner or an external controller can support the specified data source, it will create a new volume based on the contents of the specified data source. If the specified data source is not supported, the volume will not be created and the failure will be reported as an event. In the future, we plan to support more data source types and the behavior of the provisioner may change.'
+                                        description: 'This field can be used to specify either: * An existing VolumeSnapshot object (snapshot.storage.k8s.io/VolumeSnapshot) * An existing PVC (PersistentVolumeClaim) * An existing custom resource that implements data population (Alpha) In order to use custom resource types that implement data population, the AnyVolumeDataSource feature gate must be enabled. If the provisioner or an external controller can support the specified data source, it will create a new volume based on the contents of the specified data source.'
                                         properties:
                                           apiGroup:
                                             description: APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required.
@@ -1893,8 +2010,6 @@ spec:
                                       type: object
                                   type: object
                                 type: array
-                            required:
-                            - sources
                             type: object
                           quobyte:
                             description: Quobyte represents a Quobyte mount on the host that shares a pod's lifetime
@@ -3063,6 +3178,65 @@ spec:
                     name:
                       default: default
                       type: string
+                    s3:
+                      properties:
+                        bucket:
+                          type: string
+                        credentials:
+                          properties:
+                            accessKeyId:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                            secretAccessKey:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                          required:
+                          - accessKeyId
+                          - secretAccessKey
+                          type: object
+                        endpoint:
+                          properties:
+                            url:
+                              type: string
+                          required:
+                          - url
+                          type: object
+                        key:
+                          description: an expression over the message, e.g. `"subpath/"+string(msg)`
+                          type: string
+                        name:
+                          default: default
+                          type: string
+                        region:
+                          type: string
+                      required:
+                      - bucket
+                      - key
+                      type: object
                     stan:
                       properties:
                         auth:
@@ -3123,6 +3297,64 @@ spec:
                           type: string
                       required:
                       - schedule
+                      type: object
+                    files:
+                      properties:
+                        bucket:
+                          type: string
+                        credentials:
+                          properties:
+                            accessKeyId:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                            secretAccessKey:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                          required:
+                          - accessKeyId
+                          - secretAccessKey
+                          type: object
+                        endpoint:
+                          properties:
+                            url:
+                              type: string
+                          required:
+                          - url
+                          type: object
+                        name:
+                          default: default
+                          type: string
+                        pollPeriod:
+                          default: 1m
+                          type: string
+                        region:
+                          type: string
+                      required:
+                      - bucket
                       type: object
                     http:
                       properties:
@@ -3598,7 +3830,7 @@ spec:
                                     type: string
                                   type: array
                                 dataSource:
-                                  description: 'This field can be used to specify either: * An existing VolumeSnapshot object (snapshot.storage.k8s.io/VolumeSnapshot - Beta) * An existing PVC (PersistentVolumeClaim) * An existing custom resource/object that implements data population (Alpha) In order to use VolumeSnapshot object types, the appropriate feature gate must be enabled (VolumeSnapshotDataSource or AnyVolumeDataSource) If the provisioner or an external controller can support the specified data source, it will create a new volume based on the contents of the specified data source. If the specified data source is not supported, the volume will not be created and the failure will be reported as an event. In the future, we plan to support more data source types and the behavior of the provisioner may change.'
+                                  description: 'This field can be used to specify either: * An existing VolumeSnapshot object (snapshot.storage.k8s.io/VolumeSnapshot) * An existing PVC (PersistentVolumeClaim) * An existing custom resource that implements data population (Alpha) In order to use custom resource types that implement data population, the AnyVolumeDataSource feature gate must be enabled. If the provisioner or an external controller can support the specified data source, it will create a new volume based on the contents of the specified data source.'
                                   properties:
                                     apiGroup:
                                       description: APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required.
@@ -4049,8 +4281,6 @@ spec:
                                 type: object
                             type: object
                           type: array
-                      required:
-                      - sources
                       type: object
                     quobyte:
                       description: Quobyte represents a Quobyte mount on the host that shares a pod's lifetime

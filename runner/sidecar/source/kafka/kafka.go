@@ -33,8 +33,10 @@ func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
-		_ = h.f(context.Background(), msg.Value)
-		sess.MarkMessage(msg, "")
+		if err := h.f(context.Background(), msg.Value); err != nil {
+		} else {
+			sess.MarkMessage(msg, "")
+		}
 		h.i++
 		if h.i%dfv1.CommitN == 0 {
 			sess.Commit()

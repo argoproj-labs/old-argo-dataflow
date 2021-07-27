@@ -148,13 +148,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
-				ObjectMeta: (metav1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Namespace:       step.Namespace,
 					Name:            podName,
 					Labels:          _labels,
 					Annotations:     annotations,
 					OwnerReferences: ownerReferences,
-				}),
+				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
 						PipelineName:   pipelineName,
@@ -181,12 +181,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	serviceNames := map[string]bool{}
 	for _, s := range step.Spec.Sources {
-		if h := s.HTTP; h != nil {
-			n := h.ServiceName
-			if n == "" {
-				n = pipelineName + "-" + stepName
+		serviceName := pipelineName + "-" + stepName
+		if x := s.HTTP; x != nil {
+			if n := x.ServiceName; n != "" {
+				serviceName = n
 			}
-			serviceNames[n] = true
+			serviceNames[serviceName] = true
+		} else if x := s.S3; x != nil {
+			serviceNames[serviceName] = true
 		}
 	}
 

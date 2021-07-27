@@ -7,6 +7,7 @@ type Source struct {
 	STAN  *STAN        `json:"stan,omitempty" protobuf:"bytes,3,opt,name=stan"`
 	Kafka *KafkaSource `json:"kafka,omitempty" protobuf:"bytes,4,opt,name=kafka"`
 	HTTP  *HTTPSource  `json:"http,omitempty" protobuf:"bytes,5,opt,name=http"`
+	S3    *S3Source    `json:"files,omitempty" protobuf:"bytes,8,opt,name=files"`
 	// +kubebuilder:default={steps: 2, jitterPercentage: 10}
 	Retry Backoff `json:"retry,omitempty" protobuf:"bytes,7,opt,name=retry"`
 }

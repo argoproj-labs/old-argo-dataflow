@@ -3,20 +3,19 @@ package sidecar
 import (
 	"context"
 	"fmt"
-	"io"
-	"time"
-
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
 	httpsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/http"
 	kafkasource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/kafka"
+	s3source "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/s3"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/stan"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"io"
+	"time"
 )
 
 func connectSources(ctx context.Context, toMain func(context.Context, []byte) error) error {
@@ -82,6 +81,12 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			}
 		} else if x := s.HTTP; x != nil {
 			sources[sourceName] = httpsource.New(sourceName, f)
+		} else if x := s.S3; x != nil {
+			if y, err := s3source.New(ctx, kubernetesInterface, namespace, pipelineName, stepName, sourceName, *x, f, leadReplica()); err!=nil{
+				return err
+			} else {
+				sources[sourceName] = y
+			}
 		} else {
 			return fmt.Errorf("source misconfigured")
 		}

@@ -55,7 +55,7 @@ pprof:
 	go tool pprof -web http://127.0.0.1:3569/debug/pprof/profile?seconds=10
 	curl -s http://127.0.0.1:3569/debug/pprof/trace\?seconds\=10 | go tool trace /dev/stdin
 
-pre-commit: codegen test install runner lint start
+pre-commit: codegen test install runner testapi lint start
 
 codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/metrics-server.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md
 	go generate ./...
@@ -122,7 +122,7 @@ CHANGELOG.md: /dev/null
 proto: api/v1alpha1/generated.pb.go
 
 $(GOBIN)/go-to-protobuf:
-	go install k8s.io/code-generator/cmd/go-to-protobuf@v0.19.6
+	go install k8s.io/code-generator/cmd/go-to-protobuf@v0.20.4
 
 api/v1alpha1/generated.pb.go:
 api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -name '*generated*' -not -name groupversion_info.go) $(GOBIN)/go-to-protobuf
