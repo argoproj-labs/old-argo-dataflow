@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.75 (2021-07-27)
+
+ * [4ef8477](https://github.com/argoproj-labs/argo-dataflow/commit/4ef847768c5af4ce4406f7f440c113a5fb1da64f) fix: improve/fix s3 support by using workqueue to avoid repeated work
+ * [4981e06](https://github.com/argoproj-labs/argo-dataflow/commit/4981e06cc13ca7f675b1680843b3b4406e11f533) fix: add known_hosts for git cloning private repos
+ * [e9b9ae6](https://github.com/argoproj-labs/argo-dataflow/commit/e9b9ae65287bdfd52be9d81ab0db1746ad212e36) feat: add S3 sink
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.74 (2021-07-26)
 
  * [eaa0e22](https://github.com/argoproj-labs/argo-dataflow/commit/eaa0e2277765d9048a28d6d2f5db6a0f381d029f) feat: upgrade to Kubernetes v0.20.5
