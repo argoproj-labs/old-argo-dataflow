@@ -95,19 +95,33 @@ func TestStep_GetPodSpec(t *testing.T) {
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            "init",
 						Resources:       standardResources,
-						VolumeMounts:    mounts,
+						VolumeMounts: append(mounts, corev1.VolumeMount{
+							Name:      "ssh",
+							ReadOnly:  true,
+							MountPath: "/.ssh",
+						}),
 					},
 				},
 				SecurityContext: &corev1.PodSecurityContext{
 					RunAsUser:    pointer.Int64Ptr(9653),
 					RunAsNonRoot: pointer.BoolPtr(true),
 				},
-				Volumes: []corev1.Volume{{
-					Name: "var-run-argo-dataflow",
-					VolumeSource: corev1.VolumeSource{
-						EmptyDir: &corev1.EmptyDirVolumeSource{},
+				Volumes: []corev1.Volume{
+					{
+						Name: "var-run-argo-dataflow",
+						VolumeSource: corev1.VolumeSource{
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
+						},
+					}, {
+						Name: "ssh",
+						VolumeSource: corev1.VolumeSource{
+							Secret: &corev1.SecretVolumeSource{
+								SecretName:  "ssh",
+								DefaultMode: pointer.Int32Ptr(0o644),
+							},
+						},
 					},
-				}},
+				},
 			},
 		},
 	}
