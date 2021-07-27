@@ -13,7 +13,8 @@ import (
 func TestS3Source(t *testing.T) {
 	defer Setup(t)()
 
-	InvokeTestAPI("/minio/create-object")
+	InvokeTestAPI("/minio/empty-bucket")
+	InvokeTestAPI("/minio/create-object?key=my-key")
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "s3"},
@@ -24,7 +25,7 @@ func TestS3Source(t *testing.T) {
 					Map:  "io.cat(string(msg))",
 					Sources: []Source{{S3: &S3Source{
 						S3:         S3{Bucket: "my-bucket"},
-						PollPeriod: metav1.Duration{Duration: time.Second},
+						PollPeriod: metav1.Duration{Duration: 5*time.Second},
 					}}},
 					Sinks: []Sink{{Log: &Log{}}},
 				},

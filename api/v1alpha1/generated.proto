@@ -359,7 +359,7 @@ message Source {
 
   optional HTTPSource http = 5;
 
-  optional S3Source files = 8;
+  optional S3Source s3 = 8;
 
   // +kubebuilder:default={steps: 2, jitterPercentage: 10}
   optional Backoff retry = 7;
