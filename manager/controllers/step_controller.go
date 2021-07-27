@@ -148,13 +148,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
-				ObjectMeta: (metav1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Namespace:       step.Namespace,
 					Name:            podName,
 					Labels:          _labels,
 					Annotations:     annotations,
 					OwnerReferences: ownerReferences,
-				}),
+				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
 						PipelineName:   pipelineName,
