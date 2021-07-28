@@ -22,7 +22,7 @@ func TestS3Source(t *testing.T) {
 			Steps: []StepSpec{
 				{
 					Name: "main",
-					Map:  "io.cat(string(msg))",
+					Map:  "io.cat(object(msg).path)",
 					Sources: []Source{{S3: &S3Source{
 						S3:         S3{Bucket: "my-bucket"},
 						PollPeriod: metav1.Duration{Duration: 5*time.Second},

@@ -31,6 +31,11 @@ type s3Source struct {
 	jobs       workqueue.Interface
 }
 
+type message struct {
+	Key  string `json:"key"`
+	Path string `json:"path"`
+}
+
 func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace, pipelineName, stepName, sourceName string, x dfv1.S3Source, f source.Func, leadReplica bool) (source.Interface, error) {
 	secretInterface := kubernetesInterface.CoreV1().Secrets(namespace)
 	var accessKeyID string
@@ -149,7 +154,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
 			}()
-			return f(ctx, []byte(path))
+			return f(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})))
 		}),
 		jobs,
 	}, nil
