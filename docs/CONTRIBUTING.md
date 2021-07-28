@@ -17,6 +17,17 @@ Before committing:
 make pre-commit
 ```
 
+Required dependencies:
+
+```
+go get github.com/gogo/protobuf/protoc-gen-gogo
+go get golang.org/x/tools/cmd/goimports
+GOBIN=$(pwd)/ GO111MODULE=on go get sigs.k8s.io/kustomize/kustomize/v3
+mv kustomize /go/bin
+```
+
+Also required python3 & pip3.
+
 ## Docker for Desktop and K3D Known Limitations
 
 * Docker for Desktop
