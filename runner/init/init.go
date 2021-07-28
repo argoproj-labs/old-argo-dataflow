@@ -79,6 +79,8 @@ func Exec(ctx context.Context) error {
 					}
 				}
 			}
+		} else {
+			logger.Info("No username & password found for git auth.")
 		}
 
 		if k := g.SSHPrivateKeySecret; k != nil {
@@ -94,6 +96,8 @@ func Exec(ctx context.Context) error {
 					auth = v
 				}
 			}
+		} else {
+			logger.Info("No ssh private key found for git auth.")
 		}
 
 		if _, err := git.PlainClone(dfv1.PathCheckout, false, &git.CloneOptions{
