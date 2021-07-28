@@ -5,10 +5,18 @@ import (
 )
 
 type Git struct {
-	Image         string                    `json:"image" protobuf:"bytes,1,opt,name=image"`
-	Command       []string                  `json:"command,omitempty" protobuf:"bytes,6,rep,name=command"`
-	URL           string                    `json:"url" protobuf:"bytes,2,opt,name=url"`
-	SSHPrivateKey *corev1.SecretKeySelector `json:"sshPrivateKey,omitempty" protobuf:"bytes,7,opt,name=sshPrivateKey"`
+	Image   string   `json:"image" protobuf:"bytes,1,opt,name=image"`
+	Command []string `json:"command,omitempty" protobuf:"bytes,6,rep,name=command"`
+	URL     string   `json:"url" protobuf:"bytes,2,opt,name=url"`
+
+	// UsernameSecret is the secret selector to the repository username
+	UsernameSecret *corev1.SecretKeySelector `json:"usernameSecret,omitempty" protobuf:"bytes,7,opt,name=usernameSecret"`
+
+	// PasswordSecret is the secret selector to the repository password
+	PasswordSecret *corev1.SecretKeySelector `json:"passwordSecret,omitempty" protobuf:"bytes,8,opt,name=passwordSecret"`
+
+	// SSHPrivateKeySecret is the secret selector to the repository ssh private key
+	SSHPrivateKeySecret *corev1.SecretKeySelector `json:"sshPrivateKeySecret,omitempty" protobuf:"bytes,9,opt,name=sshPrivateKeySecret"`
 	// +kubebuilder:default=.
 	Path string `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
 	// +kubebuilder:default=main
