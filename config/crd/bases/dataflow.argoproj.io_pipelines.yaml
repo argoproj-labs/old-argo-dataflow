@@ -1427,10 +1427,6 @@ spec:
                                 required:
                                 - url
                                 type: object
-                              key:
-                                description: an expression over the message, e.g.
-                                  `"subpath/"+string(msg)`
-                                type: string
                               name:
                                 default: default
                                 type: string
@@ -1438,7 +1434,6 @@ spec:
                                 type: string
                             required:
                             - bucket
-                            - key
                             type: object
                           stan:
                             properties:

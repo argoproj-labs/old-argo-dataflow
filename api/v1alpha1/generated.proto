@@ -278,9 +278,6 @@ message S3 {
 
 message S3Sink {
   optional S3 s3 = 4;
-
-  // an expression over the message, e.g. `"subpath/"+string(msg)`
-  optional string bucket = 3;
 }
 
 message S3Source {

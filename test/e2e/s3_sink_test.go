@@ -17,15 +17,20 @@ func TestS3Sink(t *testing.T) {
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
-					Name:    "main",
-					Cat:     &Cat{},
-					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks: []Sink{
-						{Name: "s3", S3: &S3Sink{
-							S3:  S3{Bucket: "my-bucket"},
-							Key: `"my-sink-key"`,
-						}},
+					Name: "main",
+					Code: &Code{
+						Runtime: "golang1-16",
+						Source:  `package main
+
+import "context"
+import "io/ioutil"
+
+func Handler(ctx context.Context, m []byte) ([]byte, error) {
+  return []byte("{\"key\":\"my-key\",\"path\":\"/var/run/argo-dataflow/empty\"}"), ioutil.WriteFile("/var/run/argo-dataflow/empty", nil, 0o600)
+}`,
 					},
+					Sources: []Source{{HTTP: &HTTPSource{}}},
+					Sinks:   []Sink{{S3: &S3Sink{S3: S3{Bucket: "my-bucket"}}}},
 				},
 			},
 		},

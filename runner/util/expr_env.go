@@ -3,17 +3,12 @@ package util
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/Masterminds/sprig"
 )
 
 var _sprig = sprig.GenericFuncMap()
-
-var io = map[string]interface{}{
-	"cat": cat,
-}
 
 func ExprEnv(msg []byte) map[string]interface{} {
 	return map[string]interface{}{
@@ -27,7 +22,6 @@ func ExprEnv(msg []byte) map[string]interface{} {
 		"object": object,
 		"sprig":  _sprig,
 		"sha1":   _sha1,
-		"io":     io,
 	}
 }
 
@@ -40,13 +34,6 @@ func _bytes(v interface{}) []byte {
 	default:
 		return []byte(fmt.Sprintf("%v", v))
 	}
-}
-func cat(v string) []byte {
-	data, err := ioutil.ReadFile(v)
-	if err != nil {
-		panic(err)
-	}
-	return data
 }
 
 func _int(v interface{}) int {

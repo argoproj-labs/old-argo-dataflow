@@ -137,7 +137,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 				return fmt.Errorf("failed to get object %q %q: %w", bucket, key, err)
 			}
 			defer output.Body.Close()
-			path := filepath.Join(dfv1.PathVarRun, key)
+			path := filepath.Join(dfv1.PathVarRun, "sources", sourceName, key)
 			if err := syscall.Mkfifo(path, 0o666); sharedutil.IgnoreExist(err) != nil {
 				return fmt.Errorf("failed to create fifo %q: %w", path, err)
 			}

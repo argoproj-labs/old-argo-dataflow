@@ -1,18 +1,16 @@
 package s3
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/antonmedv/expr"
-	"github.com/antonmedv/expr/vm"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
-	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"os"
 
 	"k8s.io/client-go/kubernetes"
 )
@@ -20,7 +18,11 @@ import (
 type s3Sink struct {
 	client *s3.Client
 	bucket string
-	prog   *vm.Program
+}
+
+type message struct {
+	Key  string `json:"key"`
+	Path string `json:"path"`
 }
 
 func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, x dfv1.S3Sink) (sink.Interface, error) {
@@ -54,31 +56,22 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 			return aws.Endpoint{URL: e.URL, SigningRegion: region, HostnameImmutable: true}, nil
 		})
 	}
-	prog, err := expr.Compile(x.Key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to compile %q: %w", x.Key, err)
-	}
-	return s3Sink{
-		client: s3.New(options),
-		bucket: x.Bucket,
-		prog:   prog,
-	}, nil
+	return s3Sink{client: s3.New(options), bucket: x.Bucket}, nil
 }
 
 func (h s3Sink) Sink(msg []byte) error {
-	res, err := expr.Run(h.prog, util.ExprEnv(msg))
-	if err != nil {
+	m := &message{}
+	if err := json.Unmarshal(msg, m); err != nil {
 		return err
 	}
-	key, ok := res.(string)
-	if !ok {
-		return fmt.Errorf("expected string, got %T", res)
+	f, err := os.Open(m.Path)
+	if err != nil {
+		return fmt.Errorf("failed to open %q: %w", m.Path, err)
 	}
 	_, err = h.client.PutObject(context.Background(), &s3.PutObjectInput{
-		Bucket:        &h.bucket,
-		Key:           &key,
-		Body:          bytes.NewBuffer(msg),
-		ContentLength: int64(len(msg)),
+		Bucket: &h.bucket,
+		Key:    &m.Key,
+		Body:   f,
 	}, s3.WithAPIOptions(
 		// https://aws.github.io/aws-sdk-go-v2/docs/sdk-utilities/s3/#unseekable-streaming-input
 		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,
