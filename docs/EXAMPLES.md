@@ -136,19 +136,6 @@ This example is of the Python 3.9 handler.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python3-9-pipeline.yaml
 ```
 
-### [106-git](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-pipeline.yaml)
-
-This example of a pipeline using Git.
-
-The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
-your code when the step starts. This example presents how one can use both go runtime & python runtime git steps.
-
-[Learn about Git steps](../docs/GIT.md)
-
-```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-pipeline.yaml
-```
-
 ### [107-completion](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/107-completion-pipeline.yaml)
 
 This example shows a pipeline running to completion.
