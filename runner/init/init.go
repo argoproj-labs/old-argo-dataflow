@@ -73,8 +73,8 @@ func Exec(ctx context.Context) error {
 						return fmt.Errorf("failed to get secret %q: %w", v.Name, err)
 					} else {
 						auth = &http.BasicAuth{
-							Username: string(usernameSecret.Data[v.Key]),
-							Password: string(pwdSecret.Data[k.Key]),
+							Username: string(usernameSecret.Data[k.Key]),
+							Password: string(pwdSecret.Data[v.Key]),
 						}
 					}
 				}
