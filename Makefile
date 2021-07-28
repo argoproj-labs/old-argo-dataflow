@@ -93,8 +93,8 @@ config/quick-start.yaml:
 config/metrics-server.yaml:
 config/stan-dev.yaml:
 config/%.yaml: config/$*
-	kustomize build --load_restrictor=none config/$* -o $@
-	sed -i "s/:latest/:$(TAG)/" $@
+	kustomize build --load-restrictor LoadRestrictionsNone config/$* -o $@
+	sed -i '' "s/:latest/:$(TAG)/" $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: install
