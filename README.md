@@ -59,7 +59,7 @@ Beginner:
 
 Intermediate:
 
-* [Handlers](docs/HANDLERS.md)
+* [Handlers](docs/CODE.md)
 * [Git usage](docs/GIT.md)
 * [Reliability](docs/RELIABILITY.md)
 * [Scaling](docs/SCALING.md)
