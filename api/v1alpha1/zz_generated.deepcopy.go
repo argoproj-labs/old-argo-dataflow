@@ -234,8 +234,18 @@ func (in *Git) DeepCopyInto(out *Git) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	if in.SSHPrivateKey != nil {
-		in, out := &in.SSHPrivateKey, &out.SSHPrivateKey
+	if in.UsernameSecret != nil {
+		in, out := &in.UsernameSecret, &out.UsernameSecret
+		*out = new(v1.SecretKeySelector)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.PasswordSecret != nil {
+		in, out := &in.PasswordSecret, &out.PasswordSecret
+		*out = new(v1.SecretKeySelector)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.SSHPrivateKeySecret != nil {
+		in, out := &in.SSHPrivateKeySecret, &out.SSHPrivateKeySecret
 		*out = new(v1.SecretKeySelector)
 		(*in).DeepCopyInto(*out)
 	}
