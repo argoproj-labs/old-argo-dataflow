@@ -19,7 +19,7 @@ choice:
 These are two step that you can specify code:
 
 * `git` define a place in Git to check the code out from and run
-* `handler` define the code inline
+* `code` define the code inline. See [code](CODE.md).
 
 ## Container Step
 

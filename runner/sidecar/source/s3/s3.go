@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/util/workqueue"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,11 +26,9 @@ const concurrency = 4
 
 var logger = sharedutil.NewLogger()
 
-type job string
-
 type s3Source struct {
 	httpSource source.Interface
-	jobs       chan job
+	jobs       workqueue.Interface
 }
 
 func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace, pipelineName, stepName, sourceName string, x dfv1.S3Source, f source.Func, leadReplica bool) (source.Interface, error) {
@@ -66,7 +65,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 
 	client := s3.New(options)
 	bucket := x.Bucket
-	jobs := make(chan job, concurrency)
+	jobs := workqueue.New()
 	if leadReplica {
 		endpoint := "http://" + pipelineName + "-" + stepName + "/sources/" + sourceName
 		logger.Info("starting lead workers", "source", sourceName)
@@ -74,28 +73,32 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 		for w := 0; w < concurrency; w++ {
 			go func() {
 				defer runtime.HandleCrash()
-				for j := range jobs {
-					key := string(j)
-					resp, err := http.Post(endpoint, "application/octet-stream", bytes.NewBufferString(key))
-					if err != nil {
-						logger.Error(err, "failed to process object", "key", key)
-					} else {
-						body, _ := io.ReadAll(resp.Body)
-						_ = resp.Body.Close()
-						if resp.StatusCode >= 300 {
-							err := fmt.Errorf("%q: %q", resp.Status, body)
+				for {
+					item, shutdown := jobs.Get()
+					if shutdown {
+						return
+					}
+					func() {
+						defer jobs.Done(item)
+						key := item.(string)
+						resp, err := http.Post(endpoint, "application/octet-stream", bytes.NewBufferString(key))
+						if err != nil {
 							logger.Error(err, "failed to process object", "key", key)
 						} else {
-							logger.Info("deleting object", "key", key)
-							_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{
-								Bucket: &bucket,
-								Key:    &key,
-							})
-							if err != nil {
-								logger.Error(err, "failed to delete object", "key", key)
+							body, _ := io.ReadAll(resp.Body)
+							_ = resp.Body.Close()
+							if resp.StatusCode >= 300 {
+								err := fmt.Errorf("%q: %q", resp.Status, body)
+								logger.Error(err, "failed to process object", "bucket", bucket, "key", key)
+							} else {
+								logger.Info("deleting object", "bucket", bucket, "key", key)
+								_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: &bucket, Key: &key})
+								if err != nil {
+									logger.Error(err, "failed to delete object", "bucket", bucket, "key", key)
+								}
 							}
 						}
-					}
+					}()
 				}
 			}()
 		}
@@ -111,10 +114,10 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 				case <-ticker.C:
 					list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: &bucket})
 					if err != nil {
-						logger.Error(err, "failed to list bucket", "source", sourceName, "bucket", bucket)
+						logger.Error(err, "failed to list bucket", "bucket", bucket)
 					} else {
 						for _, obj := range list.Contents {
-							jobs <- job(*obj.Key)
+							jobs.Add(*obj.Key)
 						}
 					}
 				}
@@ -142,7 +145,6 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 					logger.Error(err, "failed to open file", "path", path)
 				}
 				defer file.Close()
-				logger.Info("copying data", "key", key)
 				if _, err := io.Copy(file, output.Body); err != nil {
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
@@ -154,6 +156,6 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 }
 
 func (s *s3Source) Close() error {
-	close(s.jobs)
+	s.jobs.ShutDown()
 	return s.httpSource.Close()
 }

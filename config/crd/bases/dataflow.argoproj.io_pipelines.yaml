@@ -1510,76 +1510,6 @@ spec:
                             required:
                             - schedule
                             type: object
-                          files:
-                            properties:
-                              bucket:
-                                type: string
-                              credentials:
-                                properties:
-                                  accessKeyId:
-                                    description: SecretKeySelector selects a key of
-                                      a Secret.
-                                    properties:
-                                      key:
-                                        description: The key of the secret to select
-                                          from.  Must be a valid secret key.
-                                        type: string
-                                      name:
-                                        description: 'Name of the referent. More info:
-                                          https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                          TODO: Add other useful fields. apiVersion,
-                                          kind, uid?'
-                                        type: string
-                                      optional:
-                                        description: Specify whether the Secret or
-                                          its key must be defined
-                                        type: boolean
-                                    required:
-                                    - key
-                                    type: object
-                                  secretAccessKey:
-                                    description: SecretKeySelector selects a key of
-                                      a Secret.
-                                    properties:
-                                      key:
-                                        description: The key of the secret to select
-                                          from.  Must be a valid secret key.
-                                        type: string
-                                      name:
-                                        description: 'Name of the referent. More info:
-                                          https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                                          TODO: Add other useful fields. apiVersion,
-                                          kind, uid?'
-                                        type: string
-                                      optional:
-                                        description: Specify whether the Secret or
-                                          its key must be defined
-                                        type: boolean
-                                    required:
-                                    - key
-                                    type: object
-                                required:
-                                - accessKeyId
-                                - secretAccessKey
-                                type: object
-                              endpoint:
-                                properties:
-                                  url:
-                                    type: string
-                                required:
-                                - url
-                                type: object
-                              name:
-                                default: default
-                                type: string
-                              pollPeriod:
-                                default: 1m
-                                type: string
-                              region:
-                                type: string
-                            required:
-                            - bucket
-                            type: object
                           http:
                             properties:
                               serviceName:
@@ -1754,6 +1684,76 @@ spec:
                                   no retries
                                 format: int64
                                 type: integer
+                            type: object
+                          s3:
+                            properties:
+                              bucket:
+                                type: string
+                              credentials:
+                                properties:
+                                  accessKeyId:
+                                    description: SecretKeySelector selects a key of
+                                      a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select
+                                          from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info:
+                                          https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                          TODO: Add other useful fields. apiVersion,
+                                          kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or
+                                          its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                  secretAccessKey:
+                                    description: SecretKeySelector selects a key of
+                                      a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select
+                                          from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info:
+                                          https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                          TODO: Add other useful fields. apiVersion,
+                                          kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or
+                                          its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                required:
+                                - accessKeyId
+                                - secretAccessKey
+                                type: object
+                              endpoint:
+                                properties:
+                                  url:
+                                    type: string
+                                required:
+                                - url
+                                type: object
+                              name:
+                                default: default
+                                type: string
+                              pollPeriod:
+                                default: 1m
+                                type: string
+                              region:
+                                type: string
+                            required:
+                            - bucket
                             type: object
                           stan:
                             properties:

@@ -1,4 +1,4 @@
-# Handler Step
+# Code Step
 
 Handlers are intended as a convenient way to write steps without having to build and publish images.
 
@@ -9,12 +9,11 @@ A handler is defined as:
 
 ## Inline
 
-
 When a step starts, the code will be written to a file, and the file compiled and executed.
 
 ```yaml
-handler:
-  code: |
+code:
+  source: |
     def handler(msg, context):
       return msg
   runtime: python3-9
