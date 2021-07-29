@@ -6,7 +6,7 @@ metadata:
       This example of a pipeline using Git.
 
       The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
-      your code when the step starts.
+      your code when the step starts. This example presents how one can use both go runtime & python runtime git steps.
 
       [Learn about Git steps](../docs/GIT.md)
     dataflow.argoproj.io/owner: argoproj-labs
@@ -28,7 +28,21 @@ spec:
     name: main
     sinks:
     - kafka:
-        topic: output-topic
+        topic: go-output-topic
+    sources:
+    - kafka:
+        topic: input-topic
+  - git:
+      branch: main
+      command:
+      - ./start.sh
+      image: python:3.9
+      path: examples/git-python
+      url: https://github.com/argoproj-labs/argo-dataflow
+    name: main
+    sinks:
+    - kafka:
+        topic: python-output-topic
     sources:
     - kafka:
         topic: input-topic
