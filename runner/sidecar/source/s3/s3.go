@@ -67,6 +67,10 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 			return aws.Endpoint{URL: e.URL, SigningRegion: region, HostnameImmutable: true}, nil
 		})
 	}
+	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return nil, fmt.Errorf("failed to create %q: %w", dir, err)
+	}
 
 	client := s3.New(options)
 	bucket := x.Bucket
@@ -137,8 +141,8 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 				return fmt.Errorf("failed to get object %q %q: %w", bucket, key, err)
 			}
 			defer output.Body.Close()
-			path := filepath.Join(dfv1.PathVarRun, "sources", sourceName, key)
-			if err := syscall.Mkfifo(path, 0o666); sharedutil.IgnoreExist(err) != nil {
+			path := filepath.Join(dir, key)
+			if err := syscall.Mkfifo(path, 0o600); sharedutil.IgnoreExist(err) != nil {
 				return fmt.Errorf("failed to create fifo %q: %w", path, err)
 			}
 			defer os.Remove(path)
