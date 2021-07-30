@@ -34,6 +34,7 @@ func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) error {
 
 func tlsFromSecret(secret *corev1.Secret) *dfv1.TLS {
 	caCertExisting, certExisting, keyExisting := false, false, false
+	_, netTLS := secret.Data["net.tls"]
 	if _, ok := secret.Data["net.tls.caCert"]; ok {
 		caCertExisting = true
 	}
@@ -44,7 +45,7 @@ func tlsFromSecret(secret *corev1.Secret) *dfv1.TLS {
 		keyExisting = true
 	}
 
-	if !caCertExisting && (!certExisting || !keyExisting) {
+	if !(netTLS || caCertExisting || certExisting || keyExisting) {
 		return nil
 	}
 
