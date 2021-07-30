@@ -7329,6 +7329,14 @@ stringData:
 apiVersion: v1
 kind: Secret
 metadata:
+  name: mysql-data-source
+  namespace: argo-dataflow-system
+stringData:
+  dataSource: root:password@tcp(mysql)/test
+---
+apiVersion: v1
+kind: Secret
+metadata:
   name: ssh
   namespace: argo-dataflow-system
 stringData:

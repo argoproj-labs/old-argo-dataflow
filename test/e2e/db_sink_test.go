@@ -7,6 +7,7 @@ import (
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,7 +27,14 @@ func TestDBSink(t *testing.T) {
 							Database: Database{
 								Driver: "mysql",
 								DataSource: &DBDataSource{
-									Value: "root:password@tcp(mysql)/test",
+									ValueFrom: &DBDataSourceFrom{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											Key: "dataSource",
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "mysql-data-source",
+											},
+										},
+									},
 								},
 							},
 							Actions: []SQLAction{

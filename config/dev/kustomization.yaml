@@ -11,6 +11,7 @@ resources:
   - ../../examples/dataflow-s3-default-secret.yaml
   - mysql-deploy.yaml
   - mysql-svc.yaml
+  - mysql-secret.yaml
   - testapi-statefulset.yaml
   - testapi-svc.yaml
   - input-pod.yaml
