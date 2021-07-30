@@ -1183,6 +1183,71 @@ spec:
                     sinks:
                       items:
                         properties:
+                          db:
+                            properties:
+                              actions:
+                                items:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    onError:
+                                      properties:
+                                        args:
+                                          items:
+                                            type: string
+                                          type: array
+                                        sql:
+                                          type: string
+                                      type: object
+                                    onRecordNotFound:
+                                      properties:
+                                        args:
+                                          items:
+                                            type: string
+                                          type: array
+                                        sql:
+                                          type: string
+                                      type: object
+                                    sql:
+                                      type: string
+                                  type: object
+                                type: array
+                              dataSource:
+                                properties:
+                                  value:
+                                    type: string
+                                  valueFrom:
+                                    properties:
+                                      secretKeyRef:
+                                        description: SecretKeySelector selects a key
+                                          of a Secret.
+                                        properties:
+                                          key:
+                                            description: The key of the secret to
+                                              select from.  Must be a valid secret
+                                              key.
+                                            type: string
+                                          name:
+                                            description: 'Name of the referent. More
+                                              info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                              TODO: Add other useful fields. apiVersion,
+                                              kind, uid?'
+                                            type: string
+                                          optional:
+                                            description: Specify whether the Secret
+                                              or its key must be defined
+                                            type: boolean
+                                        required:
+                                        - key
+                                        type: object
+                                    type: object
+                                type: object
+                              driver:
+                                default: default
+                                type: string
+                            type: object
                           http:
                             properties:
                               headers:
@@ -4611,6 +4676,70 @@ spec:
               sinks:
                 items:
                   properties:
+                    db:
+                      properties:
+                        actions:
+                          items:
+                            properties:
+                              args:
+                                items:
+                                  type: string
+                                type: array
+                              onError:
+                                properties:
+                                  args:
+                                    items:
+                                      type: string
+                                    type: array
+                                  sql:
+                                    type: string
+                                type: object
+                              onRecordNotFound:
+                                properties:
+                                  args:
+                                    items:
+                                      type: string
+                                    type: array
+                                  sql:
+                                    type: string
+                                type: object
+                              sql:
+                                type: string
+                            type: object
+                          type: array
+                        dataSource:
+                          properties:
+                            value:
+                              type: string
+                            valueFrom:
+                              properties:
+                                secretKeyRef:
+                                  description: SecretKeySelector selects a key of
+                                    a Secret.
+                                  properties:
+                                    key:
+                                      description: The key of the secret to select
+                                        from.  Must be a valid secret key.
+                                      type: string
+                                    name:
+                                      description: 'Name of the referent. More info:
+                                        https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                        TODO: Add other useful fields. apiVersion,
+                                        kind, uid?'
+                                      type: string
+                                    optional:
+                                      description: Specify whether the Secret or its
+                                        key must be defined
+                                      type: boolean
+                                  required:
+                                  - key
+                                  type: object
+                              type: object
+                          type: object
+                        driver:
+                          default: default
+                          type: string
+                      type: object
                     http:
                       properties:
                         headers:
@@ -7200,6 +7329,14 @@ stringData:
 apiVersion: v1
 kind: Secret
 metadata:
+  name: mysql-data-source
+  namespace: argo-dataflow-system
+stringData:
+  dataSource: root:password@tcp(mysql)/test
+---
+apiVersion: v1
+kind: Secret
+metadata:
   name: ssh
   namespace: argo-dataflow-system
 stringData:
@@ -7262,6 +7399,18 @@ spec:
     targetPort: 9000
   selector:
     app: minio
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: argo-dataflow-system
+spec:
+  clusterIP: None
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
 ---
 apiVersion: v1
 kind: Service
@@ -7519,6 +7668,33 @@ spec:
             port: 9000
           initialDelaySeconds: 5
           periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: argo-dataflow-system
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        - name: MYSQL_DATABASE
+          value: test
+        image: mysql:5.6
+        name: mysql
+        ports:
+        - containerPort: 3306
+          name: mysql
 ---
 apiVersion: apps/v1
 kind: StatefulSet

@@ -3,10 +3,12 @@ package sidecar
 import (
 	"context"
 	"fmt"
-	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
 	"io"
 
+	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
+
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
+	dbsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/db"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/http"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/kafka"
 	logsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
@@ -47,6 +49,12 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 			}
 		} else if x := sink.S3; x != nil {
 			if y, err := s3sink.New(ctx, kubernetesInterface, namespace, *x); err != nil {
+				return nil, err
+			} else {
+				sinks[sinkName] = y
+			}
+		} else if x := sink.DB; x != nil {
+			if y, err := dbsink.New(ctx, kubernetesInterface, namespace, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y

@@ -8,4 +8,5 @@ type Sink struct {
 	Log   *Log      `json:"log,omitempty" protobuf:"bytes,4,opt,name=log"`
 	HTTP  *HTTPSink `json:"http,omitempty" protobuf:"bytes,5,opt,name=http"`
 	S3    *S3Sink   `json:"s3,omitempty" protobuf:"bytes,6,opt,name=s3"`
+	DB    *DBSink   `json:"db,omitempty" protobuf:"bytes,7,opt,name=db"`
 }
