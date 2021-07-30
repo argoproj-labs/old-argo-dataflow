@@ -9,7 +9,7 @@ resources:
   - minio-statefulset.yaml
   - minio-svc.yaml
   - ../../examples/dataflow-s3-default-secret.yaml
-  - mysql-deploy.yaml
+  - mysql-statefulset.yaml
   - mysql-svc.yaml
   - mysql-secret.yaml
   - testapi-statefulset.yaml
