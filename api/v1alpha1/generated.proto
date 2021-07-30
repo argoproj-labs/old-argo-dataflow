@@ -80,6 +80,29 @@ message Cron {
   optional string layout = 2;
 }
 
+message DBDataSource {
+  optional string value = 1;
+
+  optional DBDataSourceFrom valueFrom = 2;
+}
+
+message DBDataSourceFrom {
+  optional k8s.io.api.core.v1.SecretKeySelector secretKeyRef = 1;
+}
+
+message DBSink {
+  optional Database database = 1;
+
+  repeated SQLAction actions = 2;
+}
+
+message Database {
+  // +kubebuilder:default=default
+  optional string driver = 1;
+
+  optional DBDataSource dataSource = 2;
+}
+
 message Dedupe {
   // +kubebuilder:default="sha1(msg)"
   optional string uid = 1;
@@ -301,6 +324,20 @@ message SASL {
   optional k8s.io.api.core.v1.SecretKeySelector password = 3;
 }
 
+message SQLAction {
+  optional SQLStatement statement = 1;
+
+  optional SQLStatement onRecordNotFound = 2;
+
+  optional SQLStatement onError = 3;
+}
+
+message SQLStatement {
+  optional string sql = 1;
+
+  repeated string args = 2;
+}
+
 message STAN {
   // +kubebuilder:default=default
   optional string name = 1;
@@ -349,6 +386,8 @@ message Sink {
   optional HTTPSink http = 5;
 
   optional S3Sink s3 = 6;
+
+  optional DBSink db = 7;
 }
 
 message Source {
