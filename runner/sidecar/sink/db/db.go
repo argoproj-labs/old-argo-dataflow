@@ -68,7 +68,7 @@ func (d dbSink) Sink(msg []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to start a transaction: %w", err)
 	}
-	defer tx.Rollback() // The rollback will be ignored if the tx has been committed later in the function.
+	defer func() { _ = tx.Rollback() }() // The rollback will be ignored if the tx has been committed later in the function.
 	for _, action := range d.actions {
 		rs, err := d.execStatement(tx, action.SQL, action.Args, msg)
 		if err != nil {
