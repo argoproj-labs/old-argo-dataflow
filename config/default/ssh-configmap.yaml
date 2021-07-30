@@ -1,0 +1,7 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: ssh
+stringData:
+  # add new hosts using `ssh-keyscan github.com`
+  known_hosts: ""

@@ -15,9 +15,9 @@ resources:
   - testapi-statefulset.yaml
   - testapi-svc.yaml
   - input-pod.yaml
-  - ssh-configmap.yaml
 
 patchesStrategicMerge:
   - controller-manager-deploy.yaml
   - argo-server-deploy.yaml
+  - ssh-configmap.yaml
 

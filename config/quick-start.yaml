@@ -7223,6 +7223,14 @@ subjects:
   namespace: argo-dataflow-system
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  name: ssh
+  namespace: argo-dataflow-system
+stringData:
+  known_hosts: ""
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: argo-server
