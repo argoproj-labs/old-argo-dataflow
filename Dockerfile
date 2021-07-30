@@ -89,7 +89,9 @@ RUN mkdir /.cache /.local
 ADD runtimes/python3-9 /workspace
 RUN chown -R 9653 /.cache /.local /workspace
 WORKDIR /workspace
+RUN apk add git
 USER 9653:9653
 RUN pip3 install -r requirements.txt
+ENV PYTHONUNBUFFERED 1
 ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/workspace/entrypoint.sh"]
