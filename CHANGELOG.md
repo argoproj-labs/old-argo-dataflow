@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.77 (2021-07-30)
+
+ * [a3ee6a7](https://github.com/argoproj-labs/argo-dataflow/commit/a3ee6a7426da45ac696e4d7de77a24c61f700b7b) fix: add ssh configmap
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.76 (2021-07-30)
 
  * [507f1e7](https://github.com/argoproj-labs/argo-dataflow/commit/507f1e7831ded71888cb1058f793f348ddbd812e) feat: db sink (#165)
