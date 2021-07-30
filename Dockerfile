@@ -88,8 +88,8 @@ RUN mkdir /.cache /.local
 ADD runtimes/python3-9 /workspace
 RUN chown -R 9653 /.cache /.local /workspace
 WORKDIR /workspace
-USER 9653:9653
 RUN apk add git
+USER 9653:9653
 RUN pip3 install git+https://github.com/argoproj-labs/argo-dataflow#subdirectory=sdks/python
 RUN pip3 install -r requirements.txt
 ENTRYPOINT ["/dumb-init", "--"]
