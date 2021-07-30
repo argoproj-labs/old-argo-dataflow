@@ -1,12 +1,12 @@
 from argo_dataflow import pipeline, kafka
 
 if __name__ == '__main__':
-    (pipeline("106-git")
+    (pipeline("106-git-go")
      .owner('argoproj-labs')
      .describe("""This example of a pipeline using Git.
 
 The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
-your code when the step starts.
+your code when the step starts. This example presents how one can use go runtime git step.
 
 [Learn about Git steps](../docs/GIT.md)""")
      .step(

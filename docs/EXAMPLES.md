@@ -141,7 +141,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 This example of a pipeline using Git.
 
 The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
-your code when the step starts.
+your code when the step starts. This example presents how one can use both go runtime & python runtime git steps.
 
 [Learn about Git steps](../docs/GIT.md)
 
