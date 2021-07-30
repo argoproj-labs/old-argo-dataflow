@@ -82,6 +82,7 @@ ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/workspace/entrypoint.sh"]
 
 FROM python:3.9-alpine AS python3-9
+RUN apk add git
 COPY --from=builder /tmp/dumb-init /dumb-init
 RUN chmod +x /dumb-init
 RUN mkdir /.cache /.local
@@ -89,7 +90,6 @@ ADD runtimes/python3-9 /workspace
 RUN chown -R 9653 /.cache /.local /workspace
 WORKDIR /workspace
 USER 9653:9653
-RUN pip3 install git+https://github.com/argoproj-labs/argo-dataflow#subdirectory=sdks/python
 RUN pip3 install -r requirements.txt
 ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/workspace/entrypoint.sh"]
