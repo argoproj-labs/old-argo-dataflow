@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.78 (2021-07-30)
+
+ * [2e80ead](https://github.com/argoproj-labs/argo-dataflow/commit/2e80ead67787089cea5ee7d72465f4c502d39836) fix: allow Kafka TLS without certs
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.77 (2021-07-30)
 
  * [a3ee6a7](https://github.com/argoproj-labs/argo-dataflow/commit/a3ee6a7426da45ac696e4d7de77a24c61f700b7b) fix: add ssh configmap
