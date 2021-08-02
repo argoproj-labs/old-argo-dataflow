@@ -6,13 +6,14 @@ import corev1 "k8s.io/api/core/v1"
 type containerBuilder corev1.Container
 
 func (b containerBuilder) init(req getContainerReq) containerBuilder {
-	b.Name = CtrMain
+	b.Env = req.env
 	b.Image = req.runnerImage
 	b.ImagePullPolicy = req.imagePullPolicy
-	b.Env = req.env
-	b.VolumeMounts = []corev1.VolumeMount{req.volumeMount}
 	b.Lifecycle = req.lifecycle
+	b.Name = CtrMain
 	b.Resources = standardResources
+	b.SecurityContext = req.securityContext
+	b.VolumeMounts = []corev1.VolumeMount{req.volumeMount}
 	return b
 }
 

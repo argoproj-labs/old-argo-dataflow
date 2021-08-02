@@ -24,6 +24,11 @@ func TestStep_GetPodSpec(t *testing.T) {
 		{Name: "GODEBUG"},
 	}
 	mounts := []corev1.VolumeMount{{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"}}
+	dropAll := &corev1.SecurityContext{
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{"all"},
+		},
+	}
 	tests := []struct {
 		name string
 		sepc Step
@@ -69,8 +74,9 @@ func TestStep_GetPodSpec(t *testing.T) {
 								HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3569)},
 							},
 						},
-						Resources:    standardResources,
-						VolumeMounts: mounts,
+						Resources:       standardResources,
+						SecurityContext: dropAll,
+						VolumeMounts:    mounts,
 					},
 					{
 						Args: []string{"cat"},
@@ -83,8 +89,9 @@ func TestStep_GetPodSpec(t *testing.T) {
 						Lifecycle: &corev1.Lifecycle{PreStop: &corev1.Handler{
 							Exec: &corev1.ExecAction{Command: []string{"/var/run/argo-dataflow/prestop"}},
 						}},
-						Resources:    standardResources,
-						VolumeMounts: mounts,
+						Resources:       standardResources,
+						SecurityContext: dropAll,
+						VolumeMounts:    mounts,
 					},
 				},
 				InitContainers: []corev1.Container{
@@ -95,6 +102,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            "init",
 						Resources:       standardResources,
+						SecurityContext: dropAll,
 						VolumeMounts: append(mounts, corev1.VolumeMount{
 							Name:      "ssh",
 							ReadOnly:  true,
