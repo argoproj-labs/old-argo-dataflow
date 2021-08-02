@@ -36,15 +36,22 @@ message AWSEndpoint {
   optional string url = 1;
 }
 
-// default backoff is 100ms
 message Backoff {
+  // +kubebuilder:default="100ms"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration duration = 4;
+
+  // +kubebuilder:default=200
+  optional uint32 FactorPercentage = 5;
+
   // the number of backoff steps, zero means no retries
+  // +kubebuilder:default=20
   optional uint64 steps = 1;
 
-  // the cap of the backoff, should be >100ms, otherwise backoff is capped immediately
+  // +kubebuilder:default="0ms"
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration cap = 2;
 
   // the amount of jitter per step, typically 10-20%, >100% is valid, but strange
+  // +kubebuilder:default=10
   optional uint32 jitterPercentage = 3;
 }
 
@@ -404,7 +411,7 @@ message Source {
 
   optional S3Source s3 = 8;
 
-  // +kubebuilder:default={steps: 2, jitterPercentage: 10}
+  // +kubebuilder:default={duration: "100ms", steps: 20, factorPercentage: 200, jitterPercentage: 10}
   optional Backoff retry = 7;
 }
 

@@ -14,21 +14,22 @@ func Test_newBackoff(t *testing.T) {
 		steps int
 		step  time.Duration
 	}
+	d := metav1.Duration{Duration: 100 * time.Millisecond}
 	for _, test := range []struct {
 		name    string
 		backoff Backoff
 		want    []want
 	}{
-		{"Empty", Backoff{}, []want{{0, 100 * time.Millisecond}}},
-		{"Default", Backoff{Steps: 2}, []want{
+		{"Empty", Backoff{Duration: d}, []want{{0, 100 * time.Millisecond}}},
+		{"Default", Backoff{Duration: d, Steps: 2, FactorPercentage: 200}, []want{
 			{2, 100 * time.Millisecond},
-			{1, 120 * time.Millisecond},
-			{0, 144 * time.Millisecond},
+			{1, 200 * time.Millisecond},
+			{0, 400 * time.Millisecond},
 		}},
-		{"Cap", Backoff{Steps: 3, Cap: metav1.Duration{Duration: 120 * time.Millisecond}}, []want{
+		{"Cap", Backoff{Duration: d, Steps: 3, FactorPercentage: 200, Cap: metav1.Duration{Duration: 220 * time.Millisecond}}, []want{
 			{3, 100 * time.Millisecond},
-			{2, 120 * time.Millisecond},
-			{0, 120 * time.Millisecond}, // cap is not what I originally thought, i.e. not a total cap
+			{2, 200 * time.Millisecond},
+			{0, 220 * time.Millisecond}, // cap is not what I originally thought, i.e. not a total cap
 		}},
 	} {
 		t.Run(test.name, func(t *testing.T) {

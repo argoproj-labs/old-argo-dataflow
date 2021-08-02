@@ -1731,20 +1731,29 @@ spec:
                             type: string
                           retry:
                             default:
+                              duration: 100ms
+                              factorPercentage: 200
                               jitterPercentage: 10
-                              steps: 2
-                            description: default backoff is 100ms
+                              steps: 20
                             properties:
                               cap:
-                                description: the cap of the backoff, should be >100ms,
-                                  otherwise backoff is capped immediately
+                                default: 0ms
                                 type: string
+                              duration:
+                                default: 100ms
+                                type: string
+                              factorPercentage:
+                                default: 200
+                                format: int32
+                                type: integer
                               jitterPercentage:
+                                default: 10
                                 description: the amount of jitter per step, typically
                                   10-20%, >100% is valid, but strange
                                 format: int32
                                 type: integer
                               steps:
+                                default: 20
                                 description: the number of backoff steps, zero means
                                   no retries
                                 format: int64
@@ -5205,20 +5214,29 @@ spec:
                       type: string
                     retry:
                       default:
+                        duration: 100ms
+                        factorPercentage: 200
                         jitterPercentage: 10
-                        steps: 2
-                      description: default backoff is 100ms
+                        steps: 20
                       properties:
                         cap:
-                          description: the cap of the backoff, should be >100ms, otherwise
-                            backoff is capped immediately
+                          default: 0ms
                           type: string
+                        duration:
+                          default: 100ms
+                          type: string
+                        factorPercentage:
+                          default: 200
+                          format: int32
+                          type: integer
                         jitterPercentage:
+                          default: 10
                           description: the amount of jitter per step, typically 10-20%,
                             >100% is valid, but strange
                           format: int32
                           type: integer
                         steps:
+                          default: 20
                           description: the number of backoff steps, zero means no
                             retries
                           format: int64
