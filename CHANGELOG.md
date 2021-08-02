@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.79 (2021-08-02)
+
+ * [2f3cdbc](https://github.com/argoproj-labs/argo-dataflow/commit/2f3cdbc32da2df910a21ea94337fdda4aae1a0c9) feat!: updated default backoff to cap at 1 day
+ * [7b00de2](https://github.com/argoproj-labs/argo-dataflow/commit/7b00de2535de42c55ca2acdbb646cbc38779ae2f) feat: Drop-all capabilites by default. Fixes #142 (#181)
+ * [78e1b32](https://github.com/argoproj-labs/argo-dataflow/commit/78e1b32fe5276fd04bb20d76718320eb9825bba1) feat: log `backoffSteps`, so we can know if an error will retry
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.78 (2021-07-30)
 
  * [2e80ead](https://github.com/argoproj-labs/argo-dataflow/commit/2e80ead67787089cea5ee7d72465f4c502d39836) fix: allow Kafka TLS without certs
