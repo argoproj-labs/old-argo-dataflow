@@ -9,6 +9,7 @@ type getContainerReq struct {
 	imagePullPolicy corev1.PullPolicy
 	lifecycle       *corev1.Lifecycle
 	runnerImage     string
+	securityContext *corev1.SecurityContext
 	volumeMount     corev1.VolumeMount
 }
 

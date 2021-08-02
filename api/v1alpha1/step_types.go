@@ -62,6 +62,11 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 		{Name: "GODEBUG", Value: os.Getenv("GODEBUG")},
 	}
+	dropAll := &corev1.SecurityContext{
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{"all"},
+		},
+	}
 	return corev1.PodSpec{
 		Volumes: append(in.Spec.Volumes, volume, corev1.Volume{
 			Name: "ssh",
@@ -93,7 +98,8 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 					ReadOnly:  true,
 					MountPath: "/.ssh",
 				}),
-				Resources: standardResources,
+				Resources:       standardResources,
+				SecurityContext: dropAll,
 			},
 		},
 		Containers: []corev1.Container{
@@ -121,6 +127,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 						},
 					},
 				},
+				SecurityContext: dropAll,
 			},
 			in.Spec.getType().getContainer(getContainerReq{
 				env:             []corev1.EnvVar{{Name: EnvBearerToken, Value: req.BearerToken}},
@@ -133,8 +140,9 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 						},
 					},
 				},
-				runnerImage: req.RunnerImage,
-				volumeMount: corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
+				runnerImage:     req.RunnerImage,
+				securityContext: dropAll,
+				volumeMount:     corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
 			}),
 		},
 	}
