@@ -52,7 +52,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 					if err == nil {
 						return nil
 					}
-					logger.Error(err, "⚠ →", "source", sourceName)
+					logger.Error(err, "⚠ →", "source", sourceName, "backoffSteps", backoff.Steps)
 					if backoff.Steps <= 0 {
 						withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica) })
 						return err
@@ -82,7 +82,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		} else if x := s.HTTP; x != nil {
 			sources[sourceName] = httpsource.New(sourceName, f)
 		} else if x := s.S3; x != nil {
-			if y, err := s3source.New(ctx, kubernetesInterface, namespace, pipelineName, stepName, sourceName, *x, f, leadReplica()); err!=nil{
+			if y, err := s3source.New(ctx, kubernetesInterface, namespace, pipelineName, stepName, sourceName, *x, f, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
