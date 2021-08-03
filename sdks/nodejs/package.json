@@ -1,0 +1,26 @@
+{
+  "name": "argo-dataflow-sdk",
+  "version": "0.0.77",
+  "description": "Argo Dataflow SDK. Can be used to fulfill Argo-Dataflow\\'s IMAGE CONTRACT: https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/IMAGE_CONTRACT.md",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/argoproj-labs/argo-dataflow.git"
+  },
+  "keywords": [
+    "Argo",
+    "Kubernetes"
+  ],
+  "author": "Dom Deren (@domderen)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/argoproj-labs/argo-dataflow/issues"
+  },
+  "homepage": "https://github.com/argoproj-labs/argo-dataflow#readme",
+  "devDependencies": {
+    "standard": "^16.0.3"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "git-nodejs",
+  "version": "0.0.0",
+  "description": "An example project showing how to use Argo-Dataflow-Sdk to run a handler.",
+  "main": "index.js",
+  "author": "Dom Deren (@domderen)",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "argo-dataflow-sdk": "https://gitpkg.now.sh/argoproj-labs/argo-dataflow/sdks/nodejs?main"
+  }
+}

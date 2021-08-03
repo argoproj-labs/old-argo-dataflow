@@ -23,3 +23,6 @@ bin
 *.swp
 *.swo
 *~
+
+# Used in nodejs SDK.
+node_modules
