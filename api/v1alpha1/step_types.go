@@ -121,8 +121,9 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				Lifecycle: &corev1.Lifecycle{
 					PreStop: &corev1.Handler{
 						HTTPGet: &corev1.HTTPGetAction{
-							Path: "/pre-stop?source=kubernetes",
-							Port: intstr.FromInt(3570),
+							Path:   "/pre-stop?source=kubernetes",
+							Port:   intstr.FromInt(3570),
+							Scheme: "HTTPS",
 						},
 					},
 				},

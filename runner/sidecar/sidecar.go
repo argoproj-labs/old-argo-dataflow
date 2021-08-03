@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"os"
 	"strconv"
@@ -144,7 +145,7 @@ func Exec(ctx context.Context) error {
 		logger.Info("HTTP server shutdown")
 	}()
 
-	httpServer := &http.Server{Addr: ":3570"}
+	httpServer := &http.Server{Addr: ":3570", TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing HTTPS server")
 		return httpServer.Shutdown(context.Background())

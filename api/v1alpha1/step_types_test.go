@@ -67,7 +67,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 								Scheme: "HTTPS",
 							},
 						}},
-						Ports: []corev1.ContainerPort{{ContainerPort: 3570, Protocol: "https"}},
+						Ports: []corev1.ContainerPort{{ContainerPort: 3570}},
 						ReadinessProbe: &corev1.Probe{
 							Handler: corev1.Handler{
 								HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3570), Scheme: "HTTPS"},
