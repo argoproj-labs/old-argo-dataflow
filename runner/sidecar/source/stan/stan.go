@@ -28,7 +28,7 @@ type stanSource struct {
 	queueName         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName string, replica int, sourceName string, x dfv1.STAN, f source.Func) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace, pipelineName, stepName string, replica int, sourceName string, x dfv1.STAN, f source.Func) (source.Interface, error) {
 	genClientID := func() string {
 		// In a particular situation, the stan connection status is inconsistent between stan server and client,
 		// the connection is lost from client side, but the server still thinks it's alive. In this case, use

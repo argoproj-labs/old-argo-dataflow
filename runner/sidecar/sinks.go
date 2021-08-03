@@ -28,7 +28,7 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 		}
 		rateCounters[sinkName] = ratecounter.NewRateCounter(updateInterval)
 		if x := sink.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, pipelineName, stepName, replica, sinkName, *x); err != nil {
+			if y, err := stan.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sinkName, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
