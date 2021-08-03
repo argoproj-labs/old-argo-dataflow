@@ -65,7 +65,7 @@ async function start (handler) {
   defaultHandler = handler
   const server = http.createServer(requestListener)
   server.listen(port, host, () => {
-    console.log(`Server is running on http://${host}:${port}`)
+    console.log(`Server is running on http://${host}:${port} and pid ${process.pid}`)
   })
 
   process.on('SIGTERM', function () {
