@@ -66,8 +66,9 @@ func Test_kafkaFromSecret(t *testing.T) {
 func Test_enrichKafka(t *testing.T) {
 	t.Run("NotFound", func(t *testing.T) {
 		k := fake.NewSimpleClientset()
+		secretInterface = k.CoreV1().Secrets("")
 		x := &dfv1.Kafka{}
-		err := enrichKafka(context.Background(), k.CoreV1().Secrets(""), x)
+		err := enrichKafka(context.Background(), x)
 		assert.NoError(t, err)
 	})
 	t.Run("Found", func(t *testing.T) {
@@ -79,8 +80,9 @@ func Test_enrichKafka(t *testing.T) {
 				"commitN": []byte("123"),
 			},
 		})
+		secretInterface = k.CoreV1().Secrets("")
 		x := &dfv1.Kafka{Name: "foo"}
-		err := enrichKafka(context.Background(), k.CoreV1().Secrets(""), x)
+		err := enrichKafka(context.Background(), x)
 		assert.NoError(t, err)
 	})
 }

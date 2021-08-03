@@ -12,6 +12,7 @@ messages between steps.
 * Adding replicas will nearly linearly increase throughput.
 * Due to the lack of state, do not use HTTP sources and sinks to connect steps. 
 """)
+     .annotate("dataflow.argoproj.io/needs", "dataflow-103-http-main-source-default-secret.yaml")
      .step(
         (cron('*/3 * * * * *')
          .cat('cron')

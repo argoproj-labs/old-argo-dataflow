@@ -6,7 +6,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 func s3FromSecret(x *dfv1.S3, secret *corev1.Secret) error {
@@ -35,8 +34,8 @@ func s3FromSecret(x *dfv1.S3, secret *corev1.Secret) error {
 	return nil
 }
 
-func enrichS3(ctx context.Context, secrets v1.SecretInterface, x *dfv1.S3) error {
-	secret, err := secrets.Get(ctx, "dataflow-s3-"+x.Name, metav1.GetOptions{})
+func enrichS3(ctx context.Context, x *dfv1.S3) error {
+	secret, err := secretInterface.Get(ctx, "dataflow-s3-"+x.Name, metav1.GetOptions{})
 	if err != nil {
 		if !apierr.IsNotFound(err) {
 			return err

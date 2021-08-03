@@ -3,13 +3,12 @@ package stan
 import (
 	"context"
 	"fmt"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 var logger = util.NewLogger()
@@ -50,7 +49,7 @@ func (nsc *Conn) QueueSubscribe(subject, qgroup string, cb stan.MsgHandler, opts
 	return nsc.sc.QueueSubscribe(subject, qgroup, cb, opts...)
 }
 
-func ConnectSTAN(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, x dfv1.STAN, clientID string) (*Conn, error) {
+func ConnectSTAN(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.STAN, clientID string) (*Conn, error) {
 	conn := &Conn{}
 	opts := []nats.Option{
 		// Do not reconnect here but handle reconnction outside
@@ -66,7 +65,7 @@ func ConnectSTAN(ctx context.Context, kubernetesInterface kubernetes.Interface, 
 	}
 	switch x.AuthStrategy() {
 	case dfv1.STANAuthToken:
-		token, err := getSTANAuthToken(ctx, kubernetesInterface, namespace, x)
+		token, err := getSTANAuthToken(ctx, secretInterface, x)
 		if err != nil {
 			return nil, err
 		}
@@ -96,15 +95,14 @@ func ConnectSTAN(ctx context.Context, kubernetesInterface kubernetes.Interface, 
 	return conn, nil
 }
 
-func getSTANAuthToken(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, x dfv1.STAN) (string, error) {
+func getSTANAuthToken(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.STAN) (string, error) {
 	if x.AuthStrategy() != dfv1.STANAuthToken {
 		return "", fmt.Errorf("auth strategy is not token but %s", x.AuthStrategy())
 	}
 	if x.Auth == nil || x.Auth.Token == nil {
 		return "", fmt.Errorf("token secret selector is nil")
 	}
-	secrets := kubernetesInterface.CoreV1().Secrets(namespace)
-	secret, err := secrets.Get(ctx, x.Auth.Token.Name, metav1.GetOptions{})
+	secret, err := secretInterface.Get(ctx, x.Auth.Token.Name, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}

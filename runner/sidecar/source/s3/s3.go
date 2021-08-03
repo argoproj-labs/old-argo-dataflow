@@ -13,7 +13,7 @@ import (
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/kubernetes"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/workqueue"
 	"net/http"
 	"os"
@@ -36,8 +36,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace, pipelineName, stepName, sourceName string, x dfv1.S3Source, f source.Func, leadReplica bool) (source.Interface, error) {
-	secretInterface := kubernetesInterface.CoreV1().Secrets(namespace)
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.S3Source, f source.Func, leadReplica bool) (source.Interface, error) {
 	var accessKeyID string
 	{
 		secretName := x.Credentials.AccessKeyID.Name
@@ -75,6 +74,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 	client := s3.New(options)
 	bucket := x.Bucket
 	jobs := workqueue.New()
+	authorization := sharedutil.RandString()
 	if leadReplica {
 		endpoint := "http://" + pipelineName + "-" + stepName + "/sources/" + sourceName
 		logger.Info("starting lead workers", "source", sourceName)
@@ -90,7 +90,12 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 					func() {
 						defer jobs.Done(item)
 						key := item.(string)
-						resp, err := http.Post(endpoint, "application/octet-stream", bytes.NewBufferString(key))
+						req, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(key))
+						if err != nil {
+							panic(err)
+						}
+						req.Header.Set("Authorization", authorization)
+						resp, err := http.DefaultClient.Do(req)
 						if err != nil {
 							logger.Error(err, "failed to process object", "key", key)
 						} else {
@@ -134,7 +139,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 		}()
 	}
 	return &s3Source{
-		httpsource.New(sourceName, func(ctx context.Context, msg []byte) error {
+		httpsource.New(sourceName, authorization, func(ctx context.Context, msg []byte) error {
 			key := string(msg)
 			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &bucket, Key: &key})
 			if err != nil {

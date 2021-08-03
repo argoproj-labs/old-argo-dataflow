@@ -5,6 +5,7 @@ package test
 import (
 	"context"
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
 	"log"
 	"time"
 
@@ -39,11 +40,31 @@ func DeletePipelines() {
 }
 
 func CreatePipeline(pl Pipeline) {
+	ctx := context.Background()
 	log.Printf("creating pipeline %q\n", pl.Name)
 	un := ToUnstructured(pl)
-	_, err := pipelineInterface.Create(context.Background(), un, metav1.CreateOptions{})
+	created, err := pipelineInterface.Create(ctx, un, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
+	}
+	createSecretsForHTTPSources(pl, FromUnstructured(created), ctx)
+}
+
+func createSecretsForHTTPSources(pl Pipeline, x Pipeline, ctx context.Context) {
+	for _, step := range x.Spec.Steps {
+		for _, source := range step.Sources {
+			if source.HTTP != nil {
+				secretName := fmt.Sprintf("%s-%s", pl.Name, step.Name)
+				log.Printf("creating secret %q\n", secretName)
+				_, err := kubernetesInterface.CoreV1().Secrets(namespace).Create(ctx, &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{Name: secretName},
+					StringData: map[string]string{fmt.Sprintf("sources.%s.http.authorization", source.Name): "Bearer my-bearer-token"},
+				}, metav1.CreateOptions{})
+				if sharedutil.IgnoreAlreadyExists(err) != nil {
+					panic(err)
+				}
+			}
+		}
 	}
 }
 

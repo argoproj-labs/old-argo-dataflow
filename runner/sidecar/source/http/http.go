@@ -12,10 +12,13 @@ type httpSource struct {
 	ready bool
 }
 
-func New(sourceName string, f source.Func) source.Interface {
+func New(sourceName, authorization string, f source.Func) source.Interface {
 	h := &httpSource{ready: true}
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
-		// TODO -auth
+		if r.Header.Get("Authorization") != authorization {
+			w.WriteHeader(403)
+			return
+		}
 		if !h.ready { // if we are not ready, we cannot serve requests
 			w.WriteHeader(503)
 			_, _ = w.Write([]byte("not ready"))
