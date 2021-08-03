@@ -16,9 +16,12 @@ type req struct {
 }
 
 func init() {
-	httpClient := &http.Client{Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}}
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 100
+	t.MaxConnsPerHost = 100
+	t.MaxIdleConnsPerHost = 100
+	t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
