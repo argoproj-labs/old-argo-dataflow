@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -36,6 +37,9 @@ func init() {
 
 		start := time.Now()
 		// https://gobyexample.com/worker-pools
+		httpClient := &http.Client{Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}}
 		worker := func(jobs <-chan req, results chan<- interface{}) {
 			for j := range jobs {
 				req, err := http.NewRequest("POST", url, bytes.NewBufferString(j.msg))
@@ -43,7 +47,7 @@ func init() {
 					results <- err
 				} else {
 					req.Header.Set("Authorization", "Bearer my-bearer-token")
-					if resp, err := http.DefaultClient.Do(req); err != nil {
+					if resp, err := httpClient.Do(req); err != nil {
 						results <- err
 					} else if resp.StatusCode >= 300 {
 						results <- fmt.Errorf("%s", resp.Status)

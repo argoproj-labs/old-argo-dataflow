@@ -79,10 +79,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	if leadReplica {
 		endpoint := "https://" + pipelineName + "-" + stepName + "/sources/" + sourceName
 		logger.Info("starting lead workers", "source", sourceName, "endpoint", endpoint)
-		// create N workers to support concurrency
 		httpClient := &http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}}
+		// create N workers to support concurrency
 		for w := 0; w < concurrency; w++ {
 			go func() {
 				defer runtime.HandleCrash()
