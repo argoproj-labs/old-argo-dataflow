@@ -10,6 +10,7 @@ metadata:
 
       [Learn about Git steps](../docs/GIT.md)
     dataflow.argoproj.io/owner: argoproj-labs
+    dataflow.argoproj.io/test: 'false'
   name: 106-git-nodejs
 spec:
   steps:
