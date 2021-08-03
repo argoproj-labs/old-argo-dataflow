@@ -9,7 +9,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 func subjectiveStan(x *dfv1.STAN) {
@@ -46,8 +45,8 @@ func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) error {
 	return nil
 }
 
-func enrichSTAN(ctx context.Context, secrets v1.SecretInterface, x *dfv1.STAN) error {
-	secret, err := secrets.Get(ctx, "dataflow-stan-"+x.Name, metav1.GetOptions{})
+func enrichSTAN(ctx context.Context, x *dfv1.STAN) error {
+	secret, err := secretInterface.Get(ctx, "dataflow-stan-"+x.Name, metav1.GetOptions{})
 	if err != nil {
 		if !apierr.IsNotFound(err) {
 			return err

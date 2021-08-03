@@ -15,6 +15,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"io"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
 
@@ -32,7 +33,6 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		}
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
-		logger.Info("retry config", "source", sourceName, "backoff", s.Retry)
 		f := func(ctx context.Context, msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
@@ -68,21 +68,26 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, kubernetesInterface, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
+			if y, err := stan.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			if y, err := kafkasource.New(ctx, kubernetesInterface, namespace, pipelineName, stepName, sourceName, *x, f); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, f); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.HTTP; x != nil {
-			sources[sourceName] = httpsource.New(sourceName, f)
+			// we don't want to share this secret
+			secret, err := secretInterface.Get(ctx, step.Name, metav1.GetOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to get secret %q: %w", step.Name, err)
+			}
+			sources[sourceName] = httpsource.New(sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), f)
 		} else if x := s.S3; x != nil {
-			if y, err := s3source.New(ctx, kubernetesInterface, namespace, pipelineName, stepName, sourceName, *x, f, leadReplica()); err != nil {
+			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, f, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

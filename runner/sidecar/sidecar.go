@@ -20,7 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -33,6 +33,7 @@ var (
 	dynamicInterface    dynamic.Interface
 	lastStep            dfv1.Step
 	kubernetesInterface kubernetes.Interface
+	secretInterface     corev1.SecretInterface
 	prePatchHooks       []func(ctx context.Context) error // hooks to run before patching
 	replica             int
 	step                dfv1.Step // this is updated on start, and then periodically as we update the status
@@ -49,6 +50,7 @@ func Exec(ctx context.Context) error {
 	restConfig := ctrl.GetConfigOrDie()
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
+	secretInterface = kubernetesInterface.CoreV1().Secrets(namespace)
 
 	sharedutil.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
@@ -233,29 +235,26 @@ func patchStepStatus() {
 }
 
 func enrichSpec(ctx context.Context) error {
-	secrets := kubernetesInterface.CoreV1().Secrets(namespace)
-
-	if err := enrichSources(ctx, secrets); err != nil {
+	if err := enrichSources(ctx); err != nil {
 		return err
 	}
-
-	return enrichSinks(ctx, secrets)
+	return enrichSinks(ctx)
 }
 
-func enrichSources(ctx context.Context, secrets v1.SecretInterface) error {
+func enrichSources(ctx context.Context) error {
 	for i, source := range step.Spec.Sources {
 		if x := source.STAN; x != nil {
-			if err := enrichSTAN(ctx, secrets, x); err != nil {
+			if err := enrichSTAN(ctx, x); err != nil {
 				return err
 			}
 			source.STAN = x
 		} else if x := source.Kafka; x != nil {
-			if err := enrichKafka(ctx, secrets, &x.Kafka); err != nil {
+			if err := enrichKafka(ctx, &x.Kafka); err != nil {
 				return err
 			}
 			source.Kafka = x
 		} else if x := source.S3; x != nil {
-			if err := enrichS3(ctx, secrets, &x.S3); err != nil {
+			if err := enrichS3(ctx, &x.S3); err != nil {
 				return err
 			}
 			source.S3 = x
@@ -265,20 +264,20 @@ func enrichSources(ctx context.Context, secrets v1.SecretInterface) error {
 	return nil
 }
 
-func enrichSinks(ctx context.Context, secrets v1.SecretInterface) error {
+func enrichSinks(ctx context.Context) error {
 	for i, sink := range step.Spec.Sinks {
 		if x := sink.STAN; x != nil {
-			if err := enrichSTAN(ctx, secrets, x); err != nil {
+			if err := enrichSTAN(ctx, x); err != nil {
 				return err
 			}
 			sink.STAN = x
 		} else if x := sink.Kafka; x != nil {
-			if err := enrichKafka(ctx, secrets, x); err != nil {
+			if err := enrichKafka(ctx, x); err != nil {
 				return err
 			}
 			sink.Kafka = x
 		} else if x := sink.S3; x != nil {
-			if err := enrichS3(ctx, secrets, &x.S3); err != nil {
+			if err := enrichS3(ctx, &x.S3); err != nil {
 				return err
 			}
 			sink.S3 = x

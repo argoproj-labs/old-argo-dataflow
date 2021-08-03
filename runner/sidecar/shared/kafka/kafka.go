@@ -5,14 +5,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
-func NewConfig(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, k dfv1.Kafka) (*sarama.Config, error) {
+func NewConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.Kafka) (*sarama.Config, error) {
 	x := sarama.NewConfig()
 	x.ClientID = dfv1.CtrSidecar
 	if k.Version != "" {
@@ -24,7 +24,7 @@ func NewConfig(ctx context.Context, kubernetesInterface kubernetes.Interface, na
 	}
 	if k.NET != nil {
 		if k.NET.TLS != nil {
-			tlsConfig, err := getTLSConfig(ctx, kubernetesInterface, namespace, k)
+			tlsConfig, err := getTLSConfig(ctx, secretInterface, k)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load tls config, %w", err)
 			}
@@ -36,8 +36,7 @@ func NewConfig(ctx context.Context, kubernetesInterface kubernetes.Interface, na
 			if sasl.UserSecret == nil || sasl.PasswordSecret == nil {
 				return nil, fmt.Errorf("invalid sasl config, user secret or password secret not configured")
 			}
-			secrets := kubernetesInterface.CoreV1().Secrets(namespace)
-			if userSecret, err := secrets.Get(ctx, sasl.UserSecret.Name, metav1.GetOptions{}); err != nil {
+			if userSecret, err := secretInterface.Get(ctx, sasl.UserSecret.Name, metav1.GetOptions{}); err != nil {
 				return nil, fmt.Errorf("failed to get user secret, %w", err)
 			} else {
 				if d, ok := userSecret.Data[sasl.UserSecret.Key]; !ok {
@@ -46,7 +45,7 @@ func NewConfig(ctx context.Context, kubernetesInterface kubernetes.Interface, na
 					x.Net.SASL.User = string(d)
 				}
 			}
-			if passwordSecret, err := secrets.Get(ctx, sasl.PasswordSecret.Name, metav1.GetOptions{}); err != nil {
+			if passwordSecret, err := secretInterface.Get(ctx, sasl.PasswordSecret.Name, metav1.GetOptions{}); err != nil {
 				return nil, fmt.Errorf("failed to get password secret, %w", err)
 			} else {
 				if d, ok := passwordSecret.Data[sasl.PasswordSecret.Key]; !ok {
@@ -62,16 +61,15 @@ func NewConfig(ctx context.Context, kubernetesInterface kubernetes.Interface, na
 	return x, nil
 }
 
-func getTLSConfig(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, k dfv1.Kafka) (*tls.Config, error) {
+func getTLSConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.Kafka) (*tls.Config, error) {
 	t := k.NET.TLS
 	if t == nil {
 		return nil, fmt.Errorf("tls config not found")
 	}
 
 	c := &tls.Config{}
-	secrets := kubernetesInterface.CoreV1().Secrets(namespace)
 	if t.CACertSecret != nil {
-		if caCertSecret, err := secrets.Get(ctx, t.CACertSecret.Name, metav1.GetOptions{}); err != nil {
+		if caCertSecret, err := secretInterface.Get(ctx, t.CACertSecret.Name, metav1.GetOptions{}); err != nil {
 			return nil, fmt.Errorf("failed to get ca cert secret, %w", err)
 		} else {
 			if d, ok := caCertSecret.Data[t.CACertSecret.Key]; !ok {
@@ -85,7 +83,7 @@ func getTLSConfig(ctx context.Context, kubernetesInterface kubernetes.Interface,
 	}
 	if t.CertSecret != nil && t.KeySecret != nil {
 		var certBytes, keyBytes []byte
-		if certSecret, err := secrets.Get(ctx, t.CertSecret.Name, metav1.GetOptions{}); err != nil {
+		if certSecret, err := secretInterface.Get(ctx, t.CertSecret.Name, metav1.GetOptions{}); err != nil {
 			return nil, fmt.Errorf("failed to get cert secret, %w", err)
 		} else {
 			if d, ok := certSecret.Data[t.CertSecret.Key]; !ok {
@@ -94,7 +92,7 @@ func getTLSConfig(ctx context.Context, kubernetesInterface kubernetes.Interface,
 				certBytes = d
 			}
 		}
-		if keySecret, err := secrets.Get(ctx, t.KeySecret.Name, metav1.GetOptions{}); err != nil {
+		if keySecret, err := secretInterface.Get(ctx, t.KeySecret.Name, metav1.GetOptions{}); err != nil {
 			return nil, fmt.Errorf("failed to get key secret, %w", err)
 		} else {
 			if d, ok := keySecret.Data[t.KeySecret.Key]; !ok {

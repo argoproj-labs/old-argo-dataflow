@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"net/http"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 type httpSink struct {
@@ -21,14 +21,14 @@ type httpSink struct {
 	url    string
 }
 
-func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, x dfv1.HTTPSink) (sink.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.HTTPSink) (sink.Interface, error) {
 	header := http.Header{}
 	for _, h := range x.Headers {
 		if h.Value != "" {
 			header.Add(h.Name, h.Value)
 		} else if h.ValueFrom != nil {
 			r := h.ValueFrom.SecretKeyRef
-			secret, err := kubernetesInterface.CoreV1().Secrets(namespace).Get(ctx, r.Name, metav1.GetOptions{})
+			secret, err := secretInterface.Get(ctx, r.Name, metav1.GetOptions{})
 			if err != nil {
 				return nil, fmt.Errorf("failed to get secret %q: %w", r.Name, err)
 			}

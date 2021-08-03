@@ -28,13 +28,13 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 		}
 		rateCounters[sinkName] = ratecounter.NewRateCounter(updateInterval)
 		if x := sink.STAN; x != nil {
-			if y, err := stan.New(ctx, kubernetesInterface, namespace, pipelineName, stepName, replica, sinkName, *x); err != nil {
+			if y, err := stan.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sinkName, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
 		} else if x := sink.Kafka; x != nil {
-			if y, err := kafka.New(ctx, kubernetesInterface, namespace, *x); err != nil {
+			if y, err := kafka.New(ctx, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
@@ -42,19 +42,19 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 		} else if x := sink.Log; x != nil {
 			sinks[sinkName] = logsink.New()
 		} else if x := sink.HTTP; x != nil {
-			if y, err := http.New(ctx, kubernetesInterface, namespace, *x); err != nil {
+			if y, err := http.New(ctx, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
 		} else if x := sink.S3; x != nil {
-			if y, err := s3sink.New(ctx, kubernetesInterface, namespace, *x); err != nil {
+			if y, err := s3sink.New(ctx, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
 		} else if x := sink.DB; x != nil {
-			if y, err := dbsink.New(ctx, kubernetesInterface, namespace, *x); err != nil {
+			if y, err := dbsink.New(ctx, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y

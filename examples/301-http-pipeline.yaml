@@ -8,6 +8,7 @@ metadata:
       \ may return and error code, clients will need to re-send messages.\n* Adding\
       \ replicas will nearly linearly increase throughput.\n* Due to the lack of state,\
       \ do not use HTTP sources and sinks to connect steps. \n"
+    dataflow.argoproj.io/needs: dataflow-103-http-main-source-default-secret.yaml
     dataflow.argoproj.io/owner: argoproj-labs
   name: 301-http
 spec:

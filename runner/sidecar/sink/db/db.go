@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"time"
 
 	"github.com/antonmedv/expr"
@@ -14,7 +15,6 @@ import (
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 var logger = sharedutil.NewLogger()
@@ -25,8 +25,8 @@ type dbSink struct {
 	progs   map[string]*vm.Program
 }
 
-func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, x dfv1.DBSink) (sink.Interface, error) {
-	dataSource, err := getDataSource(ctx, kubernetesInterface, namespace, x)
+func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.DBSink) (sink.Interface, error) {
+	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
 	}
@@ -122,12 +122,11 @@ func (d dbSink) execStatement(tx *sql.Tx, sql string, args []string, msg []byte)
 	return rs, nil
 }
 
-func getDataSource(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, x dfv1.DBSink) (string, error) {
+func getDataSource(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.DBSink) (string, error) {
 	if x.DataSource.Value != "" {
 		return x.DataSource.Value, nil
 	}
 	if x.DataSource.ValueFrom != nil && x.DataSource.ValueFrom.SecretKeyRef != nil {
-		secretInterface := kubernetesInterface.CoreV1().Secrets(namespace)
 		secret, err := secretInterface.Get(ctx, x.DataSource.ValueFrom.SecretKeyRef.Name, metav1.GetOptions{})
 		if err != nil {
 			return "", fmt.Errorf("failed to get secret %q: %w", x.DataSource.ValueFrom.SecretKeyRef.Name, err)

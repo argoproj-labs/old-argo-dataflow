@@ -3,6 +3,7 @@ package stan
 import (
 	"context"
 	"fmt"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"math/rand"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/kubernetes"
 )
 
 var logger = sharedutil.NewLogger()
@@ -21,7 +21,7 @@ type stanSink struct {
 	subject string
 }
 
-func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, pipelineName, stepName string, replica int, sinkName string, x dfv1.STAN) (sink.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace, pipelineName, stepName string, replica int, sinkName string, x dfv1.STAN) (sink.Interface, error) {
 	genClientID := func() string {
 		// In a particular situation, the stan connection status is inconsistent between stan server and client,
 		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
@@ -34,7 +34,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 	var conn *stan.Conn
 	var err error
 	clientID := genClientID()
-	conn, err = stan.ConnectSTAN(ctx, kubernetesInterface, namespace, x, clientID)
+	conn, err = stan.ConnectSTAN(ctx, secretInterface, x, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
 	}
@@ -52,7 +52,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 				if conn == nil || conn.IsClosed() {
 					logger.Info("stan connection lost, reconnecting...", "sink", sinkName)
 					clientID := genClientID()
-					conn, err = stan.ConnectSTAN(ctx, kubernetesInterface, namespace, x, clientID)
+					conn, err = stan.ConnectSTAN(ctx, secretInterface, x, clientID)
 					if err != nil {
 						logger.Error(err, "failed to reconnect", "sink", sinkName, "clientID", clientID)
 						continue

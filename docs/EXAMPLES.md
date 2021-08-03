@@ -348,6 +348,15 @@ This example has two sources
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-two-sources-pipeline.yaml
 ```
 
+### [dataflow-http-main-source-default](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-103-http-main-source-default-secret.yaml)
+
+This is an example of providing a bearer token for a HTTP source.
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-103-http-main-source-default-secret.yaml
+```
+
 ### [dataflow-kafka-default](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml)
 
 This is an example of providing a namespace named Kafka configuration.
