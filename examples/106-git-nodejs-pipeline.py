@@ -3,7 +3,6 @@ from argo_dataflow import pipeline, kafka
 if __name__ == '__main__':
     (pipeline("106-git-nodejs")
      .owner('argoproj-labs')
-     .annotate("dataflow.argoproj.io/test", "false")
      .describe("""This example of a pipeline using Git with NodeJS.
 
 The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
