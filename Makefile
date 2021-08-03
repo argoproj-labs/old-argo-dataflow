@@ -17,7 +17,7 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-build: generate manifests
+build:
 	go build ./...
 
 # Run tests
@@ -66,7 +66,7 @@ $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: generate deploy $(GOBIN)/goreman
+start: build deploy $(GOBIN)/goreman
 	kubectl config set-context --current --namespace=argo-dataflow-system
 	goreman -set-ports=false -logtime=false start
 wait:
