@@ -48,3 +48,4 @@ alpha/beta/stable.
 | Terminating pipelines | v0.0.59 | v0.0.70 | |
 | Terminating steps | v0.0.59 | v0.0.70 | |
 | User interface | | v0.0.59 | |
+| NodeJS SDK | | v0.0.59 | |
