@@ -62,14 +62,15 @@ func TestStep_GetPodSpec(t *testing.T) {
 						Name:            "sidecar",
 						Lifecycle: &corev1.Lifecycle{PreStop: &corev1.Handler{
 							HTTPGet: &corev1.HTTPGetAction{
-								Path: "/pre-stop?source=kubernetes",
-								Port: intstr.FromInt(3569),
+								Path:   "/pre-stop?source=kubernetes",
+								Port:   intstr.FromInt(3570),
+								Scheme: "HTTPS",
 							},
 						}},
-						Ports: []corev1.ContainerPort{{ContainerPort: 3569}},
+						Ports: []corev1.ContainerPort{{ContainerPort: 3570, Protocol: "https"}},
 						ReadinessProbe: &corev1.Probe{
 							Handler: corev1.Handler{
-								HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3569)},
+								HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3570), Scheme: "HTTPS"},
 							},
 						},
 						Resources:       standardResources,

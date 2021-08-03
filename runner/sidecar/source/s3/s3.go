@@ -76,8 +76,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	jobs := workqueue.New()
 	authorization := sharedutil.RandString()
 	if leadReplica {
-		endpoint := "http://" + pipelineName + "-" + stepName + "/sources/" + sourceName
-		logger.Info("starting lead workers", "source", sourceName)
+		endpoint := "https://" + pipelineName + "-" + stepName + "/sources/" + sourceName
+		logger.Info("starting lead workers", "source", sourceName, "endpoint", endpoint)
 		// create N workers to support concurrency
 		for w := 0; w < concurrency; w++ {
 			go func() {

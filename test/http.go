@@ -37,7 +37,7 @@ func PumpHTTP(_url, prefix string, n int, sleep time.Duration) {
 func PumpHTTPTolerantly(n int) {
 	for i := 0; i < n; {
 		CatchPanic(func() {
-			PumpHTTP("http://http-main/sources/default", fmt.Sprintf("my-msg-%d", i), 1, 0)
+			PumpHTTP("https://http-main/sources/default", fmt.Sprintf("my-msg-%d", i), 1, 0)
 			i++
 		}, func(err error) {
 			log.Printf("ignoring: %v\n", err)
