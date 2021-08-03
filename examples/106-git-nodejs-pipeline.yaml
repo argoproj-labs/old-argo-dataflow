@@ -1,0 +1,29 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |-
+      This example of a pipeline using Git with NodeJS.
+
+      The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
+      your code when the step starts. This example presents how one can use nodejs runtime git step.
+
+      [Learn about Git steps](../docs/GIT.md)
+    dataflow.argoproj.io/owner: argoproj-labs
+  name: 106-git-nodejs
+spec:
+  steps:
+  - git:
+      branch: main
+      command:
+      - ./start.sh
+      image: node:16
+      path: examples/git-nodejs
+      url: https://github.com/argoproj-labs/argo-dataflow
+    name: main
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic
