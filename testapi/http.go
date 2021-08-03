@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,6 +16,9 @@ type req struct {
 }
 
 func init() {
+	httpClient := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
@@ -37,9 +41,6 @@ func init() {
 
 		start := time.Now()
 		// https://gobyexample.com/worker-pools
-		httpClient := &http.Client{Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}}
 		worker := func(jobs <-chan req, results chan<- interface{}) {
 			for j := range jobs {
 				req, err := http.NewRequest("POST", url, bytes.NewBufferString(j.msg))
@@ -49,10 +50,14 @@ func init() {
 					req.Header.Set("Authorization", "Bearer my-bearer-token")
 					if resp, err := httpClient.Do(req); err != nil {
 						results <- err
-					} else if resp.StatusCode >= 300 {
-						results <- fmt.Errorf("%s", resp.Status)
 					} else {
-						results <- fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q", j.msg, j.i+1, n, (1+float64(j.i))/time.Since(start).Seconds(), url)
+						_, _ = io.Copy(io.Discard, resp.Body) // needed for keep alive
+						_ = resp.Body.Close()
+						if resp.StatusCode >= 300 {
+							results <- fmt.Errorf("%s", resp.Status)
+						} else {
+							results <- fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q", j.msg, j.i+1, n, (1+float64(j.i))/time.Since(start).Seconds(), url)
+						}
 					}
 				}
 			}
@@ -83,8 +88,7 @@ func init() {
 		url := r.URL.Query().Get("url")
 		w.WriteHeader(200)
 		for {
-			_, err := http.Get(url)
-			if err != nil {
+			if _, err := httpClient.Get(url); err != nil {
 				_, _ = fmt.Fprintf(w, "%q is not ready: %v\n", url, err)
 			} else {
 				return
