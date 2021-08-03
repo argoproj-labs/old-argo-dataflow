@@ -37,6 +37,7 @@ alpha/beta/stable.
 | Map step | v0.0.59 | v0.0.70 | |
 | NATS Streaming sink | v0.0.59 | | |
 | NATS Streaming source | v0.0.59 | | |
+| NodeJS SDK | v0.0.78 | | |
 | Non-terminating pipelines | | v0.0.59 | |
 | [Prometheus metrics](METRICS.md) | | v0.0.59 | |
 | Python runtime | v0.0.59 | v0.0.70 | |
@@ -48,4 +49,3 @@ alpha/beta/stable.
 | Terminating pipelines | v0.0.59 | v0.0.70 | |
 | Terminating steps | v0.0.59 | v0.0.70 | |
 | User interface | | v0.0.59 | |
-| NodeJS SDK | | v0.0.59 | |
