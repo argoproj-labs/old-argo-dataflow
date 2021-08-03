@@ -4,18 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	runnerutil "github.com/argoproj-labs/argo-dataflow/runner/util"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
-
-func init() {
-	sarama.Logger = runnerutil.NewSaramaStdLogger(logger)
-}
 
 func kafkaFromSecret(k *dfv1.Kafka, secret *corev1.Secret) error {
 	k.Brokers = dfv1.StringsOr(k.Brokers, strings.Split(string(secret.Data["brokers"]), ","))
