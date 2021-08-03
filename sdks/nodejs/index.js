@@ -12,18 +12,16 @@ async function getHandler (req, res) {
 
 async function postHandler (req, res) {
   try {
-    let contentBuffer = [];
-    let totalBytesInBuffer = 0;
-    let contentType = req.headers['content-type'] || 'application/octet';
+    let contentBuffer = []
+    let totalBytesInBuffer = 0
 
     req.on('data', chunk => {
-      contentBuffer.push(chunk);
-      totalBytesInBuffer += chunk.length;
-    });
+      contentBuffer.push(chunk)
+      totalBytesInBuffer += chunk.length
+    })
 
-
-    req.on('end', async function() {
-      contentBuffer = Buffer.concat(contentBuffer, totalBytesInBuffer);
+    req.on('end', async function () {
+      contentBuffer = Buffer.concat(contentBuffer, totalBytesInBuffer)
 
       try {
         const out = await defaultHandler(contentBuffer, {})
@@ -36,11 +34,11 @@ async function postHandler (req, res) {
           res.end()
         }
       } catch (err) {
-        console.error('Handler failed to process the message', err);
+        console.error('Handler failed to process the message', err)
         res.writeHead(500)
         res.end(err.message)
       }
-    });
+    })
   } catch (err) {
     console.log('Got an error proceesing a request!', err)
     res.writeHead(500)
