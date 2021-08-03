@@ -15,8 +15,8 @@ It must implement the following endpoints:
 It may POST a message (as bytes) to http://localhost:3569/messages and this will be sent to each sink. This endpoint
 will return standard HTTP response codes, including 500 if the message could not be processed.
 
-The container will be started with an environment variable named `ARGO_DATAFLOW_BEARER_TOKEN`, and this must be passed
-to `/messages` as a `Authentication: Bearer ${ARGO_DATAFLOW_BEARER_TOKEN}`.
+The container will be started with an file `/var/run/argo-dataflow/authorization`. The string value is this must be passed
+to `/messages` as a `Authentication: $(cat /var/run/argo-dataflow/authorization)`.
 
 It must gracefully shutdown when SIGTERM on PID 1 is executed in the container, specifically respond to in-flight requests
 and become un-ready. 

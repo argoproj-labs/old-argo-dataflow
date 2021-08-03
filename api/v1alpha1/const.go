@@ -18,7 +18,6 @@ const (
 	CtrMain    = "main"
 	CtrSidecar = "sidecar"
 	// env vars
-	EnvBearerToken    = "ARGO_DATAFLOW_BEARER_TOKEN"
 	EnvImagePrefix    = "ARGO_DATAFLOW_IMAGE_PREFIX"   // default "quay.io/argoproj"
 	EnvDeletionDelay  = "ARGO_DATAFLOW_DELETION_DELAY" // default "720h" ~= "30d"
 	EnvNamespace      = "ARGO_DATAFLOW_NAMESPACE"
@@ -39,15 +38,16 @@ const (
 	KeyStepName         = "dataflow.argoproj.io/step-name" // the step name without pipeline name prefix
 	KeyHash             = "dataflow.argoproj.io/hash"      // hash of the object
 	// paths
-	PathCheckout    = "/var/run/argo-dataflow/checkout"
-	PathFIFOIn      = "/var/run/argo-dataflow/in"
-	PathFIFOOut     = "/var/run/argo-dataflow/out"
-	PathGroups      = "/var/run/argo-dataflow/groups"
-	PathHandlerFile = "/var/run/argo-dataflow/handler"
-	PathKill        = "/var/run/argo-dataflow/kill"
-	PathPreStop     = "/var/run/argo-dataflow/prestop"
-	PathWorkingDir  = "/var/run/argo-dataflow/wd"
-	PathVarRun      = "/var/run/argo-dataflow"
+	PathAuthorization = "/var/run/argo-dataflow/authorization" // the authorization header which must be used by the main container to speak to the sidecar
+	PathCheckout      = "/var/run/argo-dataflow/checkout"
+	PathFIFOIn        = "/var/run/argo-dataflow/in"
+	PathFIFOOut       = "/var/run/argo-dataflow/out"
+	PathGroups        = "/var/run/argo-dataflow/groups"
+	PathHandlerFile   = "/var/run/argo-dataflow/handler"
+	PathKill          = "/var/run/argo-dataflow/kill"
+	PathPreStop       = "/var/run/argo-dataflow/prestop"
+	PathWorkingDir    = "/var/run/argo-dataflow/wd"
+	PathVarRun        = "/var/run/argo-dataflow"
 	// other const
 	CommitN = 20 // how many messages between commits, therefore potential duplicates during disruption
 )

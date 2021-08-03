@@ -54,7 +54,6 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
 
 	envVars := []corev1.EnvVar{
-		{Name: EnvBearerToken, Value: req.BearerToken},
 		{Name: EnvNamespace, Value: req.Namespace},
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
@@ -130,7 +129,6 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				SecurityContext: dropAll,
 			},
 			in.Spec.getType().getContainer(getContainerReq{
-				env:             []corev1.EnvVar{{Name: EnvBearerToken, Value: req.BearerToken}},
 				imageFormat:     req.ImageFormat,
 				imagePullPolicy: req.PullPolicy,
 				lifecycle: &corev1.Lifecycle{

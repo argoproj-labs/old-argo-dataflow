@@ -142,8 +142,6 @@ message GetPodSpecReq {
   optional int64 updateInterval = 7;
 
   optional StepStatus stepStatus = 8;
-
-  optional string bearerToken = 9;
 }
 
 message Git {

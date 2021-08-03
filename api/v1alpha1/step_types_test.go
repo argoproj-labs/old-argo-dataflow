@@ -15,7 +15,6 @@ import (
 
 func TestStep_GetPodSpec(t *testing.T) {
 	env := []corev1.EnvVar{
-		{Name: "ARGO_DATAFLOW_BEARER_TOKEN", Value: "my-bearer-token"},
 		{Name: "ARGO_DATAFLOW_NAMESPACE", Value: "my-ns"},
 		{Name: "ARGO_DATAFLOW_PIPELINE_NAME", Value: "my-pl"},
 		{Name: "ARGO_DATAFLOW_REPLICA", Value: "1"},
@@ -44,7 +43,6 @@ func TestStep_GetPodSpec(t *testing.T) {
 				},
 			},
 			GetPodSpecReq{
-				BearerToken:    "my-bearer-token",
 				ImageFormat:    "image-%s",
 				Namespace:      "my-ns",
 				PipelineName:   "my-pl",
@@ -79,10 +77,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 						VolumeMounts:    mounts,
 					},
 					{
-						Args: []string{"cat"},
-						Env: []corev1.EnvVar{
-							{Name: "ARGO_DATAFLOW_BEARER_TOKEN", Value: "my-bearer-token"},
-						},
+						Args:            []string{"cat"},
 						Image:           "my-runner",
 						ImagePullPolicy: corev1.PullAlways,
 						Name:            "main",

@@ -20,8 +20,13 @@ func connectOut(toSinks func([]byte) error) {
 
 func connectOutHTTP(f func([]byte) error) {
 	logger.Info("HTTP out interface configured")
+	v, err := ioutil.ReadFile(dfv1.PathAuthorization)
+	if err != nil {
+		panic(fmt.Errorf("failed to read authorization file: %w", err))
+	}
+	authorization := string(v)
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer "+os.Getenv(dfv1.EnvBearerToken) {
+		if r.Header.Get("Authorization") != authorization {
 			w.WriteHeader(403)
 			return
 		}

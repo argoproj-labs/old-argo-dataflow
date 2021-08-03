@@ -15,6 +15,7 @@ type httpSource struct {
 func New(sourceName string, f source.Func) source.Interface {
 	h := &httpSource{ready: true}
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
+		// TODO -auth
 		if !h.ready { // if we are not ready, we cannot serve requests
 			w.WriteHeader(503)
 			_, _ = w.Write([]byte("not ready"))
