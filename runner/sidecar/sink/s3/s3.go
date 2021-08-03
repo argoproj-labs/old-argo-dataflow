@@ -10,9 +10,8 @@ import (
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"os"
-
-	"k8s.io/client-go/kubernetes"
 )
 
 type s3Sink struct {
@@ -25,8 +24,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace string, x dfv1.S3Sink) (sink.Interface, error) {
-	secretInterface := kubernetesInterface.CoreV1().Secrets(namespace)
+func New(ctx context.Context, secretInterface v1.SecretInterface, x dfv1.S3Sink) (sink.Interface, error) {
 	var accessKeyID string
 	{
 		secretName := x.Credentials.AccessKeyID.Name

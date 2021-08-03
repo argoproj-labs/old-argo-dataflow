@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"fmt"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"time"
 
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
@@ -12,7 +13,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
 )
 
 var logger = sharedutil.NewLogger()
@@ -45,9 +45,9 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 	return nil
 }
 
-func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
 	groupName := pipelineName + "-" + stepName + "-source-" + sourceName + "-" + x.Topic
-	config, err := kafka.NewConfig(ctx, kubernetesInterface, namespace, x.Kafka)
+	config, err := kafka.NewConfig(ctx, secretInterface, x.Kafka)
 	if err != nil {
 		return nil, err
 	}

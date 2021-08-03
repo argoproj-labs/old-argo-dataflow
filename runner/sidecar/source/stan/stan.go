@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"math/rand"
 	"net/http"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/kubernetes"
 )
 
 var logger = sharedutil.NewLogger()
@@ -28,7 +28,7 @@ type stanSource struct {
 	queueName         string
 }
 
-func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespace, pipelineName, stepName string, replica int, sourceName string, x dfv1.STAN, f source.Func) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName string, replica int, sourceName string, x dfv1.STAN, f source.Func) (source.Interface, error) {
 	genClientID := func() string {
 		// In a particular situation, the stan connection status is inconsistent between stan server and client,
 		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
@@ -41,7 +41,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 	var conn *sharedstan.Conn
 	var err error
 	clientID := genClientID()
-	conn, err = sharedstan.ConnectSTAN(ctx, kubernetesInterface, namespace, x, clientID)
+	conn, err = sharedstan.ConnectSTAN(ctx, secretInterface, x, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 					_ = sub.Close()
 					logger.Info("stan connection lost, reconnecting...", "source", sourceName)
 					clientID := genClientID()
-					conn, err = sharedstan.ConnectSTAN(ctx, kubernetesInterface, namespace, x, clientID)
+					conn, err = sharedstan.ConnectSTAN(ctx, secretInterface, x, clientID)
 					if err != nil {
 						logger.Error(err, "failed to reconnect", "source", sourceName, "clientID", clientID)
 						continue

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -38,12 +38,18 @@ func init() {
 		// https://gobyexample.com/worker-pools
 		worker := func(jobs <-chan req, results chan<- interface{}) {
 			for j := range jobs {
-				if resp, err := http.Post(url, "application/octet-stream", strings.NewReader(j.msg)); err != nil {
+				req, err := http.NewRequest("POST", "http://localhost:3569/sources/default", bytes.NewBufferString(j.msg))
+				if err != nil {
 					results <- err
-				} else if resp.StatusCode >= 300 {
-					results <- fmt.Errorf("%s", resp.Status)
 				} else {
-					results <- fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q", j.msg, j.i+1, n, (1+float64(j.i))/time.Since(start).Seconds(), url)
+					req.Header.Set("Authorization", "Bearer my-bearer-token")
+					if resp, err := http.DefaultClient.Do(req); err != nil {
+						results <- err
+					} else if resp.StatusCode >= 300 {
+						results <- fmt.Errorf("%s", resp.Status)
+					} else {
+						results <- fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q", j.msg, j.i+1, n, (1+float64(j.i))/time.Since(start).Seconds(), url)
+					}
 				}
 			}
 		}

@@ -13,13 +13,18 @@ import (
 )
 
 func SendMessageViaHTTP(msg string) {
-	r, err := http.Post("http://localhost:3569/sources/default", "text/plain", bytes.NewBufferString(msg))
+	req, err := http.NewRequest("POST", "http://localhost:3569/sources/default", bytes.NewBufferString(msg))
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Authorization", "Bearer my-bearer-token")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		panic(err)
 	} else {
-		body, _ := ioutil.ReadAll(r.Body)
-		if r.StatusCode != 204 {
-			panic(fmt.Errorf("%s: %q", r.Status, body))
+		body, _ := ioutil.ReadAll(resp.Body)
+		if resp.StatusCode != 204 {
+			panic(fmt.Errorf("%s: %q", resp.Status, body))
 		}
 	}
 }
