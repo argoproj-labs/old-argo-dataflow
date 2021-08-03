@@ -28,7 +28,7 @@ func New(ctx context.Context, kubernetesInterface kubernetes.Interface, namespac
 		// the same client ID to reconnect will fail. To avoid that, add a random number in the client ID string.
 		s1 := rand.NewSource(time.Now().UnixNano())
 		r1 := rand.New(s1)
-		return fmt.Sprintf("%s-%s-%d-sink-%s-%v", pipelineName, stepName, replica, sinkName, r1.Intn(100))
+		return fmt.Sprintf("%s-%s-%s-%d-sink-%s-%v", namespace, pipelineName, stepName, replica, sinkName, r1.Intn(100))
 	}
 
 	var conn *stan.Conn
