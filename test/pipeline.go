@@ -54,9 +54,11 @@ func createSecretsForHTTPSources(pl Pipeline, x Pipeline, ctx context.Context) {
 	for _, step := range x.Spec.Steps {
 		for _, source := range step.Sources {
 			if source.HTTP != nil {
+				secretName := fmt.Sprintf("%s-%s", pl.Name, step.Name)
+				log.Printf("creating secret %q\n", secretName)
 				_, err := kubernetesInterface.CoreV1().Secrets(namespace).Create(ctx, &corev1.Secret{
-					ObjectMeta: metav1.ObjectMeta{Name: fmt.Sprintf("dataflow-%s-%s-source-%s", pl.Name, step.Name, source.Name)},
-					StringData: map[string]string{"authorization": "Bearer my-bearer-token"},
+					ObjectMeta: metav1.ObjectMeta{Name: secretName},
+					StringData: map[string]string{fmt.Sprintf("sources.%s.http.authorization", source.Name): "Bearer my-bearer-token"},
 				}, metav1.CreateOptions{})
 				if sharedutil.IgnoreAlreadyExists(err) != nil {
 					panic(err)

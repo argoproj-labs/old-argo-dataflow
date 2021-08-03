@@ -33,7 +33,6 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		}
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
-		logger.Info("retry config", "source", sourceName, "backoff", s.Retry)
 		f := func(ctx context.Context, msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
@@ -81,12 +80,12 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				sources[sourceName] = y
 			}
 		} else if x := s.HTTP; x != nil {
-			secretName := fmt.Sprintf("dataflow-%s-%s-source-%s", pipelineName, stepName, sourceName)
-			secret, err := secretInterface.Get(ctx, secretName, metav1.GetOptions{})
+			// we don't want to share this secret
+			secret, err := secretInterface.Get(ctx, step.Name, metav1.GetOptions{})
 			if err != nil {
-				return fmt.Errorf("failed to get secret %q: %w", secretName, err)
+				return fmt.Errorf("failed to get secret %q: %w", step.Name, err)
 			}
-			sources[sourceName] = httpsource.New(sourceName, string(secret.Data["authorization"]), f)
+			sources[sourceName] = httpsource.New(sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), f)
 		} else if x := s.S3; x != nil {
 			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, f, leadReplica()); err != nil {
 				return err

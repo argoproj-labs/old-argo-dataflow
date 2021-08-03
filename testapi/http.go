@@ -38,7 +38,7 @@ func init() {
 		// https://gobyexample.com/worker-pools
 		worker := func(jobs <-chan req, results chan<- interface{}) {
 			for j := range jobs {
-				req, err := http.NewRequest("POST", "http://localhost:3569/sources/default", bytes.NewBufferString(j.msg))
+				req, err := http.NewRequest("POST", url, bytes.NewBufferString(j.msg))
 				if err != nil {
 					results <- err
 				} else {
