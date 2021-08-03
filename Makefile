@@ -66,7 +66,7 @@ $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: build deploy $(GOBIN)/goreman
+start: build runner deploy $(GOBIN)/goreman
 	kubectl config set-context --current --namespace=argo-dataflow-system
 	goreman -set-ports=false -logtime=false start
 wait:
