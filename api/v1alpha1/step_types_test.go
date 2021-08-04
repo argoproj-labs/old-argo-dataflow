@@ -44,6 +44,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 				},
 			},
 			GetPodSpecReq{
+				ClusterName:    "my-cluster",
 				ImageFormat:    "image-%s",
 				Namespace:      "my-ns",
 				PipelineName:   "my-pl",

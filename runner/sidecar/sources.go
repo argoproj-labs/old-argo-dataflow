@@ -68,13 +68,13 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
+			if y, err := stan.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			if y, err := kafkasource.New(ctx, secretInterface, namespace, pipelineName, stepName, sourceName, *x, f); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, sourceName, *x, f); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
