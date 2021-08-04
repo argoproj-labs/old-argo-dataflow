@@ -41,7 +41,8 @@ jobs:
           args: --verbose
       - run: git diff --exit-code
 
-  integration:
+  # it = integration test
+  it:
     runs-on: ubuntu-latest
     if: "true"
     strategy:
