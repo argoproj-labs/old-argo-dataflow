@@ -65,6 +65,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{"all"},
 		},
+		AllowPrivilegeEscalation: pointer.BoolPtr(false),
 	}
 	return corev1.PodSpec{
 		Volumes: append(in.Spec.Volumes, volume, corev1.Volume{

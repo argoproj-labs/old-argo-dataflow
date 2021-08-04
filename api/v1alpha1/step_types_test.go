@@ -27,6 +27,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{"all"},
 		},
+		AllowPrivilegeEscalation: pointer.BoolPtr(false),
 	}
 	tests := []struct {
 		name string
