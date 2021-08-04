@@ -127,6 +127,8 @@ message Flatten {
 }
 
 message GetPodSpecReq {
+  optional string clusterName = 9;
+
   optional string pipelineName = 1;
 
   optional string namespace = 2;

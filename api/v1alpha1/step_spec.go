@@ -45,7 +45,7 @@ type StepSpec struct {
 }
 
 type GetPodSpecReq struct {
-	ClusterName    string
+	ClusterName    string            `protobuf:"bytes,9,opt,name=clusterName"`
 	PipelineName   string            `protobuf:"bytes,1,opt,name=pipelineName"`
 	Namespace      string            `protobuf:"bytes,2,opt,name=namespace"`
 	Replica        int32             `protobuf:"varint,3,opt,name=replica"`
