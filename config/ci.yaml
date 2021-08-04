@@ -7577,10 +7577,14 @@ spec:
         env:
         - name: ARGO_DATAFLOW_PULL_POLICY
           value: IfNotPresent
+        - name: ARGO_DATAFLOW_CLUSTER_NAME
+          value: ci
         - name: ARGO_DATAFLOW_UPDATE_INTERVAL
           value: 5s
         - name: ARGO_DATAFLOW_NAMESPACE
-          value: argo-dataflow-system
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         image: quay.io/argoproj/dataflow-controller:latest
         imagePullPolicy: IfNotPresent
         name: manager

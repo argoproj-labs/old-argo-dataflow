@@ -54,6 +54,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
 
 	envVars := []corev1.EnvVar{
+		{Name: EnvClusterName, Value: req.ClusterName},
 		{Name: EnvNamespace, Value: req.Namespace},
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},

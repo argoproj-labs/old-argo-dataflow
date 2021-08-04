@@ -18,6 +18,7 @@ const (
 	CtrMain    = "main"
 	CtrSidecar = "sidecar"
 	// env vars
+	EnvClusterName    = "ARGO_DATAFLOW_CLUSTER_NAME"
 	EnvImagePrefix    = "ARGO_DATAFLOW_IMAGE_PREFIX"   // default "quay.io/argoproj"
 	EnvDeletionDelay  = "ARGO_DATAFLOW_DELETION_DELAY" // default "720h" ~= "30d"
 	EnvNamespace      = "ARGO_DATAFLOW_NAMESPACE"

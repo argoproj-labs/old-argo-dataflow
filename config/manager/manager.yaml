@@ -32,7 +32,9 @@ spec:
           name: manager
           env:
             - name: ARGO_DATAFLOW_NAMESPACE
-              value: argo-dataflow-system
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           ports:
             - containerPort: 9090
           resources:
