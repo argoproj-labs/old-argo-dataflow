@@ -3,6 +3,7 @@ package sidecar
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -81,6 +82,12 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
+	logger.Info("generating self-signed certificate")
+	const certFile, keyFile = "/tmp/runner.crt", "/tmp/runner.key"
+	if err := generateCert(certFile, keyFile); err != nil {
+		return fmt.Errorf("failed to generate cert: %w", err)
+	}
+
 	logger.Info("sidecar config", "stepName", stepName, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
 
 	defer logger.Info("done")
@@ -144,7 +151,6 @@ func Exec(ctx context.Context) error {
 		}
 		logger.Info("HTTP server shutdown")
 	}()
-
 	httpServer := &http.Server{Addr: ":3570", TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing HTTPS server")
@@ -152,7 +158,7 @@ func Exec(ctx context.Context) error {
 	})
 	go func() {
 		logger.Info("starting HTTPS server")
-		if err := httpServer.ListenAndServeTLS("runner.crt", "runner.key"); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			logger.Error(err, "failed to listen-and-server on HTTPS")
 		}
 		logger.Info("HTTPS server shutdown")

@@ -28,7 +28,6 @@ ENTRYPOINT ["/manager"]
 
 FROM builder AS runner-builder
 ARG VERSION=unset
-RUN openssl req -x509 -newkey rsa:4096 -keyout runner.key -out runner.crt -days 365 -nodes -subj /CN=localhost/O=ArgoProj
 COPY kill/ kill/
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/kill ./kill
 COPY prestop/ prestop/
@@ -41,8 +40,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -ldfl
 
 FROM gcr.io/distroless/static:nonroot AS runner
 WORKDIR /
-COPY --from=runner-builder --chown=9653:9653 /workspace/runner.crt .
-COPY --from=runner-builder --chown=9653:9653 /workspace/runner.key .
 COPY runtimes runtimes
 COPY --from=runner-builder /workspace/bin/kill /bin/kill
 COPY --from=runner-builder /workspace/bin/prestop /bin/prestop
