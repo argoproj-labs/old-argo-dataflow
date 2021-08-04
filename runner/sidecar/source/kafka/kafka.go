@@ -64,10 +64,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 		ctx := context.Background()
 		for {
 			if err := consumerGroup.Consume(ctx, []string{x.Topic}, h); err != nil {
+				logger.Error(err, "failed to read kafka message", "source", sourceName)
 				if err == sarama.ErrClosedConsumerGroup {
 					return
 				}
-				logger.Error(err, "failed to read kafka message", "source", sourceName)
 			}
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
