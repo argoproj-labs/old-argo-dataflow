@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.80 (2021-08-03)
+
+ * [2cfee32](https://github.com/argoproj-labs/argo-dataflow/commit/2cfee3216d0668897ea502cb9562cd9e5e6291cf) feat!: Change HTTP endpoints to have TLS v1.2. Fixes #178 (#193)
+ * [656af83](https://github.com/argoproj-labs/argo-dataflow/commit/656af835773fc0f2dd5172610f0ea87a76019270) feat: NodeJS SDK for handling the container contract (#188)
+ * [2ba29ce](https://github.com/argoproj-labs/argo-dataflow/commit/2ba29cef0ca874bb54a2802a49ec2590e2343698) fix: Removed noisy Kafka logging
+ * [f6b8915](https://github.com/argoproj-labs/argo-dataflow/commit/f6b8915a817c271e5d0c8b08278a61fb3f475f0f) fix!: Move bearer token from environment variable to file.
+
+### Contributors
+
+ * Alex Collins
+ * Dominik Deren
+
 ## v0.0.79 (2021-08-02)
 
  * [2f3cdbc](https://github.com/argoproj-labs/argo-dataflow/commit/2f3cdbc32da2df910a21ea94337fdda4aae1a0c9) feat!: updated default backoff to cap at 1 day
