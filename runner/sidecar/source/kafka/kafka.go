@@ -18,10 +18,11 @@ import (
 var logger = sharedutil.NewLogger()
 
 type kafkaSource struct {
-	config        *sarama.Config
-	source        dfv1.KafkaSource
+	client        sarama.Client
 	consumerGroup sarama.ConsumerGroup
+	adminClient   sarama.ClusterAdmin
 	groupName     string
+	topic         string
 }
 
 type handler struct {
@@ -47,15 +48,11 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
 	groupName := fmt.Sprintf("%s.%s.%s.sources.%s", namespace, pipelineName, stepName, sourceName)
-	config, err := kafka.NewConfig(ctx, secretInterface, x.Kafka)
+	config, client, err := kafka.GetClient(ctx, secretInterface, x.Kafka.KafkaConfig, string(x.StartOffset))
 	if err != nil {
 		return nil, err
 	}
-	if x.StartOffset == "First" {
-		config.Consumer.Offsets.Initial = sarama.OffsetOldest
-	}
-	config.Consumer.Offsets.AutoCommit.Enable = false
-	consumerGroup, err := sarama.NewConsumerGroup(x.Brokers, groupName, config)
+	consumerGroup, err := sarama.NewConsumerGroupFromClient(groupName, client)
 	if err != nil {
 		return nil, err
 	}
@@ -71,52 +68,46 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 			}
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
+
+	adminClient, err := sarama.NewClusterAdmin(x.Brokers, config)
+	if err != nil {
+		return nil, err
+	}
 	return kafkaSource{
-		config:        config,
+		client:        client,
 		consumerGroup: consumerGroup,
-		source:        x,
+		adminClient:   adminClient,
 		groupName:     groupName,
+		topic:         x.Topic,
 	}, nil
 }
 
 func (s kafkaSource) Close() error {
-	return s.consumerGroup.Close()
+	if err := s.adminClient.Close(); err != nil {
+		return err
+	}
+	if err := s.consumerGroup.Close(); err != nil {
+		return err
+	}
+	return s.client.Close()
 }
 
 func (s kafkaSource) GetPending(context.Context) (uint64, error) {
-	adminClient, err := sarama.NewClusterAdmin(s.source.Brokers, s.config)
-	if err != nil {
-		return 0, err
-	}
-	defer func() {
-		if err := adminClient.Close(); err != nil {
-			logger.Error(err, "failed to close Kafka admin client")
-		}
-	}()
-	client, err := sarama.NewClient(s.source.Brokers, s.config) // I am not giving any configuration
-	if err != nil {
-		return 0, err
-	}
-	defer func() {
-		if err := client.Close(); err != nil {
-			logger.Error(err, "failed to close Kafka client")
-		}
-	}()
-	partitions, err := client.Partitions(s.source.Topic)
+	partitions, err := s.client.Partitions(s.topic)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get partitions: %w", err)
 	}
 	totalLags := int64(0)
-	rep, err := adminClient.ListConsumerGroupOffsets(s.groupName, map[string][]int32{s.source.Topic: partitions})
+	rep, err := s.adminClient.ListConsumerGroupOffsets(s.groupName, map[string][]int32{s.topic: partitions})
 	if err != nil {
 		return 0, fmt.Errorf("failed to list consumer group offsets: %w", err)
 	}
 	for _, partition := range partitions {
-		partitionOffset, err := client.GetOffset(s.source.Topic, partition, sarama.OffsetNewest)
+		partitionOffset, err := s.client.GetOffset(s.topic, partition, sarama.OffsetNewest)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get topic/partition offsets partition %q: %w", partition, err)
 		}
-		block := rep.GetBlock(s.source.Topic, partition)
+		block := rep.GetBlock(s.topic, partition)
 		x := partitionOffset - block.Offset - 1
 		if x > 0 {
 			totalLags += x

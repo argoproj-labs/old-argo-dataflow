@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/Shopify/sarama"
@@ -12,9 +13,35 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.Kafka) (*sarama.Config, error) {
+var (
+	cache = make(map[string]sarama.Client) // hash(config) -> client
+)
+
+func GetClient(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig, startOffset string) (*sarama.Config, sarama.Client, error) {
+	config, err := newConfig(ctx, secretInterface, k)
+	if err != nil {
+		return nil, nil, err
+	}
+	if startOffset == "First" {
+		config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	}
+	key := sharedutil.MustHash(k)
+	if client, ok := cache[key]; ok {
+		return config, client, nil
+	}
+	client, err := sarama.NewClient(k.Brokers, config)
+	if err != nil {
+		return nil, nil, err
+	}
+	cache[key] = client
+	return config, client, err
+}
+
+func newConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (*sarama.Config, error) {
 	x := sarama.NewConfig()
 	x.ClientID = dfv1.CtrSidecar
+	x.Consumer.Offsets.AutoCommit.Enable = false
+	x.Producer.Return.Successes = true
 	if k.Version != "" {
 		v, err := sarama.ParseKafkaVersion(k.Version)
 		if err != nil {
@@ -61,7 +88,7 @@ func NewConfig(ctx context.Context, secretInterface corev1.SecretInterface, k df
 	return x, nil
 }
 
-func getTLSConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.Kafka) (*tls.Config, error) {
+func getTLSConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (*tls.Config, error) {
 	t := k.NET.TLS
 	if t == nil {
 		return nil, fmt.Errorf("tls config not found")

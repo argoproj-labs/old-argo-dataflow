@@ -214,13 +214,17 @@ message Kafka {
   // +kubebuilder:default=default
   optional string name = 1;
 
-  repeated string brokers = 2;
+  optional KafkaConfig kafkaConfig = 4;
 
   optional string topic = 3;
+}
 
-  optional string version = 4;
+message KafkaConfig {
+  repeated string brokers = 1;
 
-  optional KafkaNET net = 5;
+  optional string version = 2;
+
+  optional KafkaNET net = 3;
 }
 
 message KafkaNET {

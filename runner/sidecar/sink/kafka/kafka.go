@@ -16,12 +16,11 @@ type kafkaSink struct {
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kafka) (sink.Interface, error) {
-	config, err := kafka.NewConfig(ctx, secretInterface, x)
+	_, client, err := kafka.GetClient(ctx, secretInterface, x.KafkaConfig, "")
 	if err != nil {
 		return nil, err
 	}
-	config.Producer.Return.Successes = true
-	producer, err := sarama.NewSyncProducer(x.Brokers, config)
+	producer, err := sarama.NewSyncProducerFromClient(client)
 	if err != nil {
 		return nil, err
 	}
