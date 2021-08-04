@@ -78,10 +78,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 		return nil, err
 	}
 	return kafkaSource{
-		client:        client,
-		adminClient:   adminClient,
-		consumerGroup: consumerGroup,
-		groupID:       groupID,
+		client,
+		consumerGroup,
+		adminClient,
+		groupID,
+		x.Topic,
 	}, nil
 }
 
