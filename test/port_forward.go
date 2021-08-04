@@ -49,6 +49,7 @@ func StartPortForward(podName string, opts ...interface{}) (stopPortForward func
 	<-readyChan
 	log.Printf("started port-forward to %q on %d\n", podName, port)
 	return func() {
+		stopChan <- struct{}{}
 		forwarder.Close()
 		log.Printf("stopped port-forward to %q on %d\n", podName, port)
 	}
