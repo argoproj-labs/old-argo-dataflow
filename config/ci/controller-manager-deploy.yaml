@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
         - name: manager
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: ARGO_DATAFLOW_PULL_POLICY
-              value: Never
+              value: IfNotPresent
