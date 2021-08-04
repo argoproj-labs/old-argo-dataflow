@@ -76,7 +76,7 @@ func connectIn(ctx context.Context, sink func([]byte) error) (func(context.Conte
 				return fmt.Errorf("failed to send to main: %w", err)
 			} else {
 				body, _ := ioutil.ReadAll(resp.Body)
-				defer func() { _ = resp.Body.Close() }()
+				_ = resp.Body.Close()
 				if resp.StatusCode >= 300 {
 					return fmt.Errorf("failed to send to main: %q %q", resp.Status, body)
 				}

@@ -3,6 +3,7 @@ package s3
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
@@ -76,8 +77,14 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	jobs := workqueue.New()
 	authorization := sharedutil.RandString()
 	if leadReplica {
-		endpoint := "http://" + pipelineName + "-" + stepName + "/sources/" + sourceName
-		logger.Info("starting lead workers", "source", sourceName)
+		endpoint := "https://" + pipelineName + "-" + stepName + "/sources/" + sourceName
+		logger.Info("starting lead workers", "source", sourceName, "endpoint", endpoint)
+		t := http.DefaultTransport.(*http.Transport).Clone()
+		t.MaxIdleConns = 100
+		t.MaxConnsPerHost = 100
+		t.MaxIdleConnsPerHost = 100
+		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 		// create N workers to support concurrency
 		for w := 0; w < concurrency; w++ {
 			go func() {
@@ -95,7 +102,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 							panic(err)
 						}
 						req.Header.Set("Authorization", authorization)
-						resp, err := http.DefaultClient.Do(req)
+						resp, err := httpClient.Do(req)
 						if err != nil {
 							logger.Error(err, "failed to process object", "key", key)
 						} else {

@@ -207,7 +207,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: corev1.ServiceSpec{
 					Ports: []corev1.ServicePort{
-						{Port: 80, TargetPort: intstr.FromInt(3569)},
+						{Port: 443, TargetPort: intstr.FromInt(3570)},
 					},
 					Selector: map[string]string{
 						dfv1.KeyPipelineName: pipelineName,

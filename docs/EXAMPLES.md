@@ -149,6 +149,19 @@ your code when the step starts. This example presents how one can use go runtime
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-go-pipeline.yaml
 ```
 
+### [106-git-nodejs](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-nodejs-pipeline.yaml)
+
+This example of a pipeline using Git with NodeJS.
+
+The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
+your code when the step starts. This example presents how one can use nodejs runtime git step.
+
+[Learn about Git steps](../docs/GIT.md)
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-nodejs-pipeline.yaml
+```
+
 ### [106-git-python](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-python-pipeline.yaml)
 
 This example of a pipeline using Git.

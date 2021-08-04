@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"os"
 	"strconv"
@@ -131,7 +132,7 @@ func Exec(ctx context.Context) error {
 
 	connectOut(toSinks)
 
-	server := &http.Server{Addr: ":3569"}
+	server := &http.Server{Addr: "localhost:3569"}
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing HTTP server")
 		return server.Shutdown(context.Background())
@@ -139,9 +140,22 @@ func Exec(ctx context.Context) error {
 	go func() {
 		logger.Info("starting HTTP server")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error(err, "failed to listen-and-server")
+			logger.Error(err, "failed to listen-and-server on HTTP")
 		}
 		logger.Info("HTTP server shutdown")
+	}()
+
+	httpServer := &http.Server{Addr: ":3570", TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
+	addStopHook(func(ctx context.Context) error {
+		logger.Info("closing HTTPS server")
+		return httpServer.Shutdown(context.Background())
+	})
+	go func() {
+		logger.Info("starting HTTPS server")
+		if err := httpServer.ListenAndServeTLS("runner.crt", "runner.key"); err != nil && err != http.ErrServerClosed {
+			logger.Error(err, "failed to listen-and-server on HTTPS")
+		}
+		logger.Info("HTTPS server shutdown")
 	}()
 
 	toMain, err := connectIn(ctx, toSinks)
