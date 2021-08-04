@@ -45,8 +45,8 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 	return nil
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
-	groupName := pipelineName + "-" + stepName + "-source-" + sourceName + "-" + x.Topic
+func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
+	groupName := fmt.Sprintf("%s.%s.%s.sources.%s", namespace, pipelineName, stepName, sourceName)
 	config, err := kafka.NewConfig(ctx, secretInterface, x.Kafka)
 	if err != nil {
 		return nil, err

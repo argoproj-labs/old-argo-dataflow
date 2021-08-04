@@ -31,7 +31,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		sepc Step
+		step Step
 		req  GetPodSpecReq
 		want corev1.PodSpec
 	}{
@@ -132,7 +132,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, _ := json.MarshalIndent(tt.sepc.GetPodSpec(tt.req), "", "  ")
+			a, _ := json.MarshalIndent(tt.step.GetPodSpec(tt.req), "", "  ")
 			b, _ := json.MarshalIndent(tt.want, "", "  ")
 			assert.Equal(t, string(b), string(a))
 		})
