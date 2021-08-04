@@ -14,12 +14,12 @@ metadata:
 spec:
   steps:
   - git:
-      branch: main
+      branch: js-sdk
       command:
       - ./start.sh
       image: node:16
       path: examples/git-nodejs
-      url: https://github.com/argoproj-labs/argo-dataflow
+      url: https://github.com/domderen/argo-dataflow
     name: main
     sinks:
     - kafka:
