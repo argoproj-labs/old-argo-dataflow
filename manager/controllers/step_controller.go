@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -157,6 +158,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
+						ClusterName:    os.Getenv(dfv1.EnvClusterName),
 						PipelineName:   pipelineName,
 						Namespace:      step.Namespace,
 						Replica:        int32(replica),

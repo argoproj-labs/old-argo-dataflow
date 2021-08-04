@@ -21,7 +21,7 @@ type kafkaSource struct {
 	client        sarama.Client
 	consumerGroup sarama.ConsumerGroup
 	adminClient   sarama.ClusterAdmin
-	groupName     string
+	groupID       string
 	topic         string
 }
 
@@ -46,13 +46,15 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 	return nil
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
-	groupName := fmt.Sprintf("%s.%s.%s.sources.%s", namespace, pipelineName, stepName, sourceName)
+func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
 	config, client, err := kafka.GetClient(ctx, secretInterface, x.Kafka.KafkaConfig, string(x.StartOffset))
 	if err != nil {
 		return nil, err
 	}
-	consumerGroup, err := sarama.NewConsumerGroupFromClient(groupName, client)
+	// This ID can be up to 255 characters in length, and can include the following characters: a-z, A-Z, 0-9, . (dot), _ (underscore), and - (dash).
+	groupID := sharedutil.MustHash(fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName))
+	logger.Info("Kafka consumer group ID", "groupID", groupID)
+	consumerGroup, err := sarama.NewConsumerGroupFromClient(groupID, client)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +62,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 	go wait.JitterUntil(func() {
 		ctx := context.Background()
 		for {
+			logger.Info("starting Kafka consumption", "source", sourceName)
 			if err := consumerGroup.Consume(ctx, []string{x.Topic}, h); err != nil {
 				logger.Error(err, "failed to read kafka message", "source", sourceName)
+				logger.Error(err, "failed to consume kafka topic", "source", sourceName)
 				if err == sarama.ErrClosedConsumerGroup {
 					return
 				}
@@ -75,10 +79,9 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 	}
 	return kafkaSource{
 		client:        client,
-		consumerGroup: consumerGroup,
 		adminClient:   adminClient,
-		groupName:     groupName,
-		topic:         x.Topic,
+		consumerGroup: consumerGroup,
+		groupID:       groupID,
 	}, nil
 }
 
@@ -98,7 +101,7 @@ func (s kafkaSource) GetPending(context.Context) (uint64, error) {
 		return 0, fmt.Errorf("failed to get partitions: %w", err)
 	}
 	totalLags := int64(0)
-	rep, err := s.adminClient.ListConsumerGroupOffsets(s.groupName, map[string][]int32{s.topic: partitions})
+	rep, err := s.adminClient.ListConsumerGroupOffsets(s.groupID, map[string][]int32{s.topic: partitions})
 	if err != nil {
 		return 0, fmt.Errorf("failed to list consumer group offsets: %w", err)
 	}
