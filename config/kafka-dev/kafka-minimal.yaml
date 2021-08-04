@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: digitalwonderland/zookeeper
+          image: wurstmeister/zookeeper
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 2181
@@ -64,7 +64,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: wurstmeister/kafka
+          image:  wurstmeister/kafka
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9092

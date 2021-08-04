@@ -41,7 +41,7 @@ jobs:
           args: --verbose
       - run: git diff --exit-code
 
-  e2e:
+  integration:
     runs-on: ubuntu-latest
     if: "true"
     strategy:

@@ -77,7 +77,7 @@ spec:
           value: "1"
         - name: ZOOKEEPER_SERVER_1
           value: zoo
-        image: digitalwonderland/zookeeper
+        image: wurstmeister/zookeeper
         imagePullPolicy: IfNotPresent
         name: main
         ports:
