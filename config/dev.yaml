@@ -7637,6 +7637,12 @@ spec:
         name: main
         ports:
         - containerPort: 9092
+        readinessProbe:
+          initialDelaySeconds: 40
+          periodSeconds: 5
+          tcpSocket:
+            port: 9092
+          timeoutSeconds: 5
 ---
 apiVersion: apps/v1
 kind: StatefulSet

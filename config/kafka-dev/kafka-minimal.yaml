@@ -64,7 +64,7 @@ spec:
     spec:
       containers:
         - name: main
-          image:  wurstmeister/kafka
+          image: wurstmeister/kafka
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9092
@@ -77,6 +77,12 @@ spec:
               value: zookeeper:2181
             - name: KAFKA_BROKER_ID
               value: "0"
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            timeoutSeconds: 5
+            periodSeconds: 5
+            initialDelaySeconds: 40
   selector:
     matchLabels:
       app: kafka-broker
