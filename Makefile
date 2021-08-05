@@ -72,6 +72,7 @@ start: build runner deploy $(GOBIN)/goreman
 wait:
 	kubectl -n argo-dataflow-system get pod
 	kubectl -n argo-dataflow-system wait deploy --all --for=condition=available --timeout=2m
+	kubectl -n argo-dataflow-system wait statefulset --all --for=condition=available
 logs: $(GOBIN)/stern
 	stern -n argo-dataflow-system --tail=3 .
 
