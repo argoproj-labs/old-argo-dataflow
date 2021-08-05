@@ -7,5 +7,5 @@ import (
 )
 
 func TestMustHash(t *testing.T) {
-	assert.Equal(t, "LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564=", MustHash([]byte("foo")))
+	assert.Equal(t, "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae", MustHash([]byte("foo")))
 }
