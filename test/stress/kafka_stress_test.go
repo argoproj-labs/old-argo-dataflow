@@ -38,7 +38,6 @@ func TestKafkaSourceStress(t *testing.T) {
 	n := params.n
 	prefix := "kafka-source-stress"
 
-	defer StartMetricsLogger()()
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpKafkaTopic(topic, n, prefix)
@@ -74,7 +73,6 @@ func TestKafkaSinkStress(t *testing.T) {
 	n := params.n
 	prefix := "kafka-sink-stress"
 
-	defer StartMetricsLogger()()
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpKafkaTopic(topic, n, prefix)
