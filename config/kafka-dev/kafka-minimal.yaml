@@ -40,6 +40,9 @@ spec:
               value: "1"
             - name: ZOOKEEPER_SERVER_1
               value: zoo
+          readinessProbe:
+            tcpSocket:
+              port: 2181
   serviceName: zookeeper
 ---
 apiVersion: v1
@@ -80,9 +83,6 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 9092
-            timeoutSeconds: 5
-            periodSeconds: 5
-            initialDelaySeconds: 40
   selector:
     matchLabels:
       app: kafka-broker
