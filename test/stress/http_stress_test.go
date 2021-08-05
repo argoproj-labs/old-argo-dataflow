@@ -37,7 +37,6 @@ func TestHTTPSourceStress(t *testing.T) {
 	n := params.n
 	prefix := "my-msg"
 
-	defer StartMetricsLogger()()
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, 0)
@@ -70,7 +69,6 @@ func TestHTTPSinkStress(t *testing.T) {
 	n := params.n
 	prefix := "my-msg"
 
-	defer StartMetricsLogger()()
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, 0)

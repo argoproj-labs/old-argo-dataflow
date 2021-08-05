@@ -39,7 +39,6 @@ func TestStanSourceStress(t *testing.T) {
 	n := params.n
 	prefix := "stan-source-stress"
 
-	defer StartMetricsLogger()()
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpSTANSubject(longSubject, n, prefix)
@@ -76,7 +75,6 @@ func TestStanSinkStress(t *testing.T) {
 
 	n := 10000
 	prefix := "stan-sink-stress"
-	defer StartMetricsLogger()()
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpSTANSubject(longSubject, n, prefix)

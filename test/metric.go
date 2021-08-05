@@ -5,15 +5,10 @@ package test
 import (
 	"context"
 	"fmt"
-	"log"
-	"net/http"
-	"sort"
-	"strings"
-	"time"
-
 	"github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	"log"
+	"net/http"
 )
 
 func ExpectMetric(name string, value float64, opts ...interface{}) {
@@ -59,6 +54,9 @@ func getMetrics(ctx context.Context, port int) map[string]*io_prometheus_client.
 		panic(err)
 	}
 	resp, err := http.DefaultClient.Do(req)
+	if err == context.Canceled {
+		return nil // rather than panic, just return nothing
+	}
 	if err != nil {
 		panic(err)
 	}
@@ -72,39 +70,4 @@ func getMetrics(ctx context.Context, port int) map[string]*io_prometheus_client.
 		panic(err)
 	}
 	return families
-}
-
-func StartMetricsLogger() (stopMetricsLogger func()) {
-	port := 3569
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go func() {
-		defer runtimeutil.HandleCrash()
-		t := time.NewTicker(15 * time.Second)
-		defer t.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				log.Printf("stopping metrics logger on %d\n", port)
-				return
-			case <-t.C:
-				var x []string
-				for n, family := range getMetrics(ctx, port) {
-					switch n {
-					case "input_inflight",
-						"sources_errors",
-						"sources_pending",
-						"sources_total":
-						for _, m := range family.Metric {
-							x = append(x, fmt.Sprintf("%s=%v", n, getValue(m)))
-						}
-					}
-				}
-				sort.Strings(x)
-				log.Println(strings.Join(x, ", "))
-			}
-		}
-	}()
-
-	return cancel
 }

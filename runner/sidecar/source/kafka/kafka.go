@@ -64,7 +64,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 		for {
 			logger.Info("starting Kafka consumption", "source", sourceName)
 			if err := consumerGroup.Consume(ctx, []string{x.Topic}, h); err != nil {
-				logger.Error(err, "failed to read kafka message", "source", sourceName)
 				logger.Error(err, "failed to consume kafka topic", "source", sourceName)
 				if err == sarama.ErrClosedConsumerGroup {
 					return

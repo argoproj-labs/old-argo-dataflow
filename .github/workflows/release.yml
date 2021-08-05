@@ -3,11 +3,6 @@ name: Release
 on:
   push:
     tags: [ v* ]
-  workflow_run:
-    workflows:
-      - Build
-    types:
-      - completed
 
 jobs:
 
