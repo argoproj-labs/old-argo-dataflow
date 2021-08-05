@@ -50,7 +50,7 @@ jobs:
       matrix:
         suite:
           - http-fmea
-          - fmea-fmea
+          - kafka-fmea
           - stan-fmea
         rep:
           - "0"
@@ -59,12 +59,16 @@ jobs:
           - "3"
           - "4"
         include:
-          - suite: http-stress
-          - suite: fmea-stress
-          - suite: stan-stress
+          - suite: db-e2e
           - suite: e2e
           - suite: examples
+          - suite: http-stress
           - suite: hpa
+          - suite: kafka-e2e
+          - suite: kafka-stress
+          - suite: s3-e2e
+          - suite: stan-e2e
+          - suite: stan-stress
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:

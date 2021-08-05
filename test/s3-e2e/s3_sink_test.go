@@ -1,6 +1,6 @@
 // +build test
 
-package e2e
+package s3_e2e
 
 import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -8,6 +8,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
+
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/minio.yaml
 
 func TestS3Sink(t *testing.T) {
 	defer Setup(t)()
@@ -20,7 +22,7 @@ func TestS3Sink(t *testing.T) {
 					Name: "main",
 					Code: &Code{
 						Runtime: "golang1-16",
-						Source:  `package main
+						Source: `package main
 
 import "context"
 import "io/ioutil"

@@ -1,6 +1,6 @@
 // +build test
 
-package e2e
+package db_e2e
 
 import (
 	"testing"
@@ -10,6 +10,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
 
 func TestDBSink(t *testing.T) {
 	defer Setup(t)()

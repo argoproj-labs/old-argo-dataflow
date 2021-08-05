@@ -11,6 +11,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
+
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	defer Setup(t)()
 

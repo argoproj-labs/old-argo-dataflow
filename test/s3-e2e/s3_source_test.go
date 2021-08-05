@@ -1,6 +1,6 @@
 // +build test
 
-package e2e
+package s3_e2e
 
 import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 )
+
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/minio.yaml
 
 func TestS3Source(t *testing.T) {
 	defer Setup(t)()
@@ -25,7 +27,7 @@ func TestS3Source(t *testing.T) {
 					Map:  "io.cat(object(msg).path)",
 					Sources: []Source{{S3: &S3Source{
 						S3:         S3{Bucket: "my-bucket"},
-						PollPeriod: metav1.Duration{Duration: 5*time.Second},
+						PollPeriod: metav1.Duration{Duration: 5 * time.Second},
 					}}},
 					Sinks: []Sink{{Log: &Log{}}},
 				},

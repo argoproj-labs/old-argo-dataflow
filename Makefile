@@ -25,11 +25,9 @@ build:
 test:
 	go test -v ./... -coverprofile cover.out -race
 
-test-e2e:
 test-examples: examples
-	kubectl -n argo-dataflow-system apply -f config/examples.yaml
+	kubectl -n kube-system apply -k config/examples
 	go test -timeout 20m -tags examples -v -count 1 ./examples
-test-fmea:
 test-hpa:
 	kubectl -n kube-system apply -k config/apps/metrics-server
 	kubectl -n kube-system wait deploy/metrics-server --for=condition=available
@@ -41,10 +39,9 @@ test-hpa:
 	kubectl -n argo-dataflow-system autoscale step 101-hello-main --min 2 --max 2
 	sleep 20s
 	if [ `kubectl -n argo-dataflow-system get step 101-hello-main -o=jsonpath='{.status.replicas}'` != 2 ]; then exit 1; fi
-test-stress:
 test-%:
-	kubectl -n argo-dataflow-system apply -f config/$*.yaml
 	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
+	go generate ./test/$*/*.go
 	go test -count 1 -v --tags test ./test/$*
 
 pprof:

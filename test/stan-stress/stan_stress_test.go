@@ -11,6 +11,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/stan.yaml
+//go:generate kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
+
 func TestStanSourceStress(t *testing.T) {
 	defer Setup(t)()
 	defer DeletePod("nats-0")

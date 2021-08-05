@@ -1,6 +1,6 @@
 // +build test
 
-package e2e
+package kafka_e2e
 
 import (
 	"testing"
@@ -9,6 +9,9 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
 
 func TestKafka(t *testing.T) {
 	defer Setup(t)()
