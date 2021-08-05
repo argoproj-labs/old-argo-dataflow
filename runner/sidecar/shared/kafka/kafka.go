@@ -16,6 +16,7 @@ import (
 
 var (
 	cache = make(map[string]sarama.Client) // hash(config) -> client
+	logger = sharedutil.NewLogger()
 )
 
 func GetClient(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig, startOffset string) (*sarama.Config, sarama.Client, error) {
@@ -28,8 +29,10 @@ func GetClient(ctx context.Context, secretInterface corev1.SecretInterface, k df
 	}
 	key := sharedutil.MustHash(k)
 	if client, ok := cache[key]; ok {
+		logger.Info("cache hit: reusing existing Kafka client")
 		return config, client, nil
 	}
+	logger.Info("cache miss: creating new Kafka client")
 	client, err := sarama.NewClient(k.Brokers, config)
 	if err != nil {
 		return nil, nil, err
