@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: digitalwonderland/zookeeper
+          image: wurstmeister/zookeeper
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 2181
@@ -40,6 +40,9 @@ spec:
               value: "1"
             - name: ZOOKEEPER_SERVER_1
               value: zoo
+          readinessProbe:
+            tcpSocket:
+              port: 2181
   serviceName: zookeeper
 ---
 apiVersion: v1
@@ -77,6 +80,9 @@ spec:
               value: zookeeper:2181
             - name: KAFKA_BROKER_ID
               value: "0"
+          readinessProbe:
+            tcpSocket:
+              port: 9092
   selector:
     matchLabels:
       app: kafka-broker

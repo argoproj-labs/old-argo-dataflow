@@ -66,12 +66,14 @@ $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: build runner deploy $(GOBIN)/goreman
+start: deploy build runner $(GOBIN)/goreman wait
 	kubectl config set-context --current --namespace=argo-dataflow-system
 	goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
 	kubectl -n argo-dataflow-system wait deploy --all --for=condition=available --timeout=2m
+	# kubectl wait does not work for statesfulsets, as statefulsets do not have conditions
+	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
 logs: $(GOBIN)/stern
 	stern -n argo-dataflow-system --tail=3 .
 
@@ -98,7 +100,6 @@ config/%.yaml: config/$*
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: install
-	grep -o 'image: .*' config/$(CONFIG).yaml | grep -v dataflow | sort -u | cut -c 8- | xargs -L 1
 	kubectl apply --force -f config/$(CONFIG).yaml
 
 undeploy:
