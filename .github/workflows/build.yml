@@ -54,6 +54,8 @@ jobs:
           - "0"
           - "1"
           - "2"
+          - "3"
+          - "4"
         include:
           - suite: e2e
           - suite: examples
