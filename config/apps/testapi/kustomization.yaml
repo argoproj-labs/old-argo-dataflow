@@ -1,0 +1,4 @@
+namespace: argo-dataflow-system
+resources:
+  - testapi-statefulset.yaml
+  - testapi-svc.yaml

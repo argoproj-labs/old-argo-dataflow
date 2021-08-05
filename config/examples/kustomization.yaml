@@ -1,0 +1,3 @@
+resources:
+  - ../apps/kafka
+  - ../apps/stan

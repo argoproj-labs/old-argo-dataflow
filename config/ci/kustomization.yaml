@@ -3,5 +3,4 @@ resources:
 
 patchesStrategicMerge:
   - controller-manager-deploy.yaml
-  - testapi-statefulset.yaml
 

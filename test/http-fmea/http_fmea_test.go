@@ -1,6 +1,6 @@
 // +build test
 
-package stress
+package http_fmea
 
 import (
 	"testing"

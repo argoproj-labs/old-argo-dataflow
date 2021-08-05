@@ -1,8 +1,9 @@
 // +build test
 
-package stress
+package http_stress
 
 import (
+	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 	"testing"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -20,7 +21,7 @@ func TestHTTPSourceStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:     "main",
 				Cat:      &Cat{},
-				Replicas: params.replicas,
+				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{{Log: &Log{}}},
 			}},
@@ -34,13 +35,13 @@ func TestHTTPSourceStress(t *testing.T) {
 
 	WaitForService()
 
-	n := params.n
+	n := Params.N
 	prefix := "my-msg"
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, 0)
-	WaitForStep(TotalSunkMessages(n), params.timeout)
+	WaitForStep(TotalSunkMessages(n), Params.Timeout)
 
 }
 
@@ -53,7 +54,7 @@ func TestHTTPSinkStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:     "main",
 				Cat:      &Cat{},
-				Replicas: params.replicas,
+				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}, {Name: "log", Log: &Log{}}},
 			}},
@@ -66,11 +67,11 @@ func TestHTTPSinkStress(t *testing.T) {
 
 	WaitForService()
 
-	n := params.n
+	n := Params.N
 	prefix := "my-msg"
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, 0)
-	WaitForStep(TotalSunkMessages(n*2), params.timeout)
+	WaitForStep(TotalSunkMessages(n*2), Params.Timeout)
 }

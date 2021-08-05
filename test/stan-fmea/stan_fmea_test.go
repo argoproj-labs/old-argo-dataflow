@@ -1,6 +1,6 @@
 // +build test
 
-package stress
+package stan_fmea
 
 import (
 	"testing"

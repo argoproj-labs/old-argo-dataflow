@@ -1,6 +1,6 @@
 // +build test
 
-package stress
+package kafka_fmea
 
 import (
 	"testing"

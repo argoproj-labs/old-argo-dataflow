@@ -1,0 +1,6 @@
+namespace: argo-dataflow-system
+
+resources:
+  - mysql-secret.yaml
+  - mysql-statefulset.yaml
+  - mysql-svc.yaml

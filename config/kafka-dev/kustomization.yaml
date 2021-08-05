@@ -1,3 +1,0 @@
-namespace: argo-dataflow-system
-resources:
-  - kafka-minimal.yaml
