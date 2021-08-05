@@ -41,7 +41,8 @@ jobs:
           args: --verbose
       - run: git diff --exit-code
 
-  e2e:
+  # it = integration test
+  it:
     runs-on: ubuntu-latest
     if: "true"
     strategy:
@@ -53,6 +54,8 @@ jobs:
           - "0"
           - "1"
           - "2"
+          - "3"
+          - "4"
         include:
           - suite: e2e
           - suite: examples
