@@ -53,6 +53,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
+	config.Consumer.MaxProcessingTime = 10 * time.Second
 	config.Consumer.Offsets.AutoCommit.Enable = false
 	// This ID can be up to 255 characters in length, and can include the following characters: a-z, A-Z, 0-9, . (dot), _ (underscore), and - (dash).
 	groupID := sharedutil.MustHash(fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName))
