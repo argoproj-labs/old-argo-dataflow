@@ -25,8 +25,10 @@ build:
 test:
 	go test -v ./... -coverprofile cover.out -race
 
-test-examples: examples
-	kubectl -n kube-system apply -f config/examples.yaml
+test-examples:
+	kubectl -n argo-dataflow-system apply -f config/apps/kafka.yaml
+	kubectl -n argo-dataflow-system apply -f config/apps/stan.yaml
+	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m
 	go test -timeout 20m -tags examples -v -count 1 ./examples
 test-hpa:
 	kubectl -n kube-system apply -k config/apps/metrics-server

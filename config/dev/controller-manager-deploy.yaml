@@ -5,12 +5,3 @@ metadata:
   namespace: system
 spec:
   replicas: 0
-  template:
-    spec:
-      containers:
-        - name: manager
-          env:
-            - name: ARGO_DATAFLOW_PULL_POLICY
-              value: IfNotPresent
-            - name: ARGO_DATAFLOW_UPDATE_INTERVAL
-              value: 5s

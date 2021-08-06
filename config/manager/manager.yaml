@@ -10,6 +10,8 @@ kind: Deployment
 metadata:
   name: controller-manager
   namespace: system
+  annotations:
+    kubectl.kubernetes.io/default-container: manager
   labels:
     control-plane: controller-manager
 spec:
