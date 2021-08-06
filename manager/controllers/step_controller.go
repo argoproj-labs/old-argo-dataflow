@@ -146,6 +146,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		annotations[dfv1.KeyKillCmd(dfv1.CtrMain)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 		annotations[dfv1.KeyKillCmd(dfv1.CtrSidecar)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 
+		clusterName, ok := os.LookupEnv(dfv1.EnvClusterName)
+		if !ok {
+			clusterName = dfv1.DefaultClusterName
+		}
+
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
@@ -158,7 +163,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
-						ClusterName:    os.Getenv(dfv1.EnvClusterName),
+						ClusterName:    clusterName,
 						PipelineName:   pipelineName,
 						Namespace:      step.Namespace,
 						Replica:        int32(replica),

@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"math/rand"
 	"net/http"
 	"time"
+
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedstan "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
@@ -117,7 +118,7 @@ func (s stanSource) Close() error {
 	if err := s.sub.Close(); err != nil {
 		return err
 	}
-	logger.Info("closing stan connection")
+	logger.Info("closing stan source connection")
 	return s.conn.Close()
 }
 
