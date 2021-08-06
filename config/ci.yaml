@@ -7204,6 +7204,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    kubectl.kubernetes.io/default-container: manager
   labels:
     control-plane: controller-manager
   name: controller-manager
@@ -7227,10 +7229,10 @@ spec:
         env:
         - name: ARGO_DATAFLOW_PULL_POLICY
           value: Never
-        - name: ARGO_DATAFLOW_CLUSTER_NAME
-          value: ci
         - name: ARGO_DATAFLOW_UPDATE_INTERVAL
           value: 5s
+        - name: ARGO_DATAFLOW_CLUSTER_NAME
+          value: ci
         - name: ARGO_DATAFLOW_NAMESPACE
           valueFrom:
             fieldRef:
