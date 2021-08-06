@@ -32,6 +32,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 		return nil, err
 	}
 	config.Consumer.MaxProcessingTime = 10 * time.Second
+	config.Consumer.Fetch.Max = 16 * config.Consumer.Fetch.Default
 	config.Consumer.Offsets.AutoCommit.Enable = false
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
