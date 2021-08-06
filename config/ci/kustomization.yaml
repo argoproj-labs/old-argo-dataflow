@@ -3,4 +3,3 @@ resources:
 
 patchesStrategicMerge:
   - controller-manager-deploy.yaml
-
