@@ -128,8 +128,13 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 	mv api/v1alpha1/groupversion_info.go.0 api/v1alpha1/groupversion_info.go
 	go mod tidy
 
-lint:
+$(GOPATH)/bin/gofumpt:
+	go install mvdan.cc/gofumpt@v0.1.1
+
+lint: $(GOPATH)/bin/gofumpt
 	go mod tidy
+	# run gofumpt outside of golangci-lint because it seems to be unreliable inside it
+	gofumpt -l -w .
 	golangci-lint run --fix
 	kubectl apply --dry-run=client -f examples
 
