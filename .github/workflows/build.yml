@@ -75,9 +75,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ hashFiles('**/go.mod') }}
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/go.mod') }}
+            ${{ runner.os }}-buildx-
       - name: Install and start K3S
         timeout-minutes: 3
         run: |
