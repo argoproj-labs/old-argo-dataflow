@@ -99,7 +99,7 @@ jobs:
       - run: make deploy CONFIG=ci
       - run: make runner
       - run: make runtimes
-        if: "${{matrix.suite}} == 'e2e' || ${{matrix.suite}} == 'examples'"
+        if: ${{matrix.suite == 'e2e' || matrix.suite == 'examples'}}
       - run: make wait
       - run: make test-${{matrix.suite}}
       - name: controller logs
