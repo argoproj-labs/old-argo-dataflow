@@ -19,7 +19,7 @@ func TestCompletion(t *testing.T) {
 			Steps: []StepSpec{{
 				Name: "main",
 				Container: &Container{
-					Image:   "golang:1.16-alpine",
+					Image:   "golang:1.16",
 					Command: []string{"sh"},
 					Args:    []string{"-c", "exit 0"},
 				},
