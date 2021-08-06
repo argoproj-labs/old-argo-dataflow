@@ -86,8 +86,8 @@ images: controller runner testapi runtimes
 
 config/%.yaml: config/$*
 	kustomize build --load-restrictor LoadRestrictionsNone config/$* -o $@
-	sed "s/:latest/:$(TAG)/" $@ > config/.$*
-	mv config/.$* $@
+	sed "s/:latest/:$(TAG)/" $@ > config/$*.tmp
+	mv config/$*.tmp $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: install
@@ -100,7 +100,7 @@ crds: $(GOBIN)/controller-gen $(shell find api -name '*.go' -not -name '*generat
 	$(GOBIN)/controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: crds $(shell find config -maxdepth 1 -name '*.yaml')
+manifests: crds $(shell find config config/apps -maxdepth 1 -name '*.yaml')
 
 generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
