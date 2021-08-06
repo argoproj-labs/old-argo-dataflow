@@ -39,7 +39,7 @@ func (handler) Cleanup(_ sarama.ConsumerGroupSession) error {
 	return nil
 }
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	logger.Info("starting consuming claim")
+	logger.Info("starting consuming claim", "partition", claim.Partition())
 	for msg := range claim.Messages() {
 		if err := h.f(context.Background(), msg.Value); err != nil {
 		} else {
