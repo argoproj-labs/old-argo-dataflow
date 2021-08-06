@@ -72,7 +72,7 @@ wait:
 	# kubectl wait does not work for statesfulsets, as statefulsets do not have conditions
 	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
 logs: $(GOBIN)/stern
-	stern -n argo-dataflow-system --tail=3 .
+	stern -n argo-dataflow-system --tail=3 -l dataflow.argoproj.io/step-name .
 
 # Install CRDs into a cluster
 install:
