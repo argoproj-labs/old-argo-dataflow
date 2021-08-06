@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.82 (2021-08-06)
+
+ * [c31e5e6](https://github.com/argoproj-labs/argo-dataflow/commit/c31e5e648e2f6942d20be50f2bb18f25aa611fae) fix: use one Kafka client for consumer/producer
+ * [1b18462](https://github.com/argoproj-labs/argo-dataflow/commit/1b18462a4a58f6ddbd92371315dd962a484d6f6c) fix: use one Kafka client for consumer/producer
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.81 (2021-08-05)
 
  * [616753f](https://github.com/argoproj-labs/argo-dataflow/commit/616753f06b1cc70e3ab438bb4d9e4c1298d764e6) fix: nats disconnect log (#206)
