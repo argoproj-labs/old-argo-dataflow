@@ -12,7 +12,6 @@ import (
 )
 
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/stan.yaml
-//go:generate kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
 
 func TestStanSourceStress(t *testing.T) {
 	defer Setup(t)()
