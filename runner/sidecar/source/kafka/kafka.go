@@ -25,34 +25,6 @@ type kafkaSource struct {
 	topic         string
 }
 
-type handler struct {
-	f source.Func
-	i int
-}
-
-func (handler) Setup(_ sarama.ConsumerGroupSession) error   {
-	logger.Info("Kafka handler set-up")
-	return nil
-}
-func (handler) Cleanup(_ sarama.ConsumerGroupSession) error {
-	logger.Info("Kafka handler clean-up")
-	return nil
-}
-func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	logger.Info("starting consuming claim", "partition", claim.Partition())
-	for msg := range claim.Messages() {
-		if err := h.f(context.Background(), msg.Value); err != nil {
-		} else {
-			sess.MarkMessage(msg, "")
-		}
-		h.i++
-		if h.i%dfv1.CommitN == 0 {
-			sess.Commit()
-		}
-	}
-	return nil
-}
-
 func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
 	config, err := kafka.GetConfig(ctx, secretInterface, x.Kafka.KafkaConfig)
 	if err != nil {
