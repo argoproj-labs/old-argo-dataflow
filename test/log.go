@@ -125,7 +125,9 @@ func TailLogs() {
 		wg.Add(1)
 		go func(podName string) {
 			defer wg.Done()
+			tailLogs(podName, "init")
 			tailLogs(podName, "sidecar")
+			tailLogs(podName, "main")
 		}(item.Name)
 	}
 	wg.Wait()
