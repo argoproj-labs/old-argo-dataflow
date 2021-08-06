@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"time"
 
@@ -14,30 +13,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var (
-	cache = make(map[string]sarama.Client) // hash(config) -> client
-	logger = sharedutil.NewLogger()
-)
-
-func GetClient(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig, startOffset string) (*sarama.Config, sarama.Client, error) {
+func GetClient(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (*sarama.Config, sarama.Client, error) {
 	config, err := newConfig(ctx, secretInterface, k)
 	if err != nil {
 		return nil, nil, err
 	}
-	if startOffset == "First" {
-		config.Consumer.Offsets.Initial = sarama.OffsetOldest
-	}
-	key := sharedutil.MustHash(k)
-	if client, ok := cache[key]; ok {
-		logger.Info("cache hit: reusing existing Kafka client")
-		return config, client, nil
-	}
-	logger.Info("cache miss: creating new Kafka client")
 	client, err := sarama.NewClient(k.Brokers, config)
 	if err != nil {
 		return nil, nil, err
 	}
-	cache[key] = client
 	return config, client, err
 }
 

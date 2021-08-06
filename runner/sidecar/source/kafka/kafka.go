@@ -47,9 +47,12 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
-	config, client, err := kafka.GetClient(ctx, secretInterface, x.Kafka.KafkaConfig, string(x.StartOffset))
+	config, client, err := kafka.GetClient(ctx, secretInterface, x.Kafka.KafkaConfig)
 	if err != nil {
 		return nil, err
+	}
+	if x.StartOffset == "First" {
+		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
 	// This ID can be up to 255 characters in length, and can include the following characters: a-z, A-Z, 0-9, . (dot), _ (underscore), and - (dash).
 	groupID := sharedutil.MustHash(fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName))
@@ -64,10 +67,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 		for {
 			logger.Info("starting Kafka consumption", "source", sourceName)
 			if err := consumerGroup.Consume(ctx, []string{x.Topic}, h); err != nil {
-				logger.Error(err, "failed to consume kafka topic", "source", sourceName)
 				if err == sarama.ErrClosedConsumerGroup {
+					logger.Info("failed to consume kafka topic", "error", err)
 					return
 				}
+				logger.Error(err, "failed to consume kafka topic", "source", sourceName)
 			}
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
