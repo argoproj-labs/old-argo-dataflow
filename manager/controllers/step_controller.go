@@ -59,6 +59,12 @@ type hash struct {
 	StepSpec    dfv1.StepSpec `json:"stepSpec"`
 }
 
+var clusterName = os.Getenv(dfv1.EnvClusterName)
+
+func init() {
+	logger.Info("config", "clusterName", clusterName)
+}
+
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=,resources=pods,verbs=get;watch;list;create
@@ -158,7 +164,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
-						ClusterName:    os.Getenv(dfv1.EnvClusterName),
+						ClusterName:    clusterName,
 						PipelineName:   pipelineName,
 						Namespace:      step.Namespace,
 						Replica:        int32(replica),

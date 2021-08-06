@@ -1,0 +1,6 @@
+resources:
+  - github.com/argoproj/argo-workflows/manifests/base/argo-server?ref=master
+  - argo-server-role.yaml
+  - argo-server-rolebinding.yaml
+patchesStrategicMerge:
+  - argo-server-deploy.yaml

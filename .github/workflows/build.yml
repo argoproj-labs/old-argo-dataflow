@@ -49,18 +49,19 @@ jobs:
       fail-fast: false
       matrix:
         suite:
-          - fmea
-        rep:
-          - "0"
-          - "1"
-          - "2"
-          - "3"
-          - "4"
-        include:
-          - suite: e2e
-          - suite: examples
-          - suite: hpa
-          - suite: stress
+          - db-e2e
+          - e2e
+          - examples
+          - http-fmea
+          - http-stress
+          - hpa
+          - kafka-e2e
+          - kafka-fmea
+          - kafka-stress
+          - s3-e2e
+          - stan-e2e
+          - stan-fmea
+          - stan-stress
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
@@ -71,9 +72,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ hashFiles('**/go.mod') }}
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/go.mod') }}
+            ${{ runner.os }}-buildx-
       - name: Install and start K3S
         timeout-minutes: 3
         run: |
@@ -81,7 +82,7 @@ jobs:
           until kubectl cluster-info ; do sleep 10s ; done
       - uses: actions/setup-go@v2
         with:
-          go-version: "1.16.2"
+          go-version: "1.16"
       - uses: actions/cache@v2
         with:
           path: /home/runner/.cache/go-build
@@ -95,7 +96,8 @@ jobs:
       - run: make deploy CONFIG=ci
       - run: make runner
       - run: make runtimes
-        if: "${{matrix.suite}} == 'e2e' || ${{matrix.suite}} == 'examples'"
+        if: ${{matrix.suite == 'e2e' || matrix.suite == 'examples'}}
+      - run: docker pull golang:1.16
       - run: make wait
       - run: make test-${{matrix.suite}}
       - name: controller logs
