@@ -94,6 +94,7 @@ jobs:
         with:
           path: /home/runner/go/pkg/mod
           key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - run: make builder-image
       - run: make controller
       - run: make testapi
       - run: make deploy CONFIG=ci
