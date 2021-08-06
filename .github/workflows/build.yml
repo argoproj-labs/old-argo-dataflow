@@ -49,22 +49,19 @@ jobs:
       fail-fast: false
       matrix:
         suite:
+          - db-e2e
+          - e2e
+          - examples
           - http-fmea
+          - http-stress
+          - hpa
+          - kafka-e2e
           - kafka-fmea
+          - kafka-stress
+          - s3-e2e
+          - stan-e2e
           - stan-fmea
-        rep:
-          - "0"
-        include:
-          - suite: db-e2e
-          - suite: e2e
-          - suite: examples
-          - suite: http-stress
-          - suite: hpa
-          - suite: kafka-e2e
-          - suite: kafka-stress
-          - suite: s3-e2e
-          - suite: stan-e2e
-          - suite: stan-stress
+          - stan-stress
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
