@@ -82,7 +82,7 @@ jobs:
           until kubectl cluster-info ; do sleep 10s ; done
       - uses: actions/setup-go@v2
         with:
-          go-version: "1.16.2"
+          go-version: "1.16"
       - uses: actions/cache@v2
         with:
           path: /home/runner/.cache/go-build
