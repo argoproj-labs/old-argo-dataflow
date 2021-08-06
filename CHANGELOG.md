@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.0.81 (2021-08-05)
+
+ * [616753f](https://github.com/argoproj-labs/argo-dataflow/commit/616753f06b1cc70e3ab438bb4d9e4c1298d764e6) fix: nats disconnect log (#206)
+ * [c52ff23](https://github.com/argoproj-labs/argo-dataflow/commit/c52ff230bea111eb145957b0cabe5fde512539a9) fix: Cache and re-use Kafka clients. Fixes #199 (#200)
+ * [a5ba4fe](https://github.com/argoproj-labs/argo-dataflow/commit/a5ba4fe83cd83fe89931de375afcecd750426f76) fix: Change Kafka max-processing time from 100ms to 10s
+ * [efa15a6](https://github.com/argoproj-labs/argo-dataflow/commit/efa15a63429caf6262b3ea8f9bb596d8532a0ff9) feat: change hash from b64 to hex (#203)
+ * [0066afb](https://github.com/argoproj-labs/argo-dataflow/commit/0066afbedbaaaa2000557bdd6db437fc3d4e0805) fix!: Mandate configured cluster name (#198)
+ * [4a645de](https://github.com/argoproj-labs/argo-dataflow/commit/4a645de51495eba2aa1442351f5bd0290a7dc91b) Revert "fix: Removed noisy Kafka logging"
+ * [a4d7977](https://github.com/argoproj-labs/argo-dataflow/commit/a4d7977b83d399258f986349ca93f6752f1dbe33) fix!: Update Kafka group name/id to include namespace.
+ * [07cb751](https://github.com/argoproj-labs/argo-dataflow/commit/07cb7517d385bf7e82f280de5b9f658f38490b3a) feat: Set `allowPrivilegeEscalation: false`
+ * [7a25bb8](https://github.com/argoproj-labs/argo-dataflow/commit/7a25bb826afa8bebb4d6bc37dc560ca8fe240bcd) feat: Generate self-signed certificates (#196)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.80 (2021-08-03)
 
  * [2cfee32](https://github.com/argoproj-labs/argo-dataflow/commit/2cfee3216d0668897ea502cb9562cd9e5e6291cf) feat!: Change HTTP endpoints to have TLS v1.2. Fixes #178 (#193)
