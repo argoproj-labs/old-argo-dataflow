@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/minio.yaml
-
 func TestS3Source(t *testing.T) {
 	defer Setup(t)()
 

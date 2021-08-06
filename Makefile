@@ -41,7 +41,7 @@ test-hpa:
 	if [ `kubectl -n argo-dataflow-system get step 101-hello-main -o=jsonpath='{.status.replicas}'` != 2 ]; then exit 1; fi
 test-%:
 	go generate $(shell find ./test/$* -name '*.go')
-	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
+	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m
 	go test -count 1 -v --tags test ./test/$*
 
 pprof:
