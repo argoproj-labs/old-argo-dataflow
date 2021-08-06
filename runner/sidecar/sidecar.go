@@ -4,12 +4,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"

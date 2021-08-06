@@ -3,8 +3,9 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"k8s.io/apimachinery/pkg/util/runtime"
 	"time"
+
+	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"

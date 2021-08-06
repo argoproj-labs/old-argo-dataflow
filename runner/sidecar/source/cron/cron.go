@@ -3,8 +3,9 @@ package cron
 import (
 	"context"
 	"fmt"
-	"k8s.io/apimachinery/pkg/util/runtime"
 	"time"
+
+	"k8s.io/apimachinery/pkg/util/runtime"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
