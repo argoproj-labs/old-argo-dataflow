@@ -5,32 +5,15 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"time"
-
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-func GetClient(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (*sarama.Config, sarama.Client, error) {
-	config, err := newConfig(ctx, secretInterface, k)
-	if err != nil {
-		return nil, nil, err
-	}
-	client, err := sarama.NewClient(k.Brokers, config)
-	if err != nil {
-		return nil, nil, err
-	}
-	return config, client, err
-}
-
-func newConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (*sarama.Config, error) {
+func GetConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (*sarama.Config, error) {
 	x := sarama.NewConfig()
 	x.ClientID = dfv1.CtrSidecar
-	x.Consumer.MaxProcessingTime = 10 * time.Second
-	x.Consumer.Offsets.AutoCommit.Enable = false
-	x.Producer.Return.Successes = true
 	if k.Version != "" {
 		v, err := sarama.ParseKafkaVersion(k.Version)
 		if err != nil {

@@ -109,6 +109,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				if pending, err := x.GetPending(ctx); err != nil {
 					return err
 				} else {
+					logger.Info("got pending", "source", sourceName, "pending", pending)
 					withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, pending) })
 				}
 				return nil

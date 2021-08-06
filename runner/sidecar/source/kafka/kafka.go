@@ -3,16 +3,14 @@ package kafka
 import (
 	"context"
 	"fmt"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"time"
-
-	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
-
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"k8s.io/apimachinery/pkg/util/wait"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"time"
 )
 
 var logger = sharedutil.NewLogger()
@@ -47,17 +45,19 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
-	config, client, err := kafka.GetClient(ctx, secretInterface, x.Kafka.KafkaConfig)
+	config, err := kafka.GetConfig(ctx, secretInterface, x.Kafka.KafkaConfig)
 	if err != nil {
 		return nil, err
 	}
+	config.Consumer.MaxProcessingTime = 10 * time.Second
+	config.Consumer.Offsets.AutoCommit.Enable = false
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
 	// This ID can be up to 255 characters in length, and can include the following characters: a-z, A-Z, 0-9, . (dot), _ (underscore), and - (dash).
 	groupID := sharedutil.MustHash(fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName))
 	logger.Info("Kafka consumer group ID", "groupID", groupID)
-	consumerGroup, err := sarama.NewConsumerGroupFromClient(groupID, client)
+	consumerGroup, err := sarama.NewConsumerGroup(x.Brokers, groupID, config)
 	if err != nil {
 		return nil, err
 	}
@@ -75,10 +75,13 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 			}
 		}
 	}, 3*time.Second, 1.2, true, ctx.Done())
-
+	client, err := sarama.NewClient(x.Brokers, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Kafka client: %w", err)
+	}
 	adminClient, err := sarama.NewClusterAdmin(x.Brokers, config)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create Kafka admin client: %w", err)
 	}
 	return kafkaSource{
 		client,
@@ -90,10 +93,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 }
 
 func (s kafkaSource) Close() error {
-	if err := s.adminClient.Close(); err != nil {
+	if err := s.consumerGroup.Close(); err != nil {
 		return err
 	}
-	if err := s.consumerGroup.Close(); err != nil {
+	if err := s.adminClient.Close(); err != nil {
 		return err
 	}
 	return s.client.Close()
