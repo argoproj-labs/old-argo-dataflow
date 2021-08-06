@@ -3,6 +3,7 @@ package stan
 import (
 	"context"
 	"fmt"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/nats.go"
@@ -56,7 +57,11 @@ func ConnectSTAN(ctx context.Context, secretInterface corev1.SecretInterface, x 
 		nats.NoReconnect(),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
 			conn.natsConnected = false
-			logger.Error(err, "nats connection lost")
+			if err != nil {
+				logger.Error(err, "nats connection lost")
+			} else {
+				logger.Info("nats disconnected")
+			}
 		}),
 		nats.ReconnectHandler(func(nnc *nats.Conn) {
 			conn.natsConnected = true
@@ -84,7 +89,11 @@ func ConnectSTAN(ctx context.Context, secretInterface corev1.SecretInterface, x 
 	sc, err := stan.Connect(x.ClusterID, clientID, stan.NatsConn(nc), stan.Pings(5, 60),
 		stan.SetConnectionLostHandler(func(_ stan.Conn, reason error) {
 			conn.stanConnected = false
-			logger.Error(err, "stan connection lost", "clientID", clientID)
+			if reason != nil {
+				logger.Error(reason, "stan connection lost", "clientID", clientID)
+			} else {
+				logger.Info("stan disconnected", "clientID", clientID)
+			}
 		}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to stan url=%s clusterID=%s clientID=%s subject=%s: %w", x.NATSURL, x.ClusterID, clientID, x.Subject, err)
