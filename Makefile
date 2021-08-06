@@ -26,7 +26,7 @@ test:
 	go test -v ./... -coverprofile cover.out -race
 
 test-examples: examples
-	kubectl -n kube-system apply -k config/examples
+	kubectl -n kube-system apply -f config/examples.yaml
 	go test -timeout 20m -tags examples -v -count 1 ./examples
 test-hpa:
 	kubectl -n kube-system apply -k config/apps/metrics-server
