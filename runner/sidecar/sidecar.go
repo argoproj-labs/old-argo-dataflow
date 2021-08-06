@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"net/http"
 	"os"
 	"strconv"
@@ -151,6 +152,7 @@ func Exec(ctx context.Context) error {
 		return server.Shutdown(context.Background())
 	})
 	go func() {
+		defer runtimeutil.HandleCrash()
 		logger.Info("starting HTTP server")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error(err, "failed to listen-and-server on HTTP")
@@ -163,6 +165,7 @@ func Exec(ctx context.Context) error {
 		return httpServer.Shutdown(context.Background())
 	})
 	go func() {
+		defer runtimeutil.HandleCrash()
 		logger.Info("starting HTTPS server")
 		if err := httpServer.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			logger.Error(err, "failed to listen-and-server on HTTPS")
@@ -179,7 +182,7 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	go wait.JitterUntil(func() { patchStepStatus() }, updateInterval, 1.2, true, ctx.Done())
+	go wait.JitterUntil(func() { defer runtimeutil.HandleCrash(); patchStepStatus() }, updateInterval, 1.2, true, ctx.Done())
 
 	ready = true
 	logger.Info("ready")

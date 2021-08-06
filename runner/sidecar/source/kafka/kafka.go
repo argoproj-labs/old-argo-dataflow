@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -29,9 +30,16 @@ type handler struct {
 	i int
 }
 
-func (handler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
-func (handler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (handler) Setup(_ sarama.ConsumerGroupSession) error   {
+	logger.Info("Kafka handler set-up")
+	return nil
+}
+func (handler) Cleanup(_ sarama.ConsumerGroupSession) error {
+	logger.Info("Kafka handler clean-up")
+	return nil
+}
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	logger.Info("starting consuming claim")
 	for msg := range claim.Messages() {
 		if err := h.f(context.Background(), msg.Value); err != nil {
 		} else {
@@ -64,6 +72,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 	}
 	h := handler{f, 0}
 	go wait.JitterUntil(func() {
+		defer runtime.HandleCrash()
 		ctx := context.Background()
 		for {
 			logger.Info("starting Kafka consumption", "source", sourceName)

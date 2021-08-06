@@ -3,6 +3,7 @@ package cron
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -23,7 +24,10 @@ func New(x dfv1.Cron, f source.Func) (source.Interface, error) {
 		cron.WithChain(cron.Recover(logger)),
 	)
 
-	go crn.Run()
+	go func() {
+		defer runtime.HandleCrash()
+		crn.Run()
+	}()
 
 	_, err := crn.AddFunc(x.Schedule, func() {
 		msg := []byte(time.Now().Format(x.Layout))
