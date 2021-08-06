@@ -12,7 +12,6 @@ import (
 )
 
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/mysql.yaml
-//go:generate kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
 
 func TestDBSink(t *testing.T) {
 	defer Setup(t)()
