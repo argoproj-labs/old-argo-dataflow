@@ -16,8 +16,6 @@ import (
 
 func TestStanSourceStress(t *testing.T) {
 	defer Setup(t)()
-	defer DeletePod("nats-0")
-	defer DeletePod("stan-0")
 
 	longSubject, subject := RandomSTANSubject()
 
@@ -51,8 +49,6 @@ func TestStanSourceStress(t *testing.T) {
 
 func TestStanSinkStress(t *testing.T) {
 	defer Setup(t)()
-	defer DeletePod("nats-0")
-	defer DeletePod("stan-0")
 
 	longSubject, subject := RandomSTANSubject()
 	_, sinkSubject := RandomSTANSubject()
