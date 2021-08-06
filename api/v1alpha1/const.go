@@ -50,8 +50,7 @@ const (
 	PathWorkingDir    = "/var/run/argo-dataflow/wd"
 	PathVarRun        = "/var/run/argo-dataflow"
 	// other const
-	CommitN            = 20 // how many messages between commits, therefore potential duplicates during disruption
-	DefaultClusterName = "default"
+	CommitN = 20 // how many messages between commits, therefore potential duplicates during disruption
 )
 
 var KeyKillCmd = func(x string) string {
