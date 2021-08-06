@@ -6,11 +6,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"log"
 	"regexp"
 	"sync"
 	"time"
+
+	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,9 +19,7 @@ import (
 
 type ContainerName string
 
-var (
-	podsInterface = kubernetesInterface.CoreV1().Pods(namespace)
-)
+var podsInterface = kubernetesInterface.CoreV1().Pods(namespace)
 
 func ExpectLogLine(step, pattern string, opts ...interface{}) {
 	var (

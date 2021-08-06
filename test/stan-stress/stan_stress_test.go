@@ -3,8 +3,9 @@
 package stan_stress
 
 import (
-	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 	"testing"
+
+	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -46,7 +47,6 @@ func TestStanSourceStress(t *testing.T) {
 
 	go PumpSTANSubject(longSubject, n, prefix)
 	WaitForStep(TotalSunkMessages(n), Params.Timeout)
-
 }
 
 func TestStanSinkStress(t *testing.T) {
@@ -82,5 +82,4 @@ func TestStanSinkStress(t *testing.T) {
 
 	go PumpSTANSubject(longSubject, n, prefix)
 	WaitForStep(TotalSunkMessages(n*2), Params.Timeout) // 2 sinks
-
 }

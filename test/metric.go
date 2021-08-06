@@ -5,10 +5,11 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/prometheus/client_model/go"
-	"github.com/prometheus/common/expfmt"
 	"log"
 	"net/http"
+
+	"github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
 )
 
 func ExpectMetric(name string, value float64, opts ...interface{}) {

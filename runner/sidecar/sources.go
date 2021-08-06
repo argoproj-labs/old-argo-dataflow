@@ -3,6 +3,9 @@ package sidecar
 import (
 	"context"
 	"fmt"
+	"io"
+	"time"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
@@ -14,9 +17,8 @@ import (
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"io"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 func connectSources(ctx context.Context, toMain func(context.Context, []byte) error) error {

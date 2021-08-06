@@ -3,10 +3,11 @@ package dedupe
 import (
 	"context"
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 
 	"github.com/antonmedv/expr"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"

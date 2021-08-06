@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

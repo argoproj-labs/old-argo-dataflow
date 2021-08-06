@@ -5,9 +5,10 @@ package test
 import (
 	"context"
 	"fmt"
-	corev1 "k8s.io/api/core/v1"
 	"log"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"

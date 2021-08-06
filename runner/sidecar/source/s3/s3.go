@@ -5,22 +5,24 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"syscall"
+	"time"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	httpsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/http"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"io"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/workqueue"
-	"net/http"
-	"os"
-	"path/filepath"
-	"syscall"
-	"time"
 )
 
 const concurrency = 4

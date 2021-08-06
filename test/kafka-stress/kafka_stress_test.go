@@ -3,8 +3,9 @@
 package kafka_stress
 
 import (
-	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 	"testing"
+
+	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -14,7 +15,6 @@ import (
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
 
 func TestKafkaSourceStress(t *testing.T) {
-
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
@@ -48,7 +48,6 @@ func TestKafkaSourceStress(t *testing.T) {
 }
 
 func TestKafkaSinkStress(t *testing.T) {
-
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()

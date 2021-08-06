@@ -16,7 +16,6 @@ import (
 )
 
 func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger func()) {
-
 	var start, end *time.Time
 	ctx, cancel := context.WithCancel(context.Background())
 

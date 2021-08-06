@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"os"
 )
 
 type s3Sink struct {

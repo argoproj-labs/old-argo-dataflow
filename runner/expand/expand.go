@@ -3,6 +3,7 @@ package expand
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 
 	"github.com/doublerebel/bellows"

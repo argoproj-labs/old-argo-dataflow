@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/Shopify/sarama"

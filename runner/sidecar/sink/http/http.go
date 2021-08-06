@@ -5,9 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"net/http"
 	"time"
+
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"

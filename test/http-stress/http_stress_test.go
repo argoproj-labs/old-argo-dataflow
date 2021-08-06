@@ -3,8 +3,9 @@
 package http_stress
 
 import (
-	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 	"testing"
+
+	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -12,7 +13,6 @@ import (
 )
 
 func TestHTTPSourceStress(t *testing.T) {
-
 	defer Setup(t)()
 
 	CreatePipeline(Pipeline{
@@ -42,7 +42,6 @@ func TestHTTPSourceStress(t *testing.T) {
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, 0)
 	WaitForStep(TotalSunkMessages(n), Params.Timeout)
-
 }
 
 func TestHTTPSinkStress(t *testing.T) {
