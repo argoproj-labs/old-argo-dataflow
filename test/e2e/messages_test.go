@@ -19,7 +19,7 @@ func TestMessagesEndpoint(t *testing.T) {
 				{
 					Name:    "main",
 					Container:     &Container{
-						Image:        "golang:1.16",
+						Image:        "golang:1.16-alpine",
 						Command:      []string{"bash", "-c"},
 						Args:         []string{`
 set -eux -o pipefail

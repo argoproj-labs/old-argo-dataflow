@@ -20,7 +20,7 @@ func TestGitStep(t *testing.T) {
 				{
 					Name: "main",
 					Git: &Git{
-						Image:   "golang:1.16",
+						Image:   "golang:1.16-alpine",
 						URL:     "https://github.com/argoproj-labs/argo-dataflow",
 						Command: []string{"go", "run", "."},
 						Path:    "examples/git",

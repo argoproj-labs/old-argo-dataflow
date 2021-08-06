@@ -91,6 +91,7 @@ jobs:
         with:
           path: /home/runner/go/pkg/mod
           key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - run: docker pull golang:1.16-alpine
       - run: make builder-image
       - run: make controller
       - run: make testapi
