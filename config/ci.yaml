@@ -686,6 +686,7 @@ spec:
                           - golang1-16
                           - java16
                           - python3-9
+                          - node16
                           type: string
                         source:
                           type: string
@@ -4198,6 +4199,7 @@ spec:
                     - golang1-16
                     - java16
                     - python3-9
+                    - node16
                     type: string
                   source:
                     type: string

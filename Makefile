@@ -148,11 +148,12 @@ runner: runner-image
 testapi: testapi-image
 
 .PHONY: runtimes
-runtimes: golang1-16 java16 python3-9
+runtimes: golang1-16 java16 python3-9 node16
 
 golang1-16: golang1-16-image
 java16: java16-image
 python3-9: python3-9-image
+node16: node16-image
 
 %-image:
 	docker buildx build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG) --load --build-arg VERSION="$(VERSION)"

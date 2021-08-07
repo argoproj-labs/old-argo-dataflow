@@ -11,7 +11,7 @@ your code when the step starts. This example presents how one can use python run
 [Learn about Git steps](../docs/GIT.md)""")
      .step(
         (kafka('input-topic')
-         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git-python', 'python:3.9',
+         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git-python', 'quay.io/argoproj/dataflow-python3-9',
               command=["./start.sh"])
          .kafka('output-topic')
          ))

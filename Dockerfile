@@ -95,3 +95,15 @@ RUN pip3 install -r requirements.txt
 ENV PYTHONUNBUFFERED 1
 ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/workspace/entrypoint.sh"]
+
+FROM node:16-alpine AS node16
+COPY --from=builder /tmp/dumb-init /dumb-init
+RUN chmod +x /dumb-init
+RUN mkdir /.cache /.local
+ADD runtimes/node16 /workspace
+RUN chown -R 9653 /.cache /.local /workspace
+WORKDIR /workspace
+USER 9653:9653
+RUN npm install --cache /.cache
+ENTRYPOINT ["/dumb-init", "--"]
+CMD ["/workspace/entrypoint.sh"]

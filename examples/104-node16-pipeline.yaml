@@ -1,0 +1,26 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |-
+      This example is of the NodeJS 16 handler.
+
+      [Learn about handlers](../docs/HANDLERS.md)
+    dataflow.argoproj.io/owner: argoproj-labs
+  name: 104-node16
+spec:
+  steps:
+  - code:
+      runtime: node16
+      source: |-
+        module.exports = async function (messageBuf, context) {
+          const msg = messageBuf.toString('utf8')
+          return Buffer.from('hi ' + msg)
+        }
+    name: main
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

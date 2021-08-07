@@ -126,6 +126,16 @@ This example is of the Java 16 handler.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml
 ```
 
+### [104-node16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-node16-pipeline.yaml)
+
+This example is of the NodeJS 16 handler.
+
+[Learn about handlers](../docs/HANDLERS.md)
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-node16-pipeline.yaml
+```
+
 ### [104-python3-9](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-python3-9-pipeline.yaml)
 
 This example is of the Python 3.9 handler.
