@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.85 (2021-08-07)
+
+
+### Contributors
+
+
 ## v0.0.84 (2021-08-06)
 
  * [ab5ccde](https://github.com/argoproj-labs/argo-dataflow/commit/ab5ccded626f6f9a6fd90203c8346eb3a69ba47b) fix: set Kafka consumer max limit to 16x default (16m)
