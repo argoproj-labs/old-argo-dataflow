@@ -72,6 +72,7 @@ Advanced
 
 * [Configuration](docs/CONFIGURATION.md)
 * [Features](docs/FEATURES.md)
+* [Limitations](docs/LIMITATIONS.md)
 * [Metrics](docs/METRICS.md)
 * [Image contract](docs/IMAGE_CONTRACT.md)
 * [Reading material](docs/READING.md)

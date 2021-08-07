@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -56,6 +57,12 @@ type StepReconciler struct {
 type hash struct {
 	RunnerImage string        `json:"runnerImage"`
 	StepSpec    dfv1.StepSpec `json:"stepSpec"`
+}
+
+var clusterName = os.Getenv(dfv1.EnvClusterName)
+
+func init() {
+	logger.Info("config", "clusterName", clusterName)
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
@@ -157,6 +164,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
+						ClusterName:    clusterName,
 						PipelineName:   pipelineName,
 						Namespace:      step.Namespace,
 						Replica:        int32(replica),
@@ -207,7 +215,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: corev1.ServiceSpec{
 					Ports: []corev1.ServicePort{
-						{Port: 80, TargetPort: intstr.FromInt(3569)},
+						{Port: 443, TargetPort: intstr.FromInt(3570)},
 					},
 					Selector: map[string]string{
 						dfv1.KeyPipelineName: pipelineName,

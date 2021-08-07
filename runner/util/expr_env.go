@@ -41,6 +41,7 @@ func _bytes(v interface{}) []byte {
 		return []byte(fmt.Sprintf("%v", v))
 	}
 }
+
 func cat(v string) []byte {
 	data, err := ioutil.ReadFile(v)
 	if err != nil {

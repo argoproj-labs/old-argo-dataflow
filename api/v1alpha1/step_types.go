@@ -54,6 +54,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
 
 	envVars := []corev1.EnvVar{
+		{Name: EnvClusterName, Value: req.ClusterName},
 		{Name: EnvNamespace, Value: req.Namespace},
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
@@ -65,6 +66,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{"all"},
 		},
+		AllowPrivilegeEscalation: pointer.BoolPtr(false),
 	}
 	return corev1.PodSpec{
 		Volumes: append(in.Spec.Volumes, volume, corev1.Volume{
@@ -111,18 +113,19 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				VolumeMounts:    volumeMounts,
 				Resources:       standardResources,
 				Ports: []corev1.ContainerPort{
-					{ContainerPort: 3569},
+					{ContainerPort: 3570},
 				},
 				ReadinessProbe: &corev1.Probe{
 					Handler: corev1.Handler{
-						HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3569)},
+						HTTPGet: &corev1.HTTPGetAction{Scheme: "HTTPS", Path: "/ready", Port: intstr.FromInt(3570)},
 					},
 				},
 				Lifecycle: &corev1.Lifecycle{
 					PreStop: &corev1.Handler{
 						HTTPGet: &corev1.HTTPGetAction{
-							Path: "/pre-stop?source=kubernetes",
-							Port: intstr.FromInt(3569),
+							Path:   "/pre-stop?source=kubernetes",
+							Port:   intstr.FromInt(3570),
+							Scheme: "HTTPS",
 						},
 					},
 				},

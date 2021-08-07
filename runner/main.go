@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	_ "net/http/pprof"
+	"os"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/cat"
 	"github.com/argoproj-labs/argo-dataflow/runner/dedupe"
@@ -16,10 +20,8 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
 	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
 	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
-	"io/ioutil"
+
 	"k8s.io/apimachinery/pkg/api/resource"
-	_ "net/http/pprof"
-	"os"
 )
 
 func main() {

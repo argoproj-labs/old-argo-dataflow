@@ -107,8 +107,7 @@ func formatSourceStatuses(statuses SourceStatuses) string {
 	}
 	for _, s := range statuses {
 		for _, m := range s.Metrics {
-			rate, _ := m.Rate.AsInt64()
-			sourceText = append(sourceText, p.Sprintf("%s%s%s%d %s%d", sym(symbol.Pending, s.GetPending()), sym(symbol.Error, m.Errors), symbol.Rate, rate, symbol.Total, m.Total))
+			sourceText = append(sourceText, p.Sprintf("%s%s%s%.1f %s%d", sym(symbol.Pending, s.GetPending()), sym(symbol.Error, m.Errors), symbol.Rate, m.Rate.AsApproximateFloat64(), symbol.Total, m.Total))
 		}
 	}
 	return strings.Join(sourceText, ",")

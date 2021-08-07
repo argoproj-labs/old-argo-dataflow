@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This is an example of providing a namespace named Kafka configuration.
+
+      The secret must be named `dataflow-kafka-${name}`.
+
+      # Brokers as a comma-separated list
+      brokers: broker.a,broker.b
+      # Kafka version
+      version: "2.0.0"
+
+      # Enable TLS
+      net.tls.caCert: ""
+      net.tls.cert: ""
+      net.tls.key: ""
+
+      # Enable SASL
+      net.sasl.mechanism: PLAIN
+      net.sasl.user: ""
+      net.sasl.password: ""
+
+      [Learn about configuration](../docs/CONFIGURATION.md)
+  name: dataflow-kafka-default
+  namespace: argo-dataflow-system
+stringData:
+  brokers: kafka-broker:9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-broker
+  namespace: argo-dataflow-system
+spec:
+  ports:
+  - port: 9092
+  selector:
+    app: kafka-broker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  namespace: argo-dataflow-system
+spec:
+  ports:
+  - name: client
+    port: 2181
+  - name: follower
+    port: 2888
+  - name: leader
+    port: 3888
+  selector:
+    app: zookeeper
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka-broker
+  namespace: argo-dataflow-system
+spec:
+  selector:
+    matchLabels:
+      app: kafka-broker
+  serviceName: kafka-broker
+  template:
+    metadata:
+      labels:
+        app: kafka-broker
+    spec:
+      containers:
+      - env:
+        - name: KAFKA_ADVERTISED_PORT
+          value: "9092"
+        - name: KAFKA_ADVERTISED_HOST_NAME
+          value: kafka-broker
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: zookeeper:2181
+        - name: KAFKA_BROKER_ID
+          value: "0"
+        image: wurstmeister/kafka
+        imagePullPolicy: IfNotPresent
+        name: main
+        ports:
+        - containerPort: 9092
+        readinessProbe:
+          tcpSocket:
+            port: 9092
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zookeeper
+  namespace: argo-dataflow-system
+spec:
+  selector:
+    matchLabels:
+      app: zookeeper
+  serviceName: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+      - env:
+        - name: ZOOKEEPER_ID
+          value: "1"
+        - name: ZOOKEEPER_SERVER_1
+          value: zoo
+        image: wurstmeister/zookeeper
+        imagePullPolicy: IfNotPresent
+        name: main
+        ports:
+        - containerPort: 2181
+        readinessProbe:
+          tcpSocket:
+            port: 2181
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: input
+  namespace: argo-dataflow-system
+spec:
+  containers:
+  - args:
+    - -fvN
+    - http://testapi/kafka/pump-topic?topic=input-topic&sleep=2s
+    command:
+    - curl
+    image: golang:1.16
+    name: pump-topic
+  initContainers:
+  - args:
+    - -fvN
+    - http://testapi/kafka/create-topic?topic=input-topic
+    command:
+    - curl
+    image: golang:1.16
+    name: create-input-topic
+  - args:
+    - -fvN
+    - http://testapi/kafka/create-topic?topic=output-topic
+    command:
+    - curl
+    image: golang:1.16
+    name: create-output-topic

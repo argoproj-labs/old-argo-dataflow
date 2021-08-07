@@ -2,7 +2,7 @@ package util
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
+	"encoding/hex"
 )
 
 func MustHash(v interface{}) string {
@@ -12,7 +12,7 @@ func MustHash(v interface{}) string {
 		if _, err := hash.Write(data); err != nil {
 			panic(err)
 		}
-		return base64.StdEncoding.EncodeToString(hash.Sum(nil))
+		return hex.EncodeToString(hash.Sum(nil))
 	case string:
 		return MustHash([]byte(data))
 	default:

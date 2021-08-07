@@ -3,11 +3,6 @@ name: Release
 on:
   push:
     tags: [ v* ]
-  workflow_run:
-    workflows:
-      - Build
-    types:
-      - completed
 
 jobs:
 
@@ -25,9 +20,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ hashFiles('**/go.mod') }}
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ hashFiles('**/go.mod') }}
+            ${{ runner.os }}-buildx-
       - uses: docker/login-action@v1
         with:
           registry: quay.io

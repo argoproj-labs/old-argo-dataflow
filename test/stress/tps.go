@@ -16,7 +16,6 @@ import (
 )
 
 func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger func()) {
-
 	var start, end *time.Time
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -29,7 +28,7 @@ func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger f
 
 	go func() {
 		defer runtimeutil.HandleCrash()
-		ExpectLogLine(step, fmt.Sprintf("%s-%v", prefix, n-1), ctx, params.timeout)
+		ExpectLogLine(step, fmt.Sprintf("%s-%v", prefix, n-1), ctx, Params.Timeout)
 		t := time.Now()
 		end = &t
 	}()
@@ -69,7 +68,7 @@ func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger f
 		if start == nil || end == nil {
 			panic("failed to calculate start time or end time")
 		}
-		setTestResult(fmt.Sprintf("%s/currentContext=%s,replicas=%d,n=%d", t.Name(), currentContext, params.replicas, params.n), "tps", roundToNearest50(value()))
+		setTestResult(fmt.Sprintf("%s/currentContext=%s,replicas=%d,n=%d", t.Name(), currentContext, Params.Replicas, Params.N), "tps", roundToNearest50(value()))
 	}
 }
 

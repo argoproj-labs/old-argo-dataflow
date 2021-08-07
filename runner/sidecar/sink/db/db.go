@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"time"
+
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
@@ -138,4 +139,8 @@ func getDataSource(ctx context.Context, secretInterface corev1.SecretInterface, 
 		}
 	}
 	return "", fmt.Errorf("invalid data source config")
+}
+
+func (d dbSink) Close() error {
+	return d.db.Close()
 }

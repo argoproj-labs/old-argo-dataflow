@@ -25,18 +25,14 @@ build:
 test:
 	go test -v ./... -coverprofile cover.out -race
 
-install-hpa:
-	kubectl -n kube-system apply -f config/metrics-server.yaml
-	kubectl -n kube-system wait deploy/metrics-server --for=condition=available
-
-uninstall-hpa:
-	kubectl -n kube-system delete -f config/metrics-server.yaml
-
-test-e2e:
-test-examples: examples
+test-examples:
+	kubectl -n argo-dataflow-system apply -f config/apps/kafka.yaml
+	kubectl -n argo-dataflow-system apply -f config/apps/stan.yaml
+	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m
 	go test -timeout 20m -tags examples -v -count 1 ./examples
-test-fmea:
-test-hpa: install-hpa
+test-hpa:
+	kubectl -n kube-system apply -k config/apps/metrics-server
+	kubectl -n kube-system wait deploy/metrics-server --for=condition=available
 	kubectl -n argo-dataflow-system delete hpa --all
 	kubectl -n argo-dataflow-system delete pipeline --all
 	kubectl -n argo-dataflow-system apply -f examples/101-hello-pipeline.yaml
@@ -45,8 +41,9 @@ test-hpa: install-hpa
 	kubectl -n argo-dataflow-system autoscale step 101-hello-main --min 2 --max 2
 	sleep 20s
 	if [ `kubectl -n argo-dataflow-system get step 101-hello-main -o=jsonpath='{.status.replicas}'` != 2 ]; then exit 1; fi
-test-stress:
 test-%:
+	go generate $(shell find ./test/$* -name '*.go')
+	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m
 	go test -count 1 -v --tags test ./test/$*
 
 pprof:
@@ -57,7 +54,7 @@ pprof:
 
 pre-commit: codegen test install runner testapi lint start
 
-codegen: generate manifests proto config/ci.yaml config/default.yaml config/dev.yaml config/kafka-dev.yaml config/metrics-server.yaml config/quick-start.yaml config/stan-dev.yaml examples CHANGELOG.md
+codegen: generate manifests proto examples CHANGELOG.md
 	go generate ./...
 	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
 	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
@@ -66,14 +63,16 @@ $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-start: build runner deploy $(GOBIN)/goreman
+start: deploy build runner $(GOBIN)/goreman wait
 	kubectl config set-context --current --namespace=argo-dataflow-system
 	goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
 	kubectl -n argo-dataflow-system wait deploy --all --for=condition=available --timeout=2m
+	# kubectl wait does not work for statesfulsets, as statefulsets do not have conditions
+	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
 logs: $(GOBIN)/stern
-	stern -n argo-dataflow-system --tail=3 .
+	stern -n argo-dataflow-system --tail=3 -l dataflow.argoproj.io/step-name .
 
 # Install CRDs into a cluster
 install:
@@ -85,28 +84,23 @@ uninstall:
 
 images: controller runner testapi runtimes
 
-config/ci.yaml:
-config/default.yaml:
-config/dev.yaml:
-config/kafka-dev.yaml:
-config/quick-start.yaml:
-config/metrics-server.yaml:
-config/stan-dev.yaml:
 config/%.yaml: config/$*
 	kustomize build --load-restrictor LoadRestrictionsNone config/$* -o $@
-	sed -i '' "s/:latest/:$(TAG)/" $@
+	sed "s/:latest/:$(TAG)/" $@ > config/$*.tmp
+	mv config/$*.tmp $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: install
-	grep -o 'image: .*' config/$(CONFIG).yaml | grep -v dataflow | sort -u | cut -c 8- | xargs -L 1
 	kubectl apply --force -f config/$(CONFIG).yaml
 
 undeploy:
 	kubectl delete --ignore-not-found -f config/$(CONFIG).yaml
 
-# Generate manifests e.g. CRD, RBAC etc.
-manifests: $(GOBIN)/controller-gen $(shell find api -name '*.go' -not -name '*generated*')
+crds: $(GOBIN)/controller-gen $(shell find api -name '*.go' -not -name '*generated*')
 	$(GOBIN)/controller-gen $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+# Generate manifests e.g. CRD, RBAC etc.
+manifests: crds $(shell find config config/apps -maxdepth 1 -name '*.yaml')
 
 generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
@@ -134,8 +128,13 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 	mv api/v1alpha1/groupversion_info.go.0 api/v1alpha1/groupversion_info.go
 	go mod tidy
 
-lint:
+$(GOPATH)/bin/gofumpt:
+	go install mvdan.cc/gofumpt@v0.1.1
+
+lint: $(GOPATH)/bin/gofumpt
 	go mod tidy
+	# run gofumpt outside of golangci-lint because it seems to be unreliable inside it
+	gofumpt -l -w .
 	golangci-lint run --fix
 	kubectl apply --dry-run=client -f examples
 
@@ -185,7 +184,7 @@ kubebuilder:
 
 examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 
-install-dsls: /dev/null
+install-dsls:
 	pip3 install dsls/python
 
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls

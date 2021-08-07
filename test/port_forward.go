@@ -4,13 +4,14 @@ package test
 
 import (
 	"fmt"
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/tools/portforward"
-	"k8s.io/client-go/transport/spdy"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/tools/portforward"
+	"k8s.io/client-go/transport/spdy"
 )
 
 func StartPortForward(podName string, opts ...interface{}) (stopPortForward func()) {
@@ -49,6 +50,7 @@ func StartPortForward(podName string, opts ...interface{}) (stopPortForward func
 	<-readyChan
 	log.Printf("started port-forward to %q on %d\n", podName, port)
 	return func() {
+		stopChan <- struct{}{}
 		forwarder.Close()
 		log.Printf("stopped port-forward to %q on %d\n", podName, port)
 	}

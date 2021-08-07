@@ -46,7 +46,7 @@ func Exec(ctx context.Context) error {
 	}
 	step := dfv1.Step{}
 	sharedutil.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
-	logger.Info("creating out authorization file")
+	logger.Info("creating authorization file")
 	if err := os.WriteFile(dfv1.PathAuthorization, []byte(sharedutil.RandString()), 0o600); sharedutil.IgnoreExist(err) != nil {
 		return fmt.Errorf("failed to create authorization file: %w", err)
 	}

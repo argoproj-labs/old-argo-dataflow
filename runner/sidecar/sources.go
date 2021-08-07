@@ -3,6 +3,9 @@ package sidecar
 import (
 	"context"
 	"fmt"
+	"io"
+	"time"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
@@ -14,9 +17,8 @@ import (
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"io"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 func connectSources(ctx context.Context, toMain func(context.Context, []byte) error) error {
@@ -68,13 +70,13 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
+			if y, err := stan.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			if y, err := kafkasource.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, f); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, sourceName, *x, f); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
@@ -109,6 +111,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				if pending, err := x.GetPending(ctx); err != nil {
 					return err
 				} else {
+					logger.Info("got pending", "source", sourceName, "pending", pending)
 					withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, pending) })
 				}
 				return nil

@@ -1,5 +1,57 @@
 # Changelog
 
+## v0.0.84 (2021-08-06)
+
+ * [ab5ccde](https://github.com/argoproj-labs/argo-dataflow/commit/ab5ccded626f6f9a6fd90203c8346eb3a69ba47b) fix: set Kafka consumer max limit to 16x default (16m)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.83 (2021-08-06)
+
+
+### Contributors
+
+
+## v0.0.82 (2021-08-06)
+
+ * [c31e5e6](https://github.com/argoproj-labs/argo-dataflow/commit/c31e5e648e2f6942d20be50f2bb18f25aa611fae) fix: use one Kafka client for consumer/producer
+ * [1b18462](https://github.com/argoproj-labs/argo-dataflow/commit/1b18462a4a58f6ddbd92371315dd962a484d6f6c) fix: use one Kafka client for consumer/producer
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.81 (2021-08-05)
+
+ * [616753f](https://github.com/argoproj-labs/argo-dataflow/commit/616753f06b1cc70e3ab438bb4d9e4c1298d764e6) fix: nats disconnect log (#206)
+ * [c52ff23](https://github.com/argoproj-labs/argo-dataflow/commit/c52ff230bea111eb145957b0cabe5fde512539a9) fix: Cache and re-use Kafka clients. Fixes #199 (#200)
+ * [a5ba4fe](https://github.com/argoproj-labs/argo-dataflow/commit/a5ba4fe83cd83fe89931de375afcecd750426f76) fix: Change Kafka max-processing time from 100ms to 10s
+ * [efa15a6](https://github.com/argoproj-labs/argo-dataflow/commit/efa15a63429caf6262b3ea8f9bb596d8532a0ff9) feat: change hash from b64 to hex (#203)
+ * [0066afb](https://github.com/argoproj-labs/argo-dataflow/commit/0066afbedbaaaa2000557bdd6db437fc3d4e0805) fix!: Mandate configured cluster name (#198)
+ * [4a645de](https://github.com/argoproj-labs/argo-dataflow/commit/4a645de51495eba2aa1442351f5bd0290a7dc91b) Revert "fix: Removed noisy Kafka logging"
+ * [a4d7977](https://github.com/argoproj-labs/argo-dataflow/commit/a4d7977b83d399258f986349ca93f6752f1dbe33) fix!: Update Kafka group name/id to include namespace.
+ * [07cb751](https://github.com/argoproj-labs/argo-dataflow/commit/07cb7517d385bf7e82f280de5b9f658f38490b3a) feat: Set `allowPrivilegeEscalation: false`
+ * [7a25bb8](https://github.com/argoproj-labs/argo-dataflow/commit/7a25bb826afa8bebb4d6bc37dc560ca8fe240bcd) feat: Generate self-signed certificates (#196)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
+## v0.0.80 (2021-08-03)
+
+ * [2cfee32](https://github.com/argoproj-labs/argo-dataflow/commit/2cfee3216d0668897ea502cb9562cd9e5e6291cf) feat!: Change HTTP endpoints to have TLS v1.2. Fixes #178 (#193)
+ * [656af83](https://github.com/argoproj-labs/argo-dataflow/commit/656af835773fc0f2dd5172610f0ea87a76019270) feat: NodeJS SDK for handling the container contract (#188)
+ * [2ba29ce](https://github.com/argoproj-labs/argo-dataflow/commit/2ba29cef0ca874bb54a2802a49ec2590e2343698) fix: Removed noisy Kafka logging
+ * [f6b8915](https://github.com/argoproj-labs/argo-dataflow/commit/f6b8915a817c271e5d0c8b08278a61fb3f475f0f) fix!: Move bearer token from environment variable to file.
+
+### Contributors
+
+ * Alex Collins
+ * Dominik Deren
+
 ## v0.0.79 (2021-08-02)
 
  * [2f3cdbc](https://github.com/argoproj-labs/argo-dataflow/commit/2f3cdbc32da2df910a21ea94337fdda4aae1a0c9) feat!: updated default backoff to cap at 1 day

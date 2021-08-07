@@ -3,23 +3,26 @@ package s3
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"syscall"
+	"time"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	httpsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/http"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"io"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/workqueue"
-	"net/http"
-	"os"
-	"path/filepath"
-	"syscall"
-	"time"
 )
 
 const concurrency = 4
@@ -76,8 +79,14 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	jobs := workqueue.New()
 	authorization := sharedutil.RandString()
 	if leadReplica {
-		endpoint := "http://" + pipelineName + "-" + stepName + "/sources/" + sourceName
-		logger.Info("starting lead workers", "source", sourceName)
+		endpoint := "https://" + pipelineName + "-" + stepName + "/sources/" + sourceName
+		logger.Info("starting lead workers", "source", sourceName, "endpoint", endpoint)
+		t := http.DefaultTransport.(*http.Transport).Clone()
+		t.MaxIdleConns = 100
+		t.MaxConnsPerHost = 100
+		t.MaxIdleConnsPerHost = 100
+		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 		// create N workers to support concurrency
 		for w := 0; w < concurrency; w++ {
 			go func() {
@@ -95,7 +104,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 							panic(err)
 						}
 						req.Header.Set("Authorization", authorization)
-						resp, err := http.DefaultClient.Do(req)
+						resp, err := httpClient.Do(req)
 						if err != nil {
 							logger.Error(err, "failed to process object", "key", key)
 						} else {

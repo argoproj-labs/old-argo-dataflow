@@ -10,6 +10,8 @@ kind: Deployment
 metadata:
   name: controller-manager
   namespace: system
+  annotations:
+    kubectl.kubernetes.io/default-container: manager
   labels:
     control-plane: controller-manager
 spec:
@@ -32,7 +34,9 @@ spec:
           name: manager
           env:
             - name: ARGO_DATAFLOW_NAMESPACE
-              value: argo-dataflow-system
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           ports:
             - containerPort: 9090
           resources:

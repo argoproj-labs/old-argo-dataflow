@@ -15,6 +15,7 @@ import (
 
 func TestStep_GetPodSpec(t *testing.T) {
 	env := []corev1.EnvVar{
+		{Name: "ARGO_DATAFLOW_CLUSTER_NAME", Value: "my-cluster"},
 		{Name: "ARGO_DATAFLOW_NAMESPACE", Value: "my-ns"},
 		{Name: "ARGO_DATAFLOW_PIPELINE_NAME", Value: "my-pl"},
 		{Name: "ARGO_DATAFLOW_REPLICA", Value: "1"},
@@ -27,10 +28,11 @@ func TestStep_GetPodSpec(t *testing.T) {
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{"all"},
 		},
+		AllowPrivilegeEscalation: pointer.BoolPtr(false),
 	}
 	tests := []struct {
 		name string
-		sepc Step
+		step Step
 		req  GetPodSpecReq
 		want corev1.PodSpec
 	}{
@@ -43,6 +45,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 				},
 			},
 			GetPodSpecReq{
+				ClusterName:    "my-cluster",
 				ImageFormat:    "image-%s",
 				Namespace:      "my-ns",
 				PipelineName:   "my-pl",
@@ -62,14 +65,15 @@ func TestStep_GetPodSpec(t *testing.T) {
 						Name:            "sidecar",
 						Lifecycle: &corev1.Lifecycle{PreStop: &corev1.Handler{
 							HTTPGet: &corev1.HTTPGetAction{
-								Path: "/pre-stop?source=kubernetes",
-								Port: intstr.FromInt(3569),
+								Path:   "/pre-stop?source=kubernetes",
+								Port:   intstr.FromInt(3570),
+								Scheme: "HTTPS",
 							},
 						}},
-						Ports: []corev1.ContainerPort{{ContainerPort: 3569}},
+						Ports: []corev1.ContainerPort{{ContainerPort: 3570}},
 						ReadinessProbe: &corev1.Probe{
 							Handler: corev1.Handler{
-								HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3569)},
+								HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3570), Scheme: "HTTPS"},
 							},
 						},
 						Resources:       standardResources,
@@ -130,7 +134,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, _ := json.MarshalIndent(tt.sepc.GetPodSpec(tt.req), "", "  ")
+			a, _ := json.MarshalIndent(tt.step.GetPodSpec(tt.req), "", "  ")
 			b, _ := json.MarshalIndent(tt.want, "", "  ")
 			assert.Equal(t, string(b), string(a))
 		})

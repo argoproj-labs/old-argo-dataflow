@@ -20,7 +20,7 @@ func TestSourceStatus_GetErrors(t *testing.T) {
 	})
 	t.Run("Some", func(t *testing.T) {
 		x := SourceStatus{
-			Metrics:   map[string]Metrics{"": {Errors: 1}},
+			Metrics: map[string]Metrics{"": {Errors: 1}},
 		}
 		assert.Equal(t, uint64(1), x.GetErrors())
 	})

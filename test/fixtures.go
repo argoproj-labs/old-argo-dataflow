@@ -3,14 +3,14 @@
 package test
 
 import (
-	"fmt"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"log"
 	"os"
 	"runtime/debug"
 	"testing"
+
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -37,12 +37,6 @@ func Setup(t *testing.T) (teardown func()) {
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 
-	WaitForPod("zookeeper-0")
-	WaitForPod("kafka-broker-0")
-	WaitForPod("nats-0")
-	WaitForPod("stan-0")
-	WaitForPod("testapi-0")
-
 	stopTestAPIPortForward = StartPortForward("testapi-0", 8378)
 
 	ResetCount()
@@ -52,16 +46,16 @@ func Setup(t *testing.T) (teardown func()) {
 		stopTestAPIPortForward()
 		r := recover() // tests should panic on error, we recover so we can run other tests
 		if r != nil {
-			t.Log("📄 logs")
+			log.Printf("📄 logs\n")
 			TailLogs()
-			t.Log(fmt.Sprintf("❌ FAIL: %s %v", t.Name(), r))
+			log.Printf("❌ FAIL: %s %v\n", t.Name(), r)
 			debug.PrintStack()
 			t.Fail()
 		} else if t.Failed() {
-			t.Log(fmt.Sprintf("❌ FAIL: %s", t.Name()))
+			log.Printf("❌ FAIL: %s\n", t.Name())
 			TailLogs()
 		} else {
-			t.Log(fmt.Sprintf("✅ PASS: %s", t.Name()))
+			log.Printf("✅ PASS: %s\n", t.Name())
 		}
 	}
 }

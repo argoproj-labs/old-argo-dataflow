@@ -2,6 +2,7 @@ package cat
 
 import (
 	"context"
+
 	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 )
 

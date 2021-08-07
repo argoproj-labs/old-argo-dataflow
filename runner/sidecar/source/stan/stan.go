@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"math/rand"
 	"net/http"
 	"time"
+
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedstan "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
@@ -28,7 +29,7 @@ type stanSource struct {
 	queueName         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace, pipelineName, stepName string, replica int, sourceName string, x dfv1.STAN, f source.Func) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName string, replica int, sourceName string, x dfv1.STAN, f source.Func) (source.Interface, error) {
 	genClientID := func() string {
 		// In a particular situation, the stan connection status is inconsistent between stan server and client,
 		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
@@ -48,8 +49,9 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 
 	// https://docs.nats.io/developing-with-nats-streaming/queues
 	var sub stan.Subscription
-	queueName := fmt.Sprintf("%s-%s-source-%s", pipelineName, stepName, sourceName)
+	queueName := sharedutil.MustHash(fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName))
 	subFunc := func() (stan.Subscription, error) {
+		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
 			if err := f(context.Background(), msg.Data); err != nil {
 				// noop
@@ -116,7 +118,7 @@ func (s stanSource) Close() error {
 	if err := s.sub.Close(); err != nil {
 		return err
 	}
-	logger.Info("closing stan connection")
+	logger.Info("closing stan source connection")
 	return s.conn.Close()
 }
 

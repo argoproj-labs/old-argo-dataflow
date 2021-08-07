@@ -2,11 +2,15 @@ package sidecar
 
 import (
 	"context"
+	"crypto/tls"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
@@ -26,6 +30,7 @@ import (
 
 var (
 	logger              = sharedutil.NewLogger()
+	clusterName         = os.Getenv(dfv1.EnvClusterName)
 	namespace           = os.Getenv(dfv1.EnvNamespace)
 	patchMu             = sync.Mutex{}
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
@@ -54,7 +59,12 @@ func Exec(ctx context.Context) error {
 
 	sharedutil.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
-	logger.Info("step", "step", sharedutil.MustJSON(step))
+	logger.Info("step", "clusterName", clusterName, "step", sharedutil.MustJSON(step))
+
+	if clusterName == "" {
+		// this must be configured in the controller
+		return fmt.Errorf("cluster name (%q) was not specifcied", dfv1.EnvClusterName)
+	}
 
 	stepName = step.Spec.Name
 	if step.Status.SourceStatuses == nil {
@@ -78,6 +88,12 @@ func Exec(ctx context.Context) error {
 
 	if err := enrichSpec(ctx); err != nil {
 		return err
+	}
+
+	logger.Info("generating self-signed certificate")
+	const certFile, keyFile = "/tmp/runner.crt", "/tmp/runner.key"
+	if err := generateCert(certFile, keyFile); err != nil {
+		return fmt.Errorf("failed to generate cert: %w", err)
 	}
 
 	logger.Info("sidecar config", "stepName", stepName, "pipelineName", pipelineName, "replica", replica, "updateInterval", updateInterval.String())
@@ -131,17 +147,31 @@ func Exec(ctx context.Context) error {
 
 	connectOut(toSinks)
 
-	server := &http.Server{Addr: ":3569"}
+	server := &http.Server{Addr: "localhost:3569"}
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing HTTP server")
 		return server.Shutdown(context.Background())
 	})
 	go func() {
+		defer runtimeutil.HandleCrash()
 		logger.Info("starting HTTP server")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error(err, "failed to listen-and-server")
+			logger.Error(err, "failed to listen-and-server on HTTP")
 		}
 		logger.Info("HTTP server shutdown")
+	}()
+	httpServer := &http.Server{Addr: ":3570", TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
+	addStopHook(func(ctx context.Context) error {
+		logger.Info("closing HTTPS server")
+		return httpServer.Shutdown(context.Background())
+	})
+	go func() {
+		defer runtimeutil.HandleCrash()
+		logger.Info("starting HTTPS server")
+		if err := httpServer.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
+			logger.Error(err, "failed to listen-and-server on HTTPS")
+		}
+		logger.Info("HTTPS server shutdown")
 	}()
 
 	toMain, err := connectIn(ctx, toSinks)
@@ -153,7 +183,7 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	go wait.JitterUntil(func() { patchStepStatus() }, updateInterval, 1.2, true, ctx.Done())
+	go wait.JitterUntil(func() { defer runtimeutil.HandleCrash(); patchStepStatus() }, updateInterval, 1.2, true, ctx.Done())
 
 	ready = true
 	logger.Info("ready")

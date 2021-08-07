@@ -1,10 +1,11 @@
 package util
 
 import (
+	"os"
+
 	"github.com/bombsimon/logrusr"
 	"github.com/go-logr/logr"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
 func NewLogger() logr.Logger {

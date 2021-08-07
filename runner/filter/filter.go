@@ -3,6 +3,7 @@ package filter
 import (
 	"context"
 	"fmt"
+
 	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 
 	"github.com/antonmedv/expr"

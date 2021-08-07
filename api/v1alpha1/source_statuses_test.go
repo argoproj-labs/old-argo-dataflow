@@ -1,9 +1,10 @@
 package v1alpha1
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"testing"
 )
 
 func TestSourceStatuses_Set(t *testing.T) {

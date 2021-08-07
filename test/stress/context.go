@@ -3,14 +3,13 @@
 package stress
 
 import (
-	"k8s.io/client-go/tools/clientcmd"
 	"log"
 	"os"
+
+	"k8s.io/client-go/tools/clientcmd"
 )
 
-var (
-	currentContext string
-)
+var currentContext string
 
 func init() {
 	home, _ := os.UserHomeDir()

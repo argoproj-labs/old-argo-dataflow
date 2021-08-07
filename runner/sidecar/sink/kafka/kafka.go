@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/Shopify/sarama"
@@ -16,7 +17,7 @@ type kafkaSink struct {
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kafka) (sink.Interface, error) {
-	config, err := kafka.NewConfig(ctx, secretInterface, x)
+	config, err := kafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
 		return nil, err
 	}

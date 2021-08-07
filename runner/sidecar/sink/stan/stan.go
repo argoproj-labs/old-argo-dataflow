@@ -3,9 +3,10 @@ package stan
 import (
 	"context"
 	"fmt"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"math/rand"
 	"time"
+
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
@@ -74,5 +75,6 @@ func (s stanSink) Sink(msg []byte) error {
 }
 
 func (s stanSink) Close() error {
+	logger.Info("closing stan sink connection")
 	return s.conn.Close()
 }
