@@ -38,6 +38,7 @@ alpha/beta/stable.
 | NATS Streaming sink | v0.0.59 | | |
 | NATS Streaming source | v0.0.59 | | |
 | NodeJS SDK | v0.0.78 | | |
+| NodeJS runtime | v0.0.84 | | |
 | Non-terminating pipelines | | v0.0.59 | |
 | [Prometheus metrics](METRICS.md) | | v0.0.59 | |
 | Python runtime | v0.0.59 | v0.0.70 | |
