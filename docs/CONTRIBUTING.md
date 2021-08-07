@@ -8,6 +8,14 @@ Start:
 make start
 ```
 
+Start example using k3d Kubernetes cluster:
+
+```bash
+k3d cluster create argo-dataflow-test
+kubectl config set-context k3d-argo-dataflow-test
+make start
+```
+
 To access the user interface, you must have checked out Argo Workflows in `../../argoproj/argo-workflows`. The UI will
 appear on port 8080.
 
@@ -20,10 +28,12 @@ make pre-commit
 Required dependencies:
 
 ```
-go get k8s.io/kubernetes
-go get k8s.io/apimachinery
-go get github.com/gogo/protobuf/protoc-gen-gogo
-go get golang.org/x/tools/cmd/goimports
+GO111MODULE=off go get k8s.io/apimachinery           
+GO111MODULE=off go get k8s.io/client-go              
+GO111MODULE=off go get k8s.io/api                    
+GO111MODULE=off go get k8s.io/utils                  
+GO111MODULE=off go get sigs.k8s.io/controller-runtime
+GO111MODULE=off go get github.com/gogo/protobuf
 GOBIN=$(pwd)/ GO111MODULE=on go get sigs.k8s.io/kustomize/kustomize/v3
 mv kustomize /go/bin
 ```
