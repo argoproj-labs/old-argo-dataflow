@@ -4,7 +4,7 @@ setup(
     name='argo_dataflow_sdk',
     packages=['argo_dataflow_sdk'],
     install_requires=[],
-    version='v0.0.76',
+    version='v0.0.84',
     license='apache-2.0',
     description='Argo Dataflow SDK. Can be used to fulfill Argo-Dataflow\'s IMAGE CONTRACT: https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/IMAGE_CONTRACT.md',
     author='Dom Deren',
