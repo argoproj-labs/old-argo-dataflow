@@ -41,8 +41,8 @@ alpha/beta/stable.
 | NodeJS runtime | v0.0.84 | | |
 | Non-terminating pipelines | | v0.0.59 | |
 | [Prometheus metrics](METRICS.md) | | v0.0.59 | |
-| Python runtime | v0.0.59 | v0.0.70 | |
 | Python SDK | | v0.0.59 | |
+| Python runtime | v0.0.59 | v0.0.70 | |
 | Scale-to-zero (aka "peeking") | | v0.0.70 | |
 | S3 source | v0.0.74 | | |
 | S3 sink | v0.0.75 | | |
