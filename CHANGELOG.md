@@ -2,9 +2,12 @@
 
 ## v0.0.85 (2021-08-07)
 
+ * [bbec883](https://github.com/argoproj-labs/argo-dataflow/commit/bbec8838892668cdb52008a224be3ccc3e35830e) feat: Updating Python runtime to use Python SDK (#212)
+ * [d7a0540](https://github.com/argoproj-labs/argo-dataflow/commit/d7a0540a642dbd1c6d6145983a91815c11398db3) feat: NodeJS Runtime & working examples for NodeJS & Python runtimes & sdks. (#211)
 
 ### Contributors
 
+ * Dominik Deren
 
 ## v0.0.84 (2021-08-06)
 
@@ -40,15 +43,18 @@
  * [a4d7977](https://github.com/argoproj-labs/argo-dataflow/commit/a4d7977b83d399258f986349ca93f6752f1dbe33) fix!: Update Kafka group name/id to include namespace.
  * [07cb751](https://github.com/argoproj-labs/argo-dataflow/commit/07cb7517d385bf7e82f280de5b9f658f38490b3a) feat: Set `allowPrivilegeEscalation: false`
  * [7a25bb8](https://github.com/argoproj-labs/argo-dataflow/commit/7a25bb826afa8bebb4d6bc37dc560ca8fe240bcd) feat: Generate self-signed certificates (#196)
+ * [9aac4e8](https://github.com/argoproj-labs/argo-dataflow/commit/9aac4e84755edb916ff75527d06d148cc2e3c42b) fix: Fix for #190, broken nodejs sdk test. (#194)
 
 ### Contributors
 
  * Alex Collins
  * Derek Wang
+ * Dominik Deren
 
 ## v0.0.80 (2021-08-03)
 
  * [2cfee32](https://github.com/argoproj-labs/argo-dataflow/commit/2cfee3216d0668897ea502cb9562cd9e5e6291cf) feat!: Change HTTP endpoints to have TLS v1.2. Fixes #178 (#193)
+ * [68084f2](https://github.com/argoproj-labs/argo-dataflow/commit/68084f28f32c67810dc4ddf49f82f5a70b4d6496) fix!: Add authentication to HTTP source. Fixes #152 (#187)
  * [656af83](https://github.com/argoproj-labs/argo-dataflow/commit/656af835773fc0f2dd5172610f0ea87a76019270) feat: NodeJS SDK for handling the container contract (#188)
  * [2ba29ce](https://github.com/argoproj-labs/argo-dataflow/commit/2ba29cef0ca874bb54a2802a49ec2590e2343698) fix: Removed noisy Kafka logging
  * [f6b8915](https://github.com/argoproj-labs/argo-dataflow/commit/f6b8915a817c271e5d0c8b08278a61fb3f475f0f) fix!: Move bearer token from environment variable to file.
@@ -141,6 +147,8 @@
  * [003d94e](https://github.com/argoproj-labs/argo-dataflow/commit/003d94ead7e949597424259c748cce306abccf18) feat: add terminator to Python DSL
  * [8293394](https://github.com/argoproj-labs/argo-dataflow/commit/82933943b322931e602b791af9eb2c038122c3d9) feat: add terminator to Python DSL
  * [e5face5](https://github.com/argoproj-labs/argo-dataflow/commit/e5face59462aa88a5e736fbfce6a6a1e28bf4971) feat: label service
+ * [e4215b3](https://github.com/argoproj-labs/argo-dataflow/commit/e4215b3812d4ea310e402ed41311ba7a27b54fe6) Revert "Revert "test: add expand_step_test.go. Fixes #131""
+ * [d5cb429](https://github.com/argoproj-labs/argo-dataflow/commit/d5cb429a1c1fe57b69335a68ab18abe785f101ac) Revert "test: add expand_step_test.go. Fixes #131"
  * [9bc52a6](https://github.com/argoproj-labs/argo-dataflow/commit/9bc52a638d0653e366c34eafdd132e6e3a423ebe) fix: use dumb-init to correctly handle signals with entrypoint.sh scripts (#134)
 
 ### Contributors
@@ -163,6 +171,7 @@
 ## v0.0.70 (2021-07-20)
 
  * [d71b06d](https://github.com/argoproj-labs/argo-dataflow/commit/d71b06dc965fcbb3bcc6131119871becabd2f1ca) fix: report pending Kafka messages
+ * [c4aa21b](https://github.com/argoproj-labs/argo-dataflow/commit/c4aa21bcb95ff627ff66ea39d4b506b22610db73) Sarama (#121)
 
 ### Contributors
 
