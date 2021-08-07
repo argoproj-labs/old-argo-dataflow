@@ -17,7 +17,7 @@ spec:
       branch: js-sdk
       command:
       - ./start.sh
-      image: node:16
+      image: quay.io/argoproj/dataflow-node16
       path: examples/git-nodejs
       url: https://github.com/domderen/argo-dataflow
     name: main

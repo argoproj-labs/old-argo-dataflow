@@ -686,6 +686,7 @@ spec:
                           - golang1-16
                           - java16
                           - python3-9
+                          - node16
                           type: string
                         source:
                           type: string
@@ -4198,6 +4199,7 @@ spec:
                     - golang1-16
                     - java16
                     - python3-9
+                    - node16
                     type: string
                   source:
                     type: string
@@ -7576,13 +7578,13 @@ spec:
         - /manager
         env:
         - name: ARGO_DATAFLOW_PULL_POLICY
-          value: IfNotPresent
+          value: Never
         - name: ARGO_DATAFLOW_UPDATE_INTERVAL
           value: 5s
         - name: ARGO_DATAFLOW_NAMESPACE
           value: argo-dataflow-system
         image: quay.io/argoproj/dataflow-controller:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         name: manager
         ports:
         - containerPort: 9090
