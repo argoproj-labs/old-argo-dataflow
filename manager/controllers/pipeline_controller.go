@@ -78,6 +78,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	log.Info("reconciling")
 
 	for _, step := range pipeline.Spec.Steps {
+		// If ImagePullSecrets is defined on Pipeline, and is not defined on a Step, override it with Pipeline default.
+		if pipeline.Spec.ImagePullSecrets != nil && step.ImagePullSecrets == nil {
+			step.ImagePullSecrets = pipeline.Spec.ImagePullSecrets
+		}
 		stepFullName := pipeline.Name + "-" + step.Name
 		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: step.Name}
 		obj := &dfv1.Step{

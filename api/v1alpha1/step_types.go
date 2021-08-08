@@ -103,6 +103,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				SecurityContext: dropAll,
 			},
 		},
+		ImagePullSecrets: in.Spec.ImagePullSecrets,
 		Containers: []corev1.Container{
 			{
 				Name:            CtrSidecar,
