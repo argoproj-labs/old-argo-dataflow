@@ -1516,6 +1516,53 @@ spec:
                       required:
                       - schedule
                       type: object
+                    db:
+                      properties:
+                        commitInterval:
+                          default: 5s
+                          type: string
+                        dataSource:
+                          properties:
+                            value:
+                              type: string
+                            valueFrom:
+                              properties:
+                                secretKeyRef:
+                                  description: SecretKeySelector selects a key of
+                                    a Secret.
+                                  properties:
+                                    key:
+                                      description: The key of the secret to select
+                                        from.  Must be a valid secret key.
+                                      type: string
+                                    name:
+                                      description: 'Name of the referent. More info:
+                                        https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                        TODO: Add other useful fields. apiVersion,
+                                        kind, uid?'
+                                      type: string
+                                    optional:
+                                      description: Specify whether the Secret or its
+                                        key must be defined
+                                      type: boolean
+                                  required:
+                                  - key
+                                  type: object
+                              type: object
+                          type: object
+                        driver:
+                          default: default
+                          type: string
+                        initSchema:
+                          type: boolean
+                        offsetColumn:
+                          type: string
+                        pollInterval:
+                          default: 1s
+                          type: string
+                        table:
+                          type: string
+                      type: object
                     http:
                       properties:
                         serviceName:

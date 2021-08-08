@@ -9,6 +9,7 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
+	dbsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/db"
 	httpsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/http"
 	kafkasource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/kafka"
 	s3source "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/s3"
@@ -17,7 +18,6 @@ import (
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -90,6 +90,12 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			sources[sourceName] = httpsource.New(sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), f)
 		} else if x := s.S3; x != nil {
 			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, f, leadReplica()); err != nil {
+				return err
+			} else {
+				sources[sourceName] = y
+			}
+		} else if x := s.DB; x != nil {
+			if y, err := dbsource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
