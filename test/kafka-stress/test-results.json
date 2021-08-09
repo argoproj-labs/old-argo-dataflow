@@ -1,5 +1,6 @@
 {
-  "TestKafkaSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 50,
+  "TestKafkaSinkStress/currentContext=docker-desktop,replicas=1,n=10000,async=true.tps": 400,
+  "TestKafkaSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 250,
   "TestKafkaSinkStress/replicas=1.tps": 100,
   "TestKafkaSinkStress/replicas=2.tps": 250,
   "TestKafkaSourceStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 550,

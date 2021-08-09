@@ -1296,6 +1296,8 @@ spec:
                             type: object
                           kafka:
                             properties:
+                              async:
+                                type: boolean
                               brokers:
                                 items:
                                   type: string
@@ -4845,6 +4847,8 @@ spec:
                       type: object
                     kafka:
                       properties:
+                        async:
+                          type: boolean
                         brokers:
                           items:
                             type: string

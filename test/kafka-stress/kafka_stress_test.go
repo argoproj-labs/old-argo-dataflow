@@ -61,7 +61,10 @@ func TestKafkaSinkStress(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
-				Sinks:    []Sink{{Kafka: &Kafka{Topic: sinkTopic}}, {Name: "log", Log: &Log{}}},
+				Sinks: []Sink{
+					{Kafka: &KafkaSink{Async: Params.Async, Kafka: Kafka{Topic: sinkTopic}}},
+					{Name: "log", Log: &Log{}},
+				},
 			}},
 		},
 	})
