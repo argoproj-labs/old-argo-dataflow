@@ -302,7 +302,7 @@ func enrichSinks(ctx context.Context) error {
 			}
 			sink.STAN = x
 		} else if x := sink.Kafka; x != nil {
-			if err := enrichKafka(ctx, x); err != nil {
+			if err := enrichKafka(ctx, &x.Kafka); err != nil {
 				return err
 			}
 			sink.Kafka = x

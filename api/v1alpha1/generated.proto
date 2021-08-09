@@ -235,6 +235,12 @@ message KafkaNET {
   optional SASL sasl = 2;
 }
 
+message KafkaSink {
+  optional Kafka kafka = 1;
+
+  optional bool async = 2;
+}
+
 message KafkaSource {
   optional Kafka kafka = 1;
 
@@ -390,7 +396,7 @@ message Sink {
 
   optional STAN stan = 2;
 
-  optional Kafka kafka = 3;
+  optional KafkaSink kafka = 3;
 
   optional Log log = 4;
 
