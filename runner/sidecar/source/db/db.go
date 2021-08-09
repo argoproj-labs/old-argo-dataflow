@@ -11,14 +11,13 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 var logger = sharedutil.NewLogger()
 
-var offsetTableSchema = `CREATE TABLE IF NOT EXISTS argo_dataflow_offsets (
+const offsetTableSchema = `CREATE TABLE IF NOT EXISTS argo_dataflow_offsets (
 	table_name VARCHAR(255) NOT NULL,
 	consumer_group VARCHAR(255) NOT NULL,
 	offset VARCHAR(255),
@@ -69,24 +68,18 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 			case <-ctx.Done():
 				return
 			default:
-				records, err := queryData(ctx, db, x.Table, x.OffsetColumn, offset)
-				if err != nil {
-					logger.Error(err, "failed to query data from table %q: %w", x.Table, err)
-					continue
-				}
-				for _, d := range records {
+				if err = queryData(ctx, db, x.Table, x.OffsetColumn, offset, func(d rowData) error {
 					jsonData, err := json.Marshal(d)
 					if err != nil {
-						logger.Error(err, "failed to marshal to json: %w", err)
-						// skip
-						continue
+						return fmt.Errorf("failed to marshal to json: %w", err)
 					}
 					if err := f(ctx, jsonData); err != nil {
-						logger.Error(err, "failed to process data: %w", err)
-						// skip
-						continue
+						return fmt.Errorf("failed to process data: %w", err)
 					}
 					offset = fmt.Sprintf("%v", d[x.OffsetColumn])
+					return nil
+				}); err != nil {
+					logger.Error(err, "failed to process data query: %w", err)
 				}
 			}
 		}
@@ -121,10 +114,13 @@ func (d dbSource) Close() error {
 }
 
 func getOffsetFromDB(ctx context.Context, db *sql.DB, tableName, consumerGroup string) (string, error) {
+	stmt, err := db.Prepare("select offset from argo_dataflow_offsets where table_name=? and consumer_group=?")
+	if err != nil {
+		return "", fmt.Errorf("failed to prepare statement for offset query")
+	}
+	defer func() { _ = stmt.Close() }()
 	var offset string
-	if err := db.QueryRowContext(ctx,
-		"select offset from argo_dataflow_offsets where table_name=? and consumer_group=?",
-		tableName, consumerGroup).Scan(&offset); err != nil {
+	if err = stmt.QueryRowContext(ctx, tableName, consumerGroup).Scan(&offset); err != nil {
 		return "", err
 	}
 	return offset, nil
@@ -156,25 +152,30 @@ func insertOffset(ctx context.Context, db *sql.DB, tableName, consumerGroup, off
 	}
 }
 
-func queryData(ctx context.Context, db *sql.DB, tableName, offsetColumn, offset string) (result []rowData, err error) {
+func queryData(ctx context.Context, db *sql.DB, tableName, offsetColumn, offset string, f func(rowData) error) error {
 	sql := "select * from " + tableName + " order by " + offsetColumn
 	params := []interface{}{}
 	if offset != "" {
 		sql = "select * from " + tableName + " where " + offsetColumn + " > ? order by " + offsetColumn
 		params = append(params, offset)
 	}
-	rows, err := db.QueryContext(ctx, sql, params...)
+	stmt, err := db.Prepare(sql)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query data from table %s: %w", tableName, err)
+		return fmt.Errorf("failed to prepare query statement: %w", err)
+	}
+	defer func() { _ = stmt.Close() }()
+
+	rows, err := stmt.QueryContext(ctx, params...)
+	if err != nil {
+		return fmt.Errorf("failed to query data from table %s: %w", tableName, err)
 	}
 	defer func() { _ = rows.Close() }()
 
 	columns, err := rows.Columns()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get table columns: %w", err)
+		return fmt.Errorf("failed to get table columns: %w", err)
 	}
 	count := len(columns)
-	result = make([]rowData, 0)
 	values := make([]interface{}, count)
 	valuePtrs := make([]interface{}, count)
 	for rows.Next() {
@@ -182,7 +183,7 @@ func queryData(ctx context.Context, db *sql.DB, tableName, offsetColumn, offset 
 			valuePtrs[i] = &values[i]
 		}
 		if err = rows.Scan(valuePtrs...); err != nil {
-			return nil, err
+			return fmt.Errorf("failed to scan row data: %w", err)
 		}
 		entry := make(rowData)
 		for i, col := range columns {
@@ -193,9 +194,11 @@ func queryData(ctx context.Context, db *sql.DB, tableName, offsetColumn, offset 
 				entry[col] = val
 			}
 		}
-		result = append(result, entry)
+		if err = f(entry); err != nil {
+			logger.Error(err, "failed process data: %w", err)
+		}
 	}
-	return result, nil
+	return nil
 }
 
 func getDataSource(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.DBSource) (string, error) {

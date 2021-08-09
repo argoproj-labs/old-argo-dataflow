@@ -15,7 +15,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
