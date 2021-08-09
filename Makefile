@@ -23,7 +23,11 @@ build:
 # Run tests
 .PHONY: test
 test:
-	go test -v ./... -coverprofile cover.out -race
+ifeq ($(CI),true)
+	go test -v ./... -coverprofile cover.out
+else
+	go test -v ./...
+endif
 
 test-examples:
 	kubectl -n argo-dataflow-system apply -f config/apps/kafka.yaml
