@@ -78,10 +78,13 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 					jsonData, err := json.Marshal(d)
 					if err != nil {
 						logger.Error(err, "failed to marshal to json: %w", err)
+						// skip
 						continue
 					}
-					if err := f(context.Background(), jsonData); err != nil {
-						// noop
+					if err := f(ctx, jsonData); err != nil {
+						logger.Error(err, "failed to process data: %w", err)
+						// skip
+						continue
 					}
 					offset = fmt.Sprintf("%v", d[x.OffsetColumn])
 				}
@@ -178,7 +181,9 @@ func queryData(ctx context.Context, db *sql.DB, tableName, offsetColumn, offset 
 		for i := 0; i < count; i++ {
 			valuePtrs[i] = &values[i]
 		}
-		rows.Scan(valuePtrs...)
+		if err = rows.Scan(valuePtrs...); err != nil {
+			return nil, err
+		}
 		entry := make(rowData)
 		for i, col := range columns {
 			val := values[i]
