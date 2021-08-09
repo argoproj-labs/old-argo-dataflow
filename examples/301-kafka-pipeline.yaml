@@ -16,6 +16,7 @@ spec:
     name: main
     sinks:
     - kafka:
+        async: true
         topic: output-topic
     sources:
     - kafka:
