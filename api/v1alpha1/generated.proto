@@ -144,6 +144,8 @@ message GetPodSpecReq {
   optional int64 updateInterval = 7;
 
   optional StepStatus stepStatus = 8;
+
+  optional Sidecar sidecar = 10;
 }
 
 message Git {
@@ -390,6 +392,11 @@ message Scale {
   optional uint32 replicaRatio = 3;
 }
 
+message Sidecar {
+  // +kubebuilder:default={limits: {"cpu": "500m", "memory": "256Mi"}, requests: {"cpu": "100m", "memory": "64Mi"}}
+  optional k8s.io.api.core.v1.ResourceRequirements resources = 1;
+}
+
 message Sink {
   // +kubebuilder:default=default
   optional string name = 1;
@@ -509,6 +516,9 @@ message StepSpec {
   optional k8s.io.api.core.v1.Affinity affinity = 18;
 
   repeated k8s.io.api.core.v1.Toleration tolerations = 19;
+
+  // +kubebuilder:default={resources: {limits: {"cpu": "500m", "memory": "256Mi"}, requests: {"cpu": "100m", "memory": "64Mi"}}}
+  optional Sidecar sidecar = 28;
 }
 
 message StepStatus {

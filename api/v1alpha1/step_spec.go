@@ -40,6 +40,8 @@ type StepSpec struct {
 	NodeSelector       map[string]string   `json:"nodeSelector,omitempty" protobuf:"bytes,17,rep,name=nodeSelector"`
 	Affinity           *corev1.Affinity    `json:"affinity,omitempty" protobuf:"bytes,18,opt,name=affinity"`
 	Tolerations        []corev1.Toleration `json:"tolerations,omitempty" protobuf:"bytes,19,rep,name=tolerations"`
+	// +kubebuilder:default={resources: {limits: {"cpu": "500m", "memory": "256Mi"}, requests: {"cpu": "100m", "memory": "64Mi"}}}
+	Sidecar Sidecar `json:"sidecar,omitempty" protobuf:"bytes,28,opt,name=sidecar"`
 }
 
 func (in StepSpec) GetIn() *Interface {
