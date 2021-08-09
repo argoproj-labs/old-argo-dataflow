@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.86 (2021-08-09)
+
+ * [d3a7a72](https://github.com/argoproj-labs/argo-dataflow/commit/d3a7a7222261174c1e777d6507b184bae598b0e7) feat: Enable config of sidecar resources
+ * [00c3178](https://github.com/argoproj-labs/argo-dataflow/commit/00c3178e7dba8868d2cf64238c5d0b0aac497898) feat: Add support for Kafka async producer. Fixes #216 (#220)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.85 (2021-08-07)
 
  * [bbec883](https://github.com/argoproj-labs/argo-dataflow/commit/bbec8838892668cdb52008a224be3ccc3e35830e) feat: Updating Python runtime to use Python SDK (#212)
