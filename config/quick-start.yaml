@@ -686,6 +686,7 @@ spec:
                           - golang1-16
                           - java16
                           - python3-9
+                          - node16
                           type: string
                         source:
                           type: string
@@ -1295,6 +1296,8 @@ spec:
                             type: object
                           kafka:
                             properties:
+                              async:
+                                type: boolean
                               brokers:
                                 items:
                                   type: string
@@ -4198,6 +4201,7 @@ spec:
                     - golang1-16
                     - java16
                     - python3-9
+                    - node16
                     type: string
                   source:
                     type: string
@@ -4795,6 +4799,8 @@ spec:
                       type: object
                     kafka:
                       properties:
+                        async:
+                          type: boolean
                         brokers:
                           items:
                             type: string

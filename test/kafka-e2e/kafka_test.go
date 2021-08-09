@@ -25,7 +25,7 @@ func TestKafka(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
-				Sinks:   []Sink{{Kafka: &Kafka{Topic: sinkTopic}}},
+				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
 			}},
 		},
 	})
