@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -25,6 +26,13 @@ func GetEnvInt(key string, def int) int {
 		} else {
 			return v
 		}
+	}
+	return def
+}
+
+func GetEnvStringArr(key string, def []string) []string {
+	if x, ok := os.LookupEnv(key); ok {
+		return strings.Split(x, ",")
 	}
 	return def
 }
