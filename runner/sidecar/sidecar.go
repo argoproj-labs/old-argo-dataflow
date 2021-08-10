@@ -209,7 +209,10 @@ func patchStepStatus() {
 			}
 		}
 	}
-	if notEqual, patch := sharedutil.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status}); notEqual {
+	mu.RLock()
+	notEqual, patch := sharedutil.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status})
+	mu.RUnlock()
+	if notEqual {
 		logger.Info("patching step status", "patch", patch)
 		if un, err := dynamicInterface.
 			Resource(dfv1.StepGroupVersionResource).

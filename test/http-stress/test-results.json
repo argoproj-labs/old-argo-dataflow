@@ -1,5 +1,5 @@
 {
-  "TestHTTPSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 700,
+  "TestHTTPSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 650,
   "TestHTTPSinkStress/currentContext=docker-desktop,replicas=2,n=10000.tps": 400,
   "TestHTTPSinkStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=1,n=10000.tps": 950,
   "TestHTTPSinkStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=2,n=10000.tps": 650,

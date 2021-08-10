@@ -127,25 +127,39 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 		Name:        "pending",
 		Help:        "Pending messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_pending",
 		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetPending()) })
+	}, func() float64 {
+		mu.Lock()
+		defer mu.Unlock()
+		return float64(step.Status.SourceStatuses.Get(sourceName).GetPending())
+	})
 	promauto.NewCounterFunc(prometheus.CounterOpts{
 		Subsystem:   "sources",
 		Name:        "total",
 		Help:        "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total",
 		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetTotal()) })
-
+	}, func() float64 {
+		mu.RLock()
+		defer mu.RUnlock()
+		return float64(step.Status.SourceStatuses.Get(sourceName).GetTotal())
+	})
 	promauto.NewCounterFunc(prometheus.CounterOpts{
 		Subsystem:   "sources",
 		Name:        "errors",
 		Help:        "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors",
 		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors()) })
-
+	}, func() float64 {
+		mu.RLock()
+		defer mu.RUnlock()
+		return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors())
+	})
 	promauto.NewCounterFunc(prometheus.CounterOpts{
 		Subsystem:   "sources",
 		Name:        "retries",
 		Help:        "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
 		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 { return float64(step.Status.SourceStatuses.Get(sourceName).GetRetries()) })
+	}, func() float64 {
+		mu.RLock()
+		defer mu.RUnlock()
+		return float64(step.Status.SourceStatuses.Get(sourceName).GetRetries())
+	})
 }

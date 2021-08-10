@@ -2,7 +2,7 @@ package sidecar
 
 import "sync"
 
-var mu = sync.Mutex{}
+var mu = sync.RWMutex{} // mutex to guard step
 
 func withLock(f func()) {
 	mu.Lock()
