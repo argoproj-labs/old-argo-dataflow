@@ -1663,6 +1663,7 @@ spec:
                                 default: default
                                 type: string
                               initSchema:
+                                default: true
                                 type: boolean
                               offsetColumn:
                                 type: string
@@ -5246,6 +5247,7 @@ spec:
                           default: default
                           type: string
                         initSchema:
+                          default: true
                           type: boolean
                         offsetColumn:
                           type: string

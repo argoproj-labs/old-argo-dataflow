@@ -12,5 +12,6 @@ type DBSource struct {
 	PollInterval metav1.Duration `json:"pollInterval,omitempty" protobuf:"bytes,4,opt,name=pollInterval"`
 	// +kubebuilder:default="5s"
 	CommitInterval metav1.Duration `json:"commitInterval,omitempty" protobuf:"bytes,5,opt,name=commitInterval"`
-	InitSchema     bool            `json:"initSchema,omitempty" protobuf:"bytes,6,opt,name=initSchema"`
+	// +kubebuilder:default=true
+	InitSchema bool `json:"initSchema,omitempty" protobuf:"bytes,6,opt,name=initSchema"`
 }
