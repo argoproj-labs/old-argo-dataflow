@@ -14,12 +14,12 @@ metadata:
 spec:
   steps:
   - git:
-      branch: python-sdk-runtime
+      branch: main
       command:
       - ./start.sh
       image: quay.io/argoproj/dataflow-python3-9
       path: examples/git-python
-      url: https://github.com/domderen/argo-dataflow
+      url: https://github.com/argoproj-labs/argo-dataflow
     name: main
     sinks:
     - kafka:
