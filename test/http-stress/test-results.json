@@ -1,9 +1,9 @@
 {
-  "TestHTTPSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 450,
+  "TestHTTPSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 700,
   "TestHTTPSinkStress/currentContext=docker-desktop,replicas=2,n=10000.tps": 400,
   "TestHTTPSinkStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=1,n=10000.tps": 950,
   "TestHTTPSinkStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=2,n=10000.tps": 650,
-  "TestHTTPSourceStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 550,
+  "TestHTTPSourceStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 950,
   "TestHTTPSourceStress/currentContext=docker-desktop,replicas=2,n=10000.tps": 850,
   "TestHTTPSourceStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=1,n=10000.tps": 1650,
   "TestHTTPSourceStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=2,n=10000.tps": 2300

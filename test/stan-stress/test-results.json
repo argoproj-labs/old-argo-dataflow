@@ -1,4 +1,5 @@
 {
+  "TestStanSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 250,
   "TestStanSinkStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=1,n=10000.tps": 200,
   "TestStanSinkStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=2,n=10000.tps": 300,
   "TestStanSinkStress/replicas=1.tps": 100,
@@ -6,6 +7,7 @@
   "TestStanSinkStress/replicas=3.tps": 300,
   "TestStanSinkStress/replicas=4.tps": 300,
   "TestStanSinkStress/replicas=5.tps": 350,
+  "TestStanSourceStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 1150,
   "TestStanSourceStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=1,n=10000.tps": 1500,
   "TestStanSourceStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=2,n=10000.tps": 2850,
   "TestStanSourceStress/replicas=1.tps": 550,

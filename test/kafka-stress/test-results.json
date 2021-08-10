@@ -1,9 +1,9 @@
 {
   "TestKafkaSinkStress/currentContext=docker-desktop,replicas=1,n=10000,async=true.tps": 400,
-  "TestKafkaSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 250,
+  "TestKafkaSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 550,
   "TestKafkaSinkStress/replicas=1.tps": 100,
   "TestKafkaSinkStress/replicas=2.tps": 250,
-  "TestKafkaSourceStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 550,
+  "TestKafkaSourceStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 1100,
   "TestKafkaSourceStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=1,n=10000.tps": 1700,
   "TestKafkaSourceStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=2,n=10000.tps": 1550,
   "TestKafkaSourceStress/replicas=1.tps": 100,
