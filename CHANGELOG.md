@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.87 (2021-08-09)
+
+ * [95f8cb2](https://github.com/argoproj-labs/argo-dataflow/commit/95f8cb25bf831ab1c99e4b73cc2dedff13da1a76) feat: Expose async and sidecarResources in Python DSL
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.86 (2021-08-09)
 
  * [d3a7a72](https://github.com/argoproj-labs/argo-dataflow/commit/d3a7a7222261174c1e777d6507b184bae598b0e7) feat: Enable config of sidecar resources
