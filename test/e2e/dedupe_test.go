@@ -24,7 +24,7 @@ func TestDedupe(t *testing.T) {
 					MaxSize: resource.MustParse("2"), // tiny duplicate database size to we can test garbage collection works
 				},
 				Sources: []Source{{HTTP: &HTTPSource{}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sinks:   []Sink{DefaultLogSink},
 			}},
 		},
 	})

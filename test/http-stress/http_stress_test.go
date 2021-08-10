@@ -23,7 +23,7 @@ func TestHTTPSourceStress(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
-				Sinks:    []Sink{{Log: &Log{}}},
+				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
 	})

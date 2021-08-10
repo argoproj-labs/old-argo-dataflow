@@ -21,7 +21,7 @@ func TestFilterStep(t *testing.T) {
 					Name:    "main",
 					Filter:  "string(msg) == 'foo-bar'",
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Sinks:   []Sink{DefaultLogSink},
 				},
 			},
 		},

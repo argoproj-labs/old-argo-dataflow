@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/util/rand"
 	"net/url"
 	"strconv"
+
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 type messageFactory struct {

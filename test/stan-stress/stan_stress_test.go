@@ -27,7 +27,7 @@ func TestStanSourceStress(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
-				Sinks:    []Sink{{Log: &Log{}}},
+				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
 	})

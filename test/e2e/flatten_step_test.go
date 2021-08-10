@@ -21,7 +21,7 @@ func TestFlattenStep(t *testing.T) {
 					Name:    "main",
 					Flatten: &Flatten{},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Sinks:   []Sink{DefaultLogSink},
 				},
 			},
 		},

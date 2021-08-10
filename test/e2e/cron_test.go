@@ -20,7 +20,7 @@ func TestCronSource(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Cron: &Cron{Schedule: "*/3 * * * * *"}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sinks:   []Sink{DefaultLogSink},
 			}},
 		},
 	})

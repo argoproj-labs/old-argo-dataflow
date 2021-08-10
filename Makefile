@@ -29,11 +29,24 @@ else
 	go test -v ./...
 endif
 
+test-fmea: test-http-fmea test-kafka-fmea test-stan-fmea
+test-stress: test-http-stress test-kafka-stress test-stan-stress
+
+test-stress-2-replicas:
+	env REPLICAS=2 $(MAKE) test-stress
+
+test-stress-large-messages:
+	env MESSAGE_SIZE=1000000 $(MAKE) test-stress
+
+test-db-e2e:
+test-e2e:
 test-examples:
 	kubectl -n argo-dataflow-system apply -f config/apps/kafka.yaml
 	kubectl -n argo-dataflow-system apply -f config/apps/stan.yaml
 	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m
 	go test -timeout 20m -tags examples -v -count 1 ./examples
+test-http-fmea:
+test-http-stress:
 test-hpa:
 	kubectl -n kube-system apply -k config/apps/metrics-server
 	kubectl -n kube-system wait deploy/metrics-server --for=condition=available
@@ -45,6 +58,13 @@ test-hpa:
 	kubectl -n argo-dataflow-system autoscale step 101-hello-main --min 2 --max 2
 	sleep 20s
 	if [ `kubectl -n argo-dataflow-system get step 101-hello-main -o=jsonpath='{.status.replicas}'` != 2 ]; then exit 1; fi
+test-kafka-e2e:
+test-kafka-fmea:
+test-kafka-stress:
+test-s3-e2e:
+test-stan-e2e:
+test-stan-fmea:
+test-stan-stress:
 test-%:
 	go generate $(shell find ./test/$* -name '*.go')
 	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m

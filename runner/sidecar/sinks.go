@@ -40,7 +40,7 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 				sinks[sinkName] = y
 			}
 		} else if x := sink.Log; x != nil {
-			sinks[sinkName] = logsink.New()
+			sinks[sinkName] = logsink.New(*x)
 		} else if x := sink.HTTP; x != nil {
 			if y, err := http.New(ctx, secretInterface, *x); err != nil {
 				return nil, err

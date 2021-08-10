@@ -58,7 +58,7 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{STAN: &STAN{Subject: subject}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sinks:   []Sink{DefaultLogSink},
 			}},
 		},
 	})

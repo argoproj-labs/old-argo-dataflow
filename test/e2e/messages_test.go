@@ -27,7 +27,7 @@ set -eux -o pipefail
 curl -H "Authorization: $(cat /var/run/argo-dataflow/authorization)" http://localhost:3569/messages -d 'foo-bar'
 `},
 					},
-					Sinks: []Sink{{Log: &Log{}}},
+					Sinks: []Sink{DefaultLogSink},
 				},
 			},
 		},

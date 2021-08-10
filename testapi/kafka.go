@@ -71,6 +71,7 @@ func init() {
 		defer func() { _ = producer.Close() }()
 
 		start := time.Now()
+		_, _ = fmt.Fprintf(w, "sending %d messages of size %d to %q\n", n, mf.size, topic)
 		for i := 0; i < n || n < 0; i++ {
 			select {
 			case <-r.Context().Done():
@@ -81,9 +82,9 @@ func init() {
 					Topic: topic,
 					Value: sarama.StringEncoder(x),
 				}
-				_, _ = fmt.Fprintf(w, "sent %q (%d/%d, %.0f TPS) to %q\n", x, i+1, n, (1+float64(i))/time.Since(start).Seconds(), topic)
 				time.Sleep(duration)
 			}
 		}
+		_, _ = fmt.Fprintf(w, "sent %d messages of size %d at %.0f TPS to %q\n", n, mf.size, float64(n)/time.Since(start).Seconds(), topic)
 	})
 }

@@ -30,7 +30,7 @@ func Handler(ctx context.Context, m []byte) ([]byte, error) {
 }`,
 					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Sinks:   []Sink{DefaultLogSink},
 				},
 			},
 		},

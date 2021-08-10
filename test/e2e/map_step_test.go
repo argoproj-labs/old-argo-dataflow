@@ -21,7 +21,7 @@ func TestMapStep(t *testing.T) {
 					Name:    "main",
 					Map:     "bytes('hi! ' + string(msg))",
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Sinks:   []Sink{DefaultLogSink},
 				},
 			},
 		},

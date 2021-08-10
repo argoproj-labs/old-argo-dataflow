@@ -42,7 +42,6 @@ func init() {
 		opts := []nats.Option{nats.Token(testingToken)}
 		nc, err := nats.Connect(url, opts...)
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
@@ -50,7 +49,6 @@ func init() {
 		defer nc.Close()
 		sc, err := stan.Connect(clusterID, clientID, stan.NatsConn(nc))
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
@@ -62,6 +60,7 @@ func init() {
 		}()
 
 		start := time.Now()
+		_, _ = fmt.Fprintf(w, "sending %d messages of size %d to %q\n", n, mf.size, subject)
 		for i := 0; i < n || n < 0; i++ {
 			select {
 			case <-r.Context().Done():
@@ -70,18 +69,16 @@ func init() {
 				x := mf.newMessage(i)
 				_, err := sc.PublishAsync(subject, []byte(x), func(ackedNuid string, err error) {
 					if err != nil {
-						fmt.Printf("Warning: error publishing msg id %s: %v\n", ackedNuid, err.Error())
-					} else {
-						fmt.Printf("Received ack for msg id %s\n", ackedNuid)
+						fmt.Printf("ERROR: failed to publish msg id %s: %v\n", ackedNuid, err.Error())
 					}
 				})
 				if err != nil {
-					_, _ = w.Write([]byte(fmt.Sprintf("Failed to publish message, error: %v\n", err.Error())))
+					_, _ = w.Write([]byte(fmt.Sprintf("ERROR: failed to publish message:: %v\n", err.Error())))
 					return
 				}
-				_, _ = fmt.Fprintf(w, "sent %q (%d/%d %.0f TPS) to %q\n", x, i+1, n, (1+float64(i))/time.Since(start).Seconds(), subject)
 				time.Sleep(duration)
 			}
 		}
+		_, _ = fmt.Fprintf(w, "sent %d messages of size %d at %.0f TPS to %q\n", n, mf.size, float64(n)/time.Since(start).Seconds(), subject)
 	})
 }
