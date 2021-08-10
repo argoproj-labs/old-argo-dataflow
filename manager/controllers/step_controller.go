@@ -152,6 +152,16 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		annotations[dfv1.KeyKillCmd(dfv1.CtrMain)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 		annotations[dfv1.KeyKillCmd(dfv1.CtrSidecar)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 
+		var reqImagePullSecrets []corev1.LocalObjectReference
+
+		if len(step.Spec.ImagePullSecrets) > 0 {
+			reqImagePullSecrets = step.Spec.ImagePullSecrets
+		} else if len(imagePullSecrets) > 0 {
+			for _, element := range imagePullSecrets {
+				reqImagePullSecrets = append(reqImagePullSecrets, corev1.LocalObjectReference{Name: element})
+			}
+		}
+
 		if err := r.Client.Create(
 			ctx,
 			&corev1.Pod{
@@ -164,16 +174,17 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
-						ClusterName:    clusterName,
-						PipelineName:   pipelineName,
-						Namespace:      step.Namespace,
-						Replica:        int32(replica),
-						ImageFormat:    imageFormat,
-						RunnerImage:    runnerImage,
-						PullPolicy:     pullPolicy,
-						UpdateInterval: updateInterval,
-						StepStatus:     step.Status,
-						Sidecar:        step.Spec.Sidecar,
+						ClusterName:      clusterName,
+						PipelineName:     pipelineName,
+						Namespace:        step.Namespace,
+						Replica:          int32(replica),
+						ImageFormat:      imageFormat,
+						RunnerImage:      runnerImage,
+						PullPolicy:       pullPolicy,
+						UpdateInterval:   updateInterval,
+						StepStatus:       step.Status,
+						Sidecar:          step.Spec.Sidecar,
+						ImagePullSecrets: reqImagePullSecrets,
 					},
 				),
 			},

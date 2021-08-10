@@ -146,6 +146,8 @@ message GetPodSpecReq {
   optional StepStatus stepStatus = 8;
 
   optional Sidecar sidecar = 10;
+
+  repeated k8s.io.api.core.v1.LocalObjectReference imagePullSecrets = 11;
 }
 
 message Git {
