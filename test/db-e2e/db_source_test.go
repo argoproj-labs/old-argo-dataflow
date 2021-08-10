@@ -98,9 +98,9 @@ func TestDBSource(t *testing.T) {
 	WaitForPod()
 
 	defer StartPortForward("db-source-insert-0")()
-	SendMessageViaHTTP(`{"message": "msg1", "number": 1101}`)
-	SendMessageViaHTTP(`{"message": "msg2", "number": 1102}`)
-	SendMessageViaHTTP(`{"message": "msg3", "number": 1103}`)
+	SendMessageViaHTTP(`{"message": "msg1", "number": 101}`)
+	SendMessageViaHTTP(`{"message": "msg2", "number": 102}`)
+	SendMessageViaHTTP(`{"message": "msg3", "number": 103}`)
 
 	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(TotalSunkMessages(3))
