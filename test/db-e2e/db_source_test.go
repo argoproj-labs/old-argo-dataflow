@@ -82,7 +82,7 @@ func TestDBSource(t *testing.T) {
 									},
 								},
 							},
-							Table:          "test_source_table",
+							Query:          "select * from test_source_table",
 							PollInterval:   metav1.Duration{Duration: time.Second},
 							CommitInterval: metav1.Duration{Duration: 5 * time.Second},
 							OffsetColumn:   "id",

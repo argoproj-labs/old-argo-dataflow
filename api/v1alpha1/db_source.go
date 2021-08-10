@@ -6,7 +6,7 @@ import (
 
 type DBSource struct {
 	Database     `json:",inline" protobuf:"bytes,1,opt,name=database"`
-	Table        string `json:"table,omitempty" protobuf:"bytes,2,opt,name=table"`
+	Query        string `json:"query,omitempty" protobuf:"bytes,2,opt,name=query"`
 	OffsetColumn string `json:"offsetColumn,omitempty" protobuf:"bytes,3,opt,name=offsetColumn"`
 	// +kubebuilder:default="1s"
 	PollInterval metav1.Duration `json:"pollInterval,omitempty" protobuf:"bytes,4,opt,name=pollInterval"`

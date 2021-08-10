@@ -1664,7 +1664,7 @@ spec:
                               pollInterval:
                                 default: 1s
                                 type: string
-                              table:
+                              query:
                                 type: string
                             type: object
                           http:
