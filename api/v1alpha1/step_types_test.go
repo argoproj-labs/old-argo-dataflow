@@ -19,7 +19,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 		{Name: "ARGO_DATAFLOW_NAMESPACE", Value: "my-ns"},
 		{Name: "ARGO_DATAFLOW_PIPELINE_NAME", Value: "my-pl"},
 		{Name: "ARGO_DATAFLOW_REPLICA", Value: "1"},
-		{Name: "ARGO_DATAFLOW_STEP", Value: `{"metadata":{"creationTimestamp":null},"spec":{"name":"main","cat":{}},"status":{"phase":"","replicas":0,"lastScaledAt":null}}`},
+		{Name: "ARGO_DATAFLOW_STEP", Value: `{"metadata":{"creationTimestamp":null},"spec":{"name":"main","cat":{},"sidecar":{"resources":{}}},"status":{"phase":"","replicas":0,"lastScaledAt":null}}`},
 		{Name: "ARGO_DATAFLOW_UPDATE_INTERVAL", Value: "1m0s"},
 		{Name: "GODEBUG"},
 	}
@@ -54,6 +54,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 				PullPolicy:     corev1.PullAlways,
 				StepStatus:     StepStatus{Phase: StepRunning},
 				UpdateInterval: time.Minute,
+				Sidecar:        Sidecar{Resources: standardResources},
 			},
 			corev1.PodSpec{
 				Containers: []corev1.Container{
@@ -134,9 +135,9 @@ func TestStep_GetPodSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a, _ := json.MarshalIndent(tt.step.GetPodSpec(tt.req), "", "  ")
-			b, _ := json.MarshalIndent(tt.want, "", "  ")
-			assert.Equal(t, string(b), string(a))
+			got, _ := json.MarshalIndent(tt.step.GetPodSpec(tt.req), "", "  ")
+			want, _ := json.MarshalIndent(tt.want, "", "  ")
+			assert.Equal(t, string(want), string(got))
 		})
 	}
 }

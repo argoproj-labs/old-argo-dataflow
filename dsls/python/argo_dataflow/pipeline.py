@@ -1,6 +1,7 @@
 import getpass
 import inspect
 import json
+
 import kubernetes
 import yaml
 
@@ -149,13 +150,16 @@ class HTTPSink(Sink):
 
 
 class KafkaSink(Sink):
-    def __init__(self, subject, name=None):
+    def __init__(self, subject, name=None, a_sync=False):
         super().__init__(name)
         self._subject = subject
+        self._a_sync = a_sync
 
     def dump(self):
         x = super().dump()
         x['kafka'] = {'topic': self._subject}
+        if self._a_sync:
+            x['kafka']['async'] = True
         return x
 
 
@@ -171,7 +175,7 @@ class STANSink(Sink):
 
 
 class Step:
-    def __init__(self, name, sources=[], volumes=[], terminator=False):
+    def __init__(self, name, sources=[], volumes=[], terminator=False, sidecarResource=None):
         self._name = name
         self._sources = sources
         self._sinks = []
@@ -179,6 +183,7 @@ class Step:
         self._volumes = volumes
         self._terminator = terminator
         self._annotations = []
+        self._sidecarResources = sidecarResource
 
     def log(self, name=None):
         self._sinks.append(LogSink(name=name))
@@ -188,8 +193,8 @@ class Step:
         self._sinks.append(HTTPSink(url, name=name))
         return self
 
-    def kafka(self, subject, name=None):
-        self._sinks.append(KafkaSink(subject, name=name))
+    def kafka(self, subject, name=None, a_sync=False):
+        self._sinks.append(KafkaSink(subject, name=name, a_sync=a_sync))
         return self
 
     def scale(self, minReplicas, maxReplicas, replicaRatio):
@@ -212,6 +217,10 @@ class Step:
         self._annotations = annotations
         return self
 
+    def sidecarResources(self, sidecarResources):
+        self._sidecarResources = sidecarResources
+        return self
+
     def dump(self):
         y = {
             'name': self._name,
@@ -230,6 +239,10 @@ class Step:
             # TODO - labels too please
             y['metadata'] = {
                 'annotations': self._annotations
+            }
+        if self._sidecarResources:
+            y['sidecar'] = {
+                'resources': self._sidecarResources
             }
         return y
 
@@ -408,9 +421,10 @@ class Source:
     def cat(self, name):
         return CatStep(name, sources=[self])
 
-    def container(self, name, image, args=[], fifo=False, volumes=[], volumeMounts=[], env={}, resources={},terminator=False):
+    def container(self, name, image, args=[], fifo=False, volumes=[], volumeMounts=[], env={}, resources={},
+                  terminator=False):
         return ContainerStep(name, sources=[self], image=image, args=args, fifo=fifo, volumes=volumes,
-                             volumeMounts=volumeMounts, env=env, resources=resources,terminator=terminator)
+                             volumeMounts=volumeMounts, env=env, resources=resources, terminator=terminator)
 
     def expand(self, name):
         return ExpandStep(name, sources=[self])

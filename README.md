@@ -77,6 +77,7 @@ Advanced
 * [Image contract](docs/IMAGE_CONTRACT.md)
 * [Reading material](docs/READING.md)
 * [Security](docs/SECURITY.md)
+* [Dataflow vs X](docs/DATAFLOW_VS_X.md)
 * [Contributing](docs/CONTRIBUTING.md)
 
 ### Architecture Diagram

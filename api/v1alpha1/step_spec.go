@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"time"
-
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -42,7 +40,8 @@ type StepSpec struct {
 	NodeSelector       map[string]string   `json:"nodeSelector,omitempty" protobuf:"bytes,17,rep,name=nodeSelector"`
 	Affinity           *corev1.Affinity    `json:"affinity,omitempty" protobuf:"bytes,18,opt,name=affinity"`
 	Tolerations        []corev1.Toleration `json:"tolerations,omitempty" protobuf:"bytes,19,rep,name=tolerations"`
-
+	// +kubebuilder:default={resources: {limits: {"cpu": "500m", "memory": "256Mi"}, requests: {"cpu": "100m", "memory": "64Mi"}}}
+	Sidecar Sidecar `json:"sidecar,omitempty" protobuf:"bytes,28,opt,name=sidecar"`
 	// ImagePullSecrets is a list of references to secrets in the same namespace to use for pulling any images
 	// in pods that reference this ServiceAccount. ImagePullSecrets are distinct from Secrets because Secrets
 	// can be mounted in the pod, but ImagePullSecrets are only accessed by the kubelet.
@@ -50,18 +49,6 @@ type StepSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,20,opt,name=imagePullSecrets"`
-}
-
-type GetPodSpecReq struct {
-	ClusterName    string            `protobuf:"bytes,9,opt,name=clusterName"`
-	PipelineName   string            `protobuf:"bytes,1,opt,name=pipelineName"`
-	Namespace      string            `protobuf:"bytes,2,opt,name=namespace"`
-	Replica        int32             `protobuf:"varint,3,opt,name=replica"`
-	ImageFormat    string            `protobuf:"bytes,4,opt,name=imageFormat"`
-	RunnerImage    string            `protobuf:"bytes,5,opt,name=runnerImage"`
-	PullPolicy     corev1.PullPolicy `protobuf:"bytes,6,opt,name=pullPolicy,casttype=k8s.io/api/core/v1.PullPolicy"`
-	UpdateInterval time.Duration     `protobuf:"varint,7,opt,name=updateInterval,casttype=time.Duration"`
-	StepStatus     StepStatus        `protobuf:"bytes,8,opt,name=stepStatus"`
 }
 
 func (in StepSpec) GetIn() *Interface {
