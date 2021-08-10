@@ -90,8 +90,8 @@ images: controller runner testapi runtimes
 
 config/%.yaml: config/$*
 	kustomize build --load-restrictor LoadRestrictionsNone config/$* -o $@
-	sed "s/:latest/:$(TAG)/" $@ > config/$*.tmp
-	mv config/$*.tmp $@
+	sed "s/:latest/:$(TAG)/" $@ > tmp
+	mv tmp $@
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: install
