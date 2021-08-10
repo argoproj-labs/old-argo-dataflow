@@ -55,6 +55,8 @@ func init() {
 						_ = resp.Body.Close()
 						if resp.StatusCode >= 300 {
 							results <- fmt.Errorf("%s", resp.Status)
+						} else {
+							results <- nil
 						}
 					}
 				}
@@ -76,6 +78,8 @@ func init() {
 			switch v := res.(type) {
 			case error:
 				_, _ = fmt.Fprintf(w, "ERROR: %s\n", v)
+			case nil:
+				// noop
 			default:
 				_, _ = fmt.Fprintf(w, "ERROR: unexpected result %T", res)
 			}
