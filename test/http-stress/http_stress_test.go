@@ -40,7 +40,7 @@ func TestHTTPSourceStress(t *testing.T) {
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	go PumpHTTP("https://http-main/sources/default", prefix, n, 0)
+	go PumpHTTP("https://http-main/sources/default", prefix, n)
 	WaitForStep(TotalSunkMessages(n), Params.Timeout)
 }
 
@@ -71,6 +71,6 @@ func TestHTTPSinkStress(t *testing.T) {
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	go PumpHTTP("https://http-main/sources/default", prefix, n, 0)
+	go PumpHTTP("https://http-main/sources/default", prefix, n, Params.MessageSize)
 	WaitForStep(TotalSunkMessages(n*2), Params.Timeout)
 }

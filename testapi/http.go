@@ -36,10 +36,7 @@ func init() {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		prefix := r.URL.Query().Get("prefix")
-		if prefix == "" {
-			prefix = FunnyAnimal()
-		}
+		mf := newMessageFactory(r.URL.Query())
 		w.WriteHeader(200)
 
 		start := time.Now()
@@ -71,7 +68,7 @@ func init() {
 			go worker(jobs, results)
 		}
 		for j := 0; j < n; j++ {
-			jobs <- req{j, fmt.Sprintf("%s-%d", prefix, j)}
+			jobs <- req{j, mf.newMessage(j)}
 			time.Sleep(duration)
 		}
 		close(jobs)

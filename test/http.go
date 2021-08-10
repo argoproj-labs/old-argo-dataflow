@@ -29,15 +29,24 @@ func SendMessageViaHTTP(msg string) {
 	}
 }
 
-func PumpHTTP(_url, prefix string, n int, sleep time.Duration) {
+func PumpHTTP(_url, prefix string, n int, opts ...interface{}) {
+	size := 16
+	for _, opt := range opts {
+		switch v := opt.(type) {
+		case int:
+			size = v
+		default:
+			panic(fmt.Errorf("unknown option type %T", opt))
+		}
+	}
 	log.Printf("sending %d messages %q via HTTP to %q\n", n, prefix, _url)
-	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=%v", url.QueryEscape(_url), prefix, n, sleep)
+	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=0&size=%d", url.QueryEscape(_url), prefix, n, size)
 }
 
 func PumpHTTPTolerantly(n int) {
 	for i := 0; i < n; {
 		CatchPanic(func() {
-			PumpHTTP("https://http-main/sources/default", fmt.Sprintf("my-msg-%d", i), 1, 0)
+			PumpHTTP("https://http-main/sources/default", fmt.Sprintf("my-msg-%d", i), 1)
 			i++
 		}, func(err error) {
 			log.Printf("ignoring: %v\n", err)

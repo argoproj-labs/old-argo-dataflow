@@ -18,10 +18,7 @@ func init() {
 
 	http.HandleFunc("/stan/pump-subject", func(w http.ResponseWriter, r *http.Request) {
 		subject := r.URL.Query().Get("subject")
-		prefix := r.URL.Query().Get("prefix")
-		if prefix == "" {
-			prefix = FunnyAnimal()
-		}
+		mf := newMessageFactory(r.URL.Query())
 		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
 		if err != nil {
 			w.WriteHeader(400)
@@ -70,7 +67,7 @@ func init() {
 			case <-r.Context().Done():
 				return
 			default:
-				x := fmt.Sprintf("%s-%d", prefix, i)
+				x := mf.newMessage(i)
 				_, err := sc.PublishAsync(subject, []byte(x), func(ackedNuid string, err error) {
 					if err != nil {
 						fmt.Printf("Warning: error publishing msg id %s: %v\n", ackedNuid, err.Error())

@@ -72,6 +72,9 @@ func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger f
 		if Params.Async {
 			textName += ",async=true"
 		}
+		if Params.MessageSize > 0 {
+			textName += fmt.Sprintf(",messageSize=%d", Params.MessageSize)
+		}
 		setTestResult(textName, "tps", roundToNearest50(value()))
 	}
 }

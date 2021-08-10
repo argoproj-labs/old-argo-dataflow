@@ -40,10 +40,7 @@ func init() {
 	})
 	http.HandleFunc("/kafka/pump-topic", func(w http.ResponseWriter, r *http.Request) {
 		topic := r.URL.Query().Get("topic")
-		prefix := r.URL.Query().Get("prefix")
-		if prefix == "" {
-			prefix = FunnyAnimal()
-		}
+		mf := newMessageFactory(r.URL.Query())
 		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
 		if err != nil {
 			w.WriteHeader(400)
@@ -79,7 +76,7 @@ func init() {
 			case <-r.Context().Done():
 				return
 			default:
-				x := fmt.Sprintf("%s-%d", prefix, i)
+				x := mf.newMessage(i)
 				producer.Input() <- &sarama.ProducerMessage{
 					Topic: topic,
 					Value: sarama.StringEncoder(x),
