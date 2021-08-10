@@ -26,7 +26,7 @@ func TestPythonCodeStep(t *testing.T) {
 `,
 					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Sinks:   []Sink{DefaultLogSink},
 				},
 			},
 		},

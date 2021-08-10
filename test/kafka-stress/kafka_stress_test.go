@@ -27,7 +27,7 @@ func TestKafkaSourceStress(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
-				Sinks:    []Sink{{Log: &Log{}}},
+				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
 	})

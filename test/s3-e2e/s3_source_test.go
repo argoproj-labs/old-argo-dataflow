@@ -28,7 +28,7 @@ func TestS3Source(t *testing.T) {
 						S3:         S3{Bucket: "my-bucket"},
 						PollPeriod: metav1.Duration{Duration: 5 * time.Second},
 					}}},
-					Sinks: []Sink{{Log: &Log{}}},
+					Sinks: []Sink{DefaultLogSink},
 				},
 			},
 		},

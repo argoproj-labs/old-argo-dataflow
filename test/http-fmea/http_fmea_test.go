@@ -21,7 +21,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{HTTP: &HTTPSource{}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sinks:   []Sink{DefaultLogSink},
 			}},
 		},
 	})
@@ -53,7 +53,7 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: 2,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
-				Sinks:    []Sink{{Log: &Log{}}},
+				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
 	})

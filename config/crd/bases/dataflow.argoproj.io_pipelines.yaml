@@ -1478,6 +1478,10 @@ spec:
                             - topic
                             type: object
                           log:
+                            properties:
+                              truncate:
+                                format: int64
+                                type: integer
                             type: object
                           name:
                             default: default

@@ -251,6 +251,7 @@ message KafkaSource {
 }
 
 message Log {
+  optional uint64 truncate = 1;
 }
 
 message Metadata {

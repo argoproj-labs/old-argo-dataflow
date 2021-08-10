@@ -58,7 +58,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
-				Sinks:   []Sink{{Log: &Log{}}},
+				Sinks:   []Sink{DefaultLogSink},
 			}},
 		},
 	})

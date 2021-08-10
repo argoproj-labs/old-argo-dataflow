@@ -55,8 +55,6 @@ func init() {
 						_ = resp.Body.Close()
 						if resp.StatusCode >= 300 {
 							results <- fmt.Errorf("%s", resp.Status)
-						} else {
-							results <- fmt.Sprintf("sent %q (%d/%d, %.0f TPS) to %q", j.msg, j.i+1, n, (1+float64(j.i))/time.Since(start).Seconds(), url)
 						}
 					}
 				}
@@ -67,6 +65,7 @@ func init() {
 		for w := 1; w <= 3; w++ {
 			go worker(jobs, results)
 		}
+		_, _ = fmt.Fprintf(w, "sending %d messages of size %d to %q\n", n, mf.size, url)
 		for j := 0; j < n; j++ {
 			jobs <- req{j, mf.newMessage(j)}
 			time.Sleep(duration)
@@ -77,12 +76,11 @@ func init() {
 			switch v := res.(type) {
 			case error:
 				_, _ = fmt.Fprintf(w, "ERROR: %s\n", v)
-			case string:
-				_, _ = fmt.Fprintln(w, v)
 			default:
 				_, _ = fmt.Fprintf(w, "ERROR: unexpected result %T", res)
 			}
 		}
+		_, _ = fmt.Fprintf(w, "sent %d messages of size %d at %.0f TPS to %q\n", n, mf.size, float64(n)/time.Since(start).Seconds(), url)
 	})
 	http.HandleFunc("/http/wait-for", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")

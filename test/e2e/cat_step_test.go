@@ -21,7 +21,7 @@ func TestCatStep(t *testing.T) {
 					Name:    "main",
 					Cat:     &Cat{},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Sinks:   []Sink{DefaultLogSink},
 				},
 			},
 		},

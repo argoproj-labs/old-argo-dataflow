@@ -21,7 +21,7 @@ func TestExpandStep(t *testing.T) {
 					Name:    "main",
 					Expand:  &Expand{},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{Log: &Log{}}},
+					Sinks:   []Sink{DefaultLogSink},
 				},
 			},
 		},
