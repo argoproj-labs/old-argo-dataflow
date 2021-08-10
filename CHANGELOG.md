@@ -1,5 +1,54 @@
 # Changelog
 
+## v0.0.87 (%as)
+
+ * [95f8cb2](https://github.com/argoproj-labs/argo-dataflow/commit/95f8cb25bf831ab1c99e4b73cc2dedff13da1a76) feat: Expose async and sidecarResources in Python DSL
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.86 (%as)
+
+ * [d3a7a72](https://github.com/argoproj-labs/argo-dataflow/commit/d3a7a7222261174c1e777d6507b184bae598b0e7) feat: Enable config of sidecar resources
+ * [00c3178](https://github.com/argoproj-labs/argo-dataflow/commit/00c3178e7dba8868d2cf64238c5d0b0aac497898) feat: Add support for Kafka async producer. Fixes #216 (#220)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.85 (%as)
+
+ * [bbec883](https://github.com/argoproj-labs/argo-dataflow/commit/bbec8838892668cdb52008a224be3ccc3e35830e) feat: Updating Python runtime to use Python SDK (#212)
+ * [d7a0540](https://github.com/argoproj-labs/argo-dataflow/commit/d7a0540a642dbd1c6d6145983a91815c11398db3) feat: NodeJS Runtime & working examples for NodeJS & Python runtimes & sdks. (#211)
+
+### Contributors
+
+ * Dominik Deren
+
+## v0.0.84 (%as)
+
+ * [ab5ccde](https://github.com/argoproj-labs/argo-dataflow/commit/ab5ccded626f6f9a6fd90203c8346eb3a69ba47b) fix: set Kafka consumer max limit to 16x default (16m)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.83 (%as)
+
+
+### Contributors
+
+
+## v0.0.82 (%as)
+
+ * [c31e5e6](https://github.com/argoproj-labs/argo-dataflow/commit/c31e5e648e2f6942d20be50f2bb18f25aa611fae) fix: use one Kafka client for consumer/producer
+ * [1b18462](https://github.com/argoproj-labs/argo-dataflow/commit/1b18462a4a58f6ddbd92371315dd962a484d6f6c) fix: use one Kafka client for consumer/producer
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.81 (%as)
 
  * [616753f](https://github.com/argoproj-labs/argo-dataflow/commit/616753f06b1cc70e3ab438bb4d9e4c1298d764e6) fix: nats disconnect log (#206)

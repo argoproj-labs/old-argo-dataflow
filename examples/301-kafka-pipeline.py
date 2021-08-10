@@ -13,6 +13,6 @@ if __name__ == '__main__':
      .step(
         (kafka('input-topic')
          .cat('main')
-         .kafka('output-topic')
+         .kafka('output-topic', a_sync=True)
          ))
      .save())

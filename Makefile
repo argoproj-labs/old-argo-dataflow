@@ -193,10 +193,8 @@ examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 install-dsls:
 	pip3 install dsls/python
 
-.PHONY: example-yamls
-example-yamls: install-dsls
-	cd examples && python3 *.py
-examples/%-pipeline.yaml: examples/%-pipeline.py example-yamls
+examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
+	cd examples && python3 $*-pipeline.py
 
 argocli:
 	cd ../../argoproj/argo-workflows && git checkout dev-dataflow && make ./dist/argo DEV_BRANCH=true && ./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system
