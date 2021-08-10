@@ -1,2 +1,1 @@
-
-git+https://github.com/domderen/argo-dataflow@python-sdk-runtime#subdirectory=sdks/python
+git+https://github.com/argoproj-labs/argo-dataflow#subdirectory=sdks/python
