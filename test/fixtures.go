@@ -33,7 +33,6 @@ func SkipIfCI(t *testing.T) {
 }
 
 func Setup(t *testing.T) (teardown func()) {
-	log.Println("set-up")
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 
@@ -41,8 +40,9 @@ func Setup(t *testing.T) (teardown func()) {
 
 	ResetCount()
 
+	log.Printf("🌀 START: %s", t.Name())
+
 	return func() {
-		log.Println("tear-down")
 		stopTestAPIPortForward()
 		r := recover() // tests should panic on error, we recover so we can run other tests
 		if r != nil {

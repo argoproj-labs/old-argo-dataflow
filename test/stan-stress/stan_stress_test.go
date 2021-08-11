@@ -43,7 +43,7 @@ func TestStanSourceStress(t *testing.T) {
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	go PumpSTANSubject(longSubject, n, prefix)
+	go PumpSTANSubject(longSubject, n, prefix, Params.MessageSize)
 	WaitForStep(TotalSunkMessages(n), Params.Timeout)
 }
 
@@ -61,7 +61,7 @@ func TestStanSinkStress(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
-				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}, {Name: "log", Log: &Log{}}},
+				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}, DefaultLogSink},
 			}},
 		},
 	})
@@ -76,6 +76,6 @@ func TestStanSinkStress(t *testing.T) {
 	prefix := "stan-sink-stress"
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	go PumpSTANSubject(longSubject, n, prefix)
+	go PumpSTANSubject(longSubject, n, prefix, Params.MessageSize)
 	WaitForStep(TotalSunkMessages(n*2), Params.Timeout) // 2 sinks
 }

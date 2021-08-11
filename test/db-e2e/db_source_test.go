@@ -89,7 +89,7 @@ func TestDBSource(t *testing.T) {
 							InitSchema:     true,
 						},
 					}},
-					Sinks: []Sink{{Log: &Log{}}},
+					Sinks: []Sink{DefaultLogSink},
 				},
 			},
 		},

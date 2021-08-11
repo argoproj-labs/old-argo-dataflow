@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -68,14 +69,23 @@ func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger f
 		if start == nil || end == nil {
 			panic("failed to calculate start time or end time")
 		}
-		textName := fmt.Sprintf("%s/currentContext=%s,replicas=%d,n=%d", t.Name(), currentContext, Params.Replicas, Params.N)
+		var params []string
+		if currentContext != "docker-desktop" {
+			params = append(params, "currentContext="+currentContext)
+		}
+		if Params.Replicas != 1 {
+			params = append(params, fmt.Sprintf("replicas=%d", Params.Replicas))
+		}
+		if Params.N != 10000 {
+			params = append(params, fmt.Sprintf("N=%d", Params.N))
+		}
 		if Params.Async {
-			textName += ",async=true"
+			params = append(params, "async=true")
 		}
 		if Params.MessageSize > 0 {
-			textName += fmt.Sprintf(",messageSize=%d", Params.MessageSize)
+			params = append(params, fmt.Sprintf("messageSize=%d", Params.MessageSize))
 		}
-		setTestResult(textName, "tps", roundToNearest50(value()))
+		setTestResult(fmt.Sprintf("%s/%s", t.Name(), strings.Join(params, ",")), "tps", roundToNearest50(value()))
 	}
 }
 

@@ -1,11 +1,13 @@
 {
-  "TestKafkaSinkStress/currentContext=docker-desktop,replicas=1,n=10000,async=true.tps": 400,
-  "TestKafkaSinkStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 650,
-  "TestKafkaSinkStress/replicas=1.tps": 100,
-  "TestKafkaSinkStress/replicas=2.tps": 250,
-  "TestKafkaSourceStress/currentContext=docker-desktop,replicas=1,n=10000.tps": 1200,
-  "TestKafkaSourceStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=1,n=10000.tps": 1700,
-  "TestKafkaSourceStress/currentContext=gke_jesse-sb_us-west2_cluster-2,replicas=2,n=10000.tps": 1550,
-  "TestKafkaSourceStress/replicas=1.tps": 100,
-  "TestKafkaSourceStress/replicas=2.tps": 250
+  "TestKafkaSinkStress/.tps": 350,
+  "TestKafkaSinkStress/N=10,messageSize=100.tps": 200,
+  "TestKafkaSinkStress/N=10,messageSize=1000.tps": 150,
+  "TestKafkaSinkStress/async=true.tps": 400,
+  "TestKafkaSinkStress/messageSize=1000.tps": 300,
+  "TestKafkaSinkStress/replicas=2.tps": 400,
+  "TestKafkaSourceStress/.tps": 1100,
+  "TestKafkaSourceStress/N=10,messageSize=100.tps": 450,
+  "TestKafkaSourceStress/N=10,messageSize=1000.tps": 650,
+  "TestKafkaSourceStress/messageSize=1000.tps": 850,
+  "TestKafkaSourceStress/replicas=2.tps": 950
 }

@@ -18,14 +18,14 @@ func setTestResult(testName string, key string, value int) {
 	}
 	x := make(map[string]int)
 	if err := json.Unmarshal(data, &x); err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to unmarshall JSON results: %w", err))
 	}
 	x[fmt.Sprintf("%s.%s", testName, key)] = value
 	if data, err := json.MarshalIndent(x, "", "  "); err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to marshall JSON results: %w", err))
 	} else {
 		if err := ioutil.WriteFile(filename, data, 0o600); err != nil {
-			panic(err)
+			panic(fmt.Errorf("failed to write results file: %w", err))
 		}
 	}
 }

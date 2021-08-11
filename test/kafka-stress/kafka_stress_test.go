@@ -43,7 +43,7 @@ func TestKafkaSourceStress(t *testing.T) {
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	go PumpKafkaTopic(topic, n, prefix)
+	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
 	WaitForStep(TotalSunkMessages(n), Params.Timeout)
 }
 
@@ -63,7 +63,7 @@ func TestKafkaSinkStress(t *testing.T) {
 				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
 				Sinks: []Sink{
 					{Kafka: &KafkaSink{Async: Params.Async, Kafka: Kafka{Topic: sinkTopic}}},
-					{Name: "log", Log: &Log{}},
+					DefaultLogSink,
 				},
 			}},
 		},
@@ -80,6 +80,6 @@ func TestKafkaSinkStress(t *testing.T) {
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	go PumpKafkaTopic(topic, n, prefix)
+	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
 	WaitForStep(TotalSunkMessages(n*2), Params.Timeout) // 2 sinks
 }

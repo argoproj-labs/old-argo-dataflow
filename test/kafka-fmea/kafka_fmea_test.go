@@ -91,7 +91,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
 				Sinks: []Sink{
-					{Name: "log", Log: &Log{}},
+					DefaultLogSink,
 					{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}},
 				},
 			}},

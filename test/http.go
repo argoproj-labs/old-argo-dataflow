@@ -30,7 +30,7 @@ func SendMessageViaHTTP(msg string) {
 }
 
 func PumpHTTP(_url, prefix string, n int, opts ...interface{}) {
-	size := 16
+	size := 0
 	for _, opt := range opts {
 		switch v := opt.(type) {
 		case int:
@@ -39,7 +39,7 @@ func PumpHTTP(_url, prefix string, n int, opts ...interface{}) {
 			panic(fmt.Errorf("unknown option type %T", opt))
 		}
 	}
-	log.Printf("sending %d messages %q via HTTP to %q\n", n, prefix, _url)
+	log.Printf("sending %d messages sized %d prefixed %q via HTTP to %q\n", n, size, prefix, _url)
 	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=0&size=%d", url.QueryEscape(_url), prefix, n, size)
 }
 
