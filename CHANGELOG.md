@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.88 (2021-08-10)
+
+ * [85f4d1f](https://github.com/argoproj-labs/argo-dataflow/commit/85f4d1fa8537e2e0d7a783b4f89a73a766a6830e) feat: db source (#215)
+ * [5e07456](https://github.com/argoproj-labs/argo-dataflow/commit/5e074569add0536a1d968f13d1025bdef3b7a72e) feat: add log sink message truncation (#225)
+ * [c47c023](https://github.com/argoproj-labs/argo-dataflow/commit/c47c023a7fbafc190e30eee9e938a8e78becbbf7) feat: Adding ability to specify imagePullSecrets for pipelines (#214)
+ * [f5b7751](https://github.com/argoproj-labs/argo-dataflow/commit/f5b7751ef29da843310d5f2b23837d7988377fa6) fix: update sidecar locking to try and avoid sawing metric values. Fixes #224
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+ * Dominik Deren
+
 ## v0.0.87 (2021-08-09)
 
  * [95f8cb2](https://github.com/argoproj-labs/argo-dataflow/commit/95f8cb25bf831ab1c99e4b73cc2dedff13da1a76) feat: Expose async and sidecarResources in Python DSL
