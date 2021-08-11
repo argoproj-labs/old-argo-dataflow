@@ -103,6 +103,23 @@ message DBSink {
   repeated SQLAction actions = 2;
 }
 
+message DBSource {
+  optional Database database = 1;
+
+  optional string query = 2;
+
+  optional string offsetColumn = 3;
+
+  // +kubebuilder:default="1s"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration pollInterval = 4;
+
+  // +kubebuilder:default="5s"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration commitInterval = 5;
+
+  // +kubebuilder:default=true
+  optional bool initSchema = 6;
+}
+
 message Database {
   // +kubebuilder:default=default
   optional string driver = 1;
@@ -430,6 +447,8 @@ message Source {
   optional HTTPSource http = 5;
 
   optional S3Source s3 = 8;
+
+  optional DBSource db = 6;
 
   // +kubebuilder:default={duration: "100ms", steps: 20, factorPercentage: 200, jitterPercentage: 10}
   optional Backoff retry = 7;
