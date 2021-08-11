@@ -100,6 +100,7 @@ jobs:
       - run: docker pull golang:1.16
       - run: make wait
       - run: make test-${{matrix.suite}}
+      - run: git diff
       - name: controller logs
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system logs deploy/controller-manager -c manager
