@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/pprof"
+	"os"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/cat"
 	"github.com/argoproj-labs/argo-dataflow/runner/dedupe"
@@ -17,11 +22,8 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
 	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"io/ioutil"
+
 	"k8s.io/apimachinery/pkg/api/resource"
-	"net/http"
-	"net/http/pprof"
-	"os"
 )
 
 var logger = sharedutil.NewLogger()
