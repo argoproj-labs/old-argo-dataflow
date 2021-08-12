@@ -4,10 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	_ "net/http/pprof"
-	"os"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/cat"
 	"github.com/argoproj-labs/argo-dataflow/runner/dedupe"
@@ -20,9 +16,30 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
 	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
 	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
-
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"net/http"
+	"net/http/pprof"
+	"os"
 )
+
+var logger = sharedutil.NewLogger()
+
+func init() {
+	// https://mmcloughlin.com/posts/your-pprof-is-showing
+	http.DefaultServeMux = http.NewServeMux()
+	if os.Getenv(dfv1.EnvDebug) == "true" {
+		logger.Info("enabling pprof debug endpoints - do not do this in production")
+		http.HandleFunc("/debug/pprof/", pprof.Index)
+		http.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		http.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		http.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		http.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	} else {
+		logger.Info("not enabling pprof debug endpoints")
+	}
+}
 
 func main() {
 	ctx := golang.SetupSignalsHandler(context.Background())

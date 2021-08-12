@@ -55,6 +55,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 
 	envVars := []corev1.EnvVar{
 		{Name: EnvClusterName, Value: req.ClusterName},
+		{Name: EnvDebug, Value: strconv.FormatBool(req.Debug)},
 		{Name: EnvNamespace, Value: req.Namespace},
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},

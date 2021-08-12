@@ -8,6 +8,7 @@ import (
 
 type GetPodSpecReq struct {
 	ClusterName      string                        `protobuf:"bytes,9,opt,name=clusterName"`
+	Debug            bool                          `protobuf:"varint,12,opt,name=debug"`
 	PipelineName     string                        `protobuf:"bytes,1,opt,name=pipelineName"`
 	Namespace        string                        `protobuf:"bytes,2,opt,name=namespace"`
 	Replica          int32                         `protobuf:"varint,3,opt,name=replica"`
