@@ -50,3 +50,16 @@ alpha/beta/stable.
 | Terminating pipelines | v0.0.59 | v0.0.70 | |
 | Terminating steps | v0.0.59 | v0.0.70 | |
 | User interface | | v0.0.59 | |
+
+Common gating criteria to get from alpha to beta:
+
+* Unit, end-to-end, FMEA and stress tests (as applicable).
+* Used in production.
+* DSL and SDK.
+* Examples and documentation.
+
+And from beta to stable:
+
+* Stable API.
+* Provide in production.
+* Adopted by multiple users.
