@@ -90,3 +90,9 @@ func (in StepSpec) CalculateReplicas(pending int) int {
 	}
 	return in.Scale.Calculate(pending)
 }
+
+func (in StepSpec) WithOutReplicas() StepSpec {
+	x := *in.DeepCopy()
+	x.Replicas = 0
+	return x
+}

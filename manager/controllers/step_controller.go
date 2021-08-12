@@ -61,9 +61,8 @@ type hash struct {
 
 var (
 	clusterName = os.Getenv(dfv1.EnvClusterName)
-	debug = os.Getenv(dfv1.EnvDebug) == "true"
+	debug       = os.Getenv(dfv1.EnvDebug) == "true"
 )
-
 
 func init() {
 	logger.Info("config", "clusterName", clusterName, "debug", debug)
@@ -129,7 +128,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
-	hash := util.MustHash(hash{runnerImage, step.Spec})
+	hash := util.MustHash(hash{runnerImage, step.Spec.WithOutReplicas()}) // we must remove data (e.g. replicas) which does not change the pod, otherwise it would cause the pod to be re-created all the time
 	oldStatus := step.Status.DeepCopy()
 	step.Status.Phase, step.Status.Reason, step.Status.Message = dfv1.StepUnknown, "", ""
 	step.Status.Selector = selector.String()
@@ -179,7 +178,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
 						ClusterName:      clusterName,
-						Debug: debug,
+						Debug:            debug,
 						PipelineName:     pipelineName,
 						Namespace:        step.Namespace,
 						Replica:          int32(replica),
