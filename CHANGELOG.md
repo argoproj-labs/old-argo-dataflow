@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.89 (2021-08-12)
+
+ * [3ba7708](https://github.com/argoproj-labs/argo-dataflow/commit/3ba77087e5fd48a38e7ed6cd9eef44b5a854cf25) fix: Prevent scaling from deleting pods
+ * [5523aa3](https://github.com/argoproj-labs/argo-dataflow/commit/5523aa33d93d657d7f4cd15f2a1cf0ff98d75730) fix: Required debug enabled for pprof. Fixes #241
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.88 (2021-08-10)
 
  * [85f4d1f](https://github.com/argoproj-labs/argo-dataflow/commit/85f4d1fa8537e2e0d7a783b4f89a73a766a6830e) feat: db source (#215)
