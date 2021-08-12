@@ -62,10 +62,6 @@ type hash struct {
 var clusterName = os.Getenv(dfv1.EnvClusterName)
 
 func init() {
-	if clusterName == "" {
-		// set default cluster name
-		clusterName = "default"
-	}
 	logger.Info("config", "clusterName", clusterName)
 }
 
