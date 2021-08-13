@@ -12,8 +12,6 @@ import (
 )
 
 var (
-	scalingDelay     = util.GetEnvDuration(dfv1.EnvScalingDelay, time.Minute)
-	peekDelay        = util.GetEnvDuration(dfv1.EnvPeekDelay, 4*time.Minute)
 	imagePrefix      = os.Getenv(dfv1.EnvImagePrefix)
 	imageFormat      = ""
 	runnerImage      = ""
@@ -39,8 +37,6 @@ func init() {
 		"runnerImage", runnerImage,
 		"pullPolicy", pullPolicy,
 		"updateInterval", updateInterval.String(),
-		"scalingDelay", scalingDelay.String(),
-		"peekDelay", peekDelay.String(),
 		"deletionDelay", deletionDelay.String(),
 		"imagePullSecrets", imagePullSecrets,
 	)

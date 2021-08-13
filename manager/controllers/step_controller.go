@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
 	"os"
 	"strconv"
 	"time"
@@ -90,9 +91,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	log.Info("reconciling")
 
-	if step.Spec.Scale != nil {
-		desiredReplicas := step.GetTargetReplicas(scalingDelay, peekDelay)
-
+	if step.Spec.Scale.DesiredReplicas != "" {
+		desiredReplicas, err := scaling.GetDesiredReplicas(*step)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 		if int(step.Spec.Replicas) != desiredReplicas {
 			log.Info("auto-scaling step", "currentReplicas", step.Spec.Replicas, "desiredReplicas", desiredReplicas)
 			if _, err := r.DynamicInterface.
@@ -295,9 +298,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	return ctrl.Result{
-		RequeueAfter: dfv1.RequeueAfter(currentReplicas, desiredReplicas, scalingDelay),
-	}, nil
+	requeueAfter, err := scaling.RequeueAfter(*step, currentReplicas, desiredReplicas)
+	return ctrl.Result{RequeueAfter: requeueAfter}, err
 }
 
 func eventReason(currentReplicas, desiredReplicas int) string {

@@ -1178,18 +1178,25 @@ spec:
                         the default one is RestartPolicyAlways.
                       type: string
                     scale:
+                      default:
+                        desiredReplicas: ""
+                        peekDelay: defaultPeekDelay
+                        scalingDelay: defaultScalingDelay
                       properties:
-                        maxReplicas:
-                          format: int32
-                          type: integer
-                        minReplicas:
-                          format: int32
-                          type: integer
-                        replicaRatio:
-                          format: int32
-                          type: integer
-                      required:
-                      - minReplicas
+                        desiredReplicas:
+                          description: An expression to determine the number of replicas.
+                            Must evaluation to an `int`.
+                          type: string
+                        peekDelay:
+                          default: defaultPeekDelay
+                          description: An expression to determine the delay for peeking.
+                            Maybe string or duration, e.g. `"4m"`
+                          type: string
+                        scalingDelay:
+                          default: defaultScalingDelay
+                          description: An expression to determine the delay for scaling.
+                            Maybe string or duration, e.g. `"1m"`
+                          type: string
                       type: object
                     serviceAccountName:
                       default: pipeline
