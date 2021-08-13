@@ -7462,7 +7462,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: ARGO_DATAFLOW_CLUSTER_NAME
-          value: "default"
+          value: default
         image: quay.io/argoproj/dataflow-controller:latest
         name: manager
         ports:
