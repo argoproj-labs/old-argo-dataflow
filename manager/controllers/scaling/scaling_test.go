@@ -1,11 +1,12 @@
 package scaling
 
 import (
+	"testing"
+	"time"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 func TestGetDesiredReplicas(t *testing.T) {

@@ -179,7 +179,7 @@ class Step:
         self._name = name
         self._sources = sources
         self._sinks = []
-        self._scale = {}
+        self._scale = None
         self._volumes = volumes
         self._terminator = terminator
         self._annotations = []
@@ -197,11 +197,9 @@ class Step:
         self._sinks.append(KafkaSink(subject, name=name, a_sync=a_sync))
         return self
 
-    def scale(self, minReplicas, maxReplicas, replicaRatio):
+    def scale(self, desiredReplicas):
         self._scale = {
-            'minReplicas': minReplicas,
-            'maxReplicas': maxReplicas,
-            'replicaRatio': replicaRatio
+            'desiredReplicas': desiredReplicas,
         }
         return self
 
@@ -229,7 +227,7 @@ class Step:
             y['sources'] = [x.dump() for x in self._sources]
         if len(self._sinks):
             y['sinks'] = [x.dump() for x in self._sinks]
-        if len(self._scale) > 0:
+        if self._scale:
             y['scale'] = self._scale
         if len(self._volumes) > 0:
             y['volumes'] = self._volumes

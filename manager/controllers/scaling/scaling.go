@@ -2,10 +2,11 @@ package scaling
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/antonmedv/expr"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
-	"time"
 )
 
 var (
@@ -21,21 +22,13 @@ func init() {
 	)
 }
 
-func duration(v string) time.Duration {
-	d, err := time.ParseDuration(v)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse %q as duration: %w", v, err))
-	}
-	return d
-}
-
 func GetDesiredReplicas(step dfv1.Step) (int, error) {
 	currentReplicas := int(step.Status.Replicas)
 	lastScaledAt := time.Since(step.Status.LastScaledAt.Time)
 	scale := step.Spec.Scale
 	var scalingDelay time.Duration
 	var peekDelay time.Duration
-	var desiredReplicas = currentReplicas
+	desiredReplicas := currentReplicas
 
 	{
 		env := getEnv(step)
@@ -84,7 +77,9 @@ func getEnv(step dfv1.Step) map[string]interface{} {
 		"pending":             step.Status.SourceStatuses.GetPending(),
 		"defaultScalingDelay": defaultScalingDelay,
 		"defaultPeekDelay":    defaultPeekDelay,
-		"duration":            duration,
+		// funcs
+		"duration": duration,
+		"minmax":   minmax,
 	}
 	return env
 }

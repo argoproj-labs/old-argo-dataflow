@@ -39,9 +39,7 @@ spec:
   - cat: {}
     name: main
     scale:
-      maxReplicas: 4
-      minReplicas: 0
-      replicaRatio: 1000
+      desiredReplicas: minmax(pending / 1000, 0, 4)
     sinks:
     - kafka:
         topic: output-topic

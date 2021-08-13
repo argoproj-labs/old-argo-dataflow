@@ -35,7 +35,7 @@ of replicas re-calculated.""")
      .step(
         (kafka('input-topic')
          .cat('main')
-         .scale(0, 4, 1000)
+         .scale('minmax(pending / 1000, 0, 4)')
          .kafka('output-topic'))
     )
      .save())

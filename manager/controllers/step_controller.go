@@ -19,10 +19,11 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
 
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
@@ -299,7 +300,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	}
 
 	requeueAfter, err := scaling.RequeueAfter(*step, currentReplicas, desiredReplicas)
-	return ctrl.Result{RequeueAfter: requeueAfter}, err
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if requeueAfter > 0 {
+		logger.Info("requeue", "requeueAfter", requeueAfter)
+	}
+	return ctrl.Result{RequeueAfter: requeueAfter}, nil
 }
 
 func eventReason(currentReplicas, desiredReplicas int) string {
