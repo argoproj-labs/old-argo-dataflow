@@ -8,6 +8,7 @@ if __name__ == '__main__':
 Replicas are automatically scaled up and down depending on the the desired formula, which can be computed using the following:
 
 * `pending` total number of pending messages.
+* `lastPending` last value of total number of pending messages (typically 1m ago).
 * `currentReplicas` the current number of replicas
 * `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas
 

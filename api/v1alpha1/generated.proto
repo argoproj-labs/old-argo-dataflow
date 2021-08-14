@@ -463,6 +463,8 @@ message Source {
 message SourceStatus {
   optional uint64 pending = 3;
 
+  optional uint64 lastPending = 5;
+
   map<string, Metrics> metrics = 4;
 }
 

@@ -7111,6 +7111,9 @@ spec:
               sinkStatuses:
                 additionalProperties:
                   properties:
+                    lastPending:
+                      format: int64
+                      type: integer
                     metrics:
                       additionalProperties:
                         properties:
@@ -7139,6 +7142,9 @@ spec:
               sourceStatuses:
                 additionalProperties:
                   properties:
+                    lastPending:
+                      format: int64
+                      type: integer
                     metrics:
                       additionalProperties:
                         properties:

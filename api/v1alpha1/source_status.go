@@ -1,8 +1,9 @@
 package v1alpha1
 
 type SourceStatus struct {
-	Pending *uint64            `json:"pending,omitempty" protobuf:"varint,3,opt,name=pending"`
-	Metrics map[string]Metrics `json:"metrics,omitempty" protobuf:"bytes,4,rep,name=metrics"`
+	Pending     *uint64            `json:"pending,omitempty" protobuf:"varint,3,opt,name=pending"`
+	LastPending *uint64            `json:"lastPending,omitempty" protobuf:"varint,5,opt,name=lastPending"`
+	Metrics     map[string]Metrics `json:"metrics,omitempty" protobuf:"bytes,4,rep,name=metrics"`
 }
 
 // GetPending returns pending counts

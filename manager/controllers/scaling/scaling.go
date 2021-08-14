@@ -75,6 +75,7 @@ func getEnv(step dfv1.Step) map[string]interface{} {
 		"currentReplicas":     int(step.Status.Replicas),
 		"lastScaledAt":        time.Since(step.Status.LastScaledAt.Time),
 		"pending":             step.Status.SourceStatuses.GetPending(),
+		"lastPendinG":         step.Status.SourceStatuses.GetLastPending(),
 		"defaultScalingDelay": defaultScalingDelay,
 		"defaultPeekDelay":    defaultPeekDelay,
 		// funcs
