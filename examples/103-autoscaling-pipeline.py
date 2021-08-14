@@ -5,27 +5,12 @@ if __name__ == '__main__':
      .owner('argoproj-labs')
      .describe("""This is an example of having multiple replicas for a single step.
 
-Replicas are automatically scaled up and down depending on the number of messages pending processing.
+Replicas are automatically scaled up and down depending on the the desired formula, which can be computed using the following:
 
-The ratio is defined as the number of pending messages per replica:
+* `pending` total number of pending messages.
+* `currentReplicas` the current number of replicas
+* `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas
 
-```
-replicas = pending / ratio
-```
-
-The number of replicas will not scale beyond the min/max bounds (except when *peeking*, see below):
-
-```
-min <= replicas <= max
-```
-
-* `min` is used as the initial number of replicas.
-* If `ratio` is undefined no scaling can occur; `max` is meaningless.
-* If `ratio` is defined but `max` is not, the step may scale to infinity.
-* If `max` and `ratio` are undefined, then the number of replicas is `min`.
-* In this example, because the ratio is 1000, if 2000 messages pending, two replicas will be started.
-* To prevent scaling up and down repeatedly - scale up or down occurs a maximum of once a minute.
-* The same message will not be send to two different replicas.
 
 ### Scale-To-Zero and Peeking
 
