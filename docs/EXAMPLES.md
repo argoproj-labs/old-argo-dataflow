@@ -62,11 +62,11 @@ This is an example of having multiple replicas for a single step.
 
 Replicas are automatically scaled up and down depending on the the desired formula, which can be computed using the following:
 
-* `pending` total number of pending messages.
-* `lastPending` last value of total number of pending messages (typically 1m ago).
-* `currentReplicas` the current number of replicas
-* `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas
-
+* `P` total number of pending messages.
+* `p` change in number of pending messages
+* `m` change in total number of of consumed messages.
+* `c` the current number of replicas.
+* `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas.
 
 ### Scale-To-Zero and Peeking
 

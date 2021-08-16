@@ -10,8 +10,6 @@ import (
 	"sync"
 	"time"
 
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -21,6 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -243,22 +242,17 @@ func patchStepStatus() {
 					}
 					// the step with change while this goroutine is running, so we must copy the data for this
 					// replica back to the status
-					r := strconv.Itoa(replica)
 					for name, s := range step.Status.SourceStatuses {
 						if v.Status.SourceStatuses[name].Metrics == nil {
-							x := v.Status.SourceStatuses[name]
-							x.Metrics = map[string]dfv1.Metrics{}
-							v.Status.SourceStatuses[name] = x
+							s.Metrics = map[string]dfv1.Metrics{}
 						}
-						v.Status.SourceStatuses[name].Metrics[r] = s.Metrics[r]
+						v.Status.SourceStatuses[name] = s
 					}
 					for name, s := range step.Status.SinkStatues {
 						if v.Status.SinkStatues[name].Metrics == nil {
-							x := v.Status.SinkStatues[name]
-							x.Metrics = map[string]dfv1.Metrics{}
-							v.Status.SinkStatues[name] = x
+							s.Metrics = map[string]dfv1.Metrics{}
 						}
-						v.Status.SinkStatues[name].Metrics[r] = s.Metrics[r]
+						v.Status.SinkStatues[name] = s
 					}
 					step = v
 				})

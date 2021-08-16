@@ -7,11 +7,10 @@ metadata:
 
       Replicas are automatically scaled up and down depending on the the desired formula, which can be computed using the following:
 
-      * `pending` total number of pending messages.
-      * `lastPending` last value of total number of pending messages (typically 1m ago).
-      * `currentReplicas` the current number of replicas
-      * `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas
-
+      * `P` total number of pending messages.
+      * `p` change in number of pending messages
+      * `c` the current number of replicas.
+      * `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas.
 
       ### Scale-To-Zero and Peeking
 
@@ -25,7 +24,8 @@ spec:
   - cat: {}
     name: main
     scale:
-      desiredReplicas: minmax(pending / 1000, 0, 4)
+      desiredReplicas: |
+        minmax((c * 256 + p) / 256 + P / (c * 10 * c * 256), 0, 4)
     sinks:
     - kafka:
         topic: output-topic

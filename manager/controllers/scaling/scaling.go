@@ -6,13 +6,13 @@ import (
 
 	"github.com/antonmedv/expr"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
 var (
-	logger              = util.NewLogger()
-	defaultScalingDelay = util.GetEnvDuration(dfv1.EnvScalingDelay, time.Minute)
-	defaultPeekDelay    = util.GetEnvDuration(dfv1.EnvPeekDelay, 4*time.Minute)
+	logger              = sharedutil.NewLogger()
+	defaultScalingDelay = sharedutil.GetEnvDuration(dfv1.EnvScalingDelay, time.Minute)
+	defaultPeekDelay    = sharedutil.GetEnvDuration(dfv1.EnvPeekDelay, 4*time.Minute)
 )
 
 func init() {
@@ -31,15 +31,26 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 	desiredReplicas := currentReplicas
 
 	{
-		env := getEnv(step)
+		p := step.Status.SourceStatuses.GetPending()
 		var err error
-		if scalingDelay, err = evalAsDuration(scale.ScalingDelay, env); err != nil {
+		if scalingDelay, err = evalAsDuration(scale.ScalingDelay, map[string]interface{}{
+			"defaultScalingDelay": defaultScalingDelay,
+		}); err != nil {
 			return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
 		}
-		if peekDelay, err = evalAsDuration(scale.PeekDelay, env); err != nil {
+		if peekDelay, err = evalAsDuration(scale.PeekDelay, map[string]interface{}{
+			"defaultPeekDelay": defaultPeekDelay,
+		}); err != nil {
 			return 0, fmt.Errorf("failed to evaluate %q: %w", scale.PeekDelay, err)
 		}
 		if scale.DesiredReplicas != "" {
+			env := map[string]interface{}{
+				"c": int(step.Status.Replicas),
+				"P": int(p),
+				"p": int(p - step.Status.SourceStatuses.GetLastPending()),
+			}
+			logger.Info("env", "env", sharedutil.MustJSON(env))
+			env["minmax"] = minmax
 			r, err := expr.Eval(scale.DesiredReplicas, env)
 			if err != nil {
 				return 0, err
@@ -49,6 +60,7 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 			if !ok {
 				return 0, fmt.Errorf("failed to evaluate %q as int, got %T", scale.DesiredReplicas, r)
 			}
+			logger.Info("desiredReplicas", "desiredReplicas", desiredReplicas)
 		}
 	}
 
@@ -70,21 +82,6 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 	}
 }
 
-func getEnv(step dfv1.Step) map[string]interface{} {
-	env := map[string]interface{}{
-		"currentReplicas":     int(step.Status.Replicas),
-		"lastScaledAt":        time.Since(step.Status.LastScaledAt.Time),
-		"pending":             step.Status.SourceStatuses.GetPending(),
-		"lastPendinG":         step.Status.SourceStatuses.GetLastPending(),
-		"defaultScalingDelay": defaultScalingDelay,
-		"defaultPeekDelay":    defaultPeekDelay,
-		// funcs
-		"duration": duration,
-		"minmax":   minmax,
-	}
-	return env
-}
-
 func evalAsDuration(input string, env map[string]interface{}) (time.Duration, error) {
 	if r, err := expr.Eval(input, env); err != nil {
 		return 0, err
@@ -103,7 +100,9 @@ func evalAsDuration(input string, env map[string]interface{}) (time.Duration, er
 func RequeueAfter(step dfv1.Step, currentReplicas, desiredReplicas int) (time.Duration, error) {
 	if currentReplicas <= 0 && desiredReplicas == 0 {
 		scale := step.Spec.Scale
-		if scalingDelay, err := evalAsDuration(scale.ScalingDelay, getEnv(step)); err != nil {
+		if scalingDelay, err := evalAsDuration(scale.ScalingDelay, map[string]interface{}{
+			"defaultScalingDelay": defaultScalingDelay,
+		}); err != nil {
 			return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
 		} else {
 			return scalingDelay, nil

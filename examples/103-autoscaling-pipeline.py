@@ -7,11 +7,11 @@ if __name__ == '__main__':
 
 Replicas are automatically scaled up and down depending on the the desired formula, which can be computed using the following:
 
-* `pending` total number of pending messages.
-* `lastPending` last value of total number of pending messages (typically 1m ago).
-* `currentReplicas` the current number of replicas
-* `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas
-
+* `P` total number of pending messages.
+* `p` change in number of pending messages
+* `m` change in total number of of consumed messages.
+* `c` the current number of replicas.
+* `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas.
 
 ### Scale-To-Zero and Peeking
 
@@ -21,7 +21,7 @@ of replicas re-calculated.""")
      .step(
         (kafka('input-topic')
          .cat('main')
-         .scale('minmax(pending / 1000, 0, 4)')
+         .scale('minmax((m + p) * c / m + P / (c * 10 * m), 0, 4)')
          .kafka('output-topic'))
     )
      .save())

@@ -53,7 +53,7 @@ type PipelineReconciler struct {
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=create;get;delete
 // +kubebuilder:rbac:groups=,resources=secrets,verbs=create;get;delete
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("pipeline", req.NamespacedName)
+	log := r.Log.WithValues("pipeline", req.NamespacedName.String())
 
 	pipeline := &dfv1.Pipeline{}
 	if err := r.Get(ctx, req.NamespacedName, pipeline); err != nil {

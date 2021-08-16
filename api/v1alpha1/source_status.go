@@ -22,6 +22,10 @@ func (in SourceStatus) GetTotal() uint64 {
 	return x
 }
 
+func (in SourceStatus) GetLeaderTotal() uint64 {
+	return in.Metrics["0"].Total
+}
+
 func (in SourceStatus) GetErrors() uint64 {
 	var x uint64
 	for _, m := range in.Metrics {
