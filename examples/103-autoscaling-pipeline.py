@@ -12,6 +12,12 @@ Replicas are automatically scaled up and down depending on the the desired formu
 * `c` the current number of replicas.
 * `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas.
 
+In this example:
+
+* Aa period is 60s
+* Each replica can consume 250 messages each second
+* We want to consume all pending messages in 10 periods. 
+
 ### Scale-To-Zero and Peeking
 
 You can scale to zero. The number of replicas will be periodically scaled
@@ -20,7 +26,7 @@ of replicas re-calculated.""")
      .step(
         (kafka('input-topic')
          .cat('main')
-         .scale('minmax(c + p / 250 + P / (c * n * 250), 0, 4)')
+         .scale('minmax(c + p / 60 / 250 + P / (10 * 60 * 250), 0, 4)')
          .kafka('output-topic'))
     )
      .save())

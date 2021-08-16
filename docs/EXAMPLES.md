@@ -67,6 +67,12 @@ Replicas are automatically scaled up and down depending on the the desired formu
 * `c` the current number of replicas.
 * `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas.
 
+In this example:
+
+* Aa period is 60s
+* Each replica can consume 250 messages each second
+* We want to consume all pending messages in 10 periods. 
+
 ### Scale-To-Zero and Peeking
 
 You can scale to zero. The number of replicas will be periodically scaled

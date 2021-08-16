@@ -29,9 +29,8 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 	var scalingDelay time.Duration
 	var peekDelay time.Duration
 	desiredReplicas := currentReplicas
-
 	{
-		p := step.Status.SourceStatuses.GetPending()
+
 		var err error
 		if scalingDelay, err = evalAsDuration(scale.ScalingDelay, map[string]interface{}{
 			"defaultScalingDelay": defaultScalingDelay,
@@ -44,14 +43,11 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 			return 0, fmt.Errorf("failed to evaluate %q: %w", scale.PeekDelay, err)
 		}
 		if scale.DesiredReplicas != "" {
-			env := map[string]interface{}{
-				"c": int(step.Status.Replicas),
-				"P": int(p),
-				"p": int(p - step.Status.SourceStatuses.GetLastPending()),
-			}
-			logger.Info("env", "env", sharedutil.MustJSON(env))
-			env["minmax"] = minmax
-			r, err := expr.Eval(scale.DesiredReplicas, env)
+			pending := step.Status.SourceStatuses.GetPending()
+			c := int(step.Status.Replicas)
+			P := int(pending)
+			p := int(pending - step.Status.SourceStatuses.GetLastPending())
+			r, err := expr.Eval(scale.DesiredReplicas, map[string]interface{}{"c": c, "P": P, "p": p, "minmax": minmax})
 			if err != nil {
 				return 0, err
 			}
@@ -60,14 +56,12 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 			if !ok {
 				return 0, fmt.Errorf("failed to evaluate %q as int, got %T", scale.DesiredReplicas, r)
 			}
-			logger.Info("desiredReplicas", "desiredReplicas", desiredReplicas)
+			logger.Info("desired replicas", "c", c, "P", P, "p", p, "d", desiredReplicas, "scalingDelay", scalingDelay, "peekDelay", peekDelay)
 		}
 	}
-
 	if lastScaledAt < scalingDelay {
 		return currentReplicas, nil
 	}
-
 	// do we need to peek? currentReplicas and desiredReplicas must both be zero
 	if currentReplicas <= 0 && desiredReplicas == 0 && lastScaledAt > peekDelay {
 		return 1, nil

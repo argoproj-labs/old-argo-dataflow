@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Shopify/sarama v1.29.1
-	github.com/antonmedv/expr v1.9.0
+	github.com/antonmedv/expr v1.8.9
 	github.com/aws/aws-sdk-go-v2 v1.7.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.11.1
 	github.com/bombsimon/logrusr v1.1.0
