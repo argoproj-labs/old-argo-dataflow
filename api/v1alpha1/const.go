@@ -19,9 +19,8 @@ const (
 	CtrSidecar = "sidecar"
 	// env vars
 	EnvClusterName      = "ARGO_DATAFLOW_CLUSTER_NAME"
-	EnvDebug            = "ARGO_DATAFLOW_DEBUG"          // enable default mode, default "false"
-	EnvImagePrefix      = "ARGO_DATAFLOW_IMAGE_PREFIX"   // default "quay.io/argoproj"
-	EnvDeletionDelay    = "ARGO_DATAFLOW_DELETION_DELAY" // default "720h" ~= "30d"
+	EnvDebug            = "ARGO_DATAFLOW_DEBUG"        // enable default mode, default "false"
+	EnvImagePrefix      = "ARGO_DATAFLOW_IMAGE_PREFIX" // default "quay.io/argoproj"
 	EnvNamespace        = "ARGO_DATAFLOW_NAMESPACE"
 	EnvPipelineName     = "ARGO_DATAFLOW_PIPELINE_NAME"
 	EnvReplica          = "ARGO_DATAFLOW_REPLICA"

@@ -17,7 +17,6 @@ var (
 	runnerImage      = ""
 	pullPolicy       = corev1.PullPolicy(os.Getenv(dfv1.EnvPullPolicy))
 	updateInterval   = util.GetEnvDuration(dfv1.EnvUpdateInterval, 1*time.Minute)
-	deletionDelay    = util.GetEnvDuration(dfv1.EnvDeletionDelay, 720*time.Hour) // ~30d
 	logger           = util.NewLogger()
 	imagePullSecrets = util.GetEnvStringArr(dfv1.EnvImagePullSecrets, []string{})
 )
@@ -37,7 +36,6 @@ func init() {
 		"runnerImage", runnerImage,
 		"pullPolicy", pullPolicy,
 		"updateInterval", updateInterval.String(),
-		"deletionDelay", deletionDelay.String(),
 		"imagePullSecrets", imagePullSecrets,
 	)
 }

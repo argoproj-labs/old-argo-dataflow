@@ -9,6 +9,7 @@ metadata:
 
       * `P` total number of pending messages.
       * `p` change in number of pending messages
+      * `m` change in total number of of consumed messages.
       * `c` the current number of replicas.
       * `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas.
 
@@ -24,8 +25,7 @@ spec:
   - cat: {}
     name: main
     scale:
-      desiredReplicas: |
-        minmax((c * 256 + p) / 256 + P / (c * 10 * c * 256), 0, 4)
+      desiredReplicas: minmax((m + p) * c / m + P / (c * 10 * m), 0, 4)
     sinks:
     - kafka:
         topic: output-topic

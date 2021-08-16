@@ -315,6 +315,9 @@ message PipelineSpec {
   // +patchStrategy=merge
   // +patchMergeKey=name
   repeated StepSpec steps = 1;
+
+  // +kubebuilder:default="72h"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration deletionDelay = 2;
 }
 
 message PipelineStatus {
