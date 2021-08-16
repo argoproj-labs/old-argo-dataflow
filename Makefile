@@ -100,16 +100,16 @@ logs: $(GOBIN)/stern
 
 # Install CRDs into a cluster
 install:
-	kustomize build config/crd | kubectl apply -f -
+	kubectl kustomize config/crd | kubectl apply -f -
 
 # Uninstall CRDs from a cluster
 uninstall:
-	kustomize build config/crd | kubectl delete --ignore-not-found -f -
+	kubectl kustomize config/crd | kubectl delete --ignore-not-found -f -
 
 images: controller runner testapi runtimes
 
 config/%.yaml: config/$*
-	kustomize build --load-restrictor LoadRestrictionsNone config/$* -o $@
+	kubectl kustomize --load-restrictor=LoadRestrictionsNone config/$* -o $@
 	sed "s/:latest/:$(TAG)/" $@ > tmp
 	mv tmp $@
 
