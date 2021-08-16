@@ -141,8 +141,8 @@ proto: api/v1alpha1/generated.pb.go
 
 $(GOBIN)/go-to-protobuf:
 	go install k8s.io/code-generator/cmd/go-to-protobuf@v0.20.4
-	go get github.com/gogo/protobuf/gogoproto
-	go get k8s.io/apimachinery/pkg/util/intstr
+	GO111MODULE=off go get github.com/gogo/protobuf/gogoproto
+	GO111MODULE=off go get k8s.io/apimachinery/pkg/util/intstr
 	go mod tidy
 
 api/v1alpha1/generated.pb.go:
