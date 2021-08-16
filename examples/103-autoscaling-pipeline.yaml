@@ -25,7 +25,7 @@ spec:
   - cat: {}
     name: main
     scale:
-      desiredReplicas: minmax((m + p) * c / m + P / (c * 10 * m), 0, 4)
+      desiredReplicas: minmax(c + p / 250 + P / (c * n * 250), 0, 4)
     sinks:
     - kafka:
         topic: output-topic
