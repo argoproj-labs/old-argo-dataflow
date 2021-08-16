@@ -42,6 +42,7 @@ jobs:
         with:
           path: /home/runner/go/pkg/mod
           key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - run: apt install -y protobuf-compiler
       - run: make codegen
       - run: git diff --exit-code
 

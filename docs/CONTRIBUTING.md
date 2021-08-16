@@ -38,7 +38,7 @@ GOBIN=$(pwd)/ GO111MODULE=on go get sigs.k8s.io/kustomize/kustomize/v3
 mv kustomize /go/bin
 ```
 
-Also required protobuf-compiler, python3 & pip3.
+Also required [protobuf-compiler](https://grpc.io/docs/protoc-installation/), python3 & pip3.
 
 ## Docker for Desktop and K3D Known Limitations
 
