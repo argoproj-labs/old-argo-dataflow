@@ -4,7 +4,6 @@ package e2e
 
 import (
 	"testing"
-	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -17,7 +16,6 @@ func TestMessagesEndpoint(t *testing.T) {
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "messages"},
 		Spec: PipelineSpec{
-			DeletionDelay: metav1.Duration{Duration: time.Hour},
 			Steps: []StepSpec{
 				{
 					Name: "main",
