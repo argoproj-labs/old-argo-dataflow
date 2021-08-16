@@ -33,7 +33,6 @@ GO111MODULE=off go get k8s.io/client-go
 GO111MODULE=off go get k8s.io/api                    
 GO111MODULE=off go get k8s.io/utils                  
 GO111MODULE=off go get sigs.k8s.io/controller-runtime
-GO111MODULE=off go get github.com/gogo/protobuf
 GOBIN=$(pwd)/ GO111MODULE=on go get sigs.k8s.io/kustomize/kustomize/v3
 mv kustomize /go/bin
 ```
