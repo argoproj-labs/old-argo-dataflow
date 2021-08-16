@@ -28,10 +28,9 @@ make pre-commit
 Required dependencies:
 
 ```
-GO111MODULE=off go get k8s.io/apimachinery           
-GO111MODULE=off go get k8s.io/client-go              
-GO111MODULE=off go get k8s.io/api                    
-GO111MODULE=off go get k8s.io/utils                  
+GO111MODULE=off go get k8s.io/client-go
+GO111MODULE=off go get k8s.io/api
+GO111MODULE=off go get k8s.io/utils
 GO111MODULE=off go get sigs.k8s.io/controller-runtime
 GOBIN=$(pwd)/ GO111MODULE=on go get sigs.k8s.io/kustomize/kustomize/v3
 mv kustomize /go/bin
