@@ -141,6 +141,8 @@ proto: api/v1alpha1/generated.pb.go
 
 $(GOBIN)/go-to-protobuf:
 	go install k8s.io/code-generator/cmd/go-to-protobuf@v0.20.4
+	go get github.com/gogo/protobuf/gogoproto
+	go mod tidy
 
 api/v1alpha1/generated.pb.go:
 api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -name '*generated*' -not -name groupversion_info.go) $(GOBIN)/go-to-protobuf
