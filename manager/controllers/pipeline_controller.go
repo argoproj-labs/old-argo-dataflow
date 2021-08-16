@@ -68,7 +68,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if pipeline.Status.Phase.Completed() {
-		deleteAt := pipeline.Status.LastUpdated.Time.Add(deletionDelay)
+		deleteAt := pipeline.Status.LastUpdated.Time.Add(pipeline.Spec.DeletionDelay.Duration)
 		if time.Now().After(deleteAt) {
 			log.Info("deleting pipeline", "lastUpdated", pipeline.Status.LastUpdated)
 			return ctrl.Result{}, r.Delete(ctx, pipeline)

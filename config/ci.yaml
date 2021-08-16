@@ -48,6 +48,9 @@ spec:
             type: object
           spec:
             properties:
+              deletionDelay:
+                default: 72h
+                type: string
               steps:
                 items:
                   properties:
