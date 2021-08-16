@@ -76,9 +76,9 @@ pprof:
 	go tool pprof -web http://127.0.0.1:3569/debug/pprof/profile?seconds=10
 	curl -s http://127.0.0.1:3569/debug/pprof/trace\?seconds\=10 | go tool trace /dev/stdin
 
-pre-commit: codegen test install runner testapi lint start
+pre-commit: codegen proto test install runner testapi lint start
 
-codegen: generate manifests proto examples CHANGELOG.md
+codegen: generate manifests examples CHANGELOG.md
 	go generate ./...
 	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
 	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
@@ -141,11 +141,6 @@ proto: api/v1alpha1/generated.pb.go
 
 $(GOBIN)/go-to-protobuf:
 	go install k8s.io/code-generator/cmd/go-to-protobuf@v0.20.4
-	GO111MODULE=off go get k8s.io/kubernetes/vendor/k8s.io/code-generator/cmd/go-to-protobuf/protoc-gen-gogo
-	GO111MODULE=off go get github.com/gogo/protobuf/gogoproto
-	GO111MODULE=off go get k8s.io/apimachinery/pkg/util/intstr
-	GO111MODULE=off go get k8s.io/kubernetes/vendor/github.com/gogo/protobuf/gogoproto
-	go mod tidy
 
 api/v1alpha1/generated.pb.go:
 api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -name '*generated*' -not -name groupversion_info.go) $(GOBIN)/go-to-protobuf
