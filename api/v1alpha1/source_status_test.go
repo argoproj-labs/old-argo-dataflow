@@ -44,3 +44,22 @@ func TestSourceStatus_GetRetries(t *testing.T) {
 		assert.Equal(t, uint64(2), x.GetRetries())
 	})
 }
+
+func TestSourceStatus_GetTotalBytes(t *testing.T) {
+	t.Run("None", func(t *testing.T) {
+		x := SourceStatus{}
+		assert.Equal(t, uint64(0), x.GetTotalBytes())
+	})
+	t.Run("One", func(t *testing.T) {
+		x := SourceStatus{
+			Metrics: map[string]Metrics{"one": {TotalBytes: 100}},
+		}
+		assert.Equal(t, uint64(100), x.GetTotalBytes())
+	})
+	t.Run("Two", func(t *testing.T) {
+		x := SourceStatus{
+			Metrics: map[string]Metrics{"one": {TotalBytes: 100}, "two": {TotalBytes: 100}},
+		}
+		assert.Equal(t, uint64(200), x.GetTotalBytes())
+	})
+}

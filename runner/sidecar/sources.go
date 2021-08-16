@@ -39,6 +39,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			rateCounter.Incr(1)
 			withLock(func() {
 				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter))
+				step.Status.SourceStatuses.IncrTotalBytes(sourceName, replica, uint64(len(msg)))
 			})
 			backoff := newBackoff(s.Retry)
 			for {

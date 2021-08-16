@@ -77,6 +77,7 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 			counter.Incr(1)
 			withLock(func() {
 				step.Status.SinkStatues.IncrTotal(sinkName, replica, rateToResourceQuantity(counter))
+				step.Status.SinkStatues.IncrTotalBytes(sinkName, replica, uint64(len(msg)))
 			})
 			if err := f.Sink(msg); err != nil {
 				withLock(func() { step.Status.SinkStatues.IncrErrors(sinkName, replica) })

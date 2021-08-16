@@ -92,3 +92,22 @@ func (in SourceStatuses) IncrRetries(name string, replica int) {
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
 }
+
+func (in SourceStatuses) GetTotalBytes() uint64 {
+	var v uint64
+	for _, s := range in {
+		v += s.GetTotalBytes()
+	}
+	return v
+}
+
+func (in SourceStatuses) IncrTotalBytes(name string, replica int, bytes uint64) {
+	x := in[name]
+	if x.Metrics == nil {
+		x.Metrics = map[string]Metrics{}
+	}
+	m := x.Metrics[strconv.Itoa(replica)]
+	m.TotalBytes += bytes
+	x.Metrics[strconv.Itoa(replica)] = m
+	in[name] = x
+}
