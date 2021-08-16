@@ -7117,9 +7117,6 @@ spec:
                     lastPending:
                       format: int64
                       type: integer
-                    lastTotal:
-                      format: int64
-                      type: integer
                     metrics:
                       additionalProperties:
                         properties:
@@ -7149,9 +7146,6 @@ spec:
                 additionalProperties:
                   properties:
                     lastPending:
-                      format: int64
-                      type: integer
-                    lastTotal:
                       format: int64
                       type: integer
                     metrics:

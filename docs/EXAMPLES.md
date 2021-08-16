@@ -64,13 +64,12 @@ Replicas are automatically scaled up and down depending on the the desired formu
 
 * `P` total number of pending messages.
 * `p` change in number of pending messages
-* `m` change in total number of of consumed messages.
 * `c` the current number of replicas.
 * `minmax(v, min, max)` a function to constraint the minimum and maximum number of replicas.
 
 ### Scale-To-Zero and Peeking
 
-You can scale to zero by setting `minReplicas: 0`. The number of replicas will start at zero, and periodically be scaled
+You can scale to zero. The number of replicas will be periodically scaled
 to 1  so it can "peek" the the message queue. The number of pending messages is measured and the target number
 of replicas re-calculated.
 
