@@ -86,8 +86,3 @@ func Test_enrichKafka(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
-
-func TestGetConsumerGroupID(t *testing.T) {
-	groupdID := getConsumerGroupID("cluster", "default", "pipeline", "stepName", "source")
-	assert.Equal(t, "dataflow-clu-def-pip-ste-sou-7c07c91b03ebf978f5dda8b77130662e016493600b8ca4e6ffe12ec5183e3d25", groupdID)
-}
