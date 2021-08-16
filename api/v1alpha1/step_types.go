@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"os"
 	"strconv"
-	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -155,41 +154,6 @@ func (in Step) withoutManagedFields() Step {
 	y := *in.DeepCopy()
 	y.ManagedFields = nil
 	return y
-}
-
-func (in Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
-	currentReplicas := int(in.Status.Replicas)
-	lastScaledAt := in.Status.LastScaledAt.Time
-
-	if time.Since(lastScaledAt) < scalingDelay {
-		return currentReplicas
-	}
-
-	pending := in.Status.SourceStatuses.GetPending()
-	targetReplicas := in.Spec.CalculateReplicas(int(pending))
-	if targetReplicas == -1 {
-		return currentReplicas
-	}
-
-	// do we need to peek? currentReplicas and targetReplicas must both be zero
-	if currentReplicas <= 0 && targetReplicas == 0 && time.Since(lastScaledAt) > peekDelay {
-		return 1
-	}
-	// prevent violent scale-up and scale-down by only scaling by 1 each time
-	if targetReplicas > currentReplicas {
-		return currentReplicas + 1
-	} else if targetReplicas < currentReplicas {
-		return currentReplicas - 1
-	} else {
-		return targetReplicas
-	}
-}
-
-func RequeueAfter(currentReplicas, targetReplicas int, scalingDelay time.Duration) time.Duration {
-	if currentReplicas <= 0 && targetReplicas == 0 {
-		return scalingDelay
-	}
-	return 0
 }
 
 // +kubebuilder:object:root=true

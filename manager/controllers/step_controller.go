@@ -23,6 +23,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
+
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 
@@ -90,9 +92,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	log.Info("reconciling")
 
-	if step.Spec.Scale != nil {
-		desiredReplicas := step.GetTargetReplicas(scalingDelay, peekDelay)
-
+	if step.Spec.Scale.DesiredReplicas != "" {
+		desiredReplicas, err := scaling.GetDesiredReplicas(*step)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 		if int(step.Spec.Replicas) != desiredReplicas {
 			log.Info("auto-scaling step", "currentReplicas", step.Spec.Replicas, "desiredReplicas", desiredReplicas)
 			if _, err := r.DynamicInterface.
@@ -295,9 +299,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	return ctrl.Result{
-		RequeueAfter: dfv1.RequeueAfter(currentReplicas, desiredReplicas, scalingDelay),
-	}, nil
+	requeueAfter, err := scaling.RequeueAfter(*step, currentReplicas, desiredReplicas)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if requeueAfter > 0 {
+		log.Info("requeue", "requeueAfter", requeueAfter.String())
+	}
+	return ctrl.Result{RequeueAfter: requeueAfter}, nil
 }
 
 func eventReason(currentReplicas, desiredReplicas int) string {

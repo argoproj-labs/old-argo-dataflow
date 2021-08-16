@@ -18,6 +18,7 @@ alpha/beta/stable.
 | Cron source | v0.0.59 | |
 | Dedupe step | v0.0.59 | || |
 | Expand step | v0.0.59 | v0.0.70 | |
+| Expression based scaling | v0.0.90 | | |
 | Filter step | v0.0.59 | v0.0.70 | |
 | FMEA tests | | v0.0.59 | |
 | [Generator step](STEPS.md#Generator-step) | v0.0.59 | | |
