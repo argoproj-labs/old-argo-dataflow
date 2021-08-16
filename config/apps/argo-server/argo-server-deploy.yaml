@@ -10,7 +10,7 @@ spec:
         runAsUser: 8737
       containers:
         - name: argo-server
-          image: quay.io/argoproj/argocli:dev-dataflow
+          image: quay.io/argoproj/argocli:latest
           imagePullPolicy: Always
           args: [ server, --namespaced=true, --auth-mode=server, --secure=false ]
           readinessProbe:

@@ -1,6 +1,6 @@
 namespace: argo-dataflow-system
 resources:
-  - github.com/argoproj/argo-workflows/manifests/base/argo-server?ref=dev-dataflow
+  - github.com/argoproj/argo-workflows/manifests/base/argo-server
   - argo-server-role.yaml
   - argo-server-rolebinding.yaml
 patchesStrategicMerge:

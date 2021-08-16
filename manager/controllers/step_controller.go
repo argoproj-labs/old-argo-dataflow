@@ -74,7 +74,7 @@ func init() {
 // +kubebuilder:rbac:groups=,resources=services,verbs=get;watch;list;create
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("step", req.NamespacedName)
+	log := r.Log.WithValues("step", req.NamespacedName.String())
 
 	step := &dfv1.Step{}
 	if err := r.Get(ctx, req.NamespacedName, step); err != nil {

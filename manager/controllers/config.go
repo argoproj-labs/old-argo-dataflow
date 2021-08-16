@@ -12,14 +12,14 @@ import (
 )
 
 var (
-	scalingDelay     = util.GetEnvDuration(dfv1.EnvScalingDelay, time.Minute)
-	peekDelay        = util.GetEnvDuration(dfv1.EnvPeekDelay, 4*time.Minute)
-	imagePrefix      = os.Getenv(dfv1.EnvImagePrefix)
-	imageFormat      = ""
-	runnerImage      = ""
-	pullPolicy       = corev1.PullPolicy(os.Getenv(dfv1.EnvPullPolicy))
-	updateInterval   = util.GetEnvDuration(dfv1.EnvUpdateInterval, 1*time.Minute)
-	deletionDelay    = util.GetEnvDuration(dfv1.EnvDeletionDelay, 720*time.Hour) // ~30d
+	scalingDelay   = util.GetEnvDuration(dfv1.EnvScalingDelay, time.Minute)
+	peekDelay      = util.GetEnvDuration(dfv1.EnvPeekDelay, 4*time.Minute)
+	imagePrefix    = os.Getenv(dfv1.EnvImagePrefix)
+	imageFormat    = ""
+	runnerImage    = ""
+	pullPolicy     = corev1.PullPolicy(os.Getenv(dfv1.EnvPullPolicy))
+	updateInterval = util.GetEnvDuration(dfv1.EnvUpdateInterval, 1*time.Minute)
+
 	logger           = util.NewLogger()
 	imagePullSecrets = util.GetEnvStringArr(dfv1.EnvImagePullSecrets, []string{})
 )
@@ -41,7 +41,6 @@ func init() {
 		"updateInterval", updateInterval.String(),
 		"scalingDelay", scalingDelay.String(),
 		"peekDelay", peekDelay.String(),
-		"deletionDelay", deletionDelay.String(),
 		"imagePullSecrets", imagePullSecrets,
 	)
 }
