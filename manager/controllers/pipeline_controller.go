@@ -53,7 +53,7 @@ type PipelineReconciler struct {
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=create;get;delete
 // +kubebuilder:rbac:groups=,resources=secrets,verbs=create;get;delete
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("pipeline", req.NamespacedName)
+	log := r.Log.WithValues("pipeline", req.NamespacedName.String())
 
 	pipeline := &dfv1.Pipeline{}
 	if err := r.Get(ctx, req.NamespacedName, pipeline); err != nil {
@@ -68,9 +68,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if pipeline.Status.Phase.Completed() {
-		deleteAt := pipeline.Status.LastUpdated.Time.Add(pipeline.Spec.DeletionDelay.Duration)
+		deletionDelay := pipeline.Spec.DeletionDelay.Duration
+		deleteAt := pipeline.Status.LastUpdated.Time.Add(deletionDelay)
 		if time.Now().After(deleteAt) {
-			log.Info("deleting pipeline", "lastUpdated", pipeline.Status.LastUpdated)
+			log.Info("deleting pipeline", "lastUpdated", pipeline.Status.LastUpdated, "deletionDelay", deletionDelay.String())
 			return ctrl.Result{}, r.Delete(ctx, pipeline)
 		}
 	}
