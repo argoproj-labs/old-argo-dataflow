@@ -25,12 +25,21 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
-
 var logger = sharedutil.NewLogger()
 
 type s3Source struct {
 	httpSource source.Interface
 	jobs       workqueue.Interface
+	client     *s3.Client
+	bucket     string
+}
+
+func (s *s3Source) GetPending(ctx context.Context) (uint64, error) {
+	list, err := s.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: &s.bucket})
+	if err != nil {
+		return 0, err
+	}
+	return uint64(list.KeyCount), nil // limitation - keyCount will never be greater than 1000
 }
 
 type message struct {
@@ -38,7 +47,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.S3Source, f source.Func, leadReplica bool) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.S3Source, f source.Func, leadReplica bool) (source.HasPending, error) {
 	var accessKeyID string
 	{
 		secretName := x.Credentials.AccessKeyID.Name
@@ -174,6 +183,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			return f(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})))
 		}),
 		jobs,
+		client,
+		bucket,
 	}, nil
 }
 
