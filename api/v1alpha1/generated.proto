@@ -352,6 +352,9 @@ message S3Source {
 
   // +kubebuilder:default="1m"
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration pollPeriod = 6;
+
+  // +kubebuilder:default=1
+  optional uint32 concurrency = 8;
 }
 
 message SASL {

@@ -25,7 +25,6 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
-const concurrency = 4
 
 var logger = sharedutil.NewLogger()
 
@@ -87,8 +86,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		t.MaxIdleConnsPerHost = 100
 		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
-		// create N workers to support concurrency
-		for w := 0; w < concurrency; w++ {
+		// create workers to support concurrency
+		for w := 0; w < int(x.Concurrency); w++ {
 			go func() {
 				defer runtime.HandleCrash()
 				for {
