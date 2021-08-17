@@ -21,8 +21,10 @@ spec:
     name: main
     scale:
       desiredReplicas: minmax(c + p / 60 / 250 + P / (10 * 60 * 250), 0, 4)
-      peekDelay: 20m
-      scalingDelay: 1m
+      peekDelay: |-
+        "20m"
+      scalingDelay: |-
+        "1m"
     sinks:
     - kafka:
         topic: output-topic
