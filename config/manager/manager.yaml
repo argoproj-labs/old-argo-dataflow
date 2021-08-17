@@ -37,8 +37,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: ARGO_DATAFLOW_CLUSTER_NAME
-              value: "default"
           ports:
             - containerPort: 9090
           resources:
