@@ -41,6 +41,7 @@ func (in SourceStatuses) IncrErrors(name string, replica int) {
 
 func (in SourceStatuses) SetPending(name string, pending uint64) {
 	x := in[name]
+	x.LastPending = x.Pending
 	x.Pending = &pending
 	in[name] = x
 }
@@ -50,6 +51,16 @@ func (in SourceStatuses) GetPending() uint64 {
 	for _, s := range in {
 		if s.Pending != nil {
 			v += *s.Pending
+		}
+	}
+	return v
+}
+
+func (in SourceStatuses) GetLastPending() uint64 {
+	var v uint64
+	for _, s := range in {
+		if s.LastPending != nil {
+			v += *s.LastPending
 		}
 	}
 	return v

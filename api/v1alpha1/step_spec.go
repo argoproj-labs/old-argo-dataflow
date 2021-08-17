@@ -21,7 +21,8 @@ type StepSpec struct {
 
 	// +kubebuilder:default=1
 	Replicas uint32 `json:"replicas,omitempty" protobuf:"varint,23,opt,name=replicas"`
-	Scale    *Scale `json:"scale,omitempty" protobuf:"bytes,24,opt,name=scale"`
+	// +kubebuilder:default={peekDelay: "defaultPeekDelay", scalingDelay: "defaultScalingDelay", desiredReplicas: ""}
+	Scale Scale `json:"scale,omitempty" protobuf:"bytes,24,opt,name=scale"`
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	Sources Sources `json:"sources,omitempty" protobuf:"bytes,3,rep,name=sources"`
@@ -82,13 +83,6 @@ func (in StepSpec) getType() containerSupplier {
 	} else {
 		panic("invalid step spec")
 	}
-}
-
-func (in StepSpec) CalculateReplicas(pending int) int {
-	if in.Scale == nil {
-		return -1
-	}
-	return in.Scale.Calculate(pending)
 }
 
 func (in StepSpec) WithOutReplicas() StepSpec {

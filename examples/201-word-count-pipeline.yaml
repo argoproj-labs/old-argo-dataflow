@@ -48,9 +48,7 @@ spec:
         fifo: true
     name: split-lines
     scale:
-      maxReplicas: 1
-      minReplicas: 0
-      replicaRatio: 1
+      desiredReplicas: minmax(pending, 0, 1)
     sinks:
     - stan:
         subject: words

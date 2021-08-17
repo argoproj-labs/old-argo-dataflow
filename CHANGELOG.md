@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.90 (2021-08-16)
+
+ * [dab337c](https://github.com/argoproj-labs/argo-dataflow/commit/dab337c8caaebf535177759edc3277d4837592c8) feat!: Expression based scaling. Fixes #249 (#250)
+ * [1e3ad21](https://github.com/argoproj-labs/argo-dataflow/commit/1e3ad216c783622e0306f9d5e5a5ad1104fb8a49) fix: correct deletionDelay time (must be pointer to marshall correctly)
+ * [acc648f](https://github.com/argoproj-labs/argo-dataflow/commit/acc648fa5bb24ca98b69bc7e42a6584e4ebae82d) fix: log deletion delay
+ * [3be7f7f](https://github.com/argoproj-labs/argo-dataflow/commit/3be7f7f8ed7d4d1f88f2e440fc66768311db44a0) fix: Correct logging of resource names
+ * [a81dde5](https://github.com/argoproj-labs/argo-dataflow/commit/a81dde52e5dcbd9ce9c2687bbff6eef80692ab95) feat: Move deletionDelay to pipeline spec
+ * [2e807b0](https://github.com/argoproj-labs/argo-dataflow/commit/2e807b01904f389454d0a49aca800fb635437892) config: use argocli:latest
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.89 (2021-08-12)
 
  * [3ba7708](https://github.com/argoproj-labs/argo-dataflow/commit/3ba77087e5fd48a38e7ed6cd9eef44b5a854cf25) fix: Prevent scaling from deleting pods

@@ -110,7 +110,7 @@ spec:
         - --namespaced=true
         - --auth-mode=server
         - --secure=false
-        image: quay.io/argoproj/argocli:dev-dataflow
+        image: quay.io/argoproj/argocli:latest
         imagePullPolicy: Always
         name: argo-server
         ports:

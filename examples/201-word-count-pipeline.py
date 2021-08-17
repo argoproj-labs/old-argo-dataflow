@@ -30,7 +30,7 @@ done > /var/run/argo-dataflow/out < /var/run/argo-dataflow/in"""],
                     image='ubuntu:latest',
                     fifo=True,
                     )
-         .scale(0, 1, 1)
+         .scale('minmax(pending, 0, 1)')
          .stan('words')
          ))
      .step(

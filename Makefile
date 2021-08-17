@@ -76,9 +76,9 @@ pprof:
 	go tool pprof -web http://127.0.0.1:3569/debug/pprof/profile?seconds=10
 	curl -s http://127.0.0.1:3569/debug/pprof/trace\?seconds\=10 | go tool trace /dev/stdin
 
-pre-commit: codegen test install runner testapi lint start
+pre-commit: codegen proto test install runner testapi lint start
 
-codegen: generate manifests proto examples CHANGELOG.md
+codegen: generate manifests examples
 	go generate ./...
 	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
 	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
@@ -100,16 +100,16 @@ logs: $(GOBIN)/stern
 
 # Install CRDs into a cluster
 install:
-	kustomize build config/crd | kubectl apply -f -
+	kubectl kustomize config/crd | kubectl apply -f -
 
 # Uninstall CRDs from a cluster
 uninstall:
-	kustomize build config/crd | kubectl delete --ignore-not-found -f -
+	kubectl kustomize config/crd | kubectl delete --ignore-not-found -f -
 
 images: controller runner testapi runtimes
 
 config/%.yaml: config/$*
-	kustomize build --load-restrictor LoadRestrictionsNone config/$* -o $@
+	kubectl kustomize --load-restrictor=LoadRestrictionsNone config/$* -o $@
 	sed "s/:latest/:$(TAG)/" $@ > tmp
 	mv tmp $@
 
@@ -217,7 +217,7 @@ examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
 	cd examples && python3 $*-pipeline.py
 
 argocli:
-	cd ../../argoproj/argo-workflows && git checkout dev-dataflow && make ./dist/argo DEV_BRANCH=true && ./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system
+	cd ../../argoproj/argo-workflows && make ./dist/argo DEV_BRANCH=true && ./dist/argo server --secure=false --namespaced --auth-mode=server --namespace=argo-dataflow-system
 ui:
 	killall node || true
 	cd ../../argoproj/argo-workflows && yarn --cwd ui install && yarn --cwd ui start
