@@ -56,7 +56,7 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 			if !ok {
 				return 0, fmt.Errorf("failed to evaluate %q as int, got %T", scale.DesiredReplicas, r)
 			}
-			logger.Info("desired replicas", "c", c, "P", P, "p", p, "d", desiredReplicas, "scalingDelay", scalingDelay, "peekDelay", peekDelay)
+			logger.Info("desired replicas", "c", c, "P", P, "p", p, "d", desiredReplicas, "scalingDelay", scalingDelay.String(), "peekDelay", peekDelay.String())
 		}
 	}
 	if lastScaledAt < scalingDelay {
