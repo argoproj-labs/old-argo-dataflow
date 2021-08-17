@@ -18,7 +18,9 @@ package v1alpha1
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
@@ -51,6 +53,15 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	}
 	step, _ := json.Marshal(in.withoutManagedFields())
 	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
+	for _, source := range in.Spec.Sources {
+		if x := source.Volume; x != nil {
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      fmt.Sprintf("source-%s", source.Name),
+				ReadOnly:  false,
+				MountPath: filepath.Join(PathVarRun, "sources", source.Name),
+			})
+		}
+	}
 
 	envVars := []corev1.EnvVar{
 		{Name: EnvClusterName, Value: req.ClusterName},
