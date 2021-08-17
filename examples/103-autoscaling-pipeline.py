@@ -26,7 +26,7 @@ of replicas re-calculated.""")
      .step(
         (kafka('input-topic')
          .cat('main')
-         .scale('minmax(c + p / 60 / 250 + P / (10 * 60 * 250), 0, 4)')
+         .scale('minmax(c + p / 60 / 250 + P / (10 * 60 * 250), 0, 4)', scalingDelay='1m', peekDelay='20m')
          .kafka('output-topic'))
     )
      .save())
