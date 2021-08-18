@@ -1893,6 +1893,10 @@ spec:
                             properties:
                               bucket:
                                 type: string
+                              concurrency:
+                                default: 1
+                                format: int32
+                                type: integer
                               credentials:
                                 properties:
                                   accessKeyId:
@@ -5499,6 +5503,10 @@ spec:
                       properties:
                         bucket:
                           type: string
+                        concurrency:
+                          default: 1
+                          format: int32
+                          type: integer
                         credentials:
                           properties:
                             accessKeyId:
