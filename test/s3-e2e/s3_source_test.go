@@ -4,7 +4,6 @@ package s3_e2e
 
 import (
 	"testing"
-	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -25,8 +24,7 @@ func TestS3Source(t *testing.T) {
 					Name: "main",
 					Map:  "io.cat(object(msg).path)",
 					Sources: []Source{{S3: &S3Source{
-						S3:         S3{Bucket: "my-bucket"},
-						PollPeriod: &metav1.Duration{Duration: 5 * time.Second},
+						S3: S3{Bucket: "my-bucket"},
 					}}},
 					Sinks: []Sink{DefaultLogSink},
 				},
