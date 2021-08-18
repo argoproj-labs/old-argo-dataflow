@@ -9,7 +9,7 @@ type Source struct {
 	HTTP   *HTTPSource   `json:"http,omitempty" protobuf:"bytes,5,opt,name=http"`
 	S3     *S3Source     `json:"s3,omitempty" protobuf:"bytes,8,opt,name=s3"`
 	DB     *DBSource     `json:"db,omitempty" protobuf:"bytes,6,opt,name=db"`
-	Volume *VolumeSource `json:"volume,omitempty"`
+	Volume *VolumeSource `json:"volume,omitempty" protobuf:"bytes,9,opt,name=volume"`
 	// +kubebuilder:default={duration: "100ms", steps: 20, factorPercentage: 200, jitterPercentage: 10}
 	Retry Backoff `json:"retry,omitempty" protobuf:"bytes,7,opt,name=retry"`
 }

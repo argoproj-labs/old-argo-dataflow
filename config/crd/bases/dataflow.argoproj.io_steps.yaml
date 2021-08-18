@@ -3232,6 +3232,8 @@ spec:
                           - image
                           - monitors
                           type: object
+                        readOnly:
+                          type: boolean
                         scaleIO:
                           description: ScaleIO represents a ScaleIO persistent volume
                             attached and mounted on Kubernetes nodes.

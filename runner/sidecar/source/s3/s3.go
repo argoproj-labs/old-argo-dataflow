@@ -1,46 +1,25 @@
 package s3
 
 import (
-	"bytes"
 	"context"
-	"crypto/tls"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"syscall"
-	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
-	httpsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/http"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/util/workqueue"
 )
-
-var logger = sharedutil.NewLogger()
-
-type s3Source struct {
-	httpSource source.Interface
-	jobs       workqueue.Interface
-	client     *s3.Client
-	bucket     string
-}
-
-func (s *s3Source) GetPending(ctx context.Context) (uint64, error) {
-	list, err := s.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: &s.bucket})
-	if err != nil {
-		return 0, err
-	}
-	return uint64(list.KeyCount), nil // limitation - keyCount will never be greater than 1000
-}
 
 type message struct {
 	Key  string `json:"key"`
@@ -77,93 +56,31 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			return aws.Endpoint{URL: e.URL, SigningRegion: region, HostnameImmutable: true}, nil
 		})
 	}
+
 	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return nil, fmt.Errorf("failed to create %q: %w", dir, err)
 	}
 
 	client := s3.New(options)
-	bucket := x.Bucket
-	jobs := workqueue.New()
-	authorization := sharedutil.RandString()
-	if leadReplica {
-		endpoint := "https://" + pipelineName + "-" + stepName + "/sources/" + sourceName
-		logger.Info("starting lead workers", "source", sourceName, "endpoint", endpoint)
-		t := http.DefaultTransport.(*http.Transport).Clone()
-		t.MaxIdleConns = 100
-		t.MaxConnsPerHost = 100
-		t.MaxIdleConnsPerHost = 100
-		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
-		// create workers to support concurrency
-		for w := 0; w < int(x.Concurrency); w++ {
-			go func() {
-				defer runtime.HandleCrash()
-				for {
-					item, shutdown := jobs.Get()
-					if shutdown {
-						return
-					}
-					func() {
-						defer jobs.Done(item)
-						key := item.(string)
-						req, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(key))
-						if err != nil {
-							panic(err)
-						}
-						req.Header.Set("Authorization", authorization)
-						resp, err := httpClient.Do(req)
-						if err != nil {
-							logger.Error(err, "failed to process object", "key", key)
-						} else {
-							body, _ := io.ReadAll(resp.Body)
-							_ = resp.Body.Close()
-							if resp.StatusCode >= 300 {
-								err := fmt.Errorf("%q: %q", resp.Status, body)
-								logger.Error(err, "failed to process object", "bucket", bucket, "key", key)
-							} else {
-								logger.Info("deleting object", "bucket", bucket, "key", key)
-								_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: &bucket, Key: &key})
-								if err != nil {
-									logger.Error(err, "failed to delete object", "bucket", bucket, "key", key)
-								}
-							}
-						}
-					}()
-				}
-			}()
-		}
-		// create leader Goroutine to poll for new files
-		go func() {
-			defer runtime.HandleCrash()
-			ticker := time.NewTicker(x.PollPeriod.Duration)
-			defer ticker.Stop()
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				case <-ticker.C:
-					list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: &bucket})
-					if err != nil {
-						logger.Error(err, "failed to list bucket", "bucket", bucket)
-					} else {
-						for _, obj := range list.Contents {
-							jobs.Add(*obj.Key)
-						}
-					}
-				}
-			}
-		}()
-	}
-	return &s3Source{
-		httpsource.New(sourceName, authorization, func(ctx context.Context, msg []byte) error {
+	logger := sharedutil.NewLogger().WithValues("bucket", x.Bucket)
+
+	return loadbalanced.New(ctx, loadbalanced.NewReq{
+		Logger:       logger,
+		PipelineName: pipelineName,
+		StepName:     stepName,
+		SourceName:   sourceName,
+		LeadReplica:  leadReplica,
+		Concurrency:  int(x.Concurrency),
+		PollPeriod:   x.PollPeriod.Duration,
+		F: func(ctx context.Context, msg []byte) error {
 			key := string(msg)
-			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &bucket, Key: &key})
+			path := filepath.Join(dir, key)
+			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &x.Bucket, Key: &key})
 			if err != nil {
-				return fmt.Errorf("failed to get object %q %q: %w", bucket, key, err)
+				return fmt.Errorf("failed to get object %q %q: %w", x.Bucket, key, err)
 			}
 			defer output.Body.Close()
-			path := filepath.Join(dir, key)
 			if err := syscall.Mkfifo(path, 0o600); sharedutil.IgnoreExist(err) != nil {
 				return fmt.Errorf("failed to create fifo %q: %w", path, err)
 			}
@@ -181,14 +98,22 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 				}
 			}()
 			return f(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})))
-		}),
-		jobs,
-		client,
-		bucket,
-	}, nil
-}
-
-func (s *s3Source) Close() error {
-	s.jobs.ShutDown()
-	return s.httpSource.Close()
+		},
+		ListItems: func() ([]interface{}, error) {
+			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: &x.Bucket})
+			if err != nil {
+				return nil, err
+			}
+			keys := make([]interface{}, len(list.Contents))
+			for i, obj := range list.Contents {
+				keys[i] = *obj.Key
+			}
+			return keys, nil
+		},
+		RemoveItem: func(item interface{}) error {
+			key := item.(string)
+			_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: &x.Bucket, Key: &key})
+			return err
+		},
+	})
 }

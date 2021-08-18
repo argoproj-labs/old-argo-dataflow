@@ -13,7 +13,7 @@ func (b containerBuilder) init(req getContainerReq) containerBuilder {
 	b.Name = CtrMain
 	b.Resources = standardResources
 	b.SecurityContext = req.securityContext
-	b.VolumeMounts = []corev1.VolumeMount{req.volumeMount}
+	b.VolumeMounts = req.volumeMounts
 	return b
 }
 

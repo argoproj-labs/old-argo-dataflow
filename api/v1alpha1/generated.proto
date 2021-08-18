@@ -462,6 +462,8 @@ message Source {
 
   optional DBSource db = 6;
 
+  optional VolumeSource volume = 9;
+
   // +kubebuilder:default={duration: "100ms", steps: 20, factorPercentage: 200, jitterPercentage: 10}
   optional Backoff retry = 7;
 }
@@ -600,5 +602,17 @@ message TLS {
 
   // KeySecret refers to the secret that contains the key
   optional k8s.io.api.core.v1.SecretKeySelector keySecret = 3;
+}
+
+message VolumeSource {
+  optional k8s.io.api.core.v1.VolumeSource volumeSource = 9;
+
+  // +kubebuilder:default="1m"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration pollPeriod = 6;
+
+  // +kubebuilder:default=1
+  optional uint32 concurrency = 8;
+
+  optional bool readOnly = 10;
 }
 

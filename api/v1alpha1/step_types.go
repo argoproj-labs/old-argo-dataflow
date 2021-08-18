@@ -24,10 +24,9 @@ import (
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +kubebuilder:object:root=true
@@ -47,22 +46,37 @@ type Step struct {
 }
 
 func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
-	volume := corev1.Volume{
-		Name:         "var-run-argo-dataflow",
-		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+	const varName = "var-run-argo-dataflow"
+	volumes := []corev1.Volume{
+		{
+			Name:         varName,
+			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+		}, {
+			Name: "ssh",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  "ssh",
+					DefaultMode: pointer.Int32Ptr(0o644),
+				},
+			},
+		},
 	}
-	step, _ := json.Marshal(in.withoutManagedFields())
-	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
+	volumeMounts := []corev1.VolumeMount{{Name: varName, MountPath: PathVarRun}}
 	for _, source := range in.Spec.Sources {
 		if x := source.Volume; x != nil {
+			name := fmt.Sprintf("source-%s", source.Name)
+			volumes = append(volumes, corev1.Volume{
+				Name:         name,
+				VolumeSource: x.VolumeSource,
+			})
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
-				Name:      fmt.Sprintf("source-%s", source.Name),
-				ReadOnly:  false,
+				Name:      name,
+				ReadOnly:  x.ReadOnly,
 				MountPath: filepath.Join(PathVarRun, "sources", source.Name),
 			})
 		}
 	}
-
+	step, _ := json.Marshal(in.withoutManagedFields())
 	envVars := []corev1.EnvVar{
 		{Name: EnvClusterName, Value: req.ClusterName},
 		{Name: EnvDebug, Value: strconv.FormatBool(req.Debug)},
@@ -80,15 +94,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		AllowPrivilegeEscalation: pointer.BoolPtr(false),
 	}
 	return corev1.PodSpec{
-		Volumes: append(in.Spec.Volumes, volume, corev1.Volume{
-			Name: "ssh",
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName:  "ssh",
-					DefaultMode: pointer.Int32Ptr(0o644),
-				},
-			},
-		}),
+		Volumes:            append(in.Spec.Volumes, volumes...),
 		RestartPolicy:      in.Spec.RestartPolicy,
 		NodeSelector:       in.Spec.NodeSelector,
 		ServiceAccountName: in.Spec.ServiceAccountName,
@@ -155,7 +161,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				},
 				runnerImage:     req.RunnerImage,
 				securityContext: dropAll,
-				volumeMount:     corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
+				volumeMounts:    volumeMounts,
 			}),
 		},
 	}

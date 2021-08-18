@@ -216,6 +216,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			serviceNames[serviceName] = true
 		} else if x := s.S3; x != nil {
 			serviceNames[serviceName] = true
+		} else if x := s.Volume; x != nil {
+			serviceNames[serviceName] = true
 		}
 	}
 
