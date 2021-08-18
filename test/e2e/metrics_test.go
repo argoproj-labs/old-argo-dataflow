@@ -49,4 +49,7 @@ func TestMetrics(t *testing.T) {
 	ExpectMetric("sources_pending", 0)
 	ExpectMetric("sources_total", 1)
 	ExpectMetric("sources_retries", 0)
+	ExpectMetric("sources_totalBytes", 6)
+	SendMessageViaHTTP("my-msg")
+	ExpectMetric("sources_totalBytes", 12)
 }
