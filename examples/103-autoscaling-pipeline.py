@@ -7,9 +7,9 @@ if __name__ == '__main__':
 
 Replicas are automatically scaled up and down depending on the the desired formula, which can be computed using the following:
 
-* `P` total number of pending messages.
-* `p` change in number of pending messages.
-* `c` the current number of replicas.
+* `pending` total number of pending messages.
+* `pendingDelta` change in number of pending messages.
+* `currentReplicas` the current number of replicas.
 * `limit(v, min, max, delta)` a function to constraint the minimum and maximum number of replicas, as well as the step-up/down.
 
 In this example:
@@ -17,7 +17,7 @@ In this example:
 * Each period is 60s.
 * Each replica can consume 250 messages each second.
 * We want to consume all pending messages in 10 periods.
-* We want to have between 0 and 4 replicas, and scale-up or down maximum 2 replicas at a time. 
+* We want to have between 0 and 4 replicas, and scale-up or down maximum 2 replicas at a time.
 
 ### Scale-To-Zero and Peeking
 
@@ -27,7 +27,7 @@ of replicas re-calculated.""")
      .step(
         (kafka('input-topic')
          .cat('main')
-         .scale('limit(c + p / (60 * 250) + P / (10 * 60 * 250), 0, 4, 2)', scalingDelay='"1m"', peekDelay='"20m"')
+         .scale('limit(currentReplicas + pendingDelta / (60 * 250) + pending / (10 * 60 * 250), 0, 4, 2)', scalingDelay='"1m"', peekDelay='"20m"')
          .kafka('output-topic'))
     )
      .save())
