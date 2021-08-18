@@ -1,0 +1,50 @@
+// +build test
+
+package e2e
+
+import (
+	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	. "github.com/argoproj-labs/argo-dataflow/test"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
+)
+
+func TestVolumeSink(t *testing.T) {
+	defer Setup(t)()
+
+	CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: "volume"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{
+				{
+					Name: "main",
+					Code: &Code{
+						Runtime: "golang1-16",
+						Source: `package main
+
+import "context"
+import "io/ioutil"
+
+func Handler(ctx context.Context, m []byte) ([]byte, error) {
+  return []byte{}, ioutil.WriteFile("/var/run/argo-dataflow/sinks/default/empty", nil, 0o600)
+}`,
+					},
+					Sources: []Source{{HTTP: &HTTPSource{}}},
+					Sinks:   []Sink{{Volume: &VolumeSink{EmptyDir: &corev1.EmptyDirVolumeSource{}}}},
+				},
+			},
+		},
+	})
+
+	WaitForPod()
+
+	defer StartPortForward("volume-main-0")()
+	SendMessageViaHTTP("my-msg")
+
+	WaitForPipeline(UntilMessagesSunk)
+	WaitForStep(TotalSunkMessages(1))
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
+}

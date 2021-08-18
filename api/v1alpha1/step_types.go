@@ -80,6 +80,19 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			})
 		}
 	}
+	for _, source := range in.Spec.Sinks {
+		if x := source.Volume; x != nil {
+			name := fmt.Sprintf("sink-%s", source.Name)
+			volumes = append(volumes, corev1.Volume{
+				Name:         name,
+				VolumeSource: corev1.VolumeSource(*x),
+			})
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      name,
+				MountPath: filepath.Join(PathVarRun, "sinks", source.Name),
+			})
+		}
+	}
 	step, _ := json.Marshal(in.withoutManagedFields())
 	envVars := []corev1.EnvVar{
 		{Name: EnvClusterName, Value: req.ClusterName},

@@ -31,3 +31,8 @@ Consumes messages from a NATS streaming subject.
 ## Volume
 
 Periodically queries a volume for files to process.
+
+* [Storage Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) e.g. NFS, Azure File, Config Map, Secret
+* [Container Storage Interface (CSI) Drivers](https://kubernetes-csi.github.io/docs/drivers.html) e.g. AWS EBS, Google
+  Cloud Storage
+* [S3](https://github.com/ctrox/csi-s3) (not production ready)

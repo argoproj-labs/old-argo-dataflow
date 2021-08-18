@@ -35,3 +35,14 @@ Writes messages to a NATS streaming subject.
 
 Writes files to a S3 bucket.
 
+## Volume
+
+Writes files to a volume:
+
+* [Storage Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) e.g. NFS, Azure File, Config Map, Secret
+* [Container Storage Interface (CSI) Drivers](https://kubernetes-csi.github.io/docs/drivers.html) e.g. AWS EBS, Google
+  Cloud Storage
+* [S3](https://github.com/ctrox/csi-s3) (not production ready)
+
+This is an esoteric sink. The container writes a file in `/var/run/argo-dataflow/sinks/{sinkName}/`, and return an empty
+message. 

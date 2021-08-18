@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	volumesink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/volume"
+
 	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
 
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
@@ -55,6 +57,12 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 			}
 		} else if x := sink.DB; x != nil {
 			if y, err := dbsink.New(ctx, secretInterface, *x); err != nil {
+				return nil, err
+			} else {
+				sinks[sinkName] = y
+			}
+		} else if x := sink.Volume; x != nil {
+			if y, err := volumesink.New(); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
