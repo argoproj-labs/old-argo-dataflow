@@ -444,6 +444,8 @@ message Sink {
   optional S3Sink s3 = 6;
 
   optional DBSink db = 7;
+
+  optional VolumeSink volume = 8;
 }
 
 message Source {
@@ -461,6 +463,8 @@ message Source {
   optional S3Source s3 = 8;
 
   optional DBSource db = 6;
+
+  optional VolumeSource volume = 9;
 
   // +kubebuilder:default={duration: "100ms", steps: 20, factorPercentage: 200, jitterPercentage: 10}
   optional Backoff retry = 7;
@@ -600,5 +604,182 @@ message TLS {
 
   // KeySecret refers to the secret that contains the key
   optional k8s.io.api.core.v1.SecretKeySelector keySecret = 3;
+}
+
+message VolumeSink {
+  // HostPath represents a pre-existing file or directory on the host
+  // machine that is directly exposed to the container. This is generally
+  // used for system agents or other privileged things that are allowed
+  // to see the host machine. Most containers will NOT need this.
+  // More info: https://kubernetes.io/docs/concepts/storage/volumes#hostpath
+  // ---
+  // TODO(jonesdl) We need to restrict who can use host directory mounts and who can/can not
+  // mount host directories as read/write.
+  // +optional
+  optional k8s.io.api.core.v1.HostPathVolumeSource hostPath = 1;
+
+  // EmptyDir represents a temporary directory that shares a pod's lifetime.
+  // More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir
+  // +optional
+  optional k8s.io.api.core.v1.EmptyDirVolumeSource emptyDir = 2;
+
+  // GCEPersistentDisk represents a GCE Disk resource that is attached to a
+  // kubelet's host machine and then exposed to the pod.
+  // More info: https://kubernetes.io/docs/concepts/storage/volumes#gcepersistentdisk
+  // +optional
+  optional k8s.io.api.core.v1.GCEPersistentDiskVolumeSource gcePersistentDisk = 3;
+
+  // AWSElasticBlockStore represents an AWS Disk resource that is attached to a
+  // kubelet's host machine and then exposed to the pod.
+  // More info: https://kubernetes.io/docs/concepts/storage/volumes#awselasticblockstore
+  // +optional
+  optional k8s.io.api.core.v1.AWSElasticBlockStoreVolumeSource awsElasticBlockStore = 4;
+
+  // GitRepo represents a git repository at a particular revision.
+  // DEPRECATED: GitRepo is deprecated. To provision a container with a git repo, mount an
+  // EmptyDir into an InitContainer that clones the repo using git, then mount the EmptyDir
+  // into the Pod's container.
+  // +optional
+  optional k8s.io.api.core.v1.GitRepoVolumeSource gitRepo = 5;
+
+  // Secret represents a secret that should populate this volume.
+  // More info: https://kubernetes.io/docs/concepts/storage/volumes#secret
+  // +optional
+  optional k8s.io.api.core.v1.SecretVolumeSource secret = 6;
+
+  // NFS represents an NFS mount on the host that shares a pod's lifetime
+  // More info: https://kubernetes.io/docs/concepts/storage/volumes#nfs
+  // +optional
+  optional k8s.io.api.core.v1.NFSVolumeSource nfs = 7;
+
+  // ISCSI represents an ISCSI Disk resource that is attached to a
+  // kubelet's host machine and then exposed to the pod.
+  // More info: https://examples.k8s.io/volumes/iscsi/README.md
+  // +optional
+  optional k8s.io.api.core.v1.ISCSIVolumeSource iscsi = 8;
+
+  // Glusterfs represents a Glusterfs mount on the host that shares a pod's lifetime.
+  // More info: https://examples.k8s.io/volumes/glusterfs/README.md
+  // +optional
+  optional k8s.io.api.core.v1.GlusterfsVolumeSource glusterfs = 9;
+
+  // PersistentVolumeClaimVolumeSource represents a reference to a
+  // PersistentVolumeClaim in the same namespace.
+  // More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims
+  // +optional
+  optional k8s.io.api.core.v1.PersistentVolumeClaimVolumeSource persistentVolumeClaim = 10;
+
+  // RBD represents a Rados Block Device mount on the host that shares a pod's lifetime.
+  // More info: https://examples.k8s.io/volumes/rbd/README.md
+  // +optional
+  optional k8s.io.api.core.v1.RBDVolumeSource rbd = 11;
+
+  // FlexVolume represents a generic volume resource that is
+  // provisioned/attached using an exec based plugin.
+  // +optional
+  optional k8s.io.api.core.v1.FlexVolumeSource flexVolume = 12;
+
+  // Cinder represents a cinder volume attached and mounted on kubelets host machine.
+  // More info: https://examples.k8s.io/mysql-cinder-pd/README.md
+  // +optional
+  optional k8s.io.api.core.v1.CinderVolumeSource cinder = 13;
+
+  // CephFS represents a Ceph FS mount on the host that shares a pod's lifetime
+  // +optional
+  optional k8s.io.api.core.v1.CephFSVolumeSource cephfs = 14;
+
+  // Flocker represents a Flocker volume attached to a kubelet's host machine. This depends on the Flocker control service being running
+  // +optional
+  optional k8s.io.api.core.v1.FlockerVolumeSource flocker = 15;
+
+  // DownwardAPI represents downward API about the pod that should populate this volume
+  // +optional
+  optional k8s.io.api.core.v1.DownwardAPIVolumeSource downwardAPI = 16;
+
+  // FC represents a Fibre Channel resource that is attached to a kubelet's host machine and then exposed to the pod.
+  // +optional
+  optional k8s.io.api.core.v1.FCVolumeSource fc = 17;
+
+  // AzureFile represents an Azure File Service mount on the host and bind mount to the pod.
+  // +optional
+  optional k8s.io.api.core.v1.AzureFileVolumeSource azureFile = 18;
+
+  // ConfigMap represents a configMap that should populate this volume
+  // +optional
+  optional k8s.io.api.core.v1.ConfigMapVolumeSource configMap = 19;
+
+  // VsphereVolume represents a vSphere volume attached and mounted on kubelets host machine
+  // +optional
+  optional k8s.io.api.core.v1.VsphereVirtualDiskVolumeSource vsphereVolume = 20;
+
+  // Quobyte represents a Quobyte mount on the host that shares a pod's lifetime
+  // +optional
+  optional k8s.io.api.core.v1.QuobyteVolumeSource quobyte = 21;
+
+  // AzureDisk represents an Azure Data Disk mount on the host and bind mount to the pod.
+  // +optional
+  optional k8s.io.api.core.v1.AzureDiskVolumeSource azureDisk = 22;
+
+  // PhotonPersistentDisk represents a PhotonController persistent disk attached and mounted on kubelets host machine
+  optional k8s.io.api.core.v1.PhotonPersistentDiskVolumeSource photonPersistentDisk = 23;
+
+  // Items for all in one resources secrets, configmaps, and downward API
+  optional k8s.io.api.core.v1.ProjectedVolumeSource projected = 26;
+
+  // PortworxVolume represents a portworx volume attached and mounted on kubelets host machine
+  // +optional
+  optional k8s.io.api.core.v1.PortworxVolumeSource portworxVolume = 24;
+
+  // ScaleIO represents a ScaleIO persistent volume attached and mounted on Kubernetes nodes.
+  // +optional
+  optional k8s.io.api.core.v1.ScaleIOVolumeSource scaleIO = 25;
+
+  // StorageOS represents a StorageOS volume attached and mounted on Kubernetes nodes.
+  // +optional
+  optional k8s.io.api.core.v1.StorageOSVolumeSource storageos = 27;
+
+  // CSI (Container Storage Interface) represents ephemeral storage that is handled by certain external CSI drivers (Beta feature).
+  // +optional
+  optional k8s.io.api.core.v1.CSIVolumeSource csi = 28;
+
+  // Ephemeral represents a volume that is handled by a cluster storage driver (Alpha feature).
+  // The volume's lifecycle is tied to the pod that defines it - it will be created before the pod starts,
+  // and deleted when the pod is removed.
+  //
+  // Use this if:
+  // a) the volume is only needed while the pod runs,
+  // b) features of normal volumes like restoring from snapshot or capacity
+  //    tracking are needed,
+  // c) the storage driver is specified through a storage class, and
+  // d) the storage driver supports dynamic volume provisioning through
+  //    a PersistentVolumeClaim (see EphemeralVolumeSource for more
+  //    information on the connection between this volume type
+  //    and PersistentVolumeClaim).
+  //
+  // Use PersistentVolumeClaim or one of the vendor-specific
+  // APIs for volumes that persist for longer than the lifecycle
+  // of an individual pod.
+  //
+  // Use CSI for light-weight local ephemeral volumes if the CSI driver is meant to
+  // be used that way - see the documentation of the driver for
+  // more information.
+  //
+  // A pod can use both types of ephemeral volumes and
+  // persistent volumes at the same time.
+  //
+  // +optional
+  optional k8s.io.api.core.v1.EphemeralVolumeSource ephemeral = 29;
+}
+
+message VolumeSource {
+  optional k8s.io.api.core.v1.VolumeSource volumeSource = 9;
+
+  // +kubebuilder:default="1m"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration pollPeriod = 6;
+
+  // +kubebuilder:default=1
+  optional uint32 concurrency = 8;
+
+  optional bool readOnly = 10;
 }
 

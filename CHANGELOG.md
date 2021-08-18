@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.0.91 (2021-08-18)
+
+ * [a3c961a](https://github.com/argoproj-labs/argo-dataflow/commit/a3c961a8b676cf456b4118769879e1ed305692c1) fix!: give scaling variable long, easy to understand, names
+ * [7bdff21](https://github.com/argoproj-labs/argo-dataflow/commit/7bdff21e62c9f67c5e5d1eab1d29ae44559f06be) feat: add volume sink. Fixes #265
+ * [2afbc66](https://github.com/argoproj-labs/argo-dataflow/commit/2afbc66377c534da31a1b58af5dad8f2bdf9219b) feat: adds volume source. Fixes #262
+ * [061efa5](https://github.com/argoproj-labs/argo-dataflow/commit/061efa52117ab5e7395437a49968f82febaa1b9a) fix: change to `metav1.Duration` pointer types so defaults work
+ * [104460f](https://github.com/argoproj-labs/argo-dataflow/commit/104460f14ca52c6d14255619b702b065203779e1) feat: add `limit` for desired replicas to allow more flexibility is sc… (#261)
+ * [dc46d4d](https://github.com/argoproj-labs/argo-dataflow/commit/dc46d4daac7ac1e1be8a0e0fab7801a8bdd209cb) feat: surface S3 pending
+ * [67d14aa](https://github.com/argoproj-labs/argo-dataflow/commit/67d14aa9bc04c616d6e549ec3dcf1b331d17397b) feat: surface S3 concurrency configuration
+ * [0786c0e](https://github.com/argoproj-labs/argo-dataflow/commit/0786c0e0f839eba4ea8a2e6784a53bdbf43fcaf0) fix: fix peek and scaling delay to Python DSL
+ * [531f4b8](https://github.com/argoproj-labs/argo-dataflow/commit/531f4b8c6bb061bf79122aa09f9953f12f9cc094) fix: add peek and scaling delay to Python DSL
+ * [af42349](https://github.com/argoproj-labs/argo-dataflow/commit/af423498462889b08aa63114243ad180412b3a67) fix: correct logging of peek/scaling delays
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.90 (2021-08-16)
 
  * [dab337c](https://github.com/argoproj-labs/argo-dataflow/commit/dab337c8caaebf535177759edc3277d4837592c8) feat!: Expression based scaling. Fixes #249 (#250)

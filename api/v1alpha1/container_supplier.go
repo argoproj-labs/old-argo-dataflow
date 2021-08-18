@@ -10,7 +10,7 @@ type getContainerReq struct {
 	lifecycle       *corev1.Lifecycle
 	runnerImage     string
 	securityContext *corev1.SecurityContext
-	volumeMount     corev1.VolumeMount
+	volumeMounts    []corev1.VolumeMount
 }
 
 // +kubebuilder:skipversion

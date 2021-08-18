@@ -9,3 +9,9 @@ func minmax(v, min, max int) int {
 		return v
 	}
 }
+
+func limit(c int) func(v, min, max, delta int) int {
+	return func(v, min, max, delta int) int {
+		return minmax(minmax(v, c-delta, c+delta), min, max)
+	}
+}

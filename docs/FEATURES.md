@@ -51,6 +51,8 @@ alpha/beta/stable.
 | Terminating pipelines | v0.0.59 | v0.0.70 | |
 | Terminating steps | v0.0.59 | v0.0.70 | |
 | User interface | | v0.0.59 | |
+| Volume sink | v0.0.91 | | |
+| Volume source | v0.0.91 | | |
 
 Common gating criteria to get from alpha to beta:
 

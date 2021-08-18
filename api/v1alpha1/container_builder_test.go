@@ -11,6 +11,6 @@ func Test_containerBuilder(t *testing.T) {
 		init(getContainerReq{}).
 		build()
 	assert.Equal(t, "main", c.Name)
-	assert.Len(t, c.VolumeMounts, 1)
+	assert.Len(t, c.VolumeMounts, 0)
 	assert.Equal(t, standardResources, c.Resources)
 }

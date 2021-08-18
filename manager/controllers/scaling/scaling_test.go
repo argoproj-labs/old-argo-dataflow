@@ -38,35 +38,6 @@ func TestGetDesiredReplicas(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 0, replicas)
 	})
-	t.Run("ScaleUpOnlyOne", func(t *testing.T) {
-		step := dfv1.Step{
-			Spec: dfv1.StepSpec{
-				Scale: dfv1.Scale{
-					PeekDelay:       `defaultPeekDelay`,
-					ScalingDelay:    "defaultScalingDelay",
-					DesiredReplicas: "2",
-				},
-			},
-		}
-		replicas, err := GetDesiredReplicas(step)
-		assert.NoError(t, err)
-		assert.Equal(t, 1, replicas)
-	})
-	t.Run("ScaleDownOnlyOne", func(t *testing.T) {
-		step := dfv1.Step{
-			Spec: dfv1.StepSpec{
-				Scale: dfv1.Scale{
-					PeekDelay:       `defaultPeekDelay`,
-					ScalingDelay:    "defaultScalingDelay",
-					DesiredReplicas: "0",
-				},
-			},
-			Status: dfv1.StepStatus{Replicas: 2},
-		}
-		replicas, err := GetDesiredReplicas(step)
-		assert.NoError(t, err)
-		assert.Equal(t, 1, replicas)
-	})
 	t.Run("ScaleUnchanged", func(t *testing.T) {
 		step := dfv1.Step{
 			Spec: dfv1.StepSpec{

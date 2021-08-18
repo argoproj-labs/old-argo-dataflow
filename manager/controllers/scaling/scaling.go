@@ -26,54 +26,44 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 	currentReplicas := int(step.Status.Replicas)
 	lastScaledAt := time.Since(step.Status.LastScaledAt.Time)
 	scale := step.Spec.Scale
-	var scalingDelay time.Duration
-	var peekDelay time.Duration
+	scalingDelay, err := evalAsDuration(scale.ScalingDelay, map[string]interface{}{"defaultScalingDelay": defaultScalingDelay})
+	if err != nil {
+		return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
+	} else if lastScaledAt < scalingDelay {
+		return currentReplicas, nil
+	}
+	peekDelay, err := evalAsDuration(scale.PeekDelay, map[string]interface{}{"defaultPeekDelay": defaultPeekDelay})
+	if err != nil {
+		return 0, fmt.Errorf("failed to evaluate %q: %w", scale.PeekDelay, err)
+	}
 	desiredReplicas := currentReplicas
-	{
-
-		var err error
-		if scalingDelay, err = evalAsDuration(scale.ScalingDelay, map[string]interface{}{
-			"defaultScalingDelay": defaultScalingDelay,
-		}); err != nil {
-			return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
+	pending := int(step.Status.SourceStatuses.GetPending())
+	pendingDelta := pending - int(step.Status.SourceStatuses.GetLastPending())
+	if scale.DesiredReplicas != "" {
+		r, err := expr.Eval(scale.DesiredReplicas, map[string]interface{}{
+			"currentReplicas": currentReplicas,
+			"pending":         pending,
+			"pendingDelta":    pendingDelta,
+			"minmax":          minmax,
+			"limit":           limit(currentReplicas),
+		})
+		if err != nil {
+			return 0, err
 		}
-		if peekDelay, err = evalAsDuration(scale.PeekDelay, map[string]interface{}{
-			"defaultPeekDelay": defaultPeekDelay,
-		}); err != nil {
-			return 0, fmt.Errorf("failed to evaluate %q: %w", scale.PeekDelay, err)
-		}
-		if scale.DesiredReplicas != "" {
-			pending := step.Status.SourceStatuses.GetPending()
-			c := int(step.Status.Replicas)
-			P := int(pending)
-			p := int(pending - step.Status.SourceStatuses.GetLastPending())
-			r, err := expr.Eval(scale.DesiredReplicas, map[string]interface{}{"c": c, "P": P, "p": p, "minmax": minmax})
-			if err != nil {
-				return 0, err
-			}
-			var ok bool
-			desiredReplicas, ok = r.(int)
-			if !ok {
-				return 0, fmt.Errorf("failed to evaluate %q as int, got %T", scale.DesiredReplicas, r)
-			}
-			logger.Info("desired replicas", "c", c, "P", P, "p", p, "d", desiredReplicas, "scalingDelay", scalingDelay.String(), "peekDelay", peekDelay.String())
+		var ok bool
+		desiredReplicas, ok = r.(int)
+		if !ok {
+			return 0, fmt.Errorf("failed to evaluate %q as int, got %T", scale.DesiredReplicas, r)
 		}
 	}
-	if lastScaledAt < scalingDelay {
-		return currentReplicas, nil
+	if currentReplicas != desiredReplicas { // only log if changed
+		logger.Info("desired replicas", "expr", scale.DesiredReplicas, "currentReplicas", currentReplicas, "pending", pending, "pendingDelta", pendingDelta, "desiredReplicas", desiredReplicas, "scalingDelay", scalingDelay.String(), "peekDelay", peekDelay.String())
 	}
 	// do we need to peek? currentReplicas and desiredReplicas must both be zero
 	if currentReplicas <= 0 && desiredReplicas == 0 && lastScaledAt > peekDelay {
 		return 1, nil
 	}
-	// prevent violent scale-up and scale-down by only scaling by 1 each time
-	if desiredReplicas > currentReplicas {
-		return currentReplicas + 1, nil
-	} else if desiredReplicas < currentReplicas {
-		return currentReplicas - 1, nil
-	} else {
-		return desiredReplicas, nil
-	}
+	return desiredReplicas, nil
 }
 
 func evalAsDuration(input string, env map[string]interface{}) (time.Duration, error) {

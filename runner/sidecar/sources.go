@@ -6,6 +6,8 @@ import (
 	"io"
 	"time"
 
+	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
@@ -96,6 +98,12 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			}
 		} else if x := s.DB; x != nil {
 			if y, err := dbsource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
+				return err
+			} else {
+				sources[sourceName] = y
+			}
+		} else if x := s.Volume; x != nil {
+			if y, err := volumeSource.New(ctx, pipelineName, stepName, sourceName, *x, f, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
