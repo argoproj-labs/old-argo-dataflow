@@ -17,24 +17,16 @@ type Group struct {
 }
 
 func (g *Group) getContainer(req getContainerReq) corev1.Container {
-	return containerBuilder{}.
+	builder := containerBuilder{}.
 		init(req).
-		args("group", g.Key, g.EndOfGroup, string(g.Format)).
-		appendVolumeMounts(g.getVolumeMount(req.volumeMount)).
-		build()
-}
-
-func (g *Group) getVolumeMount(defaultVolumeMount corev1.VolumeMount) corev1.VolumeMount {
+		args("group", g.Key, g.EndOfGroup, string(g.Format))
 	if g.Storage != nil {
-		return corev1.VolumeMount{
+		builder = builder.appendVolumeMounts(corev1.VolumeMount{
 			Name:      g.Storage.Name,
 			MountPath: PathGroups,
 			SubPath:   g.Storage.SubPath,
-		}
+		})
 	}
-	return corev1.VolumeMount{
-		Name:      defaultVolumeMount.Name,
-		MountPath: PathGroups,
-		SubPath:   "groups",
-	}
+	return builder.
+		build()
 }

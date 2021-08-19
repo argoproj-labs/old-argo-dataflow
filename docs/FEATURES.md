@@ -18,6 +18,7 @@ alpha/beta/stable.
 | Cron source | v0.0.59 | |
 | Dedupe step | v0.0.59 | || |
 | Expand step | v0.0.59 | v0.0.70 | |
+| Expression based scaling | v0.0.90 | | |
 | Filter step | v0.0.59 | v0.0.70 | |
 | FMEA tests | | v0.0.59 | |
 | [Generator step](STEPS.md#Generator-step) | v0.0.59 | | |
@@ -50,6 +51,8 @@ alpha/beta/stable.
 | Terminating pipelines | v0.0.59 | v0.0.70 | |
 | Terminating steps | v0.0.59 | v0.0.70 | |
 | User interface | | v0.0.59 | |
+| Volume sink | v0.0.91 | | |
+| Volume source | v0.0.91 | | |
 
 Common gating criteria to get from alpha to beta:
 

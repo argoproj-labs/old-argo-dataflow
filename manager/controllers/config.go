@@ -12,14 +12,11 @@ import (
 )
 
 var (
-	scalingDelay   = util.GetEnvDuration(dfv1.EnvScalingDelay, time.Minute)
-	peekDelay      = util.GetEnvDuration(dfv1.EnvPeekDelay, 4*time.Minute)
-	imagePrefix    = os.Getenv(dfv1.EnvImagePrefix)
-	imageFormat    = ""
-	runnerImage    = ""
-	pullPolicy     = corev1.PullPolicy(os.Getenv(dfv1.EnvPullPolicy))
-	updateInterval = util.GetEnvDuration(dfv1.EnvUpdateInterval, 1*time.Minute)
-
+	imagePrefix      = os.Getenv(dfv1.EnvImagePrefix)
+	imageFormat      = ""
+	runnerImage      = ""
+	pullPolicy       = corev1.PullPolicy(os.Getenv(dfv1.EnvPullPolicy))
+	updateInterval   = util.GetEnvDuration(dfv1.EnvUpdateInterval, 1*time.Minute)
 	logger           = util.NewLogger()
 	imagePullSecrets = util.GetEnvStringArr(dfv1.EnvImagePullSecrets, []string{})
 )
@@ -39,8 +36,6 @@ func init() {
 		"runnerImage", runnerImage,
 		"pullPolicy", pullPolicy,
 		"updateInterval", updateInterval.String(),
-		"scalingDelay", scalingDelay.String(),
-		"peekDelay", peekDelay.String(),
 		"imagePullSecrets", imagePullSecrets,
 	)
 }

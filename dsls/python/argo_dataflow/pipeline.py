@@ -179,7 +179,7 @@ class Step:
         self._name = name
         self._sources = sources
         self._sinks = []
-        self._scale = {}
+        self._scale = None
         self._volumes = volumes
         self._terminator = terminator
         self._annotations = []
@@ -197,12 +197,14 @@ class Step:
         self._sinks.append(KafkaSink(subject, name=name, a_sync=a_sync))
         return self
 
-    def scale(self, minReplicas, maxReplicas, replicaRatio):
+    def scale(self, desiredReplicas, scalingDelay=None, peekDelay=None):
         self._scale = {
-            'minReplicas': minReplicas,
-            'maxReplicas': maxReplicas,
-            'replicaRatio': replicaRatio
+            'desiredReplicas': desiredReplicas,
         }
+        if peekDelay:
+            self._scale['peekDelay'] = peekDelay
+        if scalingDelay:
+            self._scale['scalingDelay'] = scalingDelay
         return self
 
     def stan(self, topic, name=None):
@@ -229,7 +231,7 @@ class Step:
             y['sources'] = [x.dump() for x in self._sources]
         if len(self._sinks):
             y['sinks'] = [x.dump() for x in self._sinks]
-        if len(self._scale) > 0:
+        if self._scale:
             y['scale'] = self._scale
         if len(self._volumes) > 0:
             y['volumes'] = self._volumes
@@ -258,8 +260,9 @@ class CatStep(Step):
 
 
 class ContainerStep(Step):
-    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[], env={}, resources={}, terminator=False):
-        super().__init__(name, sources=sources, volumes=volumes,terminator=terminator)
+    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[], env={}, resources={},
+                 terminator=False):
+        super().__init__(name, sources=sources, volumes=volumes, terminator=terminator)
         self._image = image
         self._args = args
         self._fifo = fifo

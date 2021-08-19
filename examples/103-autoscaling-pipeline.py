@@ -5,37 +5,29 @@ if __name__ == '__main__':
      .owner('argoproj-labs')
      .describe("""This is an example of having multiple replicas for a single step.
 
-Replicas are automatically scaled up and down depending on the number of messages pending processing.
+Replicas are automatically scaled up and down depending on the the desired formula, which can be computed using the following:
 
-The ratio is defined as the number of pending messages per replica:
+* `pending` total number of pending messages.
+* `pendingDelta` change in number of pending messages.
+* `currentReplicas` the current number of replicas.
+* `limit(v, min, max, delta)` a function to constraint the minimum and maximum number of replicas, as well as the step-up/down.
 
-```
-replicas = pending / ratio
-```
+In this example:
 
-The number of replicas will not scale beyond the min/max bounds (except when *peeking*, see below):
-
-```
-min <= replicas <= max
-```
-
-* `min` is used as the initial number of replicas.
-* If `ratio` is undefined no scaling can occur; `max` is meaningless.
-* If `ratio` is defined but `max` is not, the step may scale to infinity.
-* If `max` and `ratio` are undefined, then the number of replicas is `min`.
-* In this example, because the ratio is 1000, if 2000 messages pending, two replicas will be started.
-* To prevent scaling up and down repeatedly - scale up or down occurs a maximum of once a minute.
-* The same message will not be send to two different replicas.
+* Each period is 60s.
+* Each replica can consume 250 messages each second.
+* We want to consume all pending messages in 10 periods.
+* We want to have between 0 and 4 replicas, and scale-up or down maximum 2 replicas at a time.
 
 ### Scale-To-Zero and Peeking
 
-You can scale to zero by setting `minReplicas: 0`. The number of replicas will start at zero, and periodically be scaled
-to 1  so it can "peek" the the message queue. The number of pending messages is measured and the target number
+You can scale to zero. The number of replicas will be periodically scaled
+to 1 so it can "peek" the the message queue. The number of pending messages is measured and the target number
 of replicas re-calculated.""")
      .step(
         (kafka('input-topic')
          .cat('main')
-         .scale(0, 4, 1000)
+         .scale('limit(currentReplicas + pendingDelta / (60 * 250) + pending / (10 * 60 * 250), 0, 4, 2)', scalingDelay='"1m"', peekDelay='"20m"')
          .kafka('output-topic'))
     )
      .save())

@@ -18,15 +18,15 @@ package v1alpha1
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
-	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +kubebuilder:object:root=true
@@ -46,13 +46,54 @@ type Step struct {
 }
 
 func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
-	volume := corev1.Volume{
-		Name:         "var-run-argo-dataflow",
-		VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+	const (
+		varVolumeName = "var-run-argo-dataflow"
+		sshVolumeName = "ssh"
+	)
+	volumes := []corev1.Volume{
+		{
+			Name:         varVolumeName,
+			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+		},
+		{
+			Name: sshVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  "ssh",
+					DefaultMode: pointer.Int32Ptr(0o644),
+				},
+			},
+		},
+	}
+	volumeMounts := []corev1.VolumeMount{{Name: varVolumeName, MountPath: PathVarRun}}
+	for _, source := range in.Spec.Sources {
+		if x := source.Volume; x != nil {
+			name := fmt.Sprintf("source-%s", source.Name)
+			volumes = append(volumes, corev1.Volume{
+				Name:         name,
+				VolumeSource: x.VolumeSource,
+			})
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      name,
+				ReadOnly:  x.ReadOnly,
+				MountPath: filepath.Join(PathVarRun, "sources", source.Name),
+			})
+		}
+	}
+	for _, source := range in.Spec.Sinks {
+		if x := source.Volume; x != nil {
+			name := fmt.Sprintf("sink-%s", source.Name)
+			volumes = append(volumes, corev1.Volume{
+				Name:         name,
+				VolumeSource: corev1.VolumeSource(*x),
+			})
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      name,
+				MountPath: filepath.Join(PathVarRun, "sinks", source.Name),
+			})
+		}
 	}
 	step, _ := json.Marshal(in.withoutManagedFields())
-	volumeMounts := []corev1.VolumeMount{{Name: volume.Name, MountPath: PathVarRun}}
-
 	envVars := []corev1.EnvVar{
 		{Name: EnvClusterName, Value: req.ClusterName},
 		{Name: EnvDebug, Value: strconv.FormatBool(req.Debug)},
@@ -70,15 +111,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		AllowPrivilegeEscalation: pointer.BoolPtr(false),
 	}
 	return corev1.PodSpec{
-		Volumes: append(in.Spec.Volumes, volume, corev1.Volume{
-			Name: "ssh",
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName:  "ssh",
-					DefaultMode: pointer.Int32Ptr(0o644),
-				},
-			},
-		}),
+		Volumes:            append(in.Spec.Volumes, volumes...),
 		RestartPolicy:      in.Spec.RestartPolicy,
 		NodeSelector:       in.Spec.NodeSelector,
 		ServiceAccountName: in.Spec.ServiceAccountName,
@@ -96,7 +129,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				Args:            []string{"init"},
 				Env:             envVars,
 				VolumeMounts: append(volumeMounts, corev1.VolumeMount{
-					Name:      "ssh",
+					Name:      sshVolumeName,
 					ReadOnly:  true,
 					MountPath: "/.ssh",
 				}),
@@ -145,7 +178,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				},
 				runnerImage:     req.RunnerImage,
 				securityContext: dropAll,
-				volumeMount:     corev1.VolumeMount{Name: "var-run-argo-dataflow", MountPath: "/var/run/argo-dataflow"},
+				volumeMounts:    volumeMounts,
 			}),
 		},
 	}
@@ -155,41 +188,6 @@ func (in Step) withoutManagedFields() Step {
 	y := *in.DeepCopy()
 	y.ManagedFields = nil
 	return y
-}
-
-func (in Step) GetTargetReplicas(scalingDelay, peekDelay time.Duration) int {
-	currentReplicas := int(in.Status.Replicas)
-	lastScaledAt := in.Status.LastScaledAt.Time
-
-	if time.Since(lastScaledAt) < scalingDelay {
-		return currentReplicas
-	}
-
-	pending := in.Status.SourceStatuses.GetPending()
-	targetReplicas := in.Spec.CalculateReplicas(int(pending))
-	if targetReplicas == -1 {
-		return currentReplicas
-	}
-
-	// do we need to peek? currentReplicas and targetReplicas must both be zero
-	if currentReplicas <= 0 && targetReplicas == 0 && time.Since(lastScaledAt) > peekDelay {
-		return 1
-	}
-	// prevent violent scale-up and scale-down by only scaling by 1 each time
-	if targetReplicas > currentReplicas {
-		return currentReplicas + 1
-	} else if targetReplicas < currentReplicas {
-		return currentReplicas - 1
-	} else {
-		return targetReplicas
-	}
-}
-
-func RequeueAfter(currentReplicas, targetReplicas int, scalingDelay time.Duration) time.Duration {
-	if currentReplicas <= 0 && targetReplicas == 0 {
-		return scalingDelay
-	}
-	return 0
 }
 
 // +kubebuilder:object:root=true
