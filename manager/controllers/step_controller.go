@@ -92,13 +92,14 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	log.Info("reconciling")
 
+	currentReplicas := int(step.Status.Replicas)
 	if step.Spec.Scale.DesiredReplicas != "" {
 		desiredReplicas, err := scaling.GetDesiredReplicas(*step)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-		if int(step.Spec.Replicas) != desiredReplicas {
-			log.Info("auto-scaling step", "currentReplicas", step.Spec.Replicas, "desiredReplicas", desiredReplicas)
+		if currentReplicas != desiredReplicas {
+			log.Info("auto-scaling step", "currentReplicas", currentReplicas, "desiredReplicas", desiredReplicas)
 			if _, err := r.DynamicInterface.
 				Resource(dfv1.StepGroupVersionResource).
 				Namespace(step.Namespace).
@@ -121,7 +122,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	currentReplicas := int(step.Status.Replicas)
 	desiredReplicas := int(step.Spec.Replicas)
 
 	if currentReplicas != desiredReplicas || step.Status.Selector == "" {
