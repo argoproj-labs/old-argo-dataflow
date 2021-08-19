@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.94 (2021-08-18)
+
+
+### Contributors
+
+
 ## v0.0.93 (2021-08-18)
 
  * [d7f9eb4](https://github.com/argoproj-labs/argo-dataflow/commit/d7f9eb44d3b6b2eed085b8b80054295f83cc14ca) fix: correct copy back logic
