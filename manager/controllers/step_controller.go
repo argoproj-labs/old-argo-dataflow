@@ -98,7 +98,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-		if currentReplicas != desiredReplicas {
+		if int(step.Spec.Replicas) != desiredReplicas {
 			log.Info("auto-scaling step", "currentReplicas", currentReplicas, "desiredReplicas", desiredReplicas)
 			if _, err := r.DynamicInterface.
 				Resource(dfv1.StepGroupVersionResource).

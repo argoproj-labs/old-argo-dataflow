@@ -56,9 +56,7 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 			return 0, fmt.Errorf("failed to evaluate %q as int, got %T", scale.DesiredReplicas, r)
 		}
 	}
-	if currentReplicas != desiredReplicas { // only log if changed
-		logger.Info("desired replicas", "expr", scale.DesiredReplicas, "currentReplicas", currentReplicas, "pending", pending, "pendingDelta", pendingDelta, "desiredReplicas", desiredReplicas, "scalingDelay", scalingDelay.String(), "peekDelay", peekDelay.String())
-	}
+	logger.Info("desired replicas", "expr", scale.DesiredReplicas, "currentReplicas", currentReplicas, "pending", pending, "pendingDelta", pendingDelta, "desiredReplicas", desiredReplicas, "scalingDelay", scalingDelay.String(), "peekDelay", peekDelay.String())
 	// do we need to peek? currentReplicas and desiredReplicas must both be zero
 	if currentReplicas <= 0 && desiredReplicas == 0 && lastScaledAt > peekDelay {
 		return 1, nil
