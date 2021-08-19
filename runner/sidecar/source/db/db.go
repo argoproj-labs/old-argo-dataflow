@@ -50,7 +50,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 
 	var offset string
 	remark := fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName)
-	uid := sharedutil.MustHash(remark)
+	uid := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
 	offset, err = getOffsetFromDB(ctx, db, uid)
 	if err != nil {
 		if err == sql.ErrNoRows {

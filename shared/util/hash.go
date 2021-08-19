@@ -19,3 +19,4 @@ func MustHash(v interface{}) string {
 		return MustHash([]byte(MustJSON(v)))
 	}
 }
+

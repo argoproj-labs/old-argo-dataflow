@@ -78,7 +78,8 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			if y, err := kafkasource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, sourceName, *x, f); err != nil {
+			groupID := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
+			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, *x, f); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

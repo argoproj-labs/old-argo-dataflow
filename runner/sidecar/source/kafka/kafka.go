@@ -26,7 +26,7 @@ type kafkaSource struct {
 	topic         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGroupID, sourceName string, x dfv1.KafkaSource, f source.Func) (source.Interface, error) {
 	config, err := kafka.GetConfig(ctx, secretInterface, x.Kafka.KafkaConfig)
 	if err != nil {
 		return nil, err
@@ -37,10 +37,9 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
-	// This ID can be up to 255 characters in length, and can include the following characters: a-z, A-Z, 0-9, . (dot), _ (underscore), and - (dash).
-	groupID := sharedutil.MustHash(fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName))
-	logger.Info("Kafka consumer group ID", "groupID", groupID)
-	consumerGroup, err := sarama.NewConsumerGroup(x.Brokers, groupID, config)
+
+	logger.Info("Kafka consumer group ID", "consumerGroupID", consumerGroupID)
+	consumerGroup, err := sarama.NewConsumerGroup(x.Brokers, consumerGroupID, config)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +70,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 		client,
 		consumerGroup,
 		adminClient,
-		groupID,
+		consumerGroupID,
 		x.Topic,
 	}, nil
 }
