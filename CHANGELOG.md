@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.0.93 (2021-08-18)
+
+ * [d7f9eb4](https://github.com/argoproj-labs/argo-dataflow/commit/d7f9eb44d3b6b2eed085b8b80054295f83cc14ca) fix: correct copy back logic
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.92 (2021-08-18)
+
+ * [db6f875](https://github.com/argoproj-labs/argo-dataflow/commit/db6f875ed422f5313f352c3597e9916624fde647) fix: correct copy back logic
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.91 (2021-08-18)
 
  * [a3c961a](https://github.com/argoproj-labs/argo-dataflow/commit/a3c961a8b676cf456b4118769879e1ed305692c1) fix!: give scaling variable long, easy to understand, names
