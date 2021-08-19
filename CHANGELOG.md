@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.95 (2021-08-19)
+
+ * [7dc5e75](https://github.com/argoproj-labs/argo-dataflow/commit/7dc5e753431cbea900f51b4fe62a787cf2dcd372) chore `make pre-commit -B`
+ * [744a563](https://github.com/argoproj-labs/argo-dataflow/commit/744a5636fe90c9f242116dd8968dd022e19156ac) fix: fix scaling logic
+ * [1869fb1](https://github.com/argoproj-labs/argo-dataflow/commit/1869fb11cab71f5287a762cdefec71324cdc370d) fix: correct error in currentReplicas
+ * [53269f7](https://github.com/argoproj-labs/argo-dataflow/commit/53269f710708e49f8bda1b71aade40711f9bef0e) feat: Enable TotalBytes metrics (#258)
+ * [53a319d](https://github.com/argoproj-labs/argo-dataflow/commit/53a319d21c3e35fedda5db9b5e9d4d1f6add0f38) feat: Unique Kafka Consumer GroupID (#251)
+
+### Contributors
+
+ * Alex Collins
+ * Saravanan Balasubramanian
+
 ## v0.0.94 (2021-08-18)
 
 
