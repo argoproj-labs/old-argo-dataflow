@@ -3,9 +3,6 @@ package util
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
-
-	"k8s.io/utils/strings"
 )
 
 func MustHash(v interface{}) string {
@@ -23,7 +20,3 @@ func MustHash(v interface{}) string {
 	}
 }
 
-func GetUniquePipelineID(clusterName, namespace, pipelineName, stepName, sourceName string) string {
-	hash := MustHash(fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName))
-	return fmt.Sprintf("dataflow-%s-%s-%s-%s-%s-%s", strings.ShortenString(clusterName, 3), strings.ShortenString(namespace, 3), strings.ShortenString(pipelineName, 3), strings.ShortenString(stepName, 3), strings.ShortenString(sourceName, 3), hash)
-}

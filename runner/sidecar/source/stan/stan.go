@@ -49,7 +49,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 
 	// https://docs.nats.io/developing-with-nats-streaming/queues
 	var sub stan.Subscription
-	queueName := sharedutil.GetUniquePipelineID(clusterName, namespace, pipelineName, stepName, sourceName)
+	queueName := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
