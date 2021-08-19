@@ -290,6 +290,8 @@ message Metrics {
 
   // current rate of messages per second
   optional uint64 retries = 4;
+
+  optional uint64 totalBytes = 5;
 }
 
 // +kubebuilder:object:root=true
