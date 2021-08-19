@@ -13275,6 +13275,9 @@ spec:
                           total:
                             format: int64
                             type: integer
+                          totalBytes:
+                            format: int64
+                            type: integer
                         type: object
                       type: object
                     pending:
@@ -13304,6 +13307,9 @@ spec:
                             format: int64
                             type: integer
                           total:
+                            format: int64
+                            type: integer
+                          totalBytes:
                             format: int64
                             type: integer
                         type: object

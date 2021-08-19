@@ -46,3 +46,11 @@ func (in SourceStatus) GetRetries() uint64 {
 	}
 	return x
 }
+
+func (in SourceStatus) GetTotalBytes() uint64 {
+	var x uint64
+	for _, m := range in.Metrics {
+		x += m.TotalBytes
+	}
+	return x
+}

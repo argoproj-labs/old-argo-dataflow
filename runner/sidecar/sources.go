@@ -40,7 +40,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		f := func(ctx context.Context, msg []byte) error {
 			rateCounter.Incr(1)
 			withLock(func() {
-				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter))
+				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter), uint64(len(msg)))
 			})
 			backoff := newBackoff(s.Retry)
 			for {
@@ -176,5 +176,16 @@ func newSourceMetrics(source dfv1.Source, sourceName string) {
 		mu.RLock()
 		defer mu.RUnlock()
 		return float64(step.Status.SourceStatuses.Get(sourceName).GetRetries())
+	})
+
+	promauto.NewCounterFunc(prometheus.CounterOpts{
+		Subsystem:   "sources",
+		Name:        "totalBytes",
+		Help:        "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
+		ConstLabels: map[string]string{"sourceName": source.Name},
+	}, func() float64 {
+		mu.RLock()
+		defer mu.RUnlock()
+		return float64(step.Status.SourceStatuses.Get(sourceName).GetTotalBytes())
 	})
 }

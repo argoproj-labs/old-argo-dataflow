@@ -8,7 +8,7 @@ import (
 
 type SourceStatuses map[string]SourceStatus // key is source name
 
-func (in SourceStatuses) IncrTotal(name string, replica int, rate resource.Quantity) {
+func (in SourceStatuses) IncrTotal(name string, replica int, rate resource.Quantity, msgSize uint64) {
 	x := in[name]
 	if x.Metrics == nil {
 		x.Metrics = map[string]Metrics{}
@@ -16,6 +16,7 @@ func (in SourceStatuses) IncrTotal(name string, replica int, rate resource.Quant
 	m := x.Metrics[strconv.Itoa(replica)]
 	m.Total++
 	m.Rate = rate
+	m.TotalBytes += msgSize
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
 }
@@ -102,4 +103,12 @@ func (in SourceStatuses) IncrRetries(name string, replica int) {
 	m.Retries++
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
+}
+
+func (in SourceStatuses) GetTotalBytes() uint64 {
+	var v uint64
+	for _, s := range in {
+		v += s.GetTotalBytes()
+	}
+	return v
 }
