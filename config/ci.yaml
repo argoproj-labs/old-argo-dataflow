@@ -13606,6 +13606,14 @@ spec:
   selector:
     app: testapi
 ---
+apiVersion: scheduling.k8s.io/v1
+description: This priority class is used to ensure that lead replicas are prioritized
+  over other replicas.
+kind: PriorityClass
+metadata:
+  name: lead-replica
+value: 1
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

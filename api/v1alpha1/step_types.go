@@ -23,9 +23,10 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 )
 
@@ -110,6 +111,10 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		},
 		AllowPrivilegeEscalation: pointer.BoolPtr(false),
 	}
+	priorityClassName := ""
+	if req.Replica == 0 {
+		priorityClassName = "lead-replica"
+	}
 	return corev1.PodSpec{
 		Volumes:            append(in.Spec.Volumes, volumes...),
 		RestartPolicy:      in.Spec.RestartPolicy,
@@ -119,8 +124,9 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			RunAsNonRoot: pointer.BoolPtr(true),
 			RunAsUser:    pointer.Int64Ptr(9653),
 		},
-		Affinity:    in.Spec.Affinity,
-		Tolerations: in.Spec.Tolerations,
+		PriorityClassName: priorityClassName,
+		Affinity:          in.Spec.Affinity,
+		Tolerations:       in.Spec.Tolerations,
 		InitContainers: []corev1.Container{
 			{
 				Name:            CtrInit,
