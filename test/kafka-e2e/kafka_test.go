@@ -63,12 +63,16 @@ func TestKafkaAsync(t *testing.T) {
 	WaitForPipeline()
 	WaitForPod()
 
+	defer StartPortForward("kafka-main-0")()
+
 	PumpKafkaTopic(topic, 17)
 
 	WaitForPipeline(UntilMessagesSunk)
 
 	WaitForStep(TotalSourceMessages(17))
 	WaitForStep(TotalSunkMessages(17))
+
+	ExpectMetric("sinks_kafka_produced_successes", 17)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

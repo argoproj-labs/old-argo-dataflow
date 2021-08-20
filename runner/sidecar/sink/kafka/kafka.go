@@ -10,8 +10,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"io"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
+
+var logger = sharedutil.NewLogger()
 
 type producer interface {
 	SendMessage(msg *sarama.ProducerMessage) error
@@ -48,37 +51,37 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 		return nil, err
 	}
 
-	logger := sharedutil.NewLogger()
-
 	if x.Async {
 		config.Producer.Return.Successes = true
 		config.Producer.Return.Errors = true
 
 		// track async success and errors
 		var kafkaMessagesProducedSuccess = promauto.NewCounterVec(prometheus.CounterOpts{
-			Subsystem: "input",
-			Name:      "kafka_produced_success",
+			Subsystem: "sinks",
+			Name:      "kafka_produced_successes",
 			Help:      "Number of messages successfully produced to Kafka",
-		}, []string{"topic", "type"})
+		}, []string{"topic"})
 		var kafkaMessagesProducedErr = promauto.NewCounterVec(prometheus.CounterOpts{
-			Subsystem: "input",
+			Subsystem: "sinks",
 			Name:      "kafka_produce_errors",
 			Help:      "Number of errors while producing messages to Kafka",
-		}, []string{"topic", "type"})
+		}, []string{"topic"})
 
 		// read from Success Channel
 		go func() {
+			defer runtime.HandleCrash()
 			// for loop will exit once the producer.Errors() is closed
 			for err := range producer.Errors() {
 				logger.Error(err, "Async to Kafka failed", "topic", err.Msg.Topic)
-				kafkaMessagesProducedErr.With(prometheus.Labels{"topic": err.Msg.Topic, "type": "async"}).Inc()
+				kafkaMessagesProducedErr.With(prometheus.Labels{"topic": err.Msg.Topic}).Inc()
 			}
 		}()
 		// read from Error channel
 		go func() {
+			defer runtime.HandleCrash()
 			// for loop will exit once the producer.Successes() is closed
 			for success := range producer.Successes() {
-				kafkaMessagesProducedSuccess.With(prometheus.Labels{"topic": success.Topic, "type": "async"}).Inc()
+				kafkaMessagesProducedSuccess.With(prometheus.Labels{"topic": success.Topic}).Inc()
 			}
 		}()
 
