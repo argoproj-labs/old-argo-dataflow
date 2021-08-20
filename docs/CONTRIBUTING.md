@@ -11,8 +11,8 @@ make start
 Start example using k3d Kubernetes cluster:
 
 ```bash
-k3d cluster create argo-dataflow-test
-kubectl config set-context k3d-argo-dataflow-test
+k3d cluster create
+kubectl config set-context k3d-k3s-default
 make start
 ```
 
