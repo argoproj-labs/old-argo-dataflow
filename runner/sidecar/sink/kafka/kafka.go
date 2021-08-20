@@ -2,15 +2,19 @@ package kafka
 
 import (
 	"context"
-	"io"
-
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"io"
+	"k8s.io/apimachinery/pkg/util/runtime"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
+
+var logger = sharedutil.NewLogger()
 
 type producer interface {
 	SendMessage(msg *sarama.ProducerMessage) error
@@ -41,11 +45,46 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 	if err != nil {
 		return nil, err
 	}
+
+	producer, err := sarama.NewAsyncProducer(x.Brokers, config)
+	if err != nil {
+		return nil, err
+	}
+
 	if x.Async {
-		producer, err := sarama.NewAsyncProducer(x.Brokers, config)
-		if err != nil {
-			return nil, err
-		}
+		config.Producer.Return.Successes = true
+		config.Producer.Return.Errors = true
+
+		// track async success and errors
+		var kafkaMessagesProducedSuccess = promauto.NewCounterVec(prometheus.CounterOpts{
+			Subsystem: "sinks",
+			Name:      "kafka_produced_successes",
+			Help:      "Number of messages successfully produced to Kafka",
+		}, []string{"topic"})
+		var kafkaMessagesProducedErr = promauto.NewCounterVec(prometheus.CounterOpts{
+			Subsystem: "sinks",
+			Name:      "kafka_produce_errors",
+			Help:      "Number of errors while producing messages to Kafka",
+		}, []string{"topic"})
+
+		// read from Success Channel
+		go func() {
+			defer runtime.HandleCrash()
+			// for loop will exit once the producer.Errors() is closed
+			for err := range producer.Errors() {
+				logger.Error(err, "Async to Kafka failed", "topic", err.Msg.Topic)
+				kafkaMessagesProducedErr.With(prometheus.Labels{"topic": err.Msg.Topic}).Inc()
+			}
+		}()
+		// read from Error channel
+		go func() {
+			defer runtime.HandleCrash()
+			// for loop will exit once the producer.Successes() is closed
+			for success := range producer.Successes() {
+				kafkaMessagesProducedSuccess.With(prometheus.Labels{"topic": success.Topic}).Inc()
+			}
+		}()
+
 		return kafkaSink{asyncProducer{producer}, x.Topic}, nil
 	} else {
 		config.Producer.Return.Successes = true
