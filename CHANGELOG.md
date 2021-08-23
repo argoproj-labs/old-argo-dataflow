@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.96 (2021-08-23)
+
+ * [be2b63d](https://github.com/argoproj-labs/argo-dataflow/commit/be2b63d63172f0864874945f18347680028fcbbf) feat: Use pod priority class to prioritize the lead replica. Fixes #269 (#275)
+ * [8bdfbf2](https://github.com/argoproj-labs/argo-dataflow/commit/8bdfbf2b274fde2b37c7b1d1bef12b9181703358) add kafka async metrics (#276)
+ * [dcccd6f](https://github.com/argoproj-labs/argo-dataflow/commit/dcccd6fff2eed86f4807cf5fb47cf8a123134af3) use default k3d cluster
+
+### Contributors
+
+ * Alex Collins
+ * Vigith Maurice
+
 ## v0.0.95 (2021-08-19)
 
  * [7dc5e75](https://github.com/argoproj-labs/argo-dataflow/commit/7dc5e753431cbea900f51b4fe62a787cf2dcd372) chore `make pre-commit -B`
