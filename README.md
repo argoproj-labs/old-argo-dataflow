@@ -5,14 +5,16 @@
 
 ## Summary
 
-Argo Dataflow is a cloud-native platform for executing large parallel data-processing pipelines.
+Argo Dataflow is a Kubernetes-native platform for executing large parallel data-processing pipelines.
 
-Each pipeline is a Kubernetes custom resource which consists of one or more steps which source and sink messages from
-data sources such Kafka, NATS Streaming, or HTTP services.
+Each pipeline is specified as a Kubernetes custom resource which consists of one or more steps which source and sink
+messages from data sources such Kafka, NATS Streaming, or HTTP services.
 
-Each step runs 0 or more pods, and can scale horizontally using HPA or based on queue length using built-in scaling
+Each step runs zero or more pods, and can scale horizontally using HPA or based on queue length using built-in scaling
 rules. Steps can be scaled-to-zero, in which case they periodically briefly scale-to-one to measure queue length so they
-can scale a back up
+can scale a back up.
+
+Learn more about [features](docs/FEATURES.md).
 
 ## Use Cases
 
