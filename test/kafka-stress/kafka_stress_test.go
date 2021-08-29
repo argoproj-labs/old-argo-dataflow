@@ -5,6 +5,9 @@ package kafka_stress
 import (
 	"testing"
 
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -18,15 +21,21 @@ func TestKafkaSourceStress(t *testing.T) {
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
-
+	msgSize := int(50000000)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name:     "main",
-				Cat:      &Cat{},
+				Name: "main",
+				Cat: &Cat{
+					AbstractStep: AbstractStep{StandardResources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{
+							v1.ResourceMemory: resource.MustParse("2Gi"),
+						},
+					}},
+				},
 				Replicas: Params.Replicas,
-				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
+				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
@@ -52,7 +61,7 @@ func TestKafkaSinkStress(t *testing.T) {
 
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()
-
+	msgSize := int(50000000)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
@@ -60,9 +69,9 @@ func TestKafkaSinkStress(t *testing.T) {
 				Name:     "main",
 				Cat:      &Cat{},
 				Replicas: Params.Replicas,
-				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
+				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks: []Sink{
-					{Kafka: &KafkaSink{Async: Params.Async, Kafka: Kafka{Topic: sinkTopic}}},
+					{Kafka: &KafkaSink{Async: Params.Async, Kafka: Kafka{Topic: sinkTopic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}},
 					DefaultLogSink,
 				},
 			}},

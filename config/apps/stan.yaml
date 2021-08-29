@@ -16,6 +16,7 @@ data:
   stan.conf: |
     port: 4222
     http: 8222
+    max_payload: 50000000
     authorization {
       token: "testingtokentestingtoken"
     }
