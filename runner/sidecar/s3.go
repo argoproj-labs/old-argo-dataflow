@@ -27,6 +27,12 @@ func s3FromSecret(x *dfv1.S3, secret *corev1.Secret) error {
 				},
 				Key: string(secret.Data["credentials.secretAccessKey.key"]),
 			},
+			SessionToken: corev1.SecretKeySelector{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: string(secret.Data["credentials.sessionToken.name"]),
+				},
+				Key: string(secret.Data["credentials.sessionToken.key"]),
+			},
 		}
 	}
 	if v, ok := secret.Data["endpoint.url"]; ok && x.Endpoint == nil {

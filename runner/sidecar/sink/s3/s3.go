@@ -44,10 +44,19 @@ func New(ctx context.Context, secretInterface v1.SecretInterface, x dfv1.S3Sink)
 		}
 		secretAccessKey = string(secret.Data[x.Credentials.SecretAccessKey.Key])
 	}
+	var sessionToken string
+	{
+		secretName := x.Credentials.SessionToken.Name
+		secret, err := secretInterface.Get(ctx, secretName, metav1.GetOptions{})
+		// it is okay for sessionToken to be missing
+		if err == nil {
+			sessionToken = string(secret.Data[x.Credentials.SessionToken.Key])
+		}
+	}
 	options := s3.Options{
 		Region: x.Region,
 		Credentials: aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-			return aws.Credentials{AccessKeyID: accessKeyID, SecretAccessKey: secretAccessKey}, nil
+			return aws.Credentials{AccessKeyID: accessKeyID, SecretAccessKey: secretAccessKey, SessionToken: sessionToken}, nil
 		}),
 	}
 	if e := x.Endpoint; e != nil {
