@@ -30,6 +30,8 @@ message AWSCredentials {
   optional k8s.io.api.core.v1.SecretKeySelector accessKeyId = 1;
 
   optional k8s.io.api.core.v1.SecretKeySelector secretAccessKey = 2;
+
+  optional k8s.io.api.core.v1.SecretKeySelector sessionToken = 3;
 }
 
 message AWSEndpoint {

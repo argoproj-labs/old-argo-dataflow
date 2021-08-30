@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"os"
 	"path/filepath"
 	"syscall"
+
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"

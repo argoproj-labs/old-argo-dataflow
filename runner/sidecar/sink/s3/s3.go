@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"os"
+
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
