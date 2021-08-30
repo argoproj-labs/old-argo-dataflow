@@ -169,7 +169,7 @@ func Exec(ctx context.Context) error {
 	go func() {
 		defer runtimeutil.HandleCrash()
 		logger.Info("starting HTTPS server")
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
 			logger.Error(err, "failed to listen-and-server on HTTPS")
 		}
 		logger.Info("HTTPS server shutdown")
