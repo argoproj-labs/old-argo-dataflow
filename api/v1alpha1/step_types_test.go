@@ -22,7 +22,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 				{Name: "ARGO_DATAFLOW_NAMESPACE", Value: "my-ns"},
 				{Name: "ARGO_DATAFLOW_PIPELINE_NAME", Value: "my-pl"},
 				{Name: "ARGO_DATAFLOW_REPLICA", Value: fmt.Sprintf("%d", replica)},
-				{Name: "ARGO_DATAFLOW_STEP", Value: `{"metadata":{"creationTimestamp":null},"spec":{"name":"main","cat":{},"scale":{},"sidecar":{"resources":{}}},"status":{"phase":"","replicas":0,"lastScaledAt":null}}`},
+				{Name: "ARGO_DATAFLOW_STEP", Value: `{"metadata":{"creationTimestamp":null},"spec":{"name":"main","cat":{"resources":{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"64Mi"}}},"scale":{},"sidecar":{"resources":{}}},"status":{"phase":"","replicas":0,"lastScaledAt":null}}`},
 				{Name: "ARGO_DATAFLOW_UPDATE_INTERVAL", Value: "1m0s"},
 				{Name: "GODEBUG"},
 			}
@@ -44,7 +44,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 					Step{
 						Spec: StepSpec{
 							Name: "main",
-							Cat:  &Cat{},
+							Cat:  &Cat{AbstractStep{Resources:standardResources}},
 						},
 					},
 					GetPodSpecReq{

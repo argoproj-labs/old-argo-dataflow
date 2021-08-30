@@ -47,7 +47,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 	}
 
 	if x.MaxMessageBytes > 0 {
-		config.Producer.MaxMessageBytes = x.MaxMessageBytes
+		config.Producer.MaxMessageBytes = int(x.MaxMessageBytes)
 	}
 	logger.Info("Kafka config Producer.MaxMessageBytes	", "value", config.Consumer.Fetch.Max)
 

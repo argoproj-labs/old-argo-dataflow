@@ -1,0 +1,171 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: workflow-spec-template
+spec:
+  entrypoint: pipeline
+  onExit: exit-handler
+  arguments:
+    parameters:
+      - name: pipeline-name
+        value: ""
+      - name: processor-name
+        value: ""
+      - name: processor-runtime
+        value: ""
+      - name: environment
+        value: ""
+      - name: cluster
+        value: ""
+      - name: target-cluster
+        value: ""
+      - name: target-namespace
+        value: ""
+      - name: spark-application-yaml
+        value: ""
+      - name: dsl-type
+        value: ""
+      - name: dsl-argo-workflow-yaml
+        value: ""
+      - name: dsl-argo-status-label
+        value: ""
+      - name: dsl-argo-status-label-success-value
+        value: ""
+      - name: log-level
+        value: ""
+      - name: downstream-actions-json
+        value: ""
+  templates:
+    - name: tpl-observer
+      # TODO: remove this and only take this from ENV
+      inputs:
+        parameters:
+          - name: --pipeline-name
+            value: "{{workflow.parameters.pipeline-name}}"
+      daemon: true # start as a daemon
+      retryStrategy:
+        limit: "3"
+        retryPolicy: "Always" # Retry on errors AND failures. Also available: "OnFailure" (default), "OnError", and "OnTransientError" (retry only on transient errors such as i/o or TLS handshake timeout. Available after v3.0.0-rc2)
+      container:
+        # TODO: Add proper health_check command to wf_observer.py
+        # readinessProbe:
+        env:
+          - name: PIPELINE_NAME
+            value: "{{workflow.parameters.pipeline-name}}"
+          - name: WF_NAME
+            value: "{{workflow.name}}"
+          - name: CLUSTER
+            value: "{{workflow.parameters.cluster}}"
+          - name: NAMESPACE
+            value: "{{workflow.namespace}}"
+          - name: LOG_LEVEL
+            value: "{{workflow.parameters.log-level}}"
+          - name: ENV
+            value: "{{workflow.parameters.environment}}"
+        image: "docker.intuit.com/data-datalake/pos-workflow-mgr/service/pos-workflow-mgr:v0.1.0-develop.5"
+        imagePullPolicy: IfNotPresent
+        command: ["python3"]
+        args: ["-um", "pos_wf_manager.wf_observer", "{{inputs.parameters}}"]
+    - name: tpl-job
+      inputs:
+        parameters:
+          - name: --processor-name
+          - name: --processor-runtime
+          - name: --target-cluster
+            value: "{{workflow.parameters.target-cluster}}"
+          - name: --target-namespace
+            value: "{{workflow.parameters.target-namespace}}"
+          - name: --spark-application-yaml
+            value: ""
+          - name: --dsl-type
+            value: ""
+          - name: --dsl-argo-workflow-yaml
+            value: ""
+          - name: --dsl-argo-status-label
+            value: ""
+          - name: --dsl-argo-status-label-success-value
+            value: ""
+      container:
+        image: "docker.intuit.com/data-datalake/pos-workflow-mgr/service/pos-workflow-mgr:v0.1.0-develop.5"
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: PIPELINE_NAME
+            value: "{{workflow.parameters.pipeline-name}}"
+          - name: WF_NAME
+            value: "{{workflow.name}}"
+          - name: CLUSTER
+            value: "{{workflow.parameters.cluster}}"
+          - name: NAMESPACE
+            value: "{{workflow.namespace}}"
+          - name: LOG_LEVEL
+            value: "{{workflow.parameters.log-level}}"
+          - name: ENV
+            value: "{{workflow.parameters.environment}}"
+        command: ["python3"]
+        args: ["-um", "pos_wf_manager.job_controller", "{{inputs.parameters}}"]
+    - name: exit-handler
+      inputs:
+        parameters:
+          - name: --downstream-actions-json
+            value: "{{workflow.parameters.downstream-actions-json}}"
+          - name: --workflow-status
+            value: "{{workflow.status}}"
+          - name: --workflow-failures
+            value: "{{workflow.failures}}"
+      container:
+        image: "docker.intuit.com/data-datalake/pos-workflow-mgr/service/pos-workflow-mgr:v0.1.0-develop.5"
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: PIPELINE_NAME
+            value: "{{workflow.parameters.pipeline-name}}"
+          - name: WF_NAME
+            value: "{{workflow.name}}"
+          - name: CLUSTER
+            value: "{{workflow.parameters.cluster}}"
+          - name: NAMESPACE
+            value: "{{workflow.namespace}}"
+          - name: LOG_LEVEL
+            value: "{{workflow.parameters.log-level}}"
+          - name: ENV
+            value: "{{workflow.parameters.environment}}"
+        command: ["python3"]
+        args: ["-um", "pos_wf_manager.exit_handler", "{{inputs.parameters}}"]
+    - name: pipeline
+      steps:
+        - - name: observer
+            template: tpl-observer
+            arguments:
+              parameters:
+                - name: --pipeline-name
+                  value: "{{workflow.parameters.pipeline-name}}"
+        - - name: pos-test-parent-wf
+            template: tpl-job
+            arguments:
+              parameters:
+                - name: --pipeline-name
+                  value: "{{workflow.parameters.pipeline-name}}"
+                - name: --processor-name
+                  value: "{{workflow.parameters.processor-name}}"
+                - name: --processor-runtime
+                  value: "{{workflow.parameters.processor-runtime}}"
+                - name: --target-cluster
+                  value: "{{workflow.parameters.target-cluster}}"
+                - name: --target-namespace
+                  value: "{{workflow.parameters.target-namespace}}"
+                - name: --spark-application-yaml
+                  value: "{{workflow.parameters.spark-application-yaml}}"
+                - name: --dsl-type
+                  value: "{{workflow.parameters.dsl-type}}"
+                - name: --dsl-argo-workflow-yaml
+                  value: "{{workflow.parameters.dsl-argo-workflow-yaml}}"
+                - name: --dsl-argo-status-label
+                  value: "{{workflow.parameters.dsl-argo-status-label}}"
+                - name: --dsl-argo-status-label-success-value
+                  value: "{{workflow.parameters.dsl-argo-status-label-success-value}}"
+  ttlStrategy:
+    secondsAfterFailure: 604800
+    secondsAfterSuccess: 86400

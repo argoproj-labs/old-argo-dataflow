@@ -643,7 +643,7 @@ spec:
                 type: object
               cat:
                 properties:
-                  standardResources:
+                  resources:
                     default:
                       limits:
                         cpu: 500m
@@ -1358,6 +1358,7 @@ spec:
                             type: string
                           type: array
                         maxMessageBytes:
+                          format: int32
                           type: integer
                         name:
                           default: default
@@ -3167,6 +3168,7 @@ spec:
                             type: string
                           type: array
                         maxMessageBytes:
+                          format: int32
                           type: integer
                         name:
                           default: default

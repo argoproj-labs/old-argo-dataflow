@@ -28,9 +28,9 @@ func TestKafkaSourceStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name: "main",
 				Cat: &Cat{
-					AbstractStep: AbstractStep{StandardResources: v1.ResourceRequirements{
+					AbstractStep: AbstractStep{StandardResources: &v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceMemory: resource.MustParse("2Gi"),
+							v1.ResourceMemory: resource.MustParse("1Gi"),
 						},
 					}},
 				},
@@ -67,7 +67,12 @@ func TestKafkaSinkStress(t *testing.T) {
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:     "main",
-				Cat:      &Cat{},
+				Cat:      &Cat{AbstractStep: AbstractStep{StandardResources: &v1.ResourceRequirements{
+					Requests: v1.ResourceList{
+						v1.ResourceMemory: resource.MustParse("1Gi"),
+					},
+				}},
+				},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks: []Sink{
