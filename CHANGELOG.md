@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.98 (2021-08-30)
+
+ * [50efb44](https://github.com/argoproj-labs/argo-dataflow/commit/50efb447c85952cb3d62408ff38d564304e99dea) feat: support for AWS session token for S3 (#281)
+
+### Contributors
+
+ * Vigith Maurice
+
 ## v0.0.97 (2021-08-30)
 
  * [93b7f76](https://github.com/argoproj-labs/argo-dataflow/commit/93b7f762c122c466ce5b1c6b63dc05822ded9d4a) fix: listen on HTTPS
