@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -27,6 +28,7 @@ type message struct {
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.S3Source, f source.Func, leadReplica bool) (source.HasPending, error) {
+	logger := sharedutil.NewLogger().WithValues("source", x.Name, "bucket", x.Bucket)
 	var accessKeyID string
 	{
 		secretName := x.Credentials.AccessKeyID.Name
@@ -45,10 +47,23 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		}
 		secretAccessKey = string(secret.Data[x.Credentials.SecretAccessKey.Key])
 	}
+	var sessionToken string
+	{
+		secretName := x.Credentials.SessionToken.Name
+		secret, err := secretInterface.Get(ctx, secretName, metav1.GetOptions{})
+		if err == nil {
+			sessionToken = string(secret.Data[x.Credentials.SessionToken.Key])
+		} else {
+			// it is okay for sessionToken to be missing
+			if !apierr.IsNotFound(err) {
+				return nil, err
+			}
+		}
+	}
 	options := s3.Options{
 		Region: x.Region,
 		Credentials: aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-			return aws.Credentials{AccessKeyID: accessKeyID, SecretAccessKey: secretAccessKey}, nil
+			return aws.Credentials{AccessKeyID: accessKeyID, SecretAccessKey: secretAccessKey, SessionToken: sessionToken}, nil
 		}),
 	}
 	if e := x.Endpoint; e != nil {
@@ -63,7 +78,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	}
 
 	client := s3.New(options)
-	logger := sharedutil.NewLogger().WithValues("bucket", x.Bucket)
 
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
 		Logger:       logger,
@@ -100,7 +114,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			return f(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})))
 		},
 		ListItems: func() ([]interface{}, error) {
-			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: &x.Bucket})
+			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: aws.String(x.Bucket)})
 			if err != nil {
 				return nil, err
 			}
