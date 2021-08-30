@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.97 (2021-08-30)
+
+ * [93b7f76](https://github.com/argoproj-labs/argo-dataflow/commit/93b7f762c122c466ce5b1c6b63dc05822ded9d4a) fix: listen on HTTPS
+ * [0d5175c](https://github.com/argoproj-labs/argo-dataflow/commit/0d5175c37ec1c68fc336af1a1af4f58ce7b1f9c3) chore!: change `map` and `filter` from string to object
+ * [b4376d0](https://github.com/argoproj-labs/argo-dataflow/commit/b4376d0afd8a321b733476816c247068e3e5a4ad) fix: port TLS cert code from workflows
+ * [64e66d7](https://github.com/argoproj-labs/argo-dataflow/commit/64e66d7777ab310a4dfa3bcee39841bdd757dbe9) fix: port TLS cert code from workflows
+ * [3e69afd](https://github.com/argoproj-labs/argo-dataflow/commit/3e69afd5e7ed49e5e08b037dfe3d594be7d5cb75) feat: `make pre-commit -B`
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.96 (2021-08-23)
 
  * [be2b63d](https://github.com/argoproj-labs/argo-dataflow/commit/be2b63d63172f0864874945f18347680028fcbbf) feat: Use pod priority class to prioritize the lead replica. Fixes #269 (#275)
