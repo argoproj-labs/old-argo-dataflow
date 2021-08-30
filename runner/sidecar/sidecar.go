@@ -4,12 +4,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"

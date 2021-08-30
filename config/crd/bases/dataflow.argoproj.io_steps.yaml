@@ -874,7 +874,12 @@ spec:
               expand:
                 type: object
               filter:
-                type: string
+                properties:
+                  expression:
+                    type: string
+                required:
+                - expression
+                type: object
               flatten:
                 type: object
               git:
@@ -1104,7 +1109,12 @@ spec:
                   type: object
                 type: array
               map:
-                type: string
+                properties:
+                  expression:
+                    type: string
+                required:
+                - expression
+                type: object
               metadata:
                 properties:
                   annotations:

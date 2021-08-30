@@ -26,8 +26,9 @@ spec:
     - configMap:
         name: pets
       name: in
-  - filter: |-
-      string(msg) contains "cat"
+  - filter:
+      expression: |-
+        string(msg) contains "cat"
     name: filter-cats
     sinks:
     - stan:
@@ -35,8 +36,9 @@ spec:
     sources:
     - stan:
         subject: pets
-  - map: |-
-      json("Meow! " + object(msg).name)
+  - map:
+      expression: |-
+        json("Meow! " + object(msg).name)
     name: process-cats
     sinks:
     - kafka:
@@ -44,8 +46,9 @@ spec:
     sources:
     - stan:
         subject: cats
-  - filter: |-
-      string(msg) contains "dog"
+  - filter:
+      expression: |-
+        string(msg) contains "dog"
     name: filter-dogs
     sinks:
     - stan:
@@ -53,8 +56,9 @@ spec:
     sources:
     - stan:
         subject: pets
-  - map: |-
-      json("Woof! " + object(msg).name)
+  - map:
+      expression: |-
+        json("Woof! " + object(msg).name)
     name: process-dogs
     sinks:
     - kafka:

@@ -28,7 +28,7 @@ func TestVolumeSource(t *testing.T) {
 			Steps: []StepSpec{
 				{
 					Name: "main",
-					Map:  "io.cat(object(msg).path)",
+					Map:  &Map{Expression: "io.cat(object(msg).path)"},
 					Sources: []Source{{Volume: &VolumeSource{
 						ReadOnly: true,
 						VolumeSource: corev1.VolumeSource{
