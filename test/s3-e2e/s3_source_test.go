@@ -22,7 +22,7 @@ func TestS3Source(t *testing.T) {
 			Steps: []StepSpec{
 				{
 					Name: "main",
-					Map:  "io.cat(object(msg).path)",
+					Map:  &Map{Expression: "io.cat(object(msg).path)"},
 					Sources: []Source{{S3: &S3Source{
 						S3: S3{Bucket: "my-bucket"},
 					}}},

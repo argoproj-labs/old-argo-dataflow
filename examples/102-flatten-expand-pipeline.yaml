@@ -8,8 +8,9 @@ metadata:
   name: 102-flatten-expand
 spec:
   steps:
-  - map: |-
-      bytes('{"foo": {"bar": "' + string(msg) + '"}}')
+  - map:
+      expression: |-
+        bytes('{"foo": {"bar": "' + string(msg) + '"}}')
     name: generate
     sinks:
     - stan:
