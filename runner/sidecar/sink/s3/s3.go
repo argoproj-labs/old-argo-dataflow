@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"os"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -48,9 +49,13 @@ func New(ctx context.Context, secretInterface v1.SecretInterface, x dfv1.S3Sink)
 	{
 		secretName := x.Credentials.SessionToken.Name
 		secret, err := secretInterface.Get(ctx, secretName, metav1.GetOptions{})
-		// it is okay for sessionToken to be missing
 		if err == nil {
 			sessionToken = string(secret.Data[x.Credentials.SessionToken.Key])
+		} else {
+			// it is okay for sessionToken to be missing
+			if !apierr.IsNotFound(err) {
+				return nil, err
+			}
 		}
 	}
 	options := s3.Options{
