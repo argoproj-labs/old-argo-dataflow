@@ -15,9 +15,12 @@ stringData:
   credentials.accessKeyId.name: dataflow-s3-default
   credentials.secretAccessKey.key: secretAccessKey
   credentials.secretAccessKey.name: dataflow-s3-default
+  credentials.sessionToken.key: sessionToken
+  credentials.sessionToken.name: dataflow-s3-default
   endpoint.url: http://minio:9000
   region: us-west-2
   secretAccessKey: password
+  sessionToken: ""
 ---
 apiVersion: v1
 kind: Service
