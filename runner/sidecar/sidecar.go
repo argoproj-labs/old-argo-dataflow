@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
 	"net/http"
 	"os"
 	"strconv"
@@ -90,8 +91,8 @@ func Exec(ctx context.Context) error {
 	}
 
 	logger.Info("generating self-signed certificate")
-	const certFile, keyFile = "/tmp/runner.crt", "/tmp/runner.key"
-	if err := generateCert(certFile, keyFile); err != nil {
+	cer, err := tls2.GenerateX509KeyPair()
+	if err != nil {
 		return fmt.Errorf("failed to generate cert: %w", err)
 	}
 
@@ -159,7 +160,7 @@ func Exec(ctx context.Context) error {
 		}
 		logger.Info("HTTP server shutdown")
 	}()
-	httpServer := &http.Server{Addr: ":3570", TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
+	httpServer := &http.Server{Addr: ":3570", TLSConfig: &tls.Config{Certificates: []tls.Certificate{*cer}, MinVersion: tls.VersionTLS12}}
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing HTTPS server")
 		return httpServer.Shutdown(context.Background())
@@ -167,7 +168,7 @@ func Exec(ctx context.Context) error {
 	go func() {
 		defer runtimeutil.HandleCrash()
 		logger.Info("starting HTTPS server")
-		if err := httpServer.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error(err, "failed to listen-and-server on HTTPS")
 		}
 		logger.Info("HTTPS server shutdown")
