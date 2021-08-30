@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -50,9 +51,13 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	{
 		secretName := x.Credentials.SessionToken.Name
 		secret, err := secretInterface.Get(ctx, secretName, metav1.GetOptions{})
-		// it is okay for sessionToken to be missing
 		if err == nil {
 			sessionToken = string(secret.Data[x.Credentials.SessionToken.Key])
+		} else {
+			// it is okay for sessionToken to be missing
+			if !apierr.IsNotFound(err) {
+				return nil, err
+			}
 		}
 	}
 	options := s3.Options{
