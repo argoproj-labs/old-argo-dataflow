@@ -1,0 +1,6 @@
+namespace: argo-dataflow-system
+
+resources:
+  - moto-statefulset.yaml
+  - moto-svc.yaml
+  - ../../../examples/dataflow-s3-default-secret.yaml

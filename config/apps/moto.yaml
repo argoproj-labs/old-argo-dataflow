@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This is an example of providing a namespace named S3 configuration.
+
+      The secret must be named `dataflow-s3-${name}`.
+      [Learn about configuration](../docs/CONFIGURATION.md)
+  name: dataflow-s3-default
+  namespace: argo-dataflow-system
+stringData:
+  accessKeyId: admin
+  credentials.accessKeyId.key: accessKeyId
+  credentials.accessKeyId.name: dataflow-s3-default
+  credentials.secretAccessKey.key: secretAccessKey
+  credentials.secretAccessKey.name: dataflow-s3-default
+  credentials.sessionToken.key: sessionToken
+  credentials.sessionToken.name: dataflow-s3-default
+  endpoint.url: http://moto:5000
+  region: us-west-2
+  secretAccessKey: password
+  sessionToken: ""
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: moto
+  labels:
+    app: moto
+spec:
+  selector:
+    matchLabels:
+      app: moto
+  template:
+    metadata:
+      labels:
+        app: moto
+    spec:
+      containers:
+        - name: main
+          image: motoserver/moto:2.2.4
+          ports:
+            - containerPort: 5000
+          command: [ "/usr/local/bin/moto_server", "-H", "0.0.0.0"]
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 5
+            timeoutSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 5
+            timeoutSeconds: 10
+  serviceName: moto
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: moto
+  labels:
+    app: moto
+spec:
+  selector:
+    app: moto
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
