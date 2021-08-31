@@ -17,7 +17,7 @@ stringData:
   credentials.secretAccessKey.name: dataflow-s3-default
   credentials.sessionToken.key: sessionToken
   credentials.sessionToken.name: dataflow-s3-default
-  endpoint.url: http://minio:9000
+  endpoint.url: http://moto:5000
   region: us-west-2
   secretAccessKey: password
   sessionToken: ""
@@ -26,64 +26,56 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: minio
-  name: minio
+    app: moto
+  name: moto
   namespace: argo-dataflow-system
 spec:
   ports:
-  - port: 9000
+  - port: 5000
     protocol: TCP
-    targetPort: 9000
+    targetPort: 5000
   selector:
-    app: minio
+    app: moto
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   labels:
-    app: minio
-  name: minio
+    app: moto
+  name: moto
   namespace: argo-dataflow-system
 spec:
   selector:
     matchLabels:
-      app: minio
-  serviceName: minio
+      app: moto
+  serviceName: moto
   template:
     metadata:
       labels:
-        app: minio
+        app: moto
     spec:
       containers:
       - command:
-        - minio
-        - server
-        - /data
-        env:
-        - name: MINIO_ACCESS_KEY
-          value: admin
-        - name: MINIO_SECRET_KEY
-          value: password
-        image: minio/minio:RELEASE.2019-12-17T23-16-33Z
-        lifecycle:
-          postStart:
-            exec:
-              command:
-              - mkdir
-              - -p
-              - /data/my-bucket
+        - /usr/local/bin/moto_server
+        - -H
+        - 0.0.0.0
+        image: motoserver/moto:2.2.4
         livenessProbe:
+          failureThreshold: 5
           httpGet:
-            path: /minio/health/live
-            port: 9000
-          initialDelaySeconds: 5
+            path: /
+            port: 5000
+          initialDelaySeconds: 15
           periodSeconds: 10
+          timeoutSeconds: 10
         name: main
         ports:
-        - containerPort: 9000
+        - containerPort: 5000
         readinessProbe:
+          failureThreshold: 5
           httpGet:
-            path: /minio/health/ready
-            port: 9000
-          initialDelaySeconds: 5
+            path: /
+            port: 5000
+          initialDelaySeconds: 15
           periodSeconds: 10
+          timeoutSeconds: 10

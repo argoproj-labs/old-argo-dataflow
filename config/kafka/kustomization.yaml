@@ -1,5 +1,5 @@
 resources:
   - ../apps/kafka
-  - ../apps/minio
+  - ../apps/moto
   - ../apps/mysql
   - ../apps/stan
