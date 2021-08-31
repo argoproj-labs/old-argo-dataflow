@@ -11,7 +11,7 @@ your code when the step starts. This example presents how one can use nodejs run
 [Learn about Git steps](../docs/GIT.md)""")
      .step(
         (kafka('input-topic')
-         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git-nodejs', 'quay.io/argoproj/dataflow-node16', command=["./start.sh"])
+         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git-nodejs', 'quay.io/argoprojlabs/dataflow-node16', command=["./start.sh"])
          .kafka('output-topic')
          ))
      .save())

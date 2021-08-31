@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags: [ v* ]
+    branches: [ main ]
 
 jobs:
 
@@ -36,7 +37,7 @@ jobs:
             tag="latest"
             version="v0.0.0-latest-0"
           fi
-          docker buildx build . --target ${{matrix.target}} --tag quay.io/argoproj/dataflow-${{matrix.target}}:$tag --push --build-arg VERSION="$version"
+          docker buildx build . --target ${{matrix.target}} --tag quay.io/argoprojlabs/dataflow-${{matrix.target}}:$tag --push --build-arg VERSION="$version"
 
   publish-release:
     runs-on: ubuntu-latest

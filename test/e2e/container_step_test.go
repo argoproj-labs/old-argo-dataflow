@@ -20,7 +20,7 @@ func TestContainerStep(t *testing.T) {
 				{
 					Name: "main",
 					Container: &Container{
-						Image: "quay.io/argoproj/dataflow-runner",
+						Image: "quay.io/argoprojlabs/dataflow-runner",
 						Args:  []string{"cat"},
 					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},

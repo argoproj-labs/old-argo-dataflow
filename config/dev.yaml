@@ -13758,7 +13758,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: quay.io/argoproj/dataflow-controller:latest
+        image: quay.io/argoprojlabs/dataflow-controller:latest
         name: manager
         ports:
         - containerPort: 9090
@@ -13788,7 +13788,7 @@ spec:
         app: testapi
     spec:
       containers:
-      - image: quay.io/argoproj/dataflow-testapi
+      - image: quay.io/argoprojlabs/dataflow-testapi
         imagePullPolicy: IfNotPresent
         name: main
         ports:

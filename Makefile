@@ -180,16 +180,16 @@ python3-9: python3-9-image
 node16: node16-image
 
 %-image:
-	docker buildx build . --target $* --tag quay.io/argoproj/dataflow-$*:$(TAG) --load --build-arg VERSION="$(VERSION)"
+	docker buildx build . --target $* --tag quay.io/argoprojlabs/dataflow-$*:$(TAG) --load --build-arg VERSION="$(VERSION)"
 ifeq ($(K3D),true)
-	k3d image import quay.io/argoproj/dataflow-$*:$(TAG)
+	k3d image import quay.io/argoprojlabs/dataflow-$*:$(TAG)
 endif
 
 scan: scan-controller scan-runner scan-testapi scan-golang1-16 scan-java16 scan-python3-9
 	snyk test --severity-threshold=high
 
 scan-%:
-	docker scan --severity=high quay.io/argoproj/dataflow-$*:$(TAG)
+	docker scan --severity=high quay.io/argoprojlabs/dataflow-$*:$(TAG)
 
 $(GOBIN)/controller-gen:
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
