@@ -3155,6 +3155,13 @@ spec:
                       type: object
                     kafka:
                       properties:
+                        autoCommit:
+                          default:
+                            enable: false
+                          properties:
+                            enable:
+                              type: boolean
+                          type: object
                         brokers:
                           items:
                             type: string

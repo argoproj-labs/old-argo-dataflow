@@ -33,17 +33,22 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	}
 	config.Consumer.MaxProcessingTime = 10 * time.Second
 	config.Consumer.Fetch.Max = 16 * config.Consumer.Fetch.Default
-	config.Consumer.Offsets.AutoCommit.Enable = false
+	config.Consumer.Offsets.AutoCommit.Enable = x.AutoCommit.Enable
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
-
-	logger.Info("Kafka consumer group ID", "consumerGroupID", consumerGroupID)
+	logger.Info("Kafka config",
+		"consumerGroupID", consumerGroupID,
+		"maxProcessingTime", config.Consumer.MaxProcessingTime,
+		"fetchMax", config.Consumer.Fetch.Max,
+		"autoCommitEnable", config.Consumer.Offsets.AutoCommit.Enable,
+		"offsetsInitial", config.Consumer.Offsets.Initial,
+	)
 	consumerGroup, err := sarama.NewConsumerGroup(x.Brokers, consumerGroupID, config)
 	if err != nil {
 		return nil, err
 	}
-	h := handler{f, 0}
+	h := handler{f, 0, !x.AutoCommit.Enable}
 	go wait.JitterUntil(func() {
 		defer runtime.HandleCrash()
 		ctx := context.Background()

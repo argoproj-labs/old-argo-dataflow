@@ -7,8 +7,9 @@ import (
 )
 
 type handler struct {
-	f source.Func
-	i int
+	f            source.Func
+	i            int
+	manualCommit bool
 }
 
 func (handler) Setup(_ sarama.ConsumerGroupSession) error {
@@ -29,7 +30,7 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 			sess.MarkMessage(msg, "")
 		}
 		h.i++
-		if h.i%dfv1.CommitN == 0 {
+		if h.manualCommit && h.i%dfv1.CommitN == 0 {
 			sess.Commit()
 		}
 	}
