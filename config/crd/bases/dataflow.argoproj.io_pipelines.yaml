@@ -3324,6 +3324,8 @@ spec:
                                 properties:
                                   enable:
                                     type: boolean
+                                required:
+                                - enable
                                 type: object
                               brokers:
                                 items:
