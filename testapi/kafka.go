@@ -14,6 +14,7 @@ import (
 func init() {
 	sarama.Logger = log.New(os.Stdout, "", log.LstdFlags)
 	config := sarama.NewConfig()
+	config.Producer.MaxMessageBytes = 50000000
 	config.ClientID = "dataflow-testapi"
 	addrs := []string{"kafka-broker:9092"}
 

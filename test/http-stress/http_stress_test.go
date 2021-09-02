@@ -5,10 +5,12 @@ package http_stress
 import (
 	"testing"
 
-	. "github.com/argoproj-labs/argo-dataflow/test/stress"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
+	. "github.com/argoproj-labs/argo-dataflow/test/stress"
+
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -19,11 +21,22 @@ func TestHTTPSourceStress(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "http"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name:     "main",
-				Cat:      &Cat{},
+				Name: "main",
+				Cat: &Cat{
+					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
+						Requests: v1.ResourceList{
+							v1.ResourceMemory: resource.MustParse("1Gi"),
+						},
+					}},
+				},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{DefaultLogSink},
+				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
+					Requests: v1.ResourceList{
+						v1.ResourceMemory: resource.MustParse("1Gi"),
+					},
+				}},
 			}},
 		},
 	})
@@ -51,11 +64,20 @@ func TestHTTPSinkStress(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "http"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name:     "main",
-				Cat:      &Cat{},
+				Name: "main",
+				Cat: &Cat{AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
+					Requests: v1.ResourceList{
+						v1.ResourceMemory: resource.MustParse("1Gi"),
+					},
+				}}},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}, DefaultLogSink},
+				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
+					Requests: v1.ResourceList{
+						v1.ResourceMemory: resource.MustParse("1Gi"),
+					},
+				}},
 			}},
 		},
 	})
