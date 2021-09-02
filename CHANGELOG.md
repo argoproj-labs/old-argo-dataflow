@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.99 (2021-09-02)
+
+ * [45f7847](https://github.com/argoproj-labs/argo-dataflow/commit/45f784725a15eb432bf5fe2d6ea558e93ee6b312) feat: Expand Kafka sink auto-commit config (#293)
+ * [6b406c2](https://github.com/argoproj-labs/argo-dataflow/commit/6b406c2a4c62f655d9ae4ae3dce480559266bd29) feat: Added options  MaxMessageSize and Resource for step container for processing large messages (#282)
+ * [01dc7a6](https://github.com/argoproj-labs/argo-dataflow/commit/01dc7a66733ad9ad2e0559ad8c9d7ccac4b7ad4b) fix: Argo-Server should still use old image repository (#290)
+ * [f4d0ca5](https://github.com/argoproj-labs/argo-dataflow/commit/f4d0ca5d9f640c1f60f936ccd3a4938734716275) fix: fix image name in config
+
+### Contributors
+
+ * Alex Collins
+ * Dominik Deren
+ * Saravanan Balasubramanian
+
 ## v0.0.98 (2021-08-30)
 
  * [50efb44](https://github.com/argoproj-labs/argo-dataflow/commit/50efb447c85952cb3d62408ff38d564304e99dea) feat: support for AWS session token for S3 (#281)
