@@ -51,7 +51,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 	if x.MaxMessageBytes > 0 {
 		config.Producer.MaxMessageBytes = int(x.MaxMessageBytes)
 	}
-	logger.Info("Kafka config Producer.MaxMessageBytes	", "value", config.Consumer.Fetch.Max)
+	logger.Info("Kafka config Producer.MaxMessageBytes", "value", config.Consumer.Fetch.Max)
 
 	producer, err := sarama.NewAsyncProducer(x.Brokers, config)
 	if err != nil {
