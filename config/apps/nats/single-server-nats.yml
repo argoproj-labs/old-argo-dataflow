@@ -6,6 +6,7 @@ metadata:
   name: nats-config
 data:
   nats.conf: |
+    max_payload: 50000000
     pid_file: "/var/run/nats/nats.pid"
     http: 8222
     authorization {

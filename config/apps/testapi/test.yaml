@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: testapi
+  namespace: argo-dataflow-system
+spec:
+  ports:
+  - port: 80
+    targetPort: 8378
+  selector:
+    app: testapi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: testapi
+  namespace: argo-dataflow-system
+spec:
+  selector:
+    matchLabels:
+      app: testapi
+  serviceName: testapi
+  template:
+    metadata:
+      labels:
+        app: testapi
+    spec:
+      containers:
+      - image: quay.io/argoproj/dataflow-testapi
+        imagePullPolicy: IfNotPresent
+        name: main
+        ports:
+        - containerPort: 8378
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8378

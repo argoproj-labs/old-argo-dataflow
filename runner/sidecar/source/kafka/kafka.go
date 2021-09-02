@@ -33,6 +33,9 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	}
 	config.Consumer.MaxProcessingTime = 10 * time.Second
 	config.Consumer.Fetch.Max = 16 * config.Consumer.Fetch.Default
+	if x.Kafka.MaxMessageBytes > 0 {
+		config.Consumer.Fetch.Max = x.Kafka.MaxMessageBytes
+	}
 	config.Consumer.Offsets.AutoCommit.Enable = x.AutoCommit.Enable
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
