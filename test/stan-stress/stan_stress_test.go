@@ -31,7 +31,7 @@ func TestStanSourceStress(t *testing.T) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
 				Sinks:    []Sink{DefaultLogSink},
-				Sidecar:Sidecar{Resources: v1.ResourceRequirements{
+				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
 						v1.ResourceMemory: resource.MustParse("1Gi"),
 					},
@@ -70,7 +70,7 @@ func TestStanSinkStress(t *testing.T) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
 				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}, DefaultLogSink},
-				Sidecar:Sidecar{Resources: v1.ResourceRequirements{
+				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
 						v1.ResourceMemory: resource.MustParse("1Gi"),
 					},

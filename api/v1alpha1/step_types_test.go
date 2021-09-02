@@ -44,7 +44,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 					Step{
 						Spec: StepSpec{
 							Name: "main",
-							Cat:  &Cat{AbstractStep{Resources:standardResources}},
+							Cat:  &Cat{AbstractStep{Resources: standardResources}},
 						},
 					},
 					GetPodSpecReq{
