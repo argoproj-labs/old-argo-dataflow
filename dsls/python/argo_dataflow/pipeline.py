@@ -522,13 +522,16 @@ class HTTPSource(Source):
 
 
 class KafkaSource(Source):
-    def __init__(self, topic, name=None, retry=None):
+    def __init__(self, topic, name=None, retry=None, autoCommit=None):
         super().__init__(name=name, retry=retry)
         self._topic = topic
+        self._autoCommit = autoCommit
 
     def dump(self):
         x = super().dump()
         x['topic'] = self._topic
+        if self._autoCommit:
+            x['autoCommit'] = self._autoCommit
         return {'kafka': x}
 
 
@@ -549,11 +552,11 @@ def cron(schedule, layout=None, name=None, retry=None):
 
 
 def http(name=None, retry=None, serviceName=None):
-    return HTTPSource(name=name, serviceName=serviceName)
+    return HTTPSource(name=name, serviceName=serviceName, retry=retry)
 
 
-def kafka(topic, name=None, retry=None):
-    return KafkaSource(topic, name=name, retry=retry)
+def kafka(topic, name=None, retry=None, autoCommit=None):
+    return KafkaSource(topic, name=name, retry=retry, autoCommit=autoCommit)
 
 
 def stan(subject, name=None, retry=None):
