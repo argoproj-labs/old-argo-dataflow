@@ -21,14 +21,14 @@ func TestKafkaSourceStress(t *testing.T) {
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
-	msgSize := int(50000000)
+	msgSize := int32(50000000)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name: "main",
 				Cat: &Cat{
-					AbstractStep: AbstractStep{Resources: &v1.ResourceRequirements{
+					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
 							v1.ResourceMemory: resource.MustParse("1Gi"),
 						},
@@ -61,14 +61,14 @@ func TestKafkaSinkStress(t *testing.T) {
 
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()
-	msgSize := int(50000000)
+	msgSize := int32(50000000)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name: "main",
 				Cat: &Cat{
-					AbstractStep: AbstractStep{Resources: &v1.ResourceRequirements{
+					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
 							v1.ResourceMemory: resource.MustParse("1Gi"),
 						},
