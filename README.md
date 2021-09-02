@@ -16,6 +16,8 @@ can scale a back up.
 
 Learn more about [features](docs/FEATURES.md).
 
+[![Introduction to Dataflow](https://img.youtube.com/vi/afZT3aJ__jI/0.jpg)](https://youtu.be/afZT3aJ__jI)
+
 ## Use Cases
 
 * Real-time "click" analytics
