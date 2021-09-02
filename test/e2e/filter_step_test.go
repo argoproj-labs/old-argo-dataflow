@@ -19,7 +19,7 @@ func TestFilterStep(t *testing.T) {
 			Steps: []StepSpec{
 				{
 					Name:    "main",
-					Filter:  "string(msg) == 'foo-bar'",
+					Filter:  &Filter{Expression: "string(msg) == 'foo-bar'"},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
 					Sinks:   []Sink{DefaultLogSink},
 				},

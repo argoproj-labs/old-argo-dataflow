@@ -1,6 +1,6 @@
 namespace: argo-dataflow-system
 
 resources:
-  - minio-statefulset.yaml
-  - minio-svc.yaml
+  - moto-statefulset.yaml
+  - moto-svc.yaml
   - ../../../examples/dataflow-s3-default-secret.yaml

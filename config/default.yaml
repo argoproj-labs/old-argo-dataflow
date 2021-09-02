@@ -955,7 +955,12 @@ spec:
                     expand:
                       type: object
                     filter:
-                      type: string
+                      properties:
+                        expression:
+                          type: string
+                      required:
+                      - expression
+                      type: object
                     flatten:
                       type: object
                     git:
@@ -1191,7 +1196,12 @@ spec:
                         type: object
                       type: array
                     map:
-                      type: string
+                      properties:
+                        expression:
+                          type: string
+                      required:
+                      - expression
+                      type: object
                     metadata:
                       properties:
                         annotations:
@@ -1606,9 +1616,31 @@ spec:
                                     required:
                                     - key
                                     type: object
+                                  sessionToken:
+                                    description: SecretKeySelector selects a key of
+                                      a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select
+                                          from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info:
+                                          https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                          TODO: Add other useful fields. apiVersion,
+                                          kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or
+                                          its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
                                 required:
                                 - accessKeyId
                                 - secretAccessKey
+                                - sessionToken
                                 type: object
                               endpoint:
                                 properties:
@@ -3562,9 +3594,31 @@ spec:
                                     required:
                                     - key
                                     type: object
+                                  sessionToken:
+                                    description: SecretKeySelector selects a key of
+                                      a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select
+                                          from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info:
+                                          https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                          TODO: Add other useful fields. apiVersion,
+                                          kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or
+                                          its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
                                 required:
                                 - accessKeyId
                                 - secretAccessKey
+                                - sessionToken
                                 type: object
                               endpoint:
                                 properties:
@@ -7798,7 +7852,12 @@ spec:
               expand:
                 type: object
               filter:
-                type: string
+                properties:
+                  expression:
+                    type: string
+                required:
+                - expression
+                type: object
               flatten:
                 type: object
               git:
@@ -8028,7 +8087,12 @@ spec:
                   type: object
                 type: array
               map:
-                type: string
+                properties:
+                  expression:
+                    type: string
+                required:
+                - expression
+                type: object
               metadata:
                 properties:
                   annotations:
@@ -8431,9 +8495,29 @@ spec:
                               required:
                               - key
                               type: object
+                            sessionToken:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must
+                                    be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                    TODO: Add other useful fields. apiVersion, kind,
+                                    uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key
+                                    must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
                           required:
                           - accessKeyId
                           - secretAccessKey
+                          - sessionToken
                           type: object
                         endpoint:
                           properties:
@@ -10275,9 +10359,29 @@ spec:
                               required:
                               - key
                               type: object
+                            sessionToken:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must
+                                    be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                    TODO: Add other useful fields. apiVersion, kind,
+                                    uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key
+                                    must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
                           required:
                           - accessKeyId
                           - secretAccessKey
+                          - sessionToken
                           type: object
                         endpoint:
                           properties:
@@ -13721,7 +13825,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        image: quay.io/argoproj/dataflow-controller:latest
+        image: quay.io/argoprojlabs/dataflow-controller:latest
         name: manager
         ports:
         - containerPort: 9090

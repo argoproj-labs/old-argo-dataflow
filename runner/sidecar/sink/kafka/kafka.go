@@ -2,6 +2,8 @@ package kafka
 
 import (
 	"context"
+	"io"
+
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
@@ -9,7 +11,7 @@ import (
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"io"
+
 	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -61,12 +63,12 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 		config.Producer.Return.Errors = true
 
 		// track async success and errors
-		var kafkaMessagesProducedSuccess = promauto.NewCounterVec(prometheus.CounterOpts{
+		kafkaMessagesProducedSuccess := promauto.NewCounterVec(prometheus.CounterOpts{
 			Subsystem: "sinks",
 			Name:      "kafka_produced_successes",
 			Help:      "Number of messages successfully produced to Kafka",
 		}, []string{"topic"})
-		var kafkaMessagesProducedErr = promauto.NewCounterVec(prometheus.CounterOpts{
+		kafkaMessagesProducedErr := promauto.NewCounterVec(prometheus.CounterOpts{
 			Subsystem: "sinks",
 			Name:      "kafka_produce_errors",
 			Help:      "Number of errors while producing messages to Kafka",

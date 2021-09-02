@@ -8,8 +8,10 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Shopify/sarama v1.29.1
 	github.com/antonmedv/expr v1.8.9
-	github.com/aws/aws-sdk-go-v2 v1.7.1
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.11.1
+	github.com/aws/aws-sdk-go-v2 v1.9.0
+	github.com/aws/aws-sdk-go-v2/config v1.7.0
+	github.com/aws/aws-sdk-go-v2/credentials v1.4.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.14.0
 	github.com/bombsimon/logrusr v1.1.0
 	github.com/doublerebel/bellows v0.0.0-20160303004610-f177d92a03d3
 	github.com/evanphx/json-patch v4.9.0+incompatible

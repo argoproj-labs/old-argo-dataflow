@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: quay.io/argoproj/dataflow-testapi
+          image: quay.io/argoprojlabs/dataflow-testapi
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8378

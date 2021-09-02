@@ -7,7 +7,7 @@ import (
 )
 
 func TestMap_getContainer(t *testing.T) {
-	const x Map = "my-expr"
+	x := &Map{Expression: "my-expr"}
 	c := x.getContainer(getContainerReq{})
 	assert.Equal(t, []string{"map", "my-expr"}, c.Args)
 }

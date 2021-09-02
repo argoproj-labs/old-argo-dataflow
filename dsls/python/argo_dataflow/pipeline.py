@@ -300,13 +300,15 @@ class ExpandStep(Step):
 
 
 class FilterStep(Step):
-    def __init__(self, name, filter, sources=[]):
+    def __init__(self, name, expression, sources=[]):
         super().__init__(name, sources=sources)
-        self._filter = filter
+        self._expression = expression
 
     def dump(self):
         x = super().dump()
-        x['filter'] = self._filter
+        x['filter'] = {
+            'expression': self._expression
+        }
         return x
 
 
@@ -398,13 +400,15 @@ class CodeStep(Step):
 
 
 class MapStep(Step):
-    def __init__(self, name, map, sources=[]):
+    def __init__(self, name, expression, sources=[]):
         super().__init__(name, sources=sources)
-        self._map = map
+        self._expression = expression
 
     def dump(self):
         x = super().dump()
-        x['map'] = self._map
+        x['map'] = {
+            'expression': self._expression
+        }
         return x
 
 
@@ -432,8 +436,8 @@ class Source:
     def expand(self, name):
         return ExpandStep(name, sources=[self])
 
-    def filter(self, name, filter):
-        return FilterStep(name, filter, sources=[self])
+    def filter(self, name, expression):
+        return FilterStep(name, expression, sources=[self])
 
     def git(self, name, url, branch, path, image, env=None, command=None):
         return GitStep(name, url, branch, path, image, sources=[self], env=env, command=command)
@@ -447,8 +451,8 @@ class Source:
     def code(self, name, source=None, code=None, runtime=None):
         return CodeStep(name, source=source, code=code, runtime=runtime, sources=[self])
 
-    def map(self, name, map):
-        return MapStep(name, map, sources=[self])
+    def map(self, name, expression):
+        return MapStep(name, expression, sources=[self])
 
 
 def cat(name):

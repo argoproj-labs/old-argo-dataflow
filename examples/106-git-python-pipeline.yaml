@@ -17,7 +17,7 @@ spec:
       branch: main
       command:
       - ./start.sh
-      image: quay.io/argoproj/dataflow-python3-9
+      image: quay.io/argoprojlabs/dataflow-python3-9
       path: examples/git-python
       url: https://github.com/argoproj-labs/argo-dataflow
     name: main

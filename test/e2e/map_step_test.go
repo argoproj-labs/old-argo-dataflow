@@ -19,7 +19,7 @@ func TestMapStep(t *testing.T) {
 			Steps: []StepSpec{
 				{
 					Name:    "main",
-					Map:     "bytes('hi! ' + string(msg))",
+					Map:     &Map{Expression: "bytes('hi! ' + string(msg))"},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
 					Sinks:   []Sink{DefaultLogSink},
 				},

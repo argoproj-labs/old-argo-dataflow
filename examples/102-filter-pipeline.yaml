@@ -14,8 +14,9 @@ metadata:
   name: 102-filter
 spec:
   steps:
-  - filter: |-
-      string(msg) contains "-"
+  - filter:
+      expression: |-
+        string(msg) contains "-"
     name: main
     sinks:
     - kafka:

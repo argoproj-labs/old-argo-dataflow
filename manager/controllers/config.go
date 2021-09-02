@@ -23,7 +23,7 @@ var (
 
 func init() {
 	if imagePrefix == "" {
-		imagePrefix = "quay.io/argoproj"
+		imagePrefix = "quay.io/argoprojlabs"
 	}
 	tag := util.Version.Original() // we don't use String() because semantic version do not have "v" prefix
 	if tag == "v0.0.0-latest-0" {

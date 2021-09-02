@@ -4,11 +4,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-type Map string
+type Map struct {
+	Expression string `json:"expression" protobuf:"bytes,1,opt,name=expression"`
+}
 
 func (m Map) getContainer(req getContainerReq) corev1.Container {
 	return containerBuilder{}.
 		init(req).
-		args("map", string(m)).
+		args("map", m.Expression).
 		build()
 }

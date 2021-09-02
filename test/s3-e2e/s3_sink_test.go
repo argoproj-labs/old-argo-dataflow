@@ -10,10 +10,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/minio.yaml
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/moto.yaml
 
 func TestS3Sink(t *testing.T) {
 	defer Setup(t)()
+
+	defer StartPortForward("moto-0", 5000)()
+	bucket := "my-bucket"
+	defer CreateBucket(bucket)()
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "s3"},
@@ -33,7 +37,7 @@ func Handler(ctx context.Context, m []byte) ([]byte, error) {
 }`,
 					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{S3: &S3Sink{S3: S3{Bucket: "my-bucket"}}}},
+					Sinks:   []Sink{{S3: &S3Sink{S3: S3{Bucket: bucket}}}},
 				},
 			},
 		},

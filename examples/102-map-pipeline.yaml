@@ -14,8 +14,9 @@ metadata:
   name: 102-map
 spec:
   steps:
-  - map: |-
-      bytes('hi ' + string(msg))
+  - map:
+      expression: |-
+        bytes('hi ' + string(msg))
     name: main
     sinks:
     - kafka:

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	apierr "k8s.io/apimachinery/pkg/api/errors"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -44,10 +46,23 @@ func New(ctx context.Context, secretInterface v1.SecretInterface, x dfv1.S3Sink)
 		}
 		secretAccessKey = string(secret.Data[x.Credentials.SecretAccessKey.Key])
 	}
+	var sessionToken string
+	{
+		secretName := x.Credentials.SessionToken.Name
+		secret, err := secretInterface.Get(ctx, secretName, metav1.GetOptions{})
+		if err == nil {
+			sessionToken = string(secret.Data[x.Credentials.SessionToken.Key])
+		} else {
+			// it is okay for sessionToken to be missing
+			if !apierr.IsNotFound(err) {
+				return nil, err
+			}
+		}
+	}
 	options := s3.Options{
 		Region: x.Region,
 		Credentials: aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-			return aws.Credentials{AccessKeyID: accessKeyID, SecretAccessKey: secretAccessKey}, nil
+			return aws.Credentials{AccessKeyID: accessKeyID, SecretAccessKey: secretAccessKey, SessionToken: sessionToken}, nil
 		}),
 	}
 	if e := x.Endpoint; e != nil {

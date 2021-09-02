@@ -30,6 +30,8 @@ message AWSCredentials {
   optional k8s.io.api.core.v1.SecretKeySelector accessKeyId = 1;
 
   optional k8s.io.api.core.v1.SecretKeySelector secretAccessKey = 2;
+
+  optional k8s.io.api.core.v1.SecretKeySelector sessionToken = 3;
 }
 
 message AWSEndpoint {
@@ -144,6 +146,10 @@ message Dedupe {
 }
 
 message Expand {
+}
+
+message Filter {
+  optional string expression = 1;
 }
 
 message Flatten {
@@ -281,6 +287,10 @@ message KafkaSource {
 
 message Log {
   optional uint64 truncate = 1;
+}
+
+message Map {
+  optional string expression = 1;
 }
 
 message Metadata {
@@ -522,7 +532,7 @@ message StepSpec {
 
   optional Expand expand = 26;
 
-  optional string filter = 8;
+  optional Filter filter = 8;
 
   optional Flatten flatten = 25;
 
@@ -532,7 +542,7 @@ message StepSpec {
 
   optional Code code = 7;
 
-  optional string map = 9;
+  optional Map map = 9;
 
   // +kubebuilder:default=1
   optional uint32 replicas = 23;

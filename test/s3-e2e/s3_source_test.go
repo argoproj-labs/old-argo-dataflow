@@ -13,8 +13,10 @@ import (
 func TestS3Source(t *testing.T) {
 	defer Setup(t)()
 
-	InvokeTestAPI("/minio/empty-bucket")
-	InvokeTestAPI("/minio/create-object?key=my-key")
+	defer StartPortForward("moto-0", 5000)()
+	bucket := "my-bucket"
+	CreateBucket(bucket)
+	PutS3Object(bucket, "foo", "my-content")
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "s3"},
@@ -22,7 +24,7 @@ func TestS3Source(t *testing.T) {
 			Steps: []StepSpec{
 				{
 					Name: "main",
-					Map:  "io.cat(object(msg).path)",
+					Map:  &Map{Expression: "io.cat(object(msg).path)"},
 					Sources: []Source{{S3: &S3Source{
 						S3: S3{Bucket: "my-bucket"},
 					}}},
