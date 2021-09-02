@@ -28,7 +28,7 @@ func TestKafkaSourceStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name: "main",
 				Cat: &Cat{
-					AbstractStep: AbstractStep{StandardResources: &v1.ResourceRequirements{
+					AbstractStep: AbstractStep{Resources: &v1.ResourceRequirements{
 						Requests: v1.ResourceList{
 							v1.ResourceMemory: resource.MustParse("1Gi"),
 						},

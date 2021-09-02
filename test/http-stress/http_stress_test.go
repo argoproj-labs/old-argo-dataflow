@@ -7,7 +7,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-
+	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,7 +22,7 @@ func TestHTTPSourceStress(t *testing.T) {
 			Steps: []StepSpec{{
 				Name: "main",
 				Cat: &Cat{
-					AbstractStep: AbstractStep{StandardResources: v1.ResourceRequirements{
+					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
 							v1.ResourceMemory: resource.MustParse("1Gi"),
 						},
@@ -64,7 +64,7 @@ func TestHTTPSinkStress(t *testing.T) {
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name: "main",
-				Cat: &Cat{AbstractStep: AbstractStep{StandardResources: v1.ResourceRequirements{
+				Cat: &Cat{AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
 						v1.ResourceMemory: resource.MustParse("1Gi"),
 					},
