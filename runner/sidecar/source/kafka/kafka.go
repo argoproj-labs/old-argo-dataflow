@@ -39,7 +39,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	}
 	logger.Info("Kafka config",
 		"consumerGroupID", consumerGroupID,
-		"maxProcessingTime", config.Consumer.MaxProcessingTime,
+		"maxProcessingTime", config.Consumer.MaxProcessingTime.String(),
 		"fetchMax", config.Consumer.Fetch.Max,
 		"autoCommitEnable", config.Consumer.Offsets.AutoCommit.Enable,
 		"offsetsInitial", config.Consumer.Offsets.Initial,
