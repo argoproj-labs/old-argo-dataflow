@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.100 (2021-09-07)
+
+ * [ab6d38a](https://github.com/argoproj-labs/argo-dataflow/commit/ab6d38a41806fdc85908d0d3bb63480199bf5c10) fix: log failed to process message
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.99 (2021-09-02)
 
  * [45f7847](https://github.com/argoproj-labs/argo-dataflow/commit/45f784725a15eb432bf5fe2d6ea558e93ee6b312) feat: Expand Kafka sink auto-commit config (#293)
