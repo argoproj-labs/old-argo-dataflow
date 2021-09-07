@@ -32,7 +32,9 @@ func New(x dfv1.Cron, f source.Func) (source.Interface, error) {
 
 	_, err := crn.AddFunc(x.Schedule, func() {
 		msg := []byte(time.Now().Format(x.Layout))
-		_ = f(context.Background(), msg)
+		if err := f(context.Background(), msg); err != nil {
+			logger.Error(err, "failed to process message")
+		}
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)

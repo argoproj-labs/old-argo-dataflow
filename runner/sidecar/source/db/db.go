@@ -80,7 +80,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 					offset = fmt.Sprintf("%v", d[x.OffsetColumn])
 					return nil
 				}); err != nil {
-					logger.Error(err, "failed to process data query: %w", err)
+					logger.Error(err, "failed to process data query")
 				}
 			}
 		}
@@ -196,7 +196,7 @@ func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset stri
 			}
 		}
 		if err = f(entry); err != nil {
-			logger.Error(err, "failed process data: %w", err)
+			logger.Error(err, "failed to process message")
 		}
 	}
 	return nil

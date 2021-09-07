@@ -26,6 +26,7 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 	logger.Info("starting consuming claim", "partition", claim.Partition())
 	for msg := range claim.Messages() {
 		if err := h.f(sess.Context(), msg.Value); err != nil {
+			logger.Error(err, "failed to process message")
 		} else {
 			sess.MarkMessage(msg, "")
 		}
