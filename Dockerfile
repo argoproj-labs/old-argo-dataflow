@@ -89,7 +89,7 @@ RUN mkdir /.cache /.local
 ADD runtimes/python3-9 /workspace
 RUN chown -R 9653 /.cache /.local /workspace
 WORKDIR /workspace
-RUN apk add git
+RUN apk add git gcc musl-dev
 USER 9653:9653
 RUN pip3 install -r requirements.txt
 ENV PYTHONUNBUFFERED 1
