@@ -13,8 +13,9 @@ your code when the step starts. This example presents how one can use go runtime
 [Learn about Git steps](../docs/GIT.md)""")
      .step(
         (kafka('input-topic')
-         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git', 'golang:1.16',
-              env=[{'name': "GOCACHE", 'value': "/tmp/.gocache"}], command=["go", "run", "."])
+         .git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git',
+              'quay.io/argoprojlabs/dataflow-golang1-16',
+              env=[{'name': "GOCACHE", 'value': "/tmp/.gocache"}], command=["/dumb-init", "--", "go", "run", "."])
          .kafka('output-topic')
          ))
      .save())

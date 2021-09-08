@@ -13,8 +13,9 @@ are long running processes generating values over time. Such a step doesn't have
 
 [Learn about Git steps](../docs/GIT.md)""")
      .step(
-        (git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git-python-generator-step', 'quay.io/argoprojlabs/dataflow-python3-9',
-              command=["./start.sh"])
+        (git('main', 'https://github.com/argoproj-labs/argo-dataflow', 'main', 'examples/git-python-generator-step',
+             'quay.io/argoprojlabs/dataflow-python3-9',
+             command=["/dumb-init", "--", "./start.sh"])
          .kafka('output-topic')
          ))
      .save())

@@ -19,6 +19,8 @@ spec:
   - git:
       branch: main
       command:
+      - /dumb-init
+      - --
       - ./start.sh
       image: quay.io/argoprojlabs/dataflow-python3-9
       path: examples/git-python-generator-step

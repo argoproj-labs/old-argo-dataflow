@@ -18,6 +18,8 @@ spec:
   - git:
       branch: main
       command:
+      - /dumb-init
+      - --
       - ./start.sh
       image: quay.io/argoprojlabs/dataflow-node16
       path: examples/git-nodejs
