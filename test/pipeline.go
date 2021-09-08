@@ -21,11 +21,15 @@ import (
 var pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
 
 func UntilRunning(pl Pipeline) bool {
-	return meta.FindStatusCondition(pl.Status.Conditions, ConditionRunning) != nil
+	return UntilHasCondition(pl, ConditionSunkMessages)
 }
 
 func UntilMessagesSunk(pl Pipeline) bool {
-	return meta.FindStatusCondition(pl.Status.Conditions, ConditionSunkMessages) != nil
+	return UntilHasCondition(pl, ConditionSunkMessages)
+}
+
+func UntilHasCondition(pl Pipeline, condition string) bool {
+	return meta.FindStatusCondition(pl.Status.Conditions, condition) != nil
 }
 
 func UntilSucceeded(pl Pipeline) bool {
@@ -76,7 +80,7 @@ func WaitForPipeline(opts ...interface{}) {
 		case func(Pipeline) bool:
 			f = v
 		default:
-			panic("un-supported option type")
+			panic(fmt.Errorf("un-supported option type: %T", o))
 		}
 	}
 	funcName := sharedutil.GetFuncName(f)

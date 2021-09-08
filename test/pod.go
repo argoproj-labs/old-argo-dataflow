@@ -69,7 +69,7 @@ func WaitForPod(opts ...interface{}) {
 		case func(*corev1.Pod) bool:
 			f = v
 		default:
-			panic("un-supported option type")
+			panic(fmt.Errorf("un-supported option type: %T", o))
 		}
 	}
 	log.Printf("waiting for pod %q %q\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f))
