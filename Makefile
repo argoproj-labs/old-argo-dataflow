@@ -8,7 +8,7 @@ CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 K3D ?= $(shell [ "`command -v kubectl`" != '' ] && [ "`kubectl config current-context`" = k3d-k3s-default ] && echo true || echo false)
-
+UI ?= false
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -41,10 +41,6 @@ test-stress-large-messages:
 test-db-e2e:
 test-e2e:
 test-examples:
-	kubectl -n argo-dataflow-system apply -f config/apps/kafka.yaml
-	kubectl -n argo-dataflow-system apply -f config/apps/stan.yaml
-	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m
-	go test -timeout 20m -tags examples -v -count 1 ./examples
 test-http-fmea:
 test-http-stress:
 test-hpa:
@@ -89,7 +85,7 @@ $(GOBIN)/goreman:
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: deploy build runner $(GOBIN)/goreman wait
 	kubectl config set-context --current --namespace=argo-dataflow-system
-	goreman -set-ports=false -logtime=false start
+	env UI=$(UI) goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
 	kubectl -n argo-dataflow-system wait deploy --all --for=condition=available --timeout=2m
