@@ -1,0 +1,1 @@
+git+https://github.com/domderen/argo-dataflow@python-generator-sdk-test#subdirectory=sdks/python
