@@ -8,18 +8,20 @@ metadata:
       The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
       your code when the step starts. This example presents how one can use python runtime git step.
 
+      [Link to directory that is be cloned with git](./git-python/)
+
       [Learn about Git steps](../docs/GIT.md)
     dataflow.argoproj.io/owner: argoproj-labs
   name: 106-git-python
 spec:
   steps:
   - git:
-      branch: python-generator-sdk-test
+      branch: main
       command:
       - ./start.sh
       image: quay.io/argoprojlabs/dataflow-python3-9
       path: examples/git-python
-      url: https://github.com/domderen/argo-dataflow
+      url: https://github.com/argoproj-labs/argo-dataflow
     name: main
     sinks:
     - kafka:

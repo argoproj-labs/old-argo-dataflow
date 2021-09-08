@@ -8,6 +8,8 @@ if __name__ == '__main__':
 The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
 your code when the step starts. This example presents how one can use nodejs runtime git step.
 
+[Link to directory that is be cloned with git](./git-nodejs/)
+
 [Learn about Git steps](../docs/GIT.md)""")
      .step(
         (kafka('input-topic')
