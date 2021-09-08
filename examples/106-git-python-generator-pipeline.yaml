@@ -9,7 +9,7 @@ metadata:
       your code when the step starts. This example presents how one can use python runtime git generator step. Generator steps
       are long running processes generating values over time. Such a step doesn't have a source, only sink(s).
 
-      [Link to directory that is be cloned with git](./git-python-generator-step/)
+      [Link to directory that is be cloned with git](../examples/git-python-generator-step/)
 
       [Learn about Git steps](../docs/GIT.md)
     dataflow.argoproj.io/owner: argoproj-labs
