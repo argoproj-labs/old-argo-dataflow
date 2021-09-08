@@ -128,8 +128,9 @@ generate: $(GOBIN)/controller-gen
 docs/EXAMPLES.md: examples/main.go
 	go run ./examples docs | grep -v 'time=' > docs/EXAMPLES.md
 
-tests/examples/examples_test.go: examples/main.go
+test/examples/examples_test.go: examples/main.go
 	go run ./examples tests | grep -v 'time=' > test/examples/examples_test.go
+	gofmt -w test/examples/examples_test.go
 
 .PHONY: CHANGELOG.md
 CHANGELOG.md: /dev/null
@@ -209,7 +210,7 @@ kubebuilder:
 examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 
 .PHONY: tests
-tests: tests/examples/examples_test.go
+tests: test/examples/examples_test.go
 
 .PHONY: install-dsls
 install-dsls:
