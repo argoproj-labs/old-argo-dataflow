@@ -82,16 +82,19 @@ ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/workspace/entrypoint.sh"]
 
 FROM python:3.9-alpine AS python3-9
-RUN apk add git
 COPY --from=builder /tmp/dumb-init /dumb-init
 RUN chmod +x /dumb-init
 RUN mkdir /.cache /.local
 ADD runtimes/python3-9 /workspace
+ADD dsls/python /workspace/.dsl
+RUN cd /workspace/.dsl && python3 -m pip install --use-feature=in-tree-build .
+ADD sdks/python /workspace/.sdk
+RUN apk add --no-cache gcc musl-dev
+RUN cd /workspace/.sdk && python3 -m pip install --use-feature=in-tree-build .
+RUN apk del --purge gcc musl-dev
 RUN chown -R 9653 /.cache /.local /workspace
 WORKDIR /workspace
-RUN apk add git gcc musl-dev
 USER 9653:9653
-RUN pip3 install -r requirements.txt
 ENV PYTHONUNBUFFERED 1
 ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/workspace/entrypoint.sh"]

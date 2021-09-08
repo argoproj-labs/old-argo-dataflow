@@ -211,7 +211,7 @@ examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 
 .PHONY: install-dsls
 install-dsls:
-	pip3 install dsls/python
+	pip3 install --use-feature=in-tree-build dsls/python
 
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
 	cd examples && python3 $*-pipeline.py
