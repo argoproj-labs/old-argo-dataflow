@@ -33,7 +33,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	// with a single replica, if you loose a replica, you loose service
 	go PumpHTTPTolerantly(n)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("http-main-0")
@@ -68,7 +68,7 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 
 	PumpHTTPTolerantly(n)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	DeletePod("http-main-0") // delete the pod to see that we continue to process messages
 	WaitForPod("http-main-0")

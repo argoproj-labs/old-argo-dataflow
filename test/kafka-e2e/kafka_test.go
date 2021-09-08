@@ -34,7 +34,7 @@ func TestKafka(t *testing.T) {
 
 	PumpKafkaTopic(topic, 17)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	WaitForStep(TotalSourceMessages(17))
 	WaitForStep(TotalSunkMessages(17))
@@ -65,7 +65,7 @@ func TestKafkaAutoCommit(t *testing.T) {
 
 	PumpKafkaTopic(topic, 17)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	WaitForStep(TotalSourceMessages(17))
 	WaitForStep(TotalSunkMessages(17))
@@ -98,7 +98,7 @@ func TestKafkaAsync(t *testing.T) {
 
 	PumpKafkaTopic(topic, 17)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	WaitForStep(TotalSourceMessages(17))
 	WaitForStep(TotalSunkMessages(17))

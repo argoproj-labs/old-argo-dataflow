@@ -102,7 +102,7 @@ func TestDBSource(t *testing.T) {
 	SendMessageViaHTTP(`{"message": "msg2", "number": 102}`)
 	SendMessageViaHTTP(`{"message": "msg3", "number": 103}`)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 	WaitForStep(TotalSunkMessages(3))
 
 	DeletePipelines()
@@ -158,7 +158,7 @@ func cleanupDB() {
 	defer StartPortForward("cleanup-db-main-0")()
 	SendMessageViaHTTP(`hello`)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 	WaitForStep(TotalSunkMessages(1))
 
 	DeletePipelines()

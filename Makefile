@@ -74,7 +74,7 @@ pprof:
 
 pre-commit: codegen proto test install runner testapi lint start
 
-codegen: generate manifests examples
+codegen: generate manifests examples tests
 	go generate ./...
 	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
 	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
@@ -125,8 +125,11 @@ manifests: crds $(shell find config config/apps -maxdepth 1 -name '*.yaml')
 generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-docs/EXAMPLES.md: $(shell find examples -name '*.yaml') examples/main.go
-	go run ./examples | grep -v 'time=' > docs/EXAMPLES.md
+docs/EXAMPLES.md: examples/main.go
+	go run ./examples docs | grep -v 'time=' > docs/EXAMPLES.md
+
+tests/examples/examples_test.go: examples/main.go
+	go run ./examples tests | grep -v 'time=' > test/examples/examples_test.go
 
 .PHONY: CHANGELOG.md
 CHANGELOG.md: /dev/null
@@ -204,6 +207,9 @@ kubebuilder:
 
 .PHONY: examples
 examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
+
+.PHONY: tests
+tests: tests/examples/examples_test.go
 
 .PHONY: install-dsls
 install-dsls:
