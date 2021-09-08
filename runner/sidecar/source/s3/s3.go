@@ -28,7 +28,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.S3Source, f source.Func, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.S3Source, process source.Process, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", x.Name, "bucket", x.Bucket)
 	var accessKeyID string
 	{
@@ -88,7 +88,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
-		F: func(ctx context.Context, msg []byte) error {
+		Process: func(ctx context.Context, msg []byte) error {
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &x.Bucket, Key: &key})
@@ -112,7 +112,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
 			}()
-			return f(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})))
+			return process(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})))
 		},
 		ListItems: func() ([]interface{}, error) {
 			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: aws.String(x.Bucket)})

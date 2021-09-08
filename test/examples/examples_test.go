@@ -313,4 +313,3 @@ func Test_301_two_sources_pipeline(t *testing.T) {
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 }
-

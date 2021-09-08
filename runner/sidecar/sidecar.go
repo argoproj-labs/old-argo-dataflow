@@ -105,7 +105,7 @@ func Exec(ctx context.Context) error {
 
 	addStopHook(patchStepStatusHook)
 
-	toSinks, err := connectSinks(ctx)
+	sink, err := connectSinks(ctx)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func Exec(ctx context.Context) error {
 		w.WriteHeader(204)
 	})
 
-	connectOut(toSinks)
+	connectOut(ctx, sink)
 
 	server := &http.Server{Addr: "localhost:3569"}
 	addStopHook(func(ctx context.Context) error {
@@ -175,12 +175,12 @@ func Exec(ctx context.Context) error {
 		logger.Info("HTTPS server shutdown")
 	}()
 
-	toMain, err := connectIn(ctx, toSinks)
+	process, err := connectIn(ctx, sink)
 	if err != nil {
 		return err
 	}
 
-	if err := connectSources(ctx, toMain); err != nil {
+	if err := connectSources(ctx, process); err != nil {
 		return err
 	}
 

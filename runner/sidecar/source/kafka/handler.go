@@ -7,7 +7,7 @@ import (
 )
 
 type handler struct {
-	f            source.Func
+	process      source.Process
 	i            int
 	manualCommit bool
 }
@@ -25,14 +25,14 @@ func (handler) Cleanup(_ sarama.ConsumerGroupSession) error {
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	logger.Info("starting consuming claim", "partition", claim.Partition())
 	for msg := range claim.Messages() {
-		if err := h.f(sess.Context(), msg.Value); err != nil {
+		if err := h.process(sess.Context(), msg.Value); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
 			sess.MarkMessage(msg, "")
-		}
-		h.i++
-		if h.manualCommit && h.i%dfv1.CommitN == 0 {
-			sess.Commit()
+			h.i++
+			if h.manualCommit && h.i%dfv1.CommitN == 0 {
+				sess.Commit()
+			}
 		}
 	}
 	return nil

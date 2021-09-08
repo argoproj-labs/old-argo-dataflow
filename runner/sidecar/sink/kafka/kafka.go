@@ -19,20 +19,20 @@ import (
 var logger = sharedutil.NewLogger()
 
 type producer interface {
-	SendMessage(msg *sarama.ProducerMessage) error
+	SendMessage(ctx context.Context, msg *sarama.ProducerMessage) error
 	io.Closer
 }
 
 type asyncProducer struct{ sarama.AsyncProducer }
 
-func (s asyncProducer) SendMessage(msg *sarama.ProducerMessage) error {
+func (s asyncProducer) SendMessage(ctx context.Context, msg *sarama.ProducerMessage) error {
 	s.AsyncProducer.Input() <- msg
 	return nil
 }
 
 type syncProducer struct{ sarama.SyncProducer }
 
-func (s syncProducer) SendMessage(msg *sarama.ProducerMessage) error {
+func (s syncProducer) SendMessage(ctx context.Context, msg *sarama.ProducerMessage) error {
 	_, _, err := s.SyncProducer.SendMessage(msg)
 	return err
 }
@@ -103,8 +103,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 	}
 }
 
-func (h kafkaSink) Sink(msg []byte) error {
-	return h.producer.SendMessage(&sarama.ProducerMessage{Value: sarama.ByteEncoder(msg), Topic: h.topic})
+func (h kafkaSink) Sink(ctx context.Context, msg []byte) error {
+	return h.producer.SendMessage(ctx, &sarama.ProducerMessage{Value: sarama.ByteEncoder(msg), Topic: h.topic})
 }
 
 func (h kafkaSink) Close() error {
