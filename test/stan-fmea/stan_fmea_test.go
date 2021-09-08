@@ -38,7 +38,7 @@ func TestStanFMEA_PodDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	DeletePod("stan-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("stan-main-0")
@@ -70,7 +70,7 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	RestartStatefulSet("stan")
 	WaitForPod("stan-0")
@@ -105,7 +105,7 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

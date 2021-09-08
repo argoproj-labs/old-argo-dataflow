@@ -106,7 +106,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

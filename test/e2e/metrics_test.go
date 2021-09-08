@@ -34,7 +34,7 @@ func TestMetrics(t *testing.T) {
 
 	SendMessageViaHTTP("my-msg")
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 	WaitForStep(NothingPending)
 	WaitForStep(TotalSourceMessages(1))
 	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetPending() == 0 })

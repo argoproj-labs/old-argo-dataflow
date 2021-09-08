@@ -48,7 +48,7 @@ func Handler(ctx context.Context, m []byte) ([]byte, error) {
 	defer StartPortForward("s3-main-0")()
 	SendMessageViaHTTP("my-msg")
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 	WaitForStep(TotalSunkMessages(1))
 
 	DeletePipelines()

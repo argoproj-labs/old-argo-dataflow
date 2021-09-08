@@ -33,7 +33,7 @@ func TestFlattenStep(t *testing.T) {
 
 	SendMessageViaHTTP(`{"foo": {"bar": "baz"}}`)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 	WaitForStep(TotalSunkMessages(1))
 
 	ExpectLogLine("main", `foo.bar`)
