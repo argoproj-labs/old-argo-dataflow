@@ -1,6 +1,6 @@
 import asyncio
 
-async def generator_handler():
+async def handler():
     i = 0
     while True:
       print('running generator fn', i)
