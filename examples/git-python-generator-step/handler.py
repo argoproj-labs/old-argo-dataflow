@@ -1,4 +1,3 @@
-from argo_dataflow_sdk import ProcessHandler
 import asyncio
 
 async def generator_handler():
