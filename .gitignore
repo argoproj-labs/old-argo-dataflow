@@ -32,3 +32,4 @@ node_modules
 venv
 *.egg-info
 sdks/python/build/*
+dsls/python/build/*
