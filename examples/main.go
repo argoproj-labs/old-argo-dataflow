@@ -42,13 +42,13 @@ func main() {
 		_, _ = fmt.Printf("\n")
 		_, _ = fmt.Printf("\t. \"github.com/argoproj-labs/argo-dataflow/test\"\n")
 		_, _ = fmt.Printf(")\n\n")
-		_, _ = fmt.Printf("//go:generate kubectl -n argo-dataflow-system apply -f config/apps/kafka.yaml\n")
-		_, _ = fmt.Printf("//go:generate kubectl -n argo-dataflow-system apply -f config/apps/stan.yaml\n\n")
+		_, _ = fmt.Printf("//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml\n")
+		_, _ = fmt.Printf("//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/stan.yaml\n\n")
 		for _, file := range files {
 			un := file.Items[0]
 			if un.GetKind() == "Pipeline" && un.GetAnnotations()["dataflow.argoproj.io/test"] != "false" {
 				if v := un.GetAnnotations()["dataflow.argoproj.io/needs"]; v != "" {
-					_, _ = fmt.Printf("//go:generate kubectl -n argo-dataflow-system apply -f examples/%s.yaml\n\n", v)
+					_, _ = fmt.Printf("//go:generate kubectl -n argo-dataflow-system apply -f ../../examples/%s\n\n", v)
 				}
 				_, _ = fmt.Printf("func Test_%s(t *testing.T) {\n", strings.ReplaceAll(strings.TrimSuffix(file.Name(), ".yaml"), "-", "_"))
 				_, _ = fmt.Printf("\tdefer Setup(t)()\n\n")

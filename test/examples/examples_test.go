@@ -9,8 +9,8 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/test"
 )
 
-//go:generate kubectl -n argo-dataflow-system apply -f config/apps/kafka.yaml
-//go:generate kubectl -n argo-dataflow-system apply -f config/apps/stan.yaml
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/stan.yaml
 
 func Test_101_hello_pipeline(t *testing.T) {
 	defer Setup(t)()
@@ -192,7 +192,7 @@ func Test_301_cron_log_pipeline(t *testing.T) {
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
 }
 
-//go:generate kubectl -n argo-dataflow-system apply -f examples/dataflow-103-http-main-source-default-secret.yaml.yaml
+//go:generate kubectl -n argo-dataflow-system apply -f ../../examples/dataflow-103-http-main-source-default-secret.yaml
 
 func Test_301_http_pipeline(t *testing.T) {
 	defer Setup(t)()
@@ -229,3 +229,4 @@ func Test_301_two_sources_pipeline(t *testing.T) {
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
 }
+
