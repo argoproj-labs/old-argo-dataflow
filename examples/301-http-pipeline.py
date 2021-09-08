@@ -14,13 +14,14 @@ messages between steps.
 """)
      .annotate("dataflow.argoproj.io/needs", "dataflow-103-http-main-source-default-secret.yaml")
      .step(
-        (cron('*/3 * * * * *')
-         .cat('cron')
-         .http('https://http-main/sources/default', insecureSkipVerify=True, headers=[{'name': "Authorization", "value": "Bearer my-bearer-token"}])
-         ))
-     .step(
         (http(serviceName='http-main')
          .cat('main')
          .log()
+         ))
+     .step(
+        (cron('*/3 * * * * *')
+         .cat('cron')
+         .http('https://http-main/sources/default', insecureSkipVerify=True,
+               headers=[{'name': "Authorization", "value": "Bearer my-bearer-token"}])
          ))
      .save())

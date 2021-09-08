@@ -17,7 +17,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.VolumeSource, f source.Func, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.VolumeSource, process source.Process, leadReplica bool) (source.HasPending, error) {
 	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
 	logger := sharedutil.NewLogger()
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
@@ -28,9 +28,9 @@ func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
-		F: func(ctx context.Context, msg []byte) error {
+		Process: func(ctx context.Context, msg []byte) error {
 			path := filepath.Join(dir, string(msg))
-			return f(ctx, []byte(sharedutil.MustJSON(message{Path: path})))
+			return process(ctx, []byte(sharedutil.MustJSON(message{Path: path})))
 		},
 		ListItems: func() ([]interface{}, error) {
 			var keys []interface{}

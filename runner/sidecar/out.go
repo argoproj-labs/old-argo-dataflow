@@ -13,12 +13,12 @@ import (
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
-func connectOut(toSinks func([]byte) error) {
-	connectOutFIFO(toSinks)
-	connectOutHTTP(toSinks)
+func connectOut(ctx context.Context, sink func(context.Context, []byte) error) {
+	connectOutFIFO(ctx, sink)
+	connectOutHTTP(sink)
 }
 
-func connectOutHTTP(f func([]byte) error) {
+func connectOutHTTP(sink func(context.Context, []byte) error) {
 	logger.Info("HTTP out interface configured")
 	v, err := ioutil.ReadFile(dfv1.PathAuthorization)
 	if err != nil {
@@ -37,7 +37,7 @@ func connectOutHTTP(f func([]byte) error) {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		if err := f(data); err != nil {
+		if err := sink(r.Context(), data); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
@@ -47,7 +47,7 @@ func connectOutHTTP(f func([]byte) error) {
 	})
 }
 
-func connectOutFIFO(f func([]byte) error) {
+func connectOutFIFO(ctx context.Context, sink func(context.Context, []byte) error) {
 	logger.Info("FIFO out interface configured")
 	go func() {
 		defer runtimeutil.HandleCrash()
@@ -63,7 +63,7 @@ func connectOutFIFO(f func([]byte) error) {
 			logger.Info("opened output FIFO")
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
-				if err := f(scanner.Bytes()); err != nil {
+				if err := sink(ctx, scanner.Bytes()); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)
 				}
 			}

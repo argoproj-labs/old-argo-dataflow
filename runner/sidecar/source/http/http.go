@@ -1,7 +1,6 @@
 package http
 
 import (
-	"context"
 	"io/ioutil"
 	"net/http"
 
@@ -12,7 +11,7 @@ type httpSource struct {
 	ready bool
 }
 
-func New(sourceName, authorization string, f source.Func) source.Interface {
+func New(sourceName, authorization string, process source.Process) source.Interface {
 	h := &httpSource{ready: true}
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != authorization {
@@ -30,7 +29,7 @@ func New(sourceName, authorization string, f source.Func) source.Interface {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		if err := f(context.Background(), msg); err != nil {
+		if err := process(r.Context(), msg); err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 		} else {

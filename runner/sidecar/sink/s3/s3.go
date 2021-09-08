@@ -73,7 +73,7 @@ func New(ctx context.Context, secretInterface v1.SecretInterface, x dfv1.S3Sink)
 	return s3Sink{client: s3.New(options), bucket: x.Bucket}, nil
 }
 
-func (h s3Sink) Sink(msg []byte) error {
+func (h s3Sink) Sink(ctx context.Context, msg []byte) error {
 	m := &message{}
 	if err := json.Unmarshal(msg, m); err != nil {
 		return err
@@ -82,7 +82,7 @@ func (h s3Sink) Sink(msg []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to open %q: %w", m.Path, err)
 	}
-	_, err = h.client.PutObject(context.Background(), &s3.PutObjectInput{
+	_, err = h.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: &h.bucket,
 		Key:    &m.Key,
 		Body:   f,

@@ -49,8 +49,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.HTT
 	}, nil
 }
 
-func (h httpSink) Sink(msg []byte) error {
-	req, err := http.NewRequest("POST", h.url, bytes.NewBuffer(msg))
+func (h httpSink) Sink(ctx context.Context, msg []byte) error {
+	req, err := http.NewRequestWithContext(ctx, "POST", h.url, bytes.NewBuffer(msg))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %w", err)
 	}

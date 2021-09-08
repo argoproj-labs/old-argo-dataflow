@@ -30,7 +30,7 @@ type dbSource struct {
 	db *sql.DB
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName string, replica int, sourceName string, x dfv1.DBSource, f source.Func) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName, sourceName string, x dfv1.DBSource, process source.Process) (source.Interface, error) {
 	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
@@ -74,7 +74,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)
 					}
-					if err := f(ctx, jsonData); err != nil {
+					if err := process(ctx, jsonData); err != nil {
 						return fmt.Errorf("failed to process data: %w", err)
 					}
 					offset = fmt.Sprintf("%v", d[x.OffsetColumn])

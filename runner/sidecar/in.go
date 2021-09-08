@@ -15,7 +15,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-func connectIn(ctx context.Context, sink func([]byte) error) (func(context.Context, []byte) error, error) {
+func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (func(context.Context, []byte) error, error) {
 	inFlight := promauto.NewGauge(prometheus.GaugeOpts{
 		Subsystem:   "input",
 		Name:        "inflight",
@@ -81,7 +81,7 @@ func connectIn(ctx context.Context, sink func([]byte) error) (func(context.Conte
 					return fmt.Errorf("failed to send to main: %q %q", resp.Status, body)
 				}
 				if resp.StatusCode == 201 {
-					return sink(body)
+					return sink(ctx, body)
 				}
 			}
 			return nil

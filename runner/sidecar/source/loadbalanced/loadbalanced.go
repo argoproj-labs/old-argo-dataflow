@@ -38,7 +38,7 @@ type NewReq struct {
 	LeadReplica  bool
 	Concurrency  int
 	PollPeriod   time.Duration
-	F            source.Func
+	Process      source.Process
 	RemoveItem   func(item interface{}) error
 	ListItems    func() ([]interface{}, error)
 }
@@ -49,7 +49,7 @@ func New(ctx context.Context, r NewReq) (source.HasPending, error) {
 	// (b) it would be good to limit the size of this work queue and have the `Add
 	jobs := workqueue.New()
 	authorization := sharedutil.RandString()
-	httpSource := httpsource.New(r.SourceName, authorization, r.F)
+	httpSource := httpsource.New(r.SourceName, authorization, r.Process)
 	if r.LeadReplica {
 		endpoint := "https://" + r.PipelineName + "-" + r.StepName + "/sources/" + r.SourceName
 		t := http.DefaultTransport.(*http.Transport).Clone()
