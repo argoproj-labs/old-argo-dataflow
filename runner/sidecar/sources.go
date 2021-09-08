@@ -46,6 +46,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			for {
 				select {
 				case <-ctx.Done():
+					withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica) })
 					return fmt.Errorf("could not send message: %w", ctx.Err())
 				default:
 					if uint64(backoff.Steps) < s.Retry.Steps { // this is a retry
