@@ -19,6 +19,9 @@ func Test_101_hello_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_101_two_node_pipeline(t *testing.T) {
@@ -28,6 +31,9 @@ func Test_101_two_node_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_102_filter_pipeline(t *testing.T) {
@@ -37,6 +43,9 @@ func Test_102_filter_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_102_flatten_expand_pipeline(t *testing.T) {
@@ -46,6 +55,9 @@ func Test_102_flatten_expand_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_102_map_pipeline(t *testing.T) {
@@ -55,6 +67,9 @@ func Test_102_map_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_103_autoscaling_pipeline(t *testing.T) {
@@ -64,6 +79,9 @@ func Test_103_autoscaling_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_103_scaling_pipeline(t *testing.T) {
@@ -73,6 +91,9 @@ func Test_103_scaling_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_104_golang1_16_pipeline(t *testing.T) {
@@ -82,6 +103,9 @@ func Test_104_golang1_16_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_104_java16_pipeline(t *testing.T) {
@@ -91,6 +115,9 @@ func Test_104_java16_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_104_node16_pipeline(t *testing.T) {
@@ -100,6 +127,9 @@ func Test_104_node16_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_104_python3_9_pipeline(t *testing.T) {
@@ -109,6 +139,9 @@ func Test_104_python3_9_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_106_git_go_pipeline(t *testing.T) {
@@ -118,6 +151,9 @@ func Test_106_git_go_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_106_git_nodejs_pipeline(t *testing.T) {
@@ -127,6 +163,9 @@ func Test_106_git_nodejs_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_106_git_python_generator_pipeline(t *testing.T) {
@@ -136,6 +175,9 @@ func Test_106_git_python_generator_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_106_git_python_pipeline(t *testing.T) {
@@ -145,6 +187,9 @@ func Test_106_git_python_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_107_completion_pipeline(t *testing.T) {
@@ -154,6 +199,9 @@ func Test_107_completion_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilCompleted, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_107_terminator_pipeline(t *testing.T) {
@@ -163,6 +211,9 @@ func Test_107_terminator_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilCompleted, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_108_container_pipeline(t *testing.T) {
@@ -172,6 +223,9 @@ func Test_108_container_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilCompleted, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_108_fifos_pipeline(t *testing.T) {
@@ -181,6 +235,9 @@ func Test_108_fifos_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_109_group_pipeline(t *testing.T) {
@@ -190,6 +247,9 @@ func Test_109_group_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_301_cron_log_pipeline(t *testing.T) {
@@ -199,6 +259,9 @@ func Test_301_cron_log_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 //go:generate kubectl -n argo-dataflow-system apply -f ../../examples/dataflow-103-http-main-source-default-secret.yaml
@@ -210,6 +273,9 @@ func Test_301_http_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_301_kafka_pipeline(t *testing.T) {
@@ -219,6 +285,9 @@ func Test_301_kafka_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_301_two_sinks_pipeline(t *testing.T) {
@@ -228,6 +297,9 @@ func Test_301_two_sinks_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 
 func Test_301_two_sources_pipeline(t *testing.T) {
@@ -237,5 +309,8 @@ func Test_301_two_sources_pipeline(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
 }
 

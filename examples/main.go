@@ -55,6 +55,9 @@ func main() {
 				_, _ = fmt.Printf("\tCreatePipelineFromFile(%q)\n\n", filepath.Join("..", "..", "examples", file.Name()))
 				_, _ = fmt.Printf("\tWaitForPipeline()\n")
 				_, _ = fmt.Printf("\tWaitForPipeline(Until%s, 90*time.Second)\n", getWaitFor(&un))
+				_, _ = fmt.Printf("\n")
+				_, _ = fmt.Printf("\tDeletePipelines()\n")
+				_, _ = fmt.Printf("\tWaitForPodsToBeDeleted()\n")
 				_, _ = fmt.Printf("}\n\n")
 			}
 		}
