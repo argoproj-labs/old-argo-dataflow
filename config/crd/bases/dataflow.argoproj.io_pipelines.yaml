@@ -1404,6 +1404,8 @@ spec:
                                   - name
                                   type: object
                                 type: array
+                              insecureSkipVerify:
+                                type: boolean
                               url:
                                 type: string
                             required:

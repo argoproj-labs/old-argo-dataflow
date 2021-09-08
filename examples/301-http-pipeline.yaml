@@ -17,7 +17,11 @@ spec:
     name: cron
     sinks:
     - http:
-        url: http://http-main/sources/default
+        headers:
+        - name: Authorization
+          value: Bearer my-bearer-token
+        insecureSkipVerify: true
+        url: https://http-main/sources/default
     sources:
     - cron:
         schedule: '*/3 * * * * *'
