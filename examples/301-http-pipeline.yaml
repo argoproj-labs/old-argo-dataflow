@@ -14,6 +14,13 @@ metadata:
 spec:
   steps:
   - cat: {}
+    name: main
+    sinks:
+    - log: {}
+    sources:
+    - http:
+        serviceName: http-main
+  - cat: {}
     name: cron
     sinks:
     - http:
@@ -25,10 +32,3 @@ spec:
     sources:
     - cron:
         schedule: '*/3 * * * * *'
-  - cat: {}
-    name: main
-    sinks:
-    - log: {}
-    sources:
-    - http:
-        serviceName: http-main
