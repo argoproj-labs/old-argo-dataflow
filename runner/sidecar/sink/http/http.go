@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -41,6 +42,9 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.HTT
 		header: header,
 		client: &http.Client{
 			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: x.InsecureSkipVerify},
+			},
 		},
 	}, nil
 }

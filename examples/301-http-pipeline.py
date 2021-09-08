@@ -16,7 +16,7 @@ messages between steps.
      .step(
         (cron('*/3 * * * * *')
          .cat('cron')
-         .http('http://http-main/sources/default')
+         .http('https://http-main/sources/default', insecureSkipVerify=True, headers=[{'name': "Authorization", "value": "Bearer my-bearer-token"}])
          ))
      .step(
         (http(serviceName='http-main')

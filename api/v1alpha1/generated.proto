@@ -235,6 +235,8 @@ message HTTPSink {
   optional string url = 1;
 
   repeated HTTPHeader headers = 2;
+
+  optional bool insecureSkipVerify = 3;
 }
 
 message HTTPSource {
