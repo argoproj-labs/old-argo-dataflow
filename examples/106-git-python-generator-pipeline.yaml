@@ -6,11 +6,12 @@ metadata:
       This example of a pipeline using Git.
 
       The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
-      your code when the step starts. This example presents how one can use python runtime git step.
+      your code when the step starts. This example presents how one can use python runtime git generator step. Generator steps
+      are long running processes generating values over time. Such a step doesn't have a source, only sink(s).
 
       [Learn about Git steps](../docs/GIT.md)
     dataflow.argoproj.io/owner: argoproj-labs
-  name: 106-git-python
+  name: 106-git-python-generator
 spec:
   steps:
   - git:
@@ -18,12 +19,9 @@ spec:
       command:
       - ./start.sh
       image: quay.io/argoprojlabs/dataflow-python3-9
-      path: examples/git-python
+      path: examples/git-python-generator-step
       url: https://github.com/domderen/argo-dataflow
     name: main
     sinks:
     - kafka:
         topic: output-topic
-    sources:
-    - kafka:
-        topic: input-topic

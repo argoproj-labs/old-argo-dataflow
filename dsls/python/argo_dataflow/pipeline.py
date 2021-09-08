@@ -472,8 +472,8 @@ def filter(name, filter):
     return FilterStep(name, filter)
 
 
-def git(name, url, branch, path, image):
-    return GitStep(name, url, branch, path, image)
+def git(name, url, branch, path, image, env=None, command=None):
+    return GitStep(name, url, branch, path, image, env=env, command=command)
 
 
 def group(name, key, format, endOfGroup, storage):
