@@ -10,7 +10,6 @@ PROJECT
 bin
 config
 docs
-dsls
 examples
 hack
 test

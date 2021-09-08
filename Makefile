@@ -213,7 +213,7 @@ tests: tests/examples/examples_test.go
 
 .PHONY: install-dsls
 install-dsls:
-	pip3 install dsls/python
+	pip3 install --use-feature=in-tree-build dsls/python
 
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
 	cd examples && python3 $*-pipeline.py
