@@ -129,6 +129,15 @@ func Test_106_git_nodejs_pipeline(t *testing.T) {
 	WaitForPipeline(UntilSunkMessages, 90*time.Second)
 }
 
+func Test_106_git_python_generator_pipeline(t *testing.T) {
+	defer Setup(t)()
+
+	CreatePipelineFromFile("../../examples/106-git-python-generator-pipeline.yaml")
+
+	WaitForPipeline()
+	WaitForPipeline(UntilSunkMessages, 90*time.Second)
+}
+
 func Test_106_git_python_pipeline(t *testing.T) {
 	defer Setup(t)()
 
