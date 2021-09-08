@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.101 (2021-09-08)
+
+ * [9a0d7cf](https://github.com/argoproj-labs/argo-dataflow/commit/9a0d7cf8cc7a787a45df554d8730e024d27d462b) fix: fix-up context handling (#305)
+ * [fbae663](https://github.com/argoproj-labs/argo-dataflow/commit/fbae6639d91a29f7da4f12fd066d665fc0955287) fix: report error correctly
+ * [c3cb97f](https://github.com/argoproj-labs/argo-dataflow/commit/c3cb97fd53194335bea4b8133f1a8ff2e64cdd83) feat: support insecureSkipVerify for HTTP sink (#304)
+ * [19bc8c8](https://github.com/argoproj-labs/argo-dataflow/commit/19bc8c8281f4f495b8e51097b383c769b1d96965) feat: Updating Python SDK to support Generator Steps & Asyncio handlers. (#299)
+
+### Contributors
+
+ * Alex Collins
+ * Dominik Deren
+
 ## v0.0.100 (2021-09-07)
 
  * [ab6d38a](https://github.com/argoproj-labs/argo-dataflow/commit/ab6d38a41806fdc85908d0d3bb63480199bf5c10) fix: log failed to process message
