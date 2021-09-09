@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"fmt"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -10,7 +9,6 @@ type Expand struct {
 }
 
 func (m Expand) getContainer(req getContainerReq) corev1.Container {
-	fmt.Println(m.Resources)
 	return containerBuilder{}.
 		init(req).
 		args("expand").

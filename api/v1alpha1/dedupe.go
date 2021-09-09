@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -20,7 +19,6 @@ type Dedupe struct {
 }
 
 func (d Dedupe) getContainer(req getContainerReq) corev1.Container {
-	fmt.Println(d.Resources)
 	return containerBuilder{}.
 		init(req).
 		args("dedupe", d.UID, d.MaxSize.String()).
