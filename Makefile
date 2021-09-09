@@ -180,7 +180,7 @@ python3-9: python3-9-image
 node16: node16-image
 
 %-image:
-	docker buildx build . --target $* --tag quay.io/argoprojlabs/dataflow-$*:$(TAG) --load --build-arg VERSION="$(VERSION)"
+	docker buildx build . --target $* --tag sarabala1979/dataflow-$*:$(TAG) --load --build-arg VERSION="$(VERSION)"
 ifeq ($(K3D),true)
 	k3d image import quay.io/argoprojlabs/dataflow-$*:$(TAG)
 endif
