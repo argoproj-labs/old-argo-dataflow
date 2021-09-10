@@ -23,7 +23,7 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, err
 	sinks := map[string]sink.Interface{}
 	rateCounters := map[string]*ratecounter.RateCounter{}
 	for _, s := range step.Spec.Sinks {
-		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s), "uri", s.GetURN(ctx))
+		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
 		sinkName := s.Name
 		if _, exists := sinks[sinkName]; exists {
 			return nil, fmt.Errorf("duplicate sink named %q", sinkName)
