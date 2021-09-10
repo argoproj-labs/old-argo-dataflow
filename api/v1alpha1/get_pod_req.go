@@ -10,7 +10,6 @@ type GetPodSpecReq struct {
 	Cluster          string                        `protobuf:"bytes,9,opt,name=cluster"`
 	Debug            bool                          `protobuf:"varint,12,opt,name=debug"`
 	PipelineName     string                        `protobuf:"bytes,1,opt,name=pipelineName"`
-	Namespace        string                        `protobuf:"bytes,2,opt,name=namespace"`
 	Replica          int32                         `protobuf:"varint,3,opt,name=replica"`
 	ImageFormat      string                        `protobuf:"bytes,4,opt,name=imageFormat"`
 	RunnerImage      string                        `protobuf:"bytes,5,opt,name=runnerImage"`
