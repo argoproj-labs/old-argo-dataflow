@@ -168,8 +168,6 @@ message GetPodSpecReq {
 
   optional string pipelineName = 1;
 
-  optional string namespace = 2;
-
   optional int32 replica = 3;
 
   optional string imageFormat = 4;
