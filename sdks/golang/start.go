@@ -5,10 +5,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func Start(handler func(ctx context.Context, msg []byte) ([]byte, error)) {
-	ctx := SetupSignalsHandler(context.Background())
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
+	defer cancel()
 	if err := StartWithContext(ctx, handler); err != nil {
 		panic(err)
 	}

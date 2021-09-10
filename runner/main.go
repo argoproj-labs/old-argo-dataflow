@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"os/signal"
+	"syscall"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/cat"
@@ -20,7 +22,6 @@ import (
 	_map "github.com/argoproj-labs/argo-dataflow/runner/map"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
 	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
-	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -44,7 +45,8 @@ func init() {
 }
 
 func main() {
-	ctx := golang.SetupSignalsHandler(context.Background())
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
+	defer cancel()
 
 	err := func() error {
 		switch os.Args[1] {
