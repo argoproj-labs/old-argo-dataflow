@@ -79,9 +79,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	}
 
 	client := s3.New(options)
+	sourceURN := x.GetURN(ctx)
 
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
 		Logger:       logger,
+		SourceURN:    sourceURN,
 		PipelineName: pipelineName,
 		StepName:     stepName,
 		SourceName:   sourceName,
@@ -112,7 +114,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
 			}()
-			return process(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})))
+			return process(
+				dfv1.ContextWithMeta(ctx, sourceURN, key, *output.LastModified),
+				[]byte(sharedutil.MustJSON(message{Key: key, Path: path})),
+			)
 		},
 		ListItems: func() ([]interface{}, error) {
 			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: aws.String(x.Bucket)})

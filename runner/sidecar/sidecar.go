@@ -33,6 +33,7 @@ var (
 	logger              = sharedutil.NewLogger()
 	cluster             = os.Getenv(dfv1.EnvCluster)
 	namespace           = os.Getenv(dfv1.EnvNamespace)
+	pod                 = os.Getenv(dfv1.EnvPod)
 	patchMu             = sync.Mutex{}
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
 	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
@@ -53,6 +54,9 @@ func becomeUnreadyHook(context.Context) error {
 }
 
 func Exec(ctx context.Context) error {
+	ctx = dfv1.ContextWithCluster(ctx, cluster)
+	ctx = dfv1.ContextWithNamespace(ctx, namespace)
+	ctx = dfv1.ContextWithPod(ctx, pod)
 	restConfig := ctrl.GetConfigOrDie()
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
@@ -277,7 +281,12 @@ func enrichSpec(ctx context.Context) error {
 
 func enrichSources(ctx context.Context) error {
 	for i, source := range step.Spec.Sources {
-		if x := source.STAN; x != nil {
+		if x := source.HTTP; x != nil {
+			if x.ServiceName == "" {
+				x.ServiceName = pipelineName + "-" + stepName
+			}
+			source.HTTP = x
+		} else if x := source.STAN; x != nil {
 			if err := enrichSTAN(ctx, x); err != nil {
 				return err
 			}

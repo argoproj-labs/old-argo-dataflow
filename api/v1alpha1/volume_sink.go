@@ -1,5 +1,11 @@
 package v1alpha1
 
-import corev1 "k8s.io/api/core/v1"
+import "context"
 
-type VolumeSink corev1.VolumeSource
+type VolumeSink struct {
+	VolumeSource AbstractVolumeSource `json:",inline" protobuf:"bytes,1,opt,name=volumeSource"`
+}
+
+func (in VolumeSink) GetURN(ctx context.Context) string {
+	return in.VolumeSource.GetURN(ctx)
+}

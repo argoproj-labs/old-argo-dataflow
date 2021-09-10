@@ -1,5 +1,10 @@
 package v1alpha1
 
+import (
+	"context"
+	"fmt"
+)
+
 type Source struct {
 	// +kubebuilder:default=default
 	Name   string        `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
@@ -12,4 +17,27 @@ type Source struct {
 	Volume *VolumeSource `json:"volume,omitempty" protobuf:"bytes,9,opt,name=volume"`
 	// +kubebuilder:default={duration: "100ms", steps: 20, factorPercentage: 200, jitterPercentage: 10}
 	Retry Backoff `json:"retry,omitempty" protobuf:"bytes,7,opt,name=retry"`
+}
+
+func (s Source) get() urner {
+	if v := s.Cron; v != nil {
+		return v
+	} else if v := s.DB; v != nil {
+		return v
+	} else if v := s.HTTP; v != nil {
+		return v
+	} else if v := s.Kafka; v != nil {
+		return v
+	} else if v := s.S3; v != nil {
+		return v
+	} else if v := s.STAN; v != nil {
+		return v
+	} else if v := s.Volume; v != nil {
+		return v
+	}
+	panic(fmt.Errorf("invalid source %q", s.Name))
+}
+
+func (s Source) GetURN(ctx context.Context) string {
+	return s.get().GetURN(ctx)
 }

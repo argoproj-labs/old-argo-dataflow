@@ -1,11 +1,24 @@
 package v1alpha1
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	"context"
+	"fmt"
+
+	corev1 "k8s.io/api/core/v1"
+)
 
 type Database struct {
 	// +kubebuilder:default=default
 	Driver     string        `json:"driver,omitempty" protobuf:"bytes,1,opt,name=driver"`
 	DataSource *DBDataSource `json:"dataSource,omitempty" protobuf:"bytes,2,opt,name=dataSource"`
+}
+
+func (in Database) GetURN(ctx context.Context) string {
+	if in.DataSource.Value != "" {
+		return fmt.Sprintf("urn:dataflow:db:%s", in.DataSource.Value)
+	} else {
+		return fmt.Sprintf("urn:dataflow:db:%s:%s", dnsName(ctx, "Secret", in.DataSource.ValueFrom.SecretKeyRef.Name), in.DataSource.ValueFrom.SecretKeyRef.Key)
+	}
 }
 
 type DBDataSource struct {

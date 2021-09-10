@@ -1,6 +1,9 @@
 package v1alpha1
 
 import (
+	"context"
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -24,6 +27,10 @@ type STAN struct {
 	// between commits, therefore potential duplicates during disruption
 	// +kubebuilder:default=20
 	MaxInflight uint32 `json:"maxInflight,omitempty" protobuf:"bytes,9,opt,name=maxInflight"`
+}
+
+func (s STAN) GetURN(context.Context) string {
+	return fmt.Sprintf("urn:dataflow:stan:%s:%s", s.NATSURL, s.Subject)
 }
 
 type STANAuth struct {

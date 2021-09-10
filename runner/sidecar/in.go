@@ -72,7 +72,14 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			defer inFlight.Dec()
 			start := time.Now()
 			defer func() { messageTimeSeconds.Observe(time.Since(start).Seconds()) }()
-			if resp, err := httpClient.Post("http://localhost:8080/messages", "application/octet-stream", bytes.NewBuffer(data)); err != nil {
+			req, err := http.NewRequest("POST", "http://localhost:8080/messages", bytes.NewBuffer(data))
+			if err != nil {
+				return err
+			}
+			// https://github.com/cloudevents/spec/blob/v1.0.1/http-protocol-binding.md#3132-http-header-values
+			req.Header.Add("source", dfv1.GetMetaSource(ctx))
+			req.Header.Add("id", dfv1.GetMetaID(ctx))
+			if resp, err := httpClient.Do(req); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
 			} else {
 				body, _ := ioutil.ReadAll(resp.Body)

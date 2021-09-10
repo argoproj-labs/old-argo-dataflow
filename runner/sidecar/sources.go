@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
 	dbsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/db"
@@ -56,7 +58,8 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
-		logger.Info("connecting source", "source", sharedutil.MustJSON(s))
+		sourceURN := s.GetURN(ctx)
+		logger.Info("connecting source", "source", sharedutil.MustJSON(s), "urn", sourceURN)
 		sourceName := s.Name
 		if _, exists := sources[sourceName]; exists {
 			return fmt.Errorf("duplicate source named %q", sourceName)
@@ -82,7 +85,10 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
-					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+					ctx, cancel := context.WithTimeout(
+						dfv1.ContextWithMeta(context.Background(), dfv1.GetMetaSource(ctx), dfv1.GetMetaID(ctx)),
+						15*time.Second,
+					)
 					err := process(ctx, msg)
 					cancel()
 					if err == nil {
@@ -123,7 +129,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			if err != nil {
 				return fmt.Errorf("failed to get secret %q: %w", step.Name, err)
 			}
-			sources[sourceName] = httpsource.New(sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
+			sources[sourceName] = httpsource.New(sourceURN, sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
 		} else if x := s.S3; x != nil {
 			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, processWithRetry, leadReplica()); err != nil {
 				return err

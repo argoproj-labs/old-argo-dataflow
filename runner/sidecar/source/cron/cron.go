@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -30,9 +32,13 @@ func New(ctx context.Context, x dfv1.Cron, process source.Process) (source.Inter
 		crn.Run()
 	}()
 
+	sourceURN := x.GetURN(ctx)
 	_, err := crn.AddFunc(x.Schedule, func() {
 		msg := []byte(time.Now().Format(x.Layout))
-		if err := process(ctx, msg); err != nil {
+		if err := process(
+			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String(), time.Now()),
+			msg,
+		); err != nil {
 			logger.Error(err, "failed to process message")
 		}
 	})
