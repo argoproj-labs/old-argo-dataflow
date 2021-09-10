@@ -72,7 +72,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			name := fmt.Sprintf("source-%s", source.Name)
 			volumes = append(volumes, corev1.Volume{
 				Name:         name,
-				VolumeSource: corev1.VolumeSource(x.VolumeSource),
+				VolumeSource: corev1.VolumeSource(x.AbstractVolumeSource),
 			})
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
@@ -86,7 +86,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			name := fmt.Sprintf("sink-%s", source.Name)
 			volumes = append(volumes, corev1.Volume{
 				Name:         name,
-				VolumeSource: corev1.VolumeSource(x.VolumeSource),
+				VolumeSource: corev1.VolumeSource(x.AbstractVolumeSource),
 			})
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
