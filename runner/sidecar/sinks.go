@@ -22,46 +22,46 @@ import (
 func connectSinks(ctx context.Context) (func(context.Context, []byte) error, error) {
 	sinks := map[string]sink.Interface{}
 	rateCounters := map[string]*ratecounter.RateCounter{}
-	for _, sink := range step.Spec.Sinks {
-		logger.Info("connecting sink", "sink", sharedutil.MustJSON(sink))
-		sinkName := sink.Name
+	for _, s := range step.Spec.Sinks {
+		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
+		sinkName := s.Name
 		if _, exists := sinks[sinkName]; exists {
 			return nil, fmt.Errorf("duplicate sink named %q", sinkName)
 		}
 		rateCounters[sinkName] = ratecounter.NewRateCounter(updateInterval)
-		if x := sink.STAN; x != nil {
+		if x := s.STAN; x != nil {
 			if y, err := stan.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sinkName, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.Kafka; x != nil {
+		} else if x := s.Kafka; x != nil {
 			if y, err := kafka.New(ctx, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.Log; x != nil {
+		} else if x := s.Log; x != nil {
 			sinks[sinkName] = logsink.New(*x)
-		} else if x := sink.HTTP; x != nil {
+		} else if x := s.HTTP; x != nil {
 			if y, err := http.New(ctx, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.S3; x != nil {
+		} else if x := s.S3; x != nil {
 			if y, err := s3sink.New(ctx, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.DB; x != nil {
+		} else if x := s.DB; x != nil {
 			if y, err := dbsink.New(ctx, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.Volume; x != nil {
+		} else if x := s.Volume; x != nil {
 			if y, err := volumesink.New(); err != nil {
 				return nil, err
 			} else {
