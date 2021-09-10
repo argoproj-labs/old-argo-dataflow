@@ -1,10 +1,11 @@
 package controllers
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
-	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -40,6 +41,8 @@ func TestAPIs(t *testing.T) {
 var _ = BeforeSuite(func(done Done) {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter)))
 
+	_ = os.Setenv(dfv1.EnvCluster, "test")
+
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
@@ -56,7 +59,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	ck := containerkiller.New(k, cfg)
 
-	err = dataflowv1alpha1.AddToScheme(scheme.Scheme)
+	err = dfv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 	// +kubebuilder:scaffold:scheme
 
@@ -83,6 +86,7 @@ var _ = BeforeSuite(func(done Done) {
 		Log:             ctrl.Log.WithName("controllers").WithName("Step"),
 		ContainerKiller: ck,
 		Recorder:        record.NewFakeRecorder(1),
+		Cluster:         "test",
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 

@@ -105,13 +105,13 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, processWithRetry); err != nil {
+			if y, err := stan.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, replica, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			groupID := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
+			groupID := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
 			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
@@ -131,7 +131,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				sources[sourceName] = y
 			}
 		} else if x := s.DB; x != nil {
-			if y, err := dbsource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, sourceName, *x, processWithRetry); err != nil {
+			if y, err := dbsource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

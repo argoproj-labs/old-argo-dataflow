@@ -25,7 +25,7 @@ import (
 
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
 
-	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,7 +43,7 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
-	_ = dataflowv1alpha1.AddToScheme(scheme)
+	_ = dfv1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -65,7 +65,7 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "1c03be80.my.domain",
-		Namespace:          os.Getenv(dataflowv1alpha1.EnvNamespace),
+		Namespace:          os.Getenv(dfv1.EnvNamespace),
 	})
 	if err != nil {
 		panic(fmt.Errorf("unable to start manager: %w", err))
@@ -90,6 +90,8 @@ func main() {
 		Recorder:         mgr.GetEventRecorderFor("step-reconciler"),
 		ContainerKiller:  containerKiller,
 		DynamicInterface: dynamicInterface,
+		Cluster:          os.Getenv(dfv1.EnvCluster),
+		Debug:            os.Getenv(dfv1.EnvDebug) == "true",
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}

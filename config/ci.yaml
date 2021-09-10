@@ -14202,7 +14202,7 @@ spec:
           value: IfNotPresent
         - name: ARGO_DATAFLOW_UPDATE_INTERVAL
           value: 5s
-        - name: ARGO_DATAFLOW_CLUSTER_NAME
+        - name: ARGO_DATAFLOW_CLUSTER
           value: ci
         - name: ARGO_DATAFLOW_NAMESPACE
           valueFrom:

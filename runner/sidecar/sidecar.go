@@ -31,7 +31,7 @@ import (
 
 var (
 	logger              = sharedutil.NewLogger()
-	clusterName         = os.Getenv(dfv1.EnvClusterName)
+	cluster             = os.Getenv(dfv1.EnvCluster)
 	namespace           = os.Getenv(dfv1.EnvNamespace)
 	patchMu             = sync.Mutex{}
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
@@ -60,11 +60,11 @@ func Exec(ctx context.Context) error {
 
 	sharedutil.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
-	logger.Info("step", "clusterName", clusterName, "step", sharedutil.MustJSON(step))
+	logger.Info("step", "cluster", cluster, "step", sharedutil.MustJSON(step))
 
-	if clusterName == "" {
+	if cluster == "" {
 		// this must be configured in the controller
-		return fmt.Errorf("cluster name (%q) was not specifcied", dfv1.EnvClusterName)
+		return fmt.Errorf("cluster (%q) was not specifcied", dfv1.EnvCluster)
 	}
 
 	stepName = step.Spec.Name

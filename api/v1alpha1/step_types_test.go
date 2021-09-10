@@ -17,7 +17,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 	for replica, priorityClassName := range map[int]string{0: "lead-replica", 1: ""} {
 		t.Run(fmt.Sprintf("Replica%d", replica), func(t *testing.T) {
 			env := []corev1.EnvVar{
-				{Name: "ARGO_DATAFLOW_CLUSTER_NAME", Value: "my-cluster"},
+				{Name: "ARGO_DATAFLOW_CLUSTER", Value: "my-cluster"},
 				{Name: "ARGO_DATAFLOW_DEBUG", Value: "false"},
 				{Name: "ARGO_DATAFLOW_NAMESPACE", Value: "my-ns"},
 				{Name: "ARGO_DATAFLOW_PIPELINE_NAME", Value: "my-pl"},
@@ -48,7 +48,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 						},
 					},
 					GetPodSpecReq{
-						ClusterName:    "my-cluster",
+						Cluster:        "my-cluster",
 						ImageFormat:    "image-%s",
 						Namespace:      "my-ns",
 						PipelineName:   "my-pl",

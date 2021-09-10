@@ -162,7 +162,7 @@ message Flatten {
 }
 
 message GetPodSpecReq {
-  optional string clusterName = 9;
+  optional string cluster = 9;
 
   optional bool debug = 12;
 

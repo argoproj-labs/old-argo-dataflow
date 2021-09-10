@@ -96,7 +96,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	}
 	step, _ := json.Marshal(in.withoutManagedFields())
 	envVars := []corev1.EnvVar{
-		{Name: EnvClusterName, Value: req.ClusterName},
+		{Name: EnvCluster, Value: req.Cluster},
 		{Name: EnvDebug, Value: strconv.FormatBool(req.Debug)},
 		{Name: EnvNamespace, Value: req.Namespace},
 		{Name: EnvPipelineName, Value: req.PipelineName},

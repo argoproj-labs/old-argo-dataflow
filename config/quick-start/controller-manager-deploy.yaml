@@ -9,5 +9,5 @@ spec:
       containers:
         - name: manager
           env:
-            - name: ARGO_DATAFLOW_CLUSTER_NAME
-              value: "default"
+            - name: ARGO_DATAFLOW_CLUSTER
+              value: quick-start

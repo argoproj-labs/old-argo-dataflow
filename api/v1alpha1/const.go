@@ -18,7 +18,7 @@ const (
 	CtrMain    = "main"
 	CtrSidecar = "sidecar"
 	// env vars
-	EnvClusterName      = "ARGO_DATAFLOW_CLUSTER_NAME"
+	EnvCluster          = "ARGO_DATAFLOW_CLUSTER"
 	EnvDebug            = "ARGO_DATAFLOW_DEBUG"        // enable default mode, default "false"
 	EnvImagePrefix      = "ARGO_DATAFLOW_IMAGE_PREFIX" // default "quay.io/argoproj"
 	EnvNamespace        = "ARGO_DATAFLOW_NAMESPACE"

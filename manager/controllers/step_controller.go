@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
@@ -54,20 +53,13 @@ type StepReconciler struct {
 	Recorder         record.EventRecorder
 	ContainerKiller  containerkiller.Interface
 	DynamicInterface dynamic.Interface
+	Cluster          string
+	Debug            bool
 }
 
 type hash struct {
 	RunnerImage string        `json:"runnerImage"`
 	StepSpec    dfv1.StepSpec `json:"stepSpec"`
-}
-
-var (
-	clusterName = os.Getenv(dfv1.EnvClusterName)
-	debug       = os.Getenv(dfv1.EnvDebug) == "true"
-)
-
-func init() {
-	logger.Info("config", "clusterName", clusterName, "debug", debug)
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
@@ -181,8 +173,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
-						ClusterName:      clusterName,
-						Debug:            debug,
+						Cluster:          r.Cluster,
+						Debug:            r.Debug,
 						PipelineName:     pipelineName,
 						Namespace:        step.Namespace,
 						Replica:          int32(replica),
@@ -320,6 +312,9 @@ func eventReason(currentReplicas, desiredReplicas int) string {
 }
 
 func (r *StepReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if r.Cluster == "" {
+		return fmt.Errorf("cluster must be set")
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dfv1.Step{}).
 		Owns(&corev1.Pod{}).

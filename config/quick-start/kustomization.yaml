@@ -3,4 +3,4 @@ resources:
   - ../default
 
 patchesStrategicMerge:
-- manager-deploy-env.yaml
+  - controller-manager-deploy.yaml

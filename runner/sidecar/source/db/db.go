@@ -30,7 +30,7 @@ type dbSource struct {
 	db *sql.DB
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName, sourceName string, x dfv1.DBSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName string, x dfv1.DBSource, process source.Process) (source.Interface, error) {
 	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
@@ -49,8 +49,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 	}
 
 	var offset string
-	remark := fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName)
-	uid := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
+	remark := fmt.Sprintf("%s.%s.%s.%s.sources.%s", cluster, namespace, pipelineName, stepName, sourceName)
+	uid := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
 	offset, err = getOffsetFromDB(ctx, db, uid)
 	if err != nil {
 		if err == sql.ErrNoRows {
