@@ -32,7 +32,7 @@ func Handler(ctx context.Context, m []byte) ([]byte, error) {
 }`,
 					},
 					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{{Volume: &VolumeSink{EmptyDir: &corev1.EmptyDirVolumeSource{}}}},
+					Sinks:   []Sink{{Volume: &VolumeSink{VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}}}},
 				},
 			},
 		},
