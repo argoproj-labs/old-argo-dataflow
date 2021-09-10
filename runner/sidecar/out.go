@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -37,7 +38,10 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		if err := sink(r.Context(), data); err != nil {
+		if err := sink(
+			dfv1.ContextWithMeta(r.Context(), fmt.Sprintf("%s.pod.%s.%s", pod, namespace, cluster), uuid.New().String()),
+			data,
+		); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
