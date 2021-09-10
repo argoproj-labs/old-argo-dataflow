@@ -30,7 +30,6 @@ const (
 	EnvScalingDelay     = "ARGO_DATAFLOW_SCALING_DELAY"      // how long to wait between any scaling events (including peeking) default "4m"
 	EnvUpdateInterval   = "ARGO_DATAFLOW_UPDATE_INTERVAL"    // default "1m"
 	EnvImagePullSecrets = "ARGO_DATAFLOW_IMAGE_PULL_SECRETS" // allows providing a list of imagePullSecrets as a comma delimited string (eg. "secret1,secret2")
-	EnvServiceName      = "ARGO_DATAFLOW_SERVICE_NAME"       // name of the service created
 	// label/annotation keys
 	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
 	KeyDescription      = "dataflow.argoproj.io/description"

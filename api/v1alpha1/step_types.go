@@ -103,7 +103,6 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
 		{Name: EnvStep, Value: string(step)},
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
-		{Name: EnvServiceName, Value: req.Subdomain},
 		{Name: "GODEBUG", Value: os.Getenv("GODEBUG")},
 	}
 	dropAll := &corev1.SecurityContext{

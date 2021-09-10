@@ -36,7 +36,6 @@ var (
 	namespace           = os.Getenv(dfv1.EnvNamespace)
 	patchMu             = sync.Mutex{}
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
-	serviceName         = os.Getenv(dfv1.EnvServiceName)
 	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
 	dynamicInterface    dynamic.Interface
 	lastStep            dfv1.Step
@@ -127,7 +126,7 @@ func Exec(ctx context.Context) error {
 			Name: "replicas",
 			Help: "Number of replicas, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#replicas",
 		}, func() float64 {
-			if ips, err := net.LookupIP(fmt.Sprintf("%s.%s.svc", serviceName, namespace)); err != nil {
+			if ips, err := net.LookupIP(fmt.Sprintf("%s.%s.svc", pipelineName+"-"+stepName, namespace)); err != nil {
 				return 0
 			} else {
 				return float64(len(ips))
