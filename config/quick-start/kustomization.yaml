@@ -1,3 +1,6 @@
 namespace: argo-dataflow-system
 resources:
   - ../default
+
+patchesStrategicMerge:
+- manager-deploy-env.yaml
