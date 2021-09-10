@@ -131,6 +131,44 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	ownerReferences := []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)}
 
+	serviceName := pipelineName + "-" + stepName
+	for _, s := range step.Spec.Sources {
+		if x := s.HTTP; x != nil {
+			if n := x.ServiceName; n != "" {
+				serviceName = n
+			}
+		}
+	}
+
+	if err := r.Client.Create(
+		ctx,
+		&corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace:       step.Namespace,
+				Name:            serviceName,
+				OwnerReferences: ownerReferences,
+				// useful for auto-detecting the service as exporting Prometheus
+				Labels: map[string]string{
+					dfv1.KeyStepName:     stepName,
+					dfv1.KeyPipelineName: pipelineName,
+				},
+			},
+			Spec: corev1.ServiceSpec{
+				ClusterIP: "None",
+				Ports: []corev1.ServicePort{
+					{Port: 443, TargetPort: intstr.FromInt(3570)},
+				},
+				Selector: map[string]string{
+					dfv1.KeyPipelineName: pipelineName,
+					dfv1.KeyStepName:     stepName,
+				},
+			},
+		},
+	); util.IgnoreAlreadyExists(err) != nil {
+		x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
+		step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
+	}
+
 	for replica := 0; replica < desiredReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
 		_labels := map[string]string{}
@@ -185,6 +223,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						StepStatus:       step.Status,
 						Sidecar:          step.Spec.Sidecar,
 						ImagePullSecrets: reqImagePullSecrets,
+						Hostname:         podName,
+						Subdomain:        serviceName,
 					},
 				),
 			},
@@ -195,51 +235,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 		} else {
 			log.Info("pod created", "pod", podName)
-		}
-	}
-
-	serviceNames := map[string]bool{}
-	for _, s := range step.Spec.Sources {
-		serviceName := pipelineName + "-" + stepName
-		if x := s.HTTP; x != nil {
-			if n := x.ServiceName; n != "" {
-				serviceName = n
-			}
-			serviceNames[serviceName] = true
-		} else if x := s.S3; x != nil {
-			serviceNames[serviceName] = true
-		} else if x := s.Volume; x != nil {
-			serviceNames[serviceName] = true
-		}
-	}
-
-	for serviceName := range serviceNames {
-		if err := r.Client.Create(
-			ctx,
-			&corev1.Service{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace:       step.Namespace,
-					Name:            serviceName,
-					OwnerReferences: ownerReferences,
-					// useful for auto-detecting the service as exporting Prometheus
-					Labels: map[string]string{
-						dfv1.KeyStepName:     stepName,
-						dfv1.KeyPipelineName: pipelineName,
-					},
-				},
-				Spec: corev1.ServiceSpec{
-					Ports: []corev1.ServicePort{
-						{Port: 443, TargetPort: intstr.FromInt(3570)},
-					},
-					Selector: map[string]string{
-						dfv1.KeyPipelineName: pipelineName,
-						dfv1.KeyStepName:     stepName,
-					},
-				},
-			},
-		); util.IgnoreAlreadyExists(err) != nil {
-			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
-			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 		}
 	}
 
