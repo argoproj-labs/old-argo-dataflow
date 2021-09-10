@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/google/uuid"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 

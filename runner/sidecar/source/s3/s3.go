@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"syscall"
 
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
@@ -17,9 +15,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
-	"k8s.io/apimachinery/pkg/util/runtime"
-
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -83,10 +81,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
 		Logger:       logger,
-		SourceURN:    sourceURN,
 		PipelineName: pipelineName,
 		StepName:     stepName,
 		SourceName:   sourceName,
+		SourceURN:    sourceURN,
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,

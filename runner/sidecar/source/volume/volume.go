@@ -18,19 +18,25 @@ type message struct {
 }
 
 func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.VolumeSource, process source.Process, leadReplica bool) (source.HasPending, error) {
+	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
-	logger := sharedutil.NewLogger()
+	sourceURN := x.GetURN(ctx)
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
 		Logger:       logger,
 		PipelineName: pipelineName,
 		StepName:     stepName,
 		SourceName:   sourceName,
+		SourceURN:    sourceURN,
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
 		Process: func(ctx context.Context, msg []byte) error {
-			path := filepath.Join(dir, string(msg))
-			return process(ctx, []byte(sharedutil.MustJSON(message{Path: path})))
+			key := string(msg)
+			path := filepath.Join(dir, key)
+			return process(
+				dfv1.ContextWithMeta(ctx, sourceURN, key),
+				[]byte(sharedutil.MustJSON(message{Path: path})),
+			)
 		},
 		ListItems: func() ([]interface{}, error) {
 			var keys []interface{}

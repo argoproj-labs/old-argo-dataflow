@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/runtime"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
@@ -63,13 +65,15 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	}
 
 	go func() {
+		defer runtime.HandleCrash()
+		sourceURN := x.GetURN(ctx)
 		for {
 			time.Sleep(x.PollInterval.Duration)
 			select {
 			case <-ctx.Done():
 				return
 			default:
-				if err = queryData(ctx, db, x.Query, x.OffsetColumn, offset, func(d rowData) error {
+				if err = queryData(ctx, db, sourceURN, x.Query, x.OffsetColumn, offset, func(ctx context.Context, d rowData) error {
 					jsonData, err := json.Marshal(d)
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)
@@ -88,6 +92,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 
 	// update offset in db
 	go func() {
+		defer runtime.HandleCrash()
 		ticker := time.NewTicker(x.CommitInterval.Duration)
 		defer ticker.Stop()
 		for {
@@ -153,7 +158,7 @@ func insertOffset(ctx context.Context, db *sql.DB, uid, remark, offset string) (
 	}
 }
 
-func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset string, f func(rowData) error) error {
+func queryData(ctx context.Context, db *sql.DB, sourceURN, query, offsetColumn, offset string, f func(context.Context, rowData) error) error {
 	sql := fmt.Sprintf("select * from (%s) as dataflow_query_table order by %s", query, offsetColumn)
 	params := []interface{}{}
 	if offset != "" {
@@ -195,7 +200,11 @@ func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset stri
 				entry[col] = val
 			}
 		}
-		if err = f(entry); err != nil {
+		id := fmt.Sprint(entry[offsetColumn])
+		if err = f(
+			dfv1.ContextWithMeta(ctx, sourceURN, id),
+			entry,
+		); err != nil {
 			logger.Error(err, "failed to process message")
 		}
 	}
