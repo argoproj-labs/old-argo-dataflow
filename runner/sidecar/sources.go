@@ -54,6 +54,16 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		Help:      "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
 	}, []string{"sourceName", "replica"})
 
+	initMetrics := func(sourceName string, replica int) {
+		if pendingGauge != nil {
+			pendingGauge.WithLabelValues(sourceName).Add(0)
+		}
+		errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(0)
+		retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(0)
+		totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(0)
+		totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(0)
+	}
+
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
 		logger.Info("connecting source", "source", sharedutil.MustJSON(s))
@@ -163,6 +173,8 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				return nil
 			})
 		}
+		// to make sure all the metrics have output
+		initMetrics(sourceName, replica)
 	}
 	return nil
 }
