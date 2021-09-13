@@ -126,7 +126,7 @@ func Exec(ctx context.Context) error {
 			Name: "replicas",
 			Help: "Number of replicas, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#replicas",
 		}, func() float64 {
-			if ips, err := net.LookupIP(fmt.Sprintf("%s.%s.svc", pipelineName+"-"+stepName, namespace)); err != nil {
+			if ips, err := net.LookupIP(fmt.Sprintf("%s.%s.svc", pipelineName+"-"+stepName+"-svc", namespace)); err != nil {
 				return 0
 			} else {
 				return float64(len(ips))

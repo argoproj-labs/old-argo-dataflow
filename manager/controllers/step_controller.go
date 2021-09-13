@@ -186,7 +186,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						Sidecar:          step.Spec.Sidecar,
 						ImagePullSecrets: reqImagePullSecrets,
 						Hostname:         podName,
-						Subdomain:        pipelineName + "-" + stepName,
+						Subdomain:        pipelineName + "-" + stepName + "-svc",
 					},
 				),
 			},
@@ -200,41 +200,54 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	serviceNames := map[string]bool{pipelineName + "-" + stepName: true}
+	buildServiceObj := func(serviceName string, isHeadless bool) *corev1.Service {
+		svc := &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace:       step.Namespace,
+				Name:            serviceName,
+				OwnerReferences: ownerReferences,
+				// useful for auto-detecting the service as exporting Prometheus
+				Labels: map[string]string{
+					dfv1.KeyStepName:     stepName,
+					dfv1.KeyPipelineName: pipelineName,
+				},
+			},
+			Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{Port: 443, TargetPort: intstr.FromInt(3570)},
+				},
+				Selector: map[string]string{
+					dfv1.KeyPipelineName: pipelineName,
+					dfv1.KeyStepName:     stepName,
+				},
+			},
+		}
+		if isHeadless {
+			svc.Spec.ClusterIP = "None"
+			svc.Spec.Ports[0].Port = 3570
+		}
+		return svc
+	}
+
+	serviceObjs := []*corev1.Service{buildServiceObj(pipelineName+"-"+stepName+"-svc", true)}
 	for _, s := range step.Spec.Sources {
 		if x := s.HTTP; x != nil {
-			if n := x.ServiceName; n != "" {
-				serviceNames[n] = true
+			serviceName := pipelineName + "-" + stepName
+			if x := s.HTTP; x != nil {
+				if n := x.ServiceName; n != "" {
+					serviceName = n
+				}
+				serviceObjs = append(serviceObjs, buildServiceObj(serviceName, false))
+			} else if x := s.S3; x != nil {
+				serviceObjs = append(serviceObjs, buildServiceObj(serviceName, false))
+			} else if x := s.Volume; x != nil {
+				serviceObjs = append(serviceObjs, buildServiceObj(serviceName, false))
 			}
 		}
 	}
 
-	for serviceName := range serviceNames {
-		if err := r.Client.Create(
-			ctx,
-			&corev1.Service{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace:       step.Namespace,
-					Name:            serviceName,
-					OwnerReferences: ownerReferences,
-					// useful for auto-detecting the service as exporting Prometheus
-					Labels: map[string]string{
-						dfv1.KeyStepName:     stepName,
-						dfv1.KeyPipelineName: pipelineName,
-					},
-				},
-				Spec: corev1.ServiceSpec{
-					ClusterIP: "None",
-					Ports: []corev1.ServicePort{
-						{Port: 443, TargetPort: intstr.FromInt(3570)},
-					},
-					Selector: map[string]string{
-						dfv1.KeyPipelineName: pipelineName,
-						dfv1.KeyStepName:     stepName,
-					},
-				},
-			},
-		); util.IgnoreAlreadyExists(err) != nil {
+	for _, obj := range serviceObjs {
+		if err := r.Client.Create(ctx, obj); util.IgnoreAlreadyExists(err) != nil {
 			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
 			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 		}
