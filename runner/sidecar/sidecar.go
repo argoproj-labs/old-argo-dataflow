@@ -54,6 +54,8 @@ func becomeUnreadyHook(context.Context) error {
 }
 
 func Exec(ctx context.Context) error {
+	ctx = dfv1.ContextWithCluster(ctx, cluster)
+	ctx = dfv1.ContextWithNamespace(ctx, namespace)
 	restConfig := ctrl.GetConfigOrDie()
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)

@@ -652,8 +652,6 @@ message Source {
   // +kubebuilder:default=default
   optional string name = 1;
 
-  optional string urn = 10;
-
   optional Cron cron = 2;
 
   optional STAN stan = 3;
