@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type meta struct{ string } // TODO - not sure we actually need the string to make each one unique
+type meta struct{ string }
 
 func (m meta) String() string { return m.string }
 
