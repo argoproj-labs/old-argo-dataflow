@@ -21,7 +21,7 @@ type cronSource struct {
 	crn *cron.Cron
 }
 
-func New(ctx context.Context, x dfv1.Cron, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, sourceURN string, x dfv1.Cron, process source.Process) (source.Interface, error) {
 	crn := cron.New(
 		cron.WithParser(cron.NewParser(cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
 		cron.WithChain(cron.Recover(logger)),
@@ -32,7 +32,6 @@ func New(ctx context.Context, x dfv1.Cron, process source.Process) (source.Inter
 		crn.Run()
 	}()
 
-	sourceURN := x.GenURN(ctx)
 	_, err := crn.AddFunc(x.Schedule, func() {
 		msg := []byte(time.Now().Format(x.Layout))
 		if err := process(

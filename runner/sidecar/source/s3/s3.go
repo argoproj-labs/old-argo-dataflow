@@ -26,7 +26,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.S3Source, process source.Process, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.S3Source, process source.Process, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", x.Name, "bucket", x.Bucket)
 	var accessKeyID string
 	{
@@ -77,7 +77,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	}
 
 	client := s3.New(options)
-	sourceURN := x.GenURN(ctx)
 
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
 		Logger:       logger,

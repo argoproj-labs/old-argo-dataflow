@@ -29,7 +29,7 @@ type stanSource struct {
 	queueName         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName string, replica int, sourceName string, x dfv1.STAN, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.STAN, process source.Process) (source.Interface, error) {
 	genClientID := func() string {
 		// In a particular situation, the stan connection status is inconsistent between stan server and client,
 		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
@@ -50,7 +50,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	// https://docs.nats.io/developing-with-nats-streaming/queues
 	var sub stan.Subscription
 	queueName := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
-	sourceURN := x.GenURN(ctx)
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {

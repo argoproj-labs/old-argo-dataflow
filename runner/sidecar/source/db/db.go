@@ -32,7 +32,7 @@ type dbSource struct {
 	db *sql.DB
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName string, x dfv1.DBSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, x dfv1.DBSource, process source.Process) (source.Interface, error) {
 	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
@@ -66,7 +66,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 
 	go func() {
 		defer runtime.HandleCrash()
-		sourceURN := x.GenURN(ctx)
 		for {
 			time.Sleep(x.PollInterval.Duration)
 			select {

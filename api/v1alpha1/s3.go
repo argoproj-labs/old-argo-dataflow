@@ -16,5 +16,5 @@ type S3 struct {
 
 func (in S3) GenURN(context.Context) string {
 	// An Amazon S3 bucket name is globally unique, and the namespace is shared by all AWS accounts.
-	return fmt.Sprintf("urn:dataflow:aws:s3:%s", in.Bucket)
+	return fmt.Sprintf("urn:dataflow:s3:%s", in.Bucket)
 }

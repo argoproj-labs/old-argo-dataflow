@@ -26,7 +26,7 @@ type kafkaSource struct {
 	topic         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGroupID, sourceName string, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGroupID, sourceName, sourceURN string, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	config, err := kafka.GetConfig(ctx, secretInterface, x.Kafka.KafkaConfig)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
-	h := handler{x.GenURN(ctx), process, 0, !x.AutoCommit.Enable}
+	h := handler{sourceURN, process, 0, !x.AutoCommit.Enable}
 	go wait.JitterUntil(func() {
 		defer runtime.HandleCrash()
 		ctx := context.Background()

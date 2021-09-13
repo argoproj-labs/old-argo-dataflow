@@ -15,8 +15,7 @@ Source:
 * Database: `urn:dataflow:db:${dbURL}` or `urn:dataflow:db:${secret}.pod.${namespace}.${cluster}`
 * HTTP: `urn:dataflow:http:https://${serviceName}.svc.${namespace}.${cluster}` or `urn:dataflow:http:${endpoint}`
 * Kafka: `urn:dataflow:kafka:${broker[0]}:${topic}`
-* Log: `urn:dataflow:log:${pod}.pod.${namespace}.${cluster}`
-* S3: `urn:dataflow:aws:s3:${bucket}`
+* S3: `urn:dataflow:s3:${bucket}`
 * STAN: `urn:dataflow:stan:${natsURL}:${subject}`
 * Volume:
     * `urn:dataflow:volume:emptydir:${pod}.pod.${namespace}.${cluster}`
@@ -28,7 +27,6 @@ IDs:
 * Database: `${offset}`
 * HTTP: `$randomGUID}`
 * Kafka: `${partiton}-${offset}`
-* Log: N/A
 * S3: `${key}`
 * STAN: `${sequence}`
 * Volume: `${filename}`
