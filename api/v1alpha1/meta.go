@@ -19,8 +19,6 @@ var (
 	MetaID = meta{"id"}
 	// MetaNamespace the Kubernetes namespace.
 	MetaNamespace = meta{"namespace"}
-	// MetaPod the Kubernetes pod name.
-	MetaPod = meta{"pod"}
 	// MetaSequenceNumber is a unique and atomically increasing sequence number for a massage.
 	// Combine this with the MetaSource to make it globally unique.
 	// Optional.
@@ -44,10 +42,6 @@ func ContextWithNamespace(ctx context.Context, v string) context.Context {
 	return context.WithValue(ctx, MetaNamespace, v)
 }
 
-func ContextWithPod(ctx context.Context, v string) context.Context {
-	return context.WithValue(ctx, MetaPod, v)
-}
-
 func ContextWithMeta(ctx context.Context, source, id string, opts ...interface{}) context.Context {
 	ctx = context.WithValue(ctx, MetaSource, source)
 	ctx = context.WithValue(ctx, MetaID, id)
@@ -67,5 +61,4 @@ func ContextWithMeta(ctx context.Context, source, id string, opts ...interface{}
 func GetMetaCluster(ctx context.Context) string   { return ctx.Value(MetaCluster).(string) }
 func GetMetaID(ctx context.Context) string        { return ctx.Value(MetaID).(string) }
 func GetMetaNamespace(ctx context.Context) string { return ctx.Value(MetaNamespace).(string) }
-func GetMetaPod(ctx context.Context) string       { return ctx.Value(MetaPod).(string) }
 func GetMetaSource(ctx context.Context) string    { return ctx.Value(MetaSource).(string) }

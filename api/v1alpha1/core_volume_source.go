@@ -9,11 +9,9 @@ import (
 
 type AbstractVolumeSource corev1.VolumeSource
 
-func (in AbstractVolumeSource) getURIParts(ctx context.Context) (_type, kind, name string) {
+func (in AbstractVolumeSource) getURNParts() (_type string, kind string, name string) {
 	if v := in.ConfigMap; v != nil {
 		return "configmaps", "ConfigMap", v.Name
-	} else if v := in.EmptyDir; v != nil {
-		return "emptydir", "Pod", GetMetaPod(ctx)
 	} else if v := in.PersistentVolumeClaim; v != nil {
 		return "persistentvolumeclaim:%s", "PersistentVolumeClaim", v.ClaimName
 	} else if v := in.Secret; v != nil {
@@ -22,7 +20,7 @@ func (in AbstractVolumeSource) getURIParts(ctx context.Context) (_type, kind, na
 	panic(fmt.Errorf("un-suppported volume source %v", in))
 }
 
-func (in AbstractVolumeSource) GetURN(ctx context.Context) string {
-	_type, kind, name := in.getURIParts(ctx)
+func (in AbstractVolumeSource) GenURN(ctx context.Context) string {
+	_type, kind, name := in.getURNParts()
 	return fmt.Sprintf("urn:dataflow:volume:%s:%s", _type, dnsName(ctx, kind, name))
 }

@@ -32,7 +32,7 @@ func New(ctx context.Context, x dfv1.Cron, process source.Process) (source.Inter
 		crn.Run()
 	}()
 
-	sourceURN := x.GetURN(ctx)
+	sourceURN := x.GenURN(ctx)
 	_, err := crn.AddFunc(x.Schedule, func() {
 		msg := []byte(time.Now().Format(x.Layout))
 		if err := process(

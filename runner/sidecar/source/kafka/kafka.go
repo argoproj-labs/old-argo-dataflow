@@ -51,7 +51,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
-	h := handler{x.GetURN(ctx), process, 0, !x.AutoCommit.Enable}
+	h := handler{x.GenURN(ctx), process, 0, !x.AutoCommit.Enable}
 	go wait.JitterUntil(func() {
 		defer runtime.HandleCrash()
 		ctx := context.Background()

@@ -66,7 +66,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 
 	go func() {
 		defer runtime.HandleCrash()
-		sourceURN := x.GetURN(ctx)
+		sourceURN := x.GenURN(ctx)
 		for {
 			time.Sleep(x.PollInterval.Duration)
 			select {

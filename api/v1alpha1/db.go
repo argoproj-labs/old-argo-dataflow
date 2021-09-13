@@ -13,7 +13,7 @@ type Database struct {
 	DataSource *DBDataSource `json:"dataSource,omitempty" protobuf:"bytes,2,opt,name=dataSource"`
 }
 
-func (in Database) GetURN(ctx context.Context) string {
+func (in Database) GenURN(ctx context.Context) string {
 	if in.DataSource.Value != "" {
 		return fmt.Sprintf("urn:dataflow:db:%s", in.DataSource.Value)
 	} else {

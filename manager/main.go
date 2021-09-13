@@ -74,11 +74,13 @@ func main() {
 	clientset := kubernetes.NewForConfigOrDie(restConfig)
 	dynamicInterface := dynamic.NewForConfigOrDie(restConfig)
 	containerKiller := containerkiller.New(clientset, restConfig)
+	cluster := os.Getenv(dfv1.EnvCluster)
 	if err = (&controllers.PipelineReconciler{
 		Client:          mgr.GetClient(),
 		Log:             ctrl.Log.WithName("controllers").WithName("Pipeline"),
 		Scheme:          mgr.GetScheme(),
 		ContainerKiller: containerKiller,
+		Cluster:         cluster,
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
@@ -90,7 +92,7 @@ func main() {
 		Recorder:         mgr.GetEventRecorderFor("step-reconciler"),
 		ContainerKiller:  containerKiller,
 		DynamicInterface: dynamicInterface,
-		Cluster:          os.Getenv(dfv1.EnvCluster),
+		Cluster:          cluster,
 		Debug:            os.Getenv(dfv1.EnvDebug) == "true",
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))

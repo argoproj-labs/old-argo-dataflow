@@ -58,8 +58,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
-		sourceURN := s.GetURN(ctx)
-		logger.Info("connecting source", "source", sharedutil.MustJSON(s), "urn", sourceURN)
+		logger.Info("connecting source", "source", sharedutil.MustJSON(s), "urn", s.URN)
 		sourceName := s.Name
 		if _, exists := sources[sourceName]; exists {
 			return fmt.Errorf("duplicate source named %q", sourceName)
@@ -129,7 +128,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			if err != nil {
 				return fmt.Errorf("failed to get secret %q: %w", step.Name, err)
 			}
-			sources[sourceName] = httpsource.New(sourceURN, sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
+			sources[sourceName] = httpsource.New(s.URN, sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
 		} else if x := s.S3; x != nil {
 			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, processWithRetry, leadReplica()); err != nil {
 				return err

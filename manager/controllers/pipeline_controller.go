@@ -43,6 +43,7 @@ type PipelineReconciler struct {
 	Log             logr.Logger
 	Scheme          *runtime.Scheme
 	ContainerKiller containerkiller.Interface
+	Cluster         string
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
@@ -81,6 +82,13 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	for _, step := range pipeline.Spec.Steps {
 		stepFullName := pipeline.Name + "-" + step.Name
 		matchLabels := map[string]string{dfv1.KeyPipelineName: pipeline.Name, dfv1.KeyStepName: step.Name}
+		for i, s := range step.Sources {
+			ctx := dfv1.ContextWithNamespace(dfv1.ContextWithCluster(ctx, r.Cluster), pipeline.Namespace)
+			if s.URN == "" {
+				s.URN = s.GenURN(ctx)
+			}
+			step.Sources[i] = s
+		}
 		obj := &dfv1.Step{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: pipeline.Namespace,

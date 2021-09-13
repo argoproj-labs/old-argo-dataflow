@@ -29,7 +29,7 @@ type STAN struct {
 	MaxInflight uint32 `json:"maxInflight,omitempty" protobuf:"bytes,9,opt,name=maxInflight"`
 }
 
-func (s STAN) GetURN(context.Context) string {
+func (s STAN) GenURN(context.Context) string {
 	return fmt.Sprintf("urn:dataflow:stan:%s:%s", s.NATSURL, s.Subject)
 }
 

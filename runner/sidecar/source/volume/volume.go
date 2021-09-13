@@ -20,7 +20,7 @@ type message struct {
 func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.VolumeSource, process source.Process, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
-	sourceURN := x.GetURN(ctx)
+	sourceURN := x.GenURN(ctx)
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
 		Logger:       logger,
 		PipelineName: pipelineName,

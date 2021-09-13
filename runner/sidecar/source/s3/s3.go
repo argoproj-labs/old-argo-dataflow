@@ -77,7 +77,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	}
 
 	client := s3.New(options)
-	sourceURN := x.GetURN(ctx)
+	sourceURN := x.GenURN(ctx)
 
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
 		Logger:       logger,

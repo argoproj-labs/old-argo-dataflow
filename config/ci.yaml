@@ -3879,6 +3879,8 @@ spec:
                             required:
                             - subject
                             type: object
+                          urn:
+                            type: string
                           volume:
                             properties:
                               awsElasticBlockStore:
@@ -10820,6 +10822,8 @@ spec:
                       required:
                       - subject
                       type: object
+                    urn:
+                      type: string
                     volume:
                       properties:
                         awsElasticBlockStore:
