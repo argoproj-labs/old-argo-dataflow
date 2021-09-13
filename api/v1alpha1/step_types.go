@@ -86,7 +86,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			name := fmt.Sprintf("sink-%s", source.Name)
 			volumes = append(volumes, corev1.Volume{
 				Name:         name,
-				VolumeSource: corev1.VolumeSource(*x),
+				VolumeSource: x.VolumeSource,
 			})
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
@@ -98,7 +98,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	envVars := []corev1.EnvVar{
 		{Name: EnvCluster, Value: req.Cluster},
 		{Name: EnvDebug, Value: strconv.FormatBool(req.Debug)},
-		{Name: EnvNamespace, Value: req.Namespace},
+		{Name: EnvNamespace, ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.namespace"}}},
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
 		{Name: EnvStep, Value: string(step)},

@@ -176,7 +176,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						Cluster:          r.Cluster,
 						Debug:            r.Debug,
 						PipelineName:     pipelineName,
-						Namespace:        step.Namespace,
 						Replica:          int32(replica),
 						ImageFormat:      imageFormat,
 						RunnerImage:      runnerImage,
