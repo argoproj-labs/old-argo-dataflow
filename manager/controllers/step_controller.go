@@ -228,24 +228,24 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return svc
 	}
 
-	serviceObjs := []*corev1.Service{buildServiceObj(pipelineName+"-"+stepName+"-svc", true)}
+	serviceObjMap := map[string]*corev1.Service{pipelineName+"-"+stepName+"-svc", buildServiceObj(pipelineName+"-"+stepName+"-svc"}
 	for _, s := range step.Spec.Sources {
+		serviceName := pipelineName + "-" + stepName
 		if x := s.HTTP; x != nil {
-			serviceName := pipelineName + "-" + stepName
 			if x := s.HTTP; x != nil {
 				if n := x.ServiceName; n != "" {
 					serviceName = n
 				}
-				serviceObjs = append(serviceObjs, buildServiceObj(serviceName, false))
+				serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
 			} else if x := s.S3; x != nil {
-				serviceObjs = append(serviceObjs, buildServiceObj(serviceName, false))
+				serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
 			} else if x := s.Volume; x != nil {
-				serviceObjs = append(serviceObjs, buildServiceObj(serviceName, false))
+				serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
 			}
 		}
 	}
 
-	for _, obj := range serviceObjs {
+	for _, obj := range serviceObjMap {
 		if err := r.Client.Create(ctx, obj); util.IgnoreAlreadyExists(err) != nil {
 			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
 			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
