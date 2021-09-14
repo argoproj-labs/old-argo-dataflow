@@ -11,11 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/opentracing/opentracing-go"
-	jaegercfg "github.com/uber/jaeger-client-go/config"
-	jaegerlog "github.com/uber/jaeger-client-go/log"
-	"github.com/uber/jaeger-lib/metrics"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
@@ -92,27 +87,6 @@ func Exec(ctx context.Context) error {
 	} else {
 		updateInterval = v
 	}
-
-	cfg, err := (&jaegercfg.Configuration{
-		Disabled:    true,
-		ServiceName: fmt.Sprintf("dataflow-step-%s-%s", pipelineName, stepName),
-	}).FromEnv()
-	if err != nil {
-		return err
-	}
-
-	logger.Info("jaeger config", "config", sharedutil.MustJSON(cfg))
-
-	tracer, closer, err := cfg.NewTracer(
-		jaegercfg.Logger(jaegerlog.StdLogger),
-		jaegercfg.Metrics(metrics.NullFactory),
-	)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = closer.Close() }()
-
-	opentracing.SetGlobalTracer(tracer)
 
 	if err := enrichSpec(ctx); err != nil {
 		return err
