@@ -12,18 +12,10 @@ type meta struct{ string }
 func (m meta) String() string { return m.string }
 
 var (
-	// MetaCluster the Kubernetes cluster name.
-	MetaCluster = meta{"cluster"}
 	// MetaID is a unique ID for the message.
 	// Required.
 	// https://github.com/cloudevents/spec/blob/master/spec.md#id
 	MetaID = meta{"id"}
-	// MetaNamespace the Kubernetes namespace.
-	MetaNamespace = meta{"namespace"}
-	// MetaSequenceNumber is a unique and atomically increasing sequence number for a massage.
-	// Combine this with the MetaSource to make it globally unique.
-	// Optional.
-	MetaSequenceNumber = meta{"sequenceNumber"}
 	// MetaSource is the source of the messages as a Unique Resource Identifier (URI).
 	// Required.
 	// https://github.com/cloudevents/spec/blob/master/spec.md#source-1
@@ -35,40 +27,48 @@ var (
 	MetaTime = meta{"time"}
 )
 
-func ContextWithCluster(ctx context.Context, v string) context.Context {
-	return context.WithValue(ctx, MetaCluster, v)
+func ContextWithMeta(ctx context.Context, source, id string, time time.Time) context.Context {
+	return context.WithValue(
+		context.WithValue(
+			context.WithValue(
+				ctx,
+				MetaSource,
+				source,
+			),
+			MetaID,
+			id,
+		),
+		MetaTime,
+		time,
+	)
 }
 
-func ContextWithNamespace(ctx context.Context, v string) context.Context {
-	return context.WithValue(ctx, MetaNamespace, v)
+func MetaFromContext(ctx context.Context) (source, id string, t time.Time) {
+	return ctx.Value(MetaSource).(string), ctx.Value(MetaID).(string), ctx.Value(MetaTime).(time.Time)
 }
 
-func ContextWithMeta(ctx context.Context, source, id string, opts ...interface{}) context.Context {
-	ctx = context.WithValue(ctx, MetaSource, source)
-	ctx = context.WithValue(ctx, MetaID, id)
-	for _, opt := range opts {
-		switch v := opt.(type) {
-		case uint64:
-			ctx = context.WithValue(ctx, MetaSequenceNumber, v)
-		case time.Time:
-			ctx = context.WithValue(ctx, MetaTime, v)
-		default:
-			panic(fmt.Errorf("un-supported option type %T", opt))
-		}
+func MetaInject(ctx context.Context, h interface{}) {
+	source, id, t := MetaFromContext(ctx)
+	switch v := h.(type) {
+	case http.Header:
+		v.Add(MetaSource.String(), source)
+		v.Add(MetaID.String(), id)
+		v.Add(MetaTime.String(), t.Format(time.RFC3339))
+	default:
+		panic(fmt.Errorf("unexpected type %T", h))
 	}
-	return ctx
 }
 
-func MetaInject(ctx context.Context, h http.Header) {
-	h.Add(MetaSource.String(), GetMetaSource(ctx))
-	h.Add(MetaID.String(), GetMetaID(ctx))
+func MetaExtract(ctx context.Context, h interface{}) context.Context {
+	switch v := h.(type) {
+	case http.Header:
+		t, _ := time.Parse(time.RFC3339, v.Get(MetaTime.String()))
+		return ContextWithMeta(ctx,
+			v.Get(MetaSource.String()),
+			v.Get(MetaID.String()),
+			t,
+		)
+	default:
+		panic(fmt.Errorf("unexpected type %T", h))
+	}
 }
-
-func MetaExtract(ctx context.Context, h http.Header) context.Context {
-	return ContextWithMeta(ctx, h.Get(MetaSource.String()), h.Get(MetaID.String()))
-}
-
-func GetMetaCluster(ctx context.Context) string   { return ctx.Value(MetaCluster).(string) }
-func GetMetaID(ctx context.Context) string        { return ctx.Value(MetaID).(string) }
-func GetMetaNamespace(ctx context.Context) string { return ctx.Value(MetaNamespace).(string) }
-func GetMetaSource(ctx context.Context) string    { return ctx.Value(MetaSource).(string) }

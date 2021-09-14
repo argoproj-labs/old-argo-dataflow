@@ -29,10 +29,7 @@ func (s logSink) Sink(ctx context.Context, msg []byte) error {
 	if s.truncate != nil && len(text) > int(*s.truncate) {
 		text = text[0:*s.truncate]
 	}
-	logger.Info(text,
-		"type", "log",
-		"source", dfv1.GetMetaSource(ctx),
-		"id", dfv1.GetMetaID(ctx),
-	)
+	source, id, _ := dfv1.MetaFromContext(ctx)
+	logger.Info(text, "type", "log", "source", source, "id", id)
 	return nil
 }

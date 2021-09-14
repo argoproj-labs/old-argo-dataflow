@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/opentracing/opentracing-go"
 
@@ -38,7 +39,7 @@ func New(ctx context.Context, pipelineName, stepName, sourceName, sourceURN stri
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			return process(
-				dfv1.ContextWithMeta(ctx, sourceURN, key),
+				dfv1.ContextWithMeta(ctx, sourceURN, key, time.Now()),
 				[]byte(sharedutil.MustJSON(message{Path: path})),
 			)
 		},

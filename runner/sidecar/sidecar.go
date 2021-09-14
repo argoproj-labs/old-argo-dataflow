@@ -4,15 +4,16 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
-	jaegercfg "github.com/uber/jaeger-client-go/config"
-	jaegerlog "github.com/uber/jaeger-client-go/log"
-	"github.com/uber/jaeger-lib/metrics"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/opentracing/opentracing-go"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
+	jaegerlog "github.com/uber/jaeger-client-go/log"
+	"github.com/uber/jaeger-lib/metrics"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
@@ -57,8 +58,6 @@ func becomeUnreadyHook(context.Context) error {
 }
 
 func Exec(ctx context.Context) error {
-	ctx = dfv1.ContextWithCluster(ctx, cluster)
-	ctx = dfv1.ContextWithNamespace(ctx, namespace)
 	restConfig := ctrl.GetConfigOrDie()
 	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)

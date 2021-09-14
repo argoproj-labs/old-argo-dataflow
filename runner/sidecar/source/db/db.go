@@ -203,7 +203,7 @@ func queryData(ctx context.Context, db *sql.DB, sourceURN, query, offsetColumn, 
 		}
 		id := fmt.Sprint(entry[offsetColumn])
 		if err = f(
-			dfv1.ContextWithMeta(ctx, sourceURN, id),
+			dfv1.ContextWithMeta(ctx, sourceURN, id, time.Now()),
 			entry,
 		); err != nil {
 			logger.Error(err, "failed to process message")

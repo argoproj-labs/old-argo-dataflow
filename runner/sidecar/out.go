@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/opentracing/opentracing-go"
 
 	"github.com/google/uuid"
 
@@ -43,7 +45,7 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 			return
 		}
 		if err := sink(
-			dfv1.ContextWithMeta(ctx, fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:messages", pod, namespace, cluster), uuid.New().String()),
+			dfv1.ContextWithMeta(ctx, fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:messages", pod, namespace, cluster), uuid.New().String(), time.Now()),
 			data,
 		); err != nil {
 			logger.Error(err, "failed to send message from main to sink")

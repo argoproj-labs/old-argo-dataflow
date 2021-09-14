@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"context"
 	"fmt"
 )
 
@@ -11,6 +10,6 @@ type Cron struct {
 	Layout string `json:"layout,omitempty" protobuf:"bytes,2,opt,name=layout"`
 }
 
-func (in Cron) GenURN(context.Context) string {
+func (in Cron) GenURN(cluster, namespace string) string {
 	return fmt.Sprintf("urn:dataflow:cron:%s", in.Schedule)
 }

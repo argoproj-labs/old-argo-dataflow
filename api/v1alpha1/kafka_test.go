@@ -12,6 +12,6 @@ func TestKafka_GenURN(t *testing.T) {
 			Brokers: []string{"my-broker"},
 		},
 		Topic: "my-topic",
-	}.GenURN(ctx)
+	}.GenURN(cluster, namespace)
 	assert.Equal(t, "urn:dataflow:kafka:my-broker:my-topic", urn)
 }

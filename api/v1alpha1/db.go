@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"context"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
@@ -13,11 +12,11 @@ type Database struct {
 	DataSource *DBDataSource `json:"dataSource,omitempty" protobuf:"bytes,2,opt,name=dataSource"`
 }
 
-func (in Database) GenURN(ctx context.Context) string {
+func (in Database) GenURN(cluster, namespace string) string {
 	if in.DataSource.Value != "" {
 		return fmt.Sprintf("urn:dataflow:db:%s", in.DataSource.Value)
 	} else {
-		return fmt.Sprintf("urn:dataflow:db:%s:%s", dnsName(ctx, "Secret", in.DataSource.ValueFrom.SecretKeyRef.Name), in.DataSource.ValueFrom.SecretKeyRef.Key)
+		return fmt.Sprintf("urn:dataflow:db:%s.secret.%s.%s:%s", in.DataSource.ValueFrom.SecretKeyRef.Name, namespace, cluster, in.DataSource.ValueFrom.SecretKeyRef.Key)
 	}
 }
 

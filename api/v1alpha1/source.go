@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"context"
 	"fmt"
 )
 
@@ -38,6 +37,6 @@ func (s Source) get() urner {
 	panic(fmt.Errorf("invalid source %q", s.Name))
 }
 
-func (s Source) GenURN(ctx context.Context) string {
-	return s.get().GenURN(ctx)
+func (s Source) GenURN(cluster, namespace string) string {
+	return s.get().GenURN(cluster, namespace)
 }

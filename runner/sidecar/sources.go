@@ -61,7 +61,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
 		sourceName := s.Name
-		sourceURN := s.GenURN(ctx)
+		sourceURN := s.GenURN(cluster, namespace)
 		logger.Info("connecting source", "source", sharedutil.MustJSON(s), "urn", sourceURN)
 		if _, exists := sources[sourceName]; exists {
 			return fmt.Errorf("duplicate source named %q", sourceName)
@@ -89,12 +89,12 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
+					source, id, t := dfv1.MetaFromContext(ctx)
 					// we need to copy anything except the timeout from the parent context
 					ctx, cancel := context.WithTimeout(
 						dfv1.ContextWithMeta(
 							opentracing.ContextWithSpan(context.Background(), span),
-							dfv1.GetMetaSource(ctx),
-							dfv1.GetMetaID(ctx),
+							source, id, t,
 						),
 						15*time.Second,
 					)

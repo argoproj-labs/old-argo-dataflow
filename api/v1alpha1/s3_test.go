@@ -7,6 +7,6 @@ import (
 )
 
 func TestS3_GenURN(t *testing.T) {
-	urn := S3{Bucket: "my-bucket"}.GenURN(ctx)
+	urn := S3{Bucket: "my-bucket"}.GenURN(cluster, namespace)
 	assert.Equal(t, "urn:dataflow:s3:my-bucket", urn)
 }

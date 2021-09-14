@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	time "time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 
@@ -19,13 +20,13 @@ var io = map[string]interface{}{
 }
 
 func ExprEnv(ctx context.Context, msg []byte) map[string]interface{} {
-	source := dfv1.GetMetaSource(ctx)
-	id := dfv1.GetMetaID(ctx)
+	source, id, t := dfv1.MetaFromContext(ctx)
 	return map[string]interface{}{
 		// values
 		"ctx": map[string]string{
 			"source": source,
 			"id":     id,
+			"time":   t.Format(time.RFC3339),
 		},
 		"msg": msg,
 		// funcs

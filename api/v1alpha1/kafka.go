@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"context"
 	"fmt"
 )
 
@@ -24,6 +23,6 @@ type Kafka struct {
 	Topic       string `json:"topic" protobuf:"bytes,3,opt,name=topic"`
 }
 
-func (in Kafka) GenURN(context.Context) string {
+func (in Kafka) GenURN(cluster, namespace string) string {
 	return fmt.Sprintf("urn:dataflow:kafka:%s:%s", in.Brokers[0], in.Topic)
 }

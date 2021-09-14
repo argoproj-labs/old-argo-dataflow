@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -46,7 +47,7 @@ func New(sourceURN, sourceName, authorization string, process source.Process) so
 			return
 		}
 		if err := process(
-			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String()),
+			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String(), time.Now()),
 			msg,
 		); err != nil {
 			w.WriteHeader(500)

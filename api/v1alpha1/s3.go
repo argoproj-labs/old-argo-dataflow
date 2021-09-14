@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"context"
 	"fmt"
 )
 
@@ -14,7 +13,7 @@ type S3 struct {
 	Endpoint    *AWSEndpoint    `json:"endpoint,omitempty" protobuf:"bytes,5,opt,name=endpoint"`
 }
 
-func (in S3) GenURN(context.Context) string {
+func (in S3) GenURN(cluster, namespace string) string {
 	// An Amazon S3 bucket name is globally unique, and the namespace is shared by all AWS accounts.
 	return fmt.Sprintf("urn:dataflow:s3:%s", in.Bucket)
 }

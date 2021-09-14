@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/opentracing/opentracing-go"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
@@ -46,7 +47,7 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			return fifo.Close()
 		})
 		return func(ctx context.Context, data []byte) error {
-			span, ctx := opentracing.StartSpanFromContext(ctx, "fifo")
+			span, _ := opentracing.StartSpanFromContext(ctx, "fifo")
 			defer span.Finish()
 			inFlight.Inc()
 			defer inFlight.Dec()
@@ -82,7 +83,7 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 				return err
 			}
 			// https://github.com/cloudevents/spec/blob/v1.0.1/http-protocol-binding.md#3132-http-header-values
-			dfv1.MetaInject(ctx, req.Header )
+			dfv1.MetaInject(ctx, req.Header)
 			if err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err != nil {
 				return fmt.Errorf("failed to inject tracing headers: %w", err)
 			}

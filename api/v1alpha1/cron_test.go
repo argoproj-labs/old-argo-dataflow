@@ -7,6 +7,6 @@ import (
 )
 
 func TestCron_GenURN(t *testing.T) {
-	urn := Cron{Schedule: "* * * * *"}.GenURN(ctx)
+	urn := Cron{Schedule: "* * * * *"}.GenURN(cluster, namespace)
 	assert.Equal(t, "urn:dataflow:cron:* * * * *", urn)
 }

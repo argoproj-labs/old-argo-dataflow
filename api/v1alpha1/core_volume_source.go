@@ -1,7 +1,6 @@
 package v1alpha1
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -12,16 +11,16 @@ type AbstractVolumeSource corev1.VolumeSource
 
 func (in AbstractVolumeSource) getURNParts() (kind string, name string) {
 	if v := in.ConfigMap; v != nil {
-		return "ConfigMap", v.Name
+		return "configmap", v.Name
 	} else if v := in.PersistentVolumeClaim; v != nil {
-		return "PersistentVolumeClaim", v.ClaimName
+		return "persistentvolumeclaim", v.ClaimName
 	} else if v := in.Secret; v != nil {
-		return "Secret", v.SecretName
+		return "secret", v.SecretName
 	}
 	panic(fmt.Errorf("un-suppported volume source %v", in))
 }
 
-func (in AbstractVolumeSource) GenURN(ctx context.Context) string {
+func (in AbstractVolumeSource) GenURN(cluster, namespace string) string {
 	kind, name := in.getURNParts()
-	return fmt.Sprintf("urn:dataflow:volume:%s:%s", strings.ToLower(kind), dnsName(ctx, kind, name))
+	return fmt.Sprintf("urn:dataflow:volume:%s:%s.%s.%s.%s", strings.ToLower(kind), name, kind, namespace, cluster)
 }
