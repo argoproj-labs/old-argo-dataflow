@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/opentracing/opentracing-go"
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/Shopify/sarama"
@@ -49,8 +48,6 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 
 func (h handler) processMessage(ctx context.Context, msg *sarama.ConsumerMessage) error {
 	defer runtime.HandleCrash()
-	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-source-%s", h.sourceName))
-	defer span.Finish()
 	return h.process(
 		dfv1.ContextWithMeta(ctx, h.sourceURN, fmt.Sprintf("%d-%d", msg.Partition, msg.Offset), msg.Timestamp),
 		msg.Value,

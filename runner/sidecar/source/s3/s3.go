@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/opentracing/opentracing-go"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
@@ -90,8 +88,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
 		Process: func(ctx context.Context, msg []byte) error {
-			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-source-%s", sourceName))
-			defer span.Finish()
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &x.Bucket, Key: &key})

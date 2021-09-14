@@ -2,9 +2,6 @@ package logsink
 
 import (
 	"context"
-	"fmt"
-
-	"github.com/opentracing/opentracing-go"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
@@ -23,8 +20,6 @@ func New(sinkName string, x dfv1.Log) sink.Interface {
 }
 
 func (s logSink) Sink(ctx context.Context, msg []byte) error {
-	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("log-sink-%s", s.sinkName))
-	defer span.Finish()
 	text := string(msg)
 	if s.truncate != nil && len(text) > int(*s.truncate) {
 		text = text[0:*s.truncate]

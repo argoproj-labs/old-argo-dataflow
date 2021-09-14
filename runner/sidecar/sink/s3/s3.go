@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/opentracing/opentracing-go"
-
 	"k8s.io/utils/pointer"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -79,8 +77,6 @@ func New(ctx context.Context, sinkName string, secretInterface v1.SecretInterfac
 }
 
 func (h s3Sink) Sink(ctx context.Context, msg []byte) error {
-	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-sink-%s", h.sinkName))
-	defer span.Finish()
 	m := &message{}
 	if err := json.Unmarshal(msg, m); err != nil {
 		return err

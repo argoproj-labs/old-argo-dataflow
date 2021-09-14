@@ -72,8 +72,6 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 		t.MaxIdleConnsPerHost = 100
 		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 		return func(ctx context.Context, data []byte) error {
-			span, ctx := opentracing.StartSpanFromContext(ctx, "messages")
-			defer span.Finish()
 			inFlight.Inc()
 			defer inFlight.Dec()
 			start := time.Now()
@@ -85,9 +83,6 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			// https://github.com/cloudevents/spec/blob/v1.0.1/http-protocol-binding.md#3132-http-header-values
 			if err := dfv1.MetaInject(ctx, req.Header); err != nil {
 				return err
-			}
-			if err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err != nil {
-				return fmt.Errorf("failed to inject tracing headers: %w", err)
 			}
 			if resp, err := httpClient.Do(req); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)

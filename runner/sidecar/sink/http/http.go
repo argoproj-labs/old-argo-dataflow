@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/opentracing/opentracing-go"
-
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -54,8 +52,6 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 }
 
 func (h httpSink) Sink(ctx context.Context, msg []byte) error {
-	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("http-sink-%s", h.sinkName))
-	defer span.Finish()
 	req, err := http.NewRequestWithContext(ctx, "POST", h.url, bytes.NewBuffer(msg))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %w", err)
@@ -63,9 +59,6 @@ func (h httpSink) Sink(ctx context.Context, msg []byte) error {
 	req.Header = h.header
 	if err := dfv1.MetaInject(ctx, req.Header); err != nil {
 		return err
-	}
-	if err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err != nil {
-		return fmt.Errorf("failed to inject tracing headers: %w", err)
 	}
 	if resp, err := h.client.Do(req); err != nil {
 		return fmt.Errorf("failed to send HTTP request: %w", err)

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/opentracing/opentracing-go"
-
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/antonmedv/expr"
@@ -106,8 +104,6 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 }
 
 func (d dbSink) execStatement(ctx context.Context, tx *sql.Tx, sql string, args []string, msg []byte) (sql.Result, error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", d.sinkName))
-	defer span.Finish()
 	stmt, err := tx.Prepare(sql)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a prepared statement: %w", err)
