@@ -12,21 +12,21 @@ Messages come with meta-data that can be accessed via the messages context:
 Source:
 
 * Cron: `urn:dataflow:cron:${schedule}`
-* Database: `urn:dataflow:db:${dbURL}` or `urn:dataflow:db:${secret}.pod.${namespace}.${cluster}`
+* Database: `urn:dataflow:db:${dbURL}` or `urn:dataflow:db:${secret}.secret.${namespace}.${cluster}`
 * HTTP: `urn:dataflow:http:https://${serviceName}.svc.${namespace}.${cluster}` or `urn:dataflow:http:${endpoint}`
 * Kafka: `urn:dataflow:kafka:${broker[0]}:${topic}`
 * S3: `urn:dataflow:s3:${bucket}`
 * STAN: `urn:dataflow:stan:${natsURL}:${subject}`
 * Volume:
-    * `urn:dataflow:volume:emptydir:${pod}.pod.${namespace}.${cluster}`
+    * `urn:dataflow:volume:configmap:${configmap}.configmap.${namespace}.${cluster}`
     * `urn:dataflow:volume:secret:${secret}.secret.${namespace}.${cluster}`
 
 IDs:
 
 * Cron: `${now}`
 * Database: `${offset}`
-* HTTP: `$randomGUID}`
-* Kafka: `${partiton}-${offset}`
+* HTTP: `${randomGUID}`
+* Kafka: `${partition}-${offset}`
 * S3: `${key}`
 * STAN: `${sequence}`
 * Volume: `${filename}`

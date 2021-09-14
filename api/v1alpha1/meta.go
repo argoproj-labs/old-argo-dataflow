@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -56,6 +57,15 @@ func ContextWithMeta(ctx context.Context, source, id string, opts ...interface{}
 		}
 	}
 	return ctx
+}
+
+func MetaInject(ctx context.Context, h http.Header) {
+	h.Add(MetaSource.String(), GetMetaSource(ctx))
+	h.Add(MetaID.String(), GetMetaID(ctx))
+}
+
+func MetaExtract(ctx context.Context, h http.Header) context.Context {
+	return ContextWithMeta(ctx, h.Get(MetaSource.String()), h.Get(MetaID.String()))
 }
 
 func GetMetaCluster(ctx context.Context) string   { return ctx.Value(MetaCluster).(string) }

@@ -21,7 +21,7 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 		w.WriteHeader(204)
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		ctx := dfv1.ContextWithMeta(r.Context(), r.Header.Get(dfv1.MetaSource.String()), r.Header.Get(dfv1.MetaID.String()))
+		ctx := dfv1.MetaExtract(r.Context(), r.Header)
 		defer func() { _ = r.Body.Close() }()
 		out, err := func() ([]byte, error) {
 			if in, err := ioutil.ReadAll(r.Body); err != nil {

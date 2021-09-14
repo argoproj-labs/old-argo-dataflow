@@ -5,3 +5,18 @@ metadata:
   namespace: system
 spec:
   replicas: 0
+  template:
+    spec:
+      containers:
+        - name: manager
+          env:
+            - name: JAEGER_DISABLED
+              value: "false"
+            - name: JAEGER_ENDPOINT
+              value: http://my-jaeger-collector:14268/api/traces
+            - name: JAEGER_REPORTER_LOG_SPANS
+              value: "true"
+            - name: JAEGER_SAMPLER_TYPE
+              value: ratelimiting
+            - name: JAEGER_SAMPLER_PARAM
+              value: "1"

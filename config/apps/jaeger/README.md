@@ -1,0 +1,1 @@
+https://github.com/jaegertracing/jaeger-operator#experimental-generate-kubernetes-manifest-file

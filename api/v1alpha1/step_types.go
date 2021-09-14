@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -106,6 +107,15 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 		{Name: "GODEBUG", Value: os.Getenv("GODEBUG")},
 	}
+
+	// add all Jaeger envvar
+	for _, kv := range os.Environ() {
+		if strings.HasPrefix(kv, "JAEGER_") {
+			parts := strings.SplitN(kv, "=", 2)
+			envVars = append(envVars, corev1.EnvVar{Name: parts[0], Value: parts[1]})
+		}
+	}
+
 	dropAll := &corev1.SecurityContext{
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{"all"},

@@ -61,12 +61,10 @@ func (h httpSink) Sink(ctx context.Context, msg []byte) error {
 		return fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 	req.Header = h.header
-	req.Header.Add(dfv1.MetaSource.String(), dfv1.GetMetaSource(ctx))
-	req.Header.Add(dfv1.MetaID.String(), dfv1.GetMetaID(ctx))
+	dfv1.MetaInject(ctx, req.Header)
 	if err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err != nil {
 		return fmt.Errorf("failed to inject tracing headers: %w", err)
 	}
-
 	if resp, err := h.client.Do(req); err != nil {
 		return fmt.Errorf("failed to send HTTP request: %w", err)
 	} else {

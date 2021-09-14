@@ -69,7 +69,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		processWithRetry := func(ctx context.Context, msg []byte) error {
-			span, ctx := opentracing.StartSpanFromContext(ctx, "process")
+			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
 			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
@@ -89,10 +89,16 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
+					// we need to copy anything except the timeout from the parent context
 					ctx, cancel := context.WithTimeout(
-						dfv1.ContextWithMeta(context.Background(), dfv1.GetMetaSource(ctx), dfv1.GetMetaID(ctx)),
+						dfv1.ContextWithMeta(
+							opentracing.ContextWithSpan(context.Background(), span),
+							dfv1.GetMetaSource(ctx),
+							dfv1.GetMetaID(ctx),
+						),
 						15*time.Second,
 					)
+
 					err := process(ctx, msg)
 					cancel()
 					if err == nil {

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -28,6 +29,8 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 	}
 	authorization := string(v)
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
+		span, ctx := opentracing.StartSpanFromContext(r.Context(), "/messages")
+		defer span.Finish()
 		if r.Header.Get("Authorization") != authorization {
 			w.WriteHeader(403)
 			return
@@ -40,7 +43,7 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 			return
 		}
 		if err := sink(
-			dfv1.ContextWithMeta(r.Context(), fmt.Sprintf("%s.pod.%s.%s", pod, namespace, cluster), uuid.New().String()),
+			dfv1.ContextWithMeta(ctx, fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:messages", pod, namespace, cluster), uuid.New().String()),
 			data,
 		); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
