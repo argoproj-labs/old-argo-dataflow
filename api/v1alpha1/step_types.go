@@ -116,6 +116,8 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		priorityClassName = "lead-replica"
 	}
 	return corev1.PodSpec{
+		Hostname:           req.Hostname,
+		Subdomain:          req.Subdomain,
 		Volumes:            append(in.Spec.Volumes, volumes...),
 		RestartPolicy:      in.Spec.RestartPolicy,
 		NodeSelector:       in.Spec.NodeSelector,
@@ -188,6 +190,39 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			}),
 		},
 	}
+}
+
+func (in Step) GetHeadlessServiceName(pipelineName string) string {
+	return "step-" + pipelineName + "-" + in.Spec.Name
+}
+
+func (in Step) GetServiceObj(serviceName, pipelineName string, isHeadless bool) *corev1.Service {
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:       in.Namespace,
+			Name:            serviceName,
+			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(in.GetObjectMeta(), StepGroupVersionKind)},
+			// useful for auto-detecting the service as exporting Prometheus
+			Labels: map[string]string{
+				KeyStepName:     in.Spec.Name,
+				KeyPipelineName: pipelineName,
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{Port: 443, TargetPort: intstr.FromInt(3570)},
+			},
+			Selector: map[string]string{
+				KeyPipelineName: pipelineName,
+				KeyStepName:     in.Spec.Name,
+			},
+		},
+	}
+	if isHeadless {
+		svc.Spec.ClusterIP = "None"
+		svc.Spec.Ports[0].Port = 3570
+	}
+	return svc
 }
 
 func (in Step) withoutManagedFields() Step {

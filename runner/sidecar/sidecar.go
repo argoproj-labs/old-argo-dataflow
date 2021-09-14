@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -124,7 +125,13 @@ func Exec(ctx context.Context) error {
 		promauto.NewGaugeFunc(prometheus.GaugeOpts{
 			Name: "replicas",
 			Help: "Number of replicas, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#replicas",
-		}, func() float64 { return float64(step.Status.Replicas) })
+		}, func() float64 {
+			if ips, err := net.LookupIP(fmt.Sprintf("%s.%s.svc", step.GetHeadlessServiceName(pipelineName), namespace)); err != nil {
+				return 0
+			} else {
+				return float64(len(ips))
+			}
+		})
 		promauto.NewGaugeFunc(prometheus.GaugeOpts{
 			Name: "version_major",
 			Help: "Major version number, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#version_major",
