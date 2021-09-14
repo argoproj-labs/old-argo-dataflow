@@ -105,8 +105,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 
 func (h kafkaSink) Sink(ctx context.Context, msg []byte) error {
 	headers := []sarama.RecordHeader{
-		{[]byte(dfv1.MetaSource.String()), []byte(dfv1.GetMetaSource(ctx))},
-		{[]byte(dfv1.MetaID.String()), []byte(dfv1.GetMetaID(ctx))},
+		{Key: []byte(dfv1.MetaSource.String()), Value: []byte(dfv1.GetMetaSource(ctx))},
+		{Key: []byte(dfv1.MetaID.String()), Value: []byte(dfv1.GetMetaID(ctx))},
 	}
 	return h.producer.SendMessage(ctx, &sarama.ProducerMessage{Headers: headers, Value: sarama.ByteEncoder(msg), Topic: h.topic})
 }

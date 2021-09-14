@@ -2,10 +2,11 @@ package golang
 
 import (
 	"context"
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 func Start(handler func(ctx context.Context, msg []byte) ([]byte, error)) {

@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"io/ioutil"
 	"strconv"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 
 	"github.com/Masterminds/sprig"
 )
