@@ -1,4 +1,3 @@
-//go:build test
 // +build test
 
 package stan_e2e

@@ -1,4 +1,3 @@
-//go:build test
 // +build test
 
 package db_e2e
