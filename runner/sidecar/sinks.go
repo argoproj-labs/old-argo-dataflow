@@ -36,33 +36,33 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, err
 				sinks[sinkName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			if y, err := kafka.New(ctx, secretInterface, *x); err != nil {
+			if y, err := kafka.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
 		} else if x := s.Log; x != nil {
-			sinks[sinkName] = logsink.New(*x)
+			sinks[sinkName] = logsink.New(sinkName, *x)
 		} else if x := s.HTTP; x != nil {
-			if y, err := http.New(ctx, secretInterface, *x); err != nil {
+			if y, err := http.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
 		} else if x := s.S3; x != nil {
-			if y, err := s3sink.New(ctx, secretInterface, *x); err != nil {
+			if y, err := s3sink.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
 		} else if x := s.DB; x != nil {
-			if y, err := dbsink.New(ctx, secretInterface, *x); err != nil {
+			if y, err := dbsink.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
 		} else if x := s.Volume; x != nil {
-			if y, err := volumesink.New(); err != nil {
+			if y, err := volumesink.New(sinkName); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y

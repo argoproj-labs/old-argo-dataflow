@@ -25,7 +25,7 @@ func TestHTTPSourceStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceMemory: resource.MustParse("1Gi"),
+							v1.ResourceMemory: resource.MustParse("512Mi"),
 						},
 					}},
 				},
@@ -34,7 +34,7 @@ func TestHTTPSourceStress(t *testing.T) {
 				Sinks:    []Sink{DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceMemory: resource.MustParse("1Gi"),
+						v1.ResourceMemory: resource.MustParse("512Mi"),
 					},
 				}},
 			}},
@@ -67,7 +67,7 @@ func TestHTTPSinkStress(t *testing.T) {
 				Name: "main",
 				Cat: &Cat{AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceMemory: resource.MustParse("1Gi"),
+						v1.ResourceMemory: resource.MustParse("512Mi"),
 					},
 				}}},
 				Replicas: Params.Replicas,
@@ -75,7 +75,7 @@ func TestHTTPSinkStress(t *testing.T) {
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}, DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceMemory: resource.MustParse("1Gi"),
+						v1.ResourceMemory: resource.MustParse("512Mi"),
 					},
 				}},
 			}},

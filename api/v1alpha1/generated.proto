@@ -162,27 +162,31 @@ message Flatten {
 }
 
 message GetPodSpecReq {
-  optional string cluster = 9;
+  optional string cluster = 1;
 
-  optional bool debug = 12;
+  optional bool debug = 2;
 
-  optional string pipelineName = 1;
+  optional string pipelineName = 3;
 
-  optional int32 replica = 3;
+  optional int32 replica = 4;
 
-  optional string imageFormat = 4;
+  optional string imageFormat = 5;
 
-  optional string runnerImage = 5;
+  optional string runnerImage = 6;
 
-  optional string pullPolicy = 6;
+  optional string pullPolicy = 7;
 
-  optional int64 updateInterval = 7;
+  optional int64 updateInterval = 8;
 
-  optional StepStatus stepStatus = 8;
+  optional StepStatus stepStatus = 9;
 
   optional Sidecar sidecar = 10;
 
   repeated k8s.io.api.core.v1.LocalObjectReference imagePullSecrets = 11;
+
+  optional string hostname = 12;
+
+  optional string subdomain = 13;
 }
 
 message Git {

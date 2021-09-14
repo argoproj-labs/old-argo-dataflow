@@ -14,6 +14,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/stan"
 	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -56,14 +57,16 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
-		logger.Info("connecting source", "source", sharedutil.MustJSON(s))
 		sourceName := s.Name
+		logger.Info("connecting source", "source", sharedutil.MustJSON(s))
 		if _, exists := sources[sourceName]; exists {
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		processWithRetry := func(ctx context.Context, msg []byte) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
+			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
 			rateCounter.Incr(1)
@@ -82,7 +85,11 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
-					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+					// we need to copy anything except the timeout from the parent context
+					ctx, cancel := context.WithTimeout(
+						opentracing.ContextWithSpan(context.Background(), span),
+						15*time.Second,
+					)
 					err := process(ctx, msg)
 					cancel()
 					if err == nil {
@@ -99,7 +106,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		}
 		if x := s.Cron; x != nil {
-			if y, err := cron.New(ctx, *x, processWithRetry); err != nil {
+			if y, err := cron.New(ctx, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

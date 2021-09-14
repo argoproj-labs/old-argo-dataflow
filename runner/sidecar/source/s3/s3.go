@@ -8,18 +8,16 @@ import (
 	"path/filepath"
 	"syscall"
 
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-
-	"k8s.io/apimachinery/pkg/util/runtime"
-
+	"github.com/opentracing/opentracing-go"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -89,6 +87,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
 		Process: func(ctx context.Context, msg []byte) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-source-%s", sourceName))
+			defer span.Finish()
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &x.Bucket, Key: &key})

@@ -2,3 +2,4 @@ controller: source manager.env && go run -race -ldflags="-X 'github.com/argoproj
 logs: make logs
 argocli: [ "$UI" = true ] && make argocli
 ui: [ "$UI" = true ] && make ui
+jaeger: [ "$JAEGER_DISABLED" = false ] && make jaeger
