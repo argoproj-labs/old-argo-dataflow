@@ -2,6 +2,7 @@ package golang
 
 import (
 	"context"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,12 +20,13 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 		w.WriteHeader(204)
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
+		ctx := dfv1.ContextWithMeta(r.Context(), r.Header.Get(dfv1.MetaSource.String()), r.Header.Get(dfv1.MetaID.String()))
 		defer func() { _ = r.Body.Close() }()
 		out, err := func() ([]byte, error) {
 			if in, err := ioutil.ReadAll(r.Body); err != nil {
 				return nil, err
 			} else {
-				return handler(r.Context(), in)
+				return handler(ctx, in)
 			}
 		}()
 		if err != nil {

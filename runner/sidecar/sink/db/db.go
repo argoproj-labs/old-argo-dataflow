@@ -71,11 +71,11 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 	}
 	defer func() { _ = tx.Rollback() }() // The rollback will be ignored if the tx has been committed later in the function.
 	for _, action := range d.actions {
-		rs, err := d.execStatement(tx, action.SQL, action.Args, msg)
+		rs, err := d.execStatement(ctx, tx, action.SQL, action.Args, msg)
 		if err != nil {
 			if action.OnError != nil {
 				logger.Error(err, "failed to exec sql", "sql", action.SQL)
-				_, err = d.execStatement(tx, action.OnError.SQL, action.OnError.Args, msg)
+				_, err = d.execStatement(ctx, tx, action.OnError.SQL, action.OnError.Args, msg)
 				if err != nil {
 					return fmt.Errorf("failed to exec onError sql %q", action.OnError.SQL)
 				}
@@ -89,7 +89,7 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 			return fmt.Errorf("failed to get number of rows affected after exectuation")
 		}
 		if n == 0 && action.OnRecordNotFound != nil {
-			_, err = d.execStatement(tx, action.OnRecordNotFound.SQL, action.OnRecordNotFound.Args, msg)
+			_, err = d.execStatement(ctx, tx, action.OnRecordNotFound.SQL, action.OnRecordNotFound.Args, msg)
 			if err != nil {
 				return fmt.Errorf("failed to exec onRecordNotFound sql %q", action.OnRecordNotFound.SQL)
 			}
@@ -101,7 +101,7 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 	return nil
 }
 
-func (d dbSink) execStatement(tx *sql.Tx, sql string, args []string, msg []byte) (sql.Result, error) {
+func (d dbSink) execStatement(ctx context.Context, tx *sql.Tx, sql string, args []string, msg []byte) (sql.Result, error) {
 	stmt, err := tx.Prepare(sql)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a prepared statement: %w", err)
@@ -110,7 +110,7 @@ func (d dbSink) execStatement(tx *sql.Tx, sql string, args []string, msg []byte)
 	l := []interface{}{}
 	for _, arg := range args {
 		prog := d.progs[arg]
-		res, err := expr.Run(prog, util.ExprEnv(msg))
+		res, err := expr.Run(prog, util.ExprEnv(ctx, msg))
 		if err != nil {
 			return nil, err
 		}

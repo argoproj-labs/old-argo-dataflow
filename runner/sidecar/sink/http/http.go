@@ -55,6 +55,8 @@ func (h httpSink) Sink(ctx context.Context, msg []byte) error {
 		return fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 	req.Header = h.header
+	req.Header.Add(dfv1.MetaSource.String(), dfv1.GetMetaSource(ctx))
+	req.Header.Add(dfv1.MetaID.String(), dfv1.GetMetaID(ctx))
 	if resp, err := h.client.Do(req); err != nil {
 		return fmt.Errorf("failed to send HTTP request: %w", err)
 	} else {

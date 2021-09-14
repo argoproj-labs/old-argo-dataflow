@@ -1,8 +1,10 @@
 package util
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"io/ioutil"
 	"strconv"
 
@@ -15,9 +17,15 @@ var io = map[string]interface{}{
 	"cat": cat,
 }
 
-func ExprEnv(msg []byte) map[string]interface{} {
+func ExprEnv(ctx context.Context, msg []byte) map[string]interface{} {
+	source := dfv1.GetMetaSource(ctx)
+	id := dfv1.GetMetaID(ctx)
 	return map[string]interface{}{
 		// values
+		"ctx": map[string]string{
+			"source": source,
+			"id":     id,
+		},
 		"msg": msg,
 		// funcs
 		"bytes":  _bytes,
