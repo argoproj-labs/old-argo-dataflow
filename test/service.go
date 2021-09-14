@@ -24,7 +24,7 @@ func WaitForService() {
 		panic(fmt.Errorf("failed to watch services: %w", err))
 	}
 	for _, x := range list.Items {
-		x.Spec.ClusterIP == "None" {
+		if x.Spec.ClusterIP == "None" {
 			continue
 		}
 		if _, ok := x.Spec.Selector[KeyPipelineName]; ok {
