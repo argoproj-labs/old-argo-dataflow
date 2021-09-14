@@ -51,7 +51,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
-	h := handler{process, 0, !x.AutoCommit.Enable}
+	h := handler{sourceName, process, 0, !x.AutoCommit.Enable}
 	go wait.JitterUntil(func() {
 		defer runtime.HandleCrash()
 		ctx := context.Background()
@@ -74,13 +74,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kafka admin client: %w", err)
 	}
-	return kafkaSource{
-		client,
-		consumerGroup,
-		adminClient,
-		consumerGroupID,
-		x.Topic,
-	}, nil
+	return kafkaSource{client, consumerGroup, adminClient, consumerGroupID, x.Topic}, nil
 }
 
 func (s kafkaSource) Close() error {

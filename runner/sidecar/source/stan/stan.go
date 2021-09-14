@@ -8,15 +8,15 @@ import (
 	"net/http"
 	"time"
 
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedstan "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
+	"github.com/opentracing/opentracing-go"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 var logger = sharedutil.NewLogger()
@@ -53,6 +53,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
+			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("stan-source-%s", sourceName))
+			defer span.Finish()
 			if err := process(ctx, msg.Data); err != nil {
 				logger.Error(err, "failed to process message")
 			} else if err := msg.Ack(); err != nil {

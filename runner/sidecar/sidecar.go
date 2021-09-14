@@ -11,13 +11,16 @@ import (
 	"sync"
 	"time"
 
-	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
+	jaegerlog "github.com/uber/jaeger-client-go/log"
+	"github.com/uber/jaeger-lib/metrics"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -65,7 +68,7 @@ func Exec(ctx context.Context) error {
 
 	if cluster == "" {
 		// this must be configured in the controller
-		return fmt.Errorf("cluster (%q) was not specifcied", dfv1.EnvCluster)
+		return fmt.Errorf("cluster (%q) was not specified", dfv1.EnvCluster)
 	}
 
 	stepName = step.Spec.Name
@@ -87,6 +90,27 @@ func Exec(ctx context.Context) error {
 	} else {
 		updateInterval = v
 	}
+
+	cfg, err := (&jaegercfg.Configuration{
+		Disabled:    true,
+		ServiceName: fmt.Sprintf("dataflow-step-%s-%s", pipelineName, stepName),
+	}).FromEnv()
+	if err != nil {
+		return err
+	}
+
+	logger.Info("jaeger config", "config", sharedutil.MustJSON(cfg))
+
+	tracer, closer, err := cfg.NewTracer(
+		jaegercfg.Logger(jaegerlog.StdLogger),
+		jaegercfg.Metrics(metrics.NullFactory),
+	)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = closer.Close() }()
+
+	opentracing.SetGlobalTracer(tracer)
 
 	if err := enrichSpec(ctx); err != nil {
 		return err

@@ -36,7 +36,7 @@ func CreateBucket(bucket string) func() {
 func purgeBucket(bucket string, s3Svc *s3.Client) {
 	// Setup BatchDeleteIterator to iterate through a list of objects.
 	deleteObject := func(bucket, key string) {
-		_, err := s3Svc.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+		_, err := s3Svc.DeleteObject(context.Background(), &s3.DeleteObjectInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),
 		})
@@ -47,7 +47,7 @@ func purgeBucket(bucket string, s3Svc *s3.Client) {
 
 	in := &s3.ListObjectsV2Input{Bucket: aws.String(bucket)}
 	for {
-		out, err := s3Svc.ListObjectsV2(context.TODO(), in)
+		out, err := s3Svc.ListObjectsV2(context.Background(), in)
 		if err != nil {
 			panic(err)
 		}

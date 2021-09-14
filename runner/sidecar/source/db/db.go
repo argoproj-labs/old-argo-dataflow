@@ -11,7 +11,9 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/opentracing/opentracing-go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -63,13 +65,16 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	}
 
 	go func() {
+		defer runtime.HandleCrash()
 		for {
 			time.Sleep(x.PollInterval.Duration)
 			select {
 			case <-ctx.Done():
 				return
 			default:
-				if err = queryData(ctx, db, x.Query, x.OffsetColumn, offset, func(d rowData) error {
+				if err = queryData(ctx, db, x.Query, x.OffsetColumn, offset, func(ctx context.Context, d rowData) error {
+					span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("db-source-%s", sourceName))
+					defer span.Finish()
 					jsonData, err := json.Marshal(d)
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)
@@ -88,6 +93,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 
 	// update offset in db
 	go func() {
+		defer runtime.HandleCrash()
 		ticker := time.NewTicker(x.CommitInterval.Duration)
 		defer ticker.Stop()
 		for {
@@ -105,9 +111,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 		}
 	}()
 
-	return dbSource{
-		db: db,
-	}, nil
+	return dbSource{db}, nil
 }
 
 func (d dbSource) Close() error {
@@ -153,7 +157,7 @@ func insertOffset(ctx context.Context, db *sql.DB, uid, remark, offset string) (
 	}
 }
 
-func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset string, f func(rowData) error) error {
+func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset string, f func(context.Context, rowData) error) error {
 	sql := fmt.Sprintf("select * from (%s) as dataflow_query_table order by %s", query, offsetColumn)
 	params := []interface{}{}
 	if offset != "" {
@@ -195,7 +199,7 @@ func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset stri
 				entry[col] = val
 			}
 		}
-		if err = f(entry); err != nil {
+		if err = f(ctx, entry); err != nil {
 			logger.Error(err, "failed to process message")
 		}
 	}

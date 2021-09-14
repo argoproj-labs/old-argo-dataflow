@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -15,18 +13,21 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/opentracing/opentracing-go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 var logger = sharedutil.NewLogger()
 
 type dbSink struct {
-	db      *sql.DB
-	actions []dfv1.SQLAction
-	progs   map[string]*vm.Program
+	sinkName string
+	db       *sql.DB
+	actions  []dfv1.SQLAction
+	progs    map[string]*vm.Program
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.DBSink) (sink.Interface, error) {
+func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.DBSink) (sink.Interface, error) {
 	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
@@ -58,9 +59,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.DBS
 		}
 	}
 	return dbSink{
-		db:      db,
-		actions: x.Actions,
-		progs:   progs,
+		sinkName,
+		db,
+		x.Actions,
+		progs,
 	}, nil
 }
 
@@ -71,11 +73,11 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 	}
 	defer func() { _ = tx.Rollback() }() // The rollback will be ignored if the tx has been committed later in the function.
 	for _, action := range d.actions {
-		rs, err := d.execStatement(tx, action.SQL, action.Args, msg)
+		rs, err := d.execStatement(ctx, tx, action.SQL, action.Args, msg)
 		if err != nil {
 			if action.OnError != nil {
 				logger.Error(err, "failed to exec sql", "sql", action.SQL)
-				_, err = d.execStatement(tx, action.OnError.SQL, action.OnError.Args, msg)
+				_, err = d.execStatement(ctx, tx, action.OnError.SQL, action.OnError.Args, msg)
 				if err != nil {
 					return fmt.Errorf("failed to exec onError sql %q", action.OnError.SQL)
 				}
@@ -89,7 +91,7 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 			return fmt.Errorf("failed to get number of rows affected after exectuation")
 		}
 		if n == 0 && action.OnRecordNotFound != nil {
-			_, err = d.execStatement(tx, action.OnRecordNotFound.SQL, action.OnRecordNotFound.Args, msg)
+			_, err = d.execStatement(ctx, tx, action.OnRecordNotFound.SQL, action.OnRecordNotFound.Args, msg)
 			if err != nil {
 				return fmt.Errorf("failed to exec onRecordNotFound sql %q", action.OnRecordNotFound.SQL)
 			}
@@ -101,7 +103,9 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 	return nil
 }
 
-func (d dbSink) execStatement(tx *sql.Tx, sql string, args []string, msg []byte) (sql.Result, error) {
+func (d dbSink) execStatement(ctx context.Context, tx *sql.Tx, sql string, args []string, msg []byte) (sql.Result, error) {
+	span, _ := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", d.sinkName))
+	defer span.Finish()
 	stmt, err := tx.Prepare(sql)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a prepared statement: %w", err)
