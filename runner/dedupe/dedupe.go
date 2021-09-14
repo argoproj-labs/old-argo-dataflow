@@ -56,7 +56,11 @@ func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
 	}, 15*time.Second, 1.2, true, ctx.Done())
 
 	return golang.StartWithContext(ctx, func(ctx context.Context, msg []byte) ([]byte, error) {
-		r, err := expr.Run(prog, util.ExprEnv(ctx, msg))
+		env, err := util.ExprEnv(ctx, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create expr env: %w", err)
+		}
+		r, err := expr.Run(prog, env)
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute program: %w", err)
 		}

@@ -17,7 +17,11 @@ func Exec(ctx context.Context, x string) error {
 		return fmt.Errorf("failed to compile %q: %w", x, err)
 	}
 	return golang.StartWithContext(ctx, func(ctx context.Context, msg []byte) ([]byte, error) {
-		res, err := expr.Run(prog, util.ExprEnv(ctx, msg))
+		env, err := util.ExprEnv(ctx, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create expr env: %w", err)
+		}
+		res, err := expr.Run(prog, env)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run program %x: %w", x, err)
 		}

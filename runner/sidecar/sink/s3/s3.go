@@ -89,7 +89,10 @@ func (h s3Sink) Sink(ctx context.Context, msg []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to open %q: %w", m.Path, err)
 	}
-	source, id, _ := dfv1.MetaFromContext(ctx)
+	source, id, _, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return err
+	}
 	_, err = h.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:  &h.bucket,
 		Key:     &m.Key,

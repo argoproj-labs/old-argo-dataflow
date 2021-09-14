@@ -89,7 +89,10 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
-					source, id, t := dfv1.MetaFromContext(ctx)
+					source, id, t, err := dfv1.MetaFromContext(ctx)
+					if err != nil {
+						return err
+					}
 					// we need to copy anything except the timeout from the parent context
 					ctx, cancel := context.WithTimeout(
 						dfv1.ContextWithMeta(
@@ -98,8 +101,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						),
 						15*time.Second,
 					)
-
-					err := process(ctx, msg)
+					err = process(ctx, msg)
 					cancel()
 					if err == nil {
 						return nil

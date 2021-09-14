@@ -19,8 +19,11 @@ var io = map[string]interface{}{
 	"cat": cat,
 }
 
-func ExprEnv(ctx context.Context, msg []byte) map[string]interface{} {
-	source, id, t := dfv1.MetaFromContext(ctx)
+func ExprEnv(ctx context.Context, msg []byte) (map[string]interface{}, error) {
+	source, id, t, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return map[string]interface{}{
 		// values
 		"ctx": map[string]string{
@@ -38,7 +41,7 @@ func ExprEnv(ctx context.Context, msg []byte) map[string]interface{} {
 		"sprig":  _sprig,
 		"sha1":   _sha1,
 		"io":     io,
-	}
+	}, nil
 }
 
 func _bytes(v interface{}) []byte {

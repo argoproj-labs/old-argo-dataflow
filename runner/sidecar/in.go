@@ -83,7 +83,9 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 				return err
 			}
 			// https://github.com/cloudevents/spec/blob/v1.0.1/http-protocol-binding.md#3132-http-header-values
-			dfv1.MetaInject(ctx, req.Header)
+			if err := dfv1.MetaInject(ctx, req.Header); err != nil {
+				return err
+			}
 			if err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err != nil {
 				return fmt.Errorf("failed to inject tracing headers: %w", err)
 			}

@@ -14377,7 +14377,7 @@ spec:
         - name: JAEGER_SAMPLER_TYPE
           value: ratelimiting
         - name: JAEGER_SAMPLER_PARAM
-          value: "5"
+          value: "0.2"
         - name: ARGO_DATAFLOW_NAMESPACE
           valueFrom:
             fieldRef:

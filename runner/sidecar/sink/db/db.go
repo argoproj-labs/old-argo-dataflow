@@ -116,7 +116,11 @@ func (d dbSink) execStatement(ctx context.Context, tx *sql.Tx, sql string, args 
 	l := []interface{}{}
 	for _, arg := range args {
 		prog := d.progs[arg]
-		res, err := expr.Run(prog, util.ExprEnv(ctx, msg))
+		env, err := util.ExprEnv(ctx, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create expr env: %w", err)
+		}
+		res, err := expr.Run(prog, env)
 		if err != nil {
 			return nil, err
 		}

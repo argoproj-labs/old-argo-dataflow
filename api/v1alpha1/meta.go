@@ -43,32 +43,38 @@ func ContextWithMeta(ctx context.Context, source, id string, time time.Time) con
 	)
 }
 
-func MetaFromContext(ctx context.Context) (source, id string, t time.Time) {
-	return ctx.Value(MetaSource).(string), ctx.Value(MetaID).(string), ctx.Value(MetaTime).(time.Time)
+func MetaFromContext(ctx context.Context) (source, id string, t time.Time, err error) {
+	source, ok := ctx.Value(MetaSource).(string)
+	if !ok {
+		return "", "", time.Time{}, fmt.Errorf("failed to get source from context")
+	}
+	id, ok = ctx.Value(MetaID).(string)
+	if !ok {
+		return "", "", time.Time{}, fmt.Errorf("failed to get id from context")
+	}
+	t, ok = ctx.Value(MetaTime).(time.Time)
+	if !ok {
+		return "", "", time.Time{}, fmt.Errorf("failed to get time from context")
+	}
+	return source, id, t, nil
 }
 
-func MetaInject(ctx context.Context, h interface{}) {
-	source, id, t := MetaFromContext(ctx)
-	switch v := h.(type) {
-	case http.Header:
-		v.Add(MetaSource.String(), source)
-		v.Add(MetaID.String(), id)
-		v.Add(MetaTime.String(), t.Format(time.RFC3339))
-	default:
-		panic(fmt.Errorf("unexpected type %T", h))
+func MetaInject(ctx context.Context, h http.Header) error {
+	source, id, t, err := MetaFromContext(ctx)
+	if err != nil {
+		return err
 	}
+	h.Add(MetaSource.String(), source)
+	h.Add(MetaID.String(), id)
+	h.Add(MetaTime.String(), t.Format(time.RFC3339))
+	return nil
 }
 
-func MetaExtract(ctx context.Context, h interface{}) context.Context {
-	switch v := h.(type) {
-	case http.Header:
-		t, _ := time.Parse(time.RFC3339, v.Get(MetaTime.String()))
-		return ContextWithMeta(ctx,
-			v.Get(MetaSource.String()),
-			v.Get(MetaID.String()),
-			t,
-		)
-	default:
-		panic(fmt.Errorf("unexpected type %T", h))
-	}
+func MetaExtract(ctx context.Context, h http.Header) context.Context {
+	t, _ := time.Parse(time.RFC3339, h.Get(MetaTime.String()))
+	return ContextWithMeta(ctx,
+		h.Get(MetaSource.String()),
+		h.Get(MetaID.String()),
+		t,
+	)
 }
