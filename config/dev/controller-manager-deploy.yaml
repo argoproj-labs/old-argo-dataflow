@@ -19,4 +19,4 @@ spec:
             - name: JAEGER_SAMPLER_TYPE
               value: ratelimiting
             - name: JAEGER_SAMPLER_PARAM
-              value: "1"
+              value: "5"

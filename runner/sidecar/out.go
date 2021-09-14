@@ -73,7 +73,10 @@ func connectOutFIFO(ctx context.Context, sink func(context.Context, []byte) erro
 			logger.Info("opened output FIFO")
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
-				if err := sink(ctx, scanner.Bytes()); err != nil {
+				if err := sink(
+					dfv1.ContextWithMeta(ctx, fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:fifo", pod, namespace, cluster), uuid.New().String(), time.Now()),
+					scanner.Bytes(),
+				); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)
 				}
 			}
