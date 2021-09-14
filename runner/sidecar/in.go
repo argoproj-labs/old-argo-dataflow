@@ -10,8 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/opentracing/opentracing-go"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -47,8 +45,6 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			return fifo.Close()
 		})
 		return func(ctx context.Context, data []byte) error {
-			span, _ := opentracing.StartSpanFromContext(ctx, "fifo")
-			defer span.Finish()
 			inFlight.Inc()
 			defer inFlight.Dec()
 			if _, err := fifo.Write(data); err != nil {

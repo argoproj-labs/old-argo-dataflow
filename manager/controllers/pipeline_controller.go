@@ -43,7 +43,6 @@ type PipelineReconciler struct {
 	Log             logr.Logger
 	Scheme          *runtime.Scheme
 	ContainerKiller containerkiller.Interface
-	Cluster         string
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete

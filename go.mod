@@ -34,7 +34,6 @@ require (
 	github.com/nats-io/stan.go v0.8.3
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
-	github.com/opentracing/opentracing-go v1.2.0
 	github.com/paulbellamy/ratecounter v0.2.0
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/prometheus/client_golang v1.7.1
