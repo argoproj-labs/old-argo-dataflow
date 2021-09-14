@@ -147,3 +147,24 @@ func TestStep_GetPodSpec(t *testing.T) {
 		})
 	}
 }
+
+func TestStep_GetServiceObj(t *testing.T) {
+	step := Step{
+		Spec: StepSpec{
+			Name: "main",
+			Cat:  &Cat{AbstractStep{Resources: standardResources}},
+		},
+	}
+	t.Run("headless", func(t *testing.T) {
+		obj := step.GetServiceObj("serviceName", "plName", true)
+		assert.Equal(t, obj.Spec.ClusterIP, "None")
+		assert.Equal(t, len(obj.Spec.Ports), 1)
+		assert.Equal(t, int32(3570), obj.Spec.Ports[0].Port)
+	})
+	t.Run("clusterIP", func(t *testing.T) {
+		obj := step.GetServiceObj("serviceName", "plName", false)
+		assert.Equal(t, obj.Spec.ClusterIP, "")
+		assert.Equal(t, len(obj.Spec.Ports), 1)
+		assert.Equal(t, int32(443), obj.Spec.Ports[0].Port)
+	})
+}

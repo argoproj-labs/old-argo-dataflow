@@ -18,4 +18,6 @@ type GetPodSpecReq struct {
 	StepStatus       StepStatus                    `protobuf:"bytes,8,opt,name=stepStatus"`
 	Sidecar          Sidecar                       `protobuf:"bytes,10,opt,name=sidecar"`
 	ImagePullSecrets []corev1.LocalObjectReference `protobuf:"bytes,11,opt,name=imagePullSecrets"`
+	Hostname         string                        `protobuf:"hostname,12,opt,name=hostname"`
+	Subdomain        string                        `protobuf:"subdomain,13,opt,name=subdomain"`
 }
