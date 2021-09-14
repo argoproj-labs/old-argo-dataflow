@@ -24,6 +24,9 @@ func WaitForService() {
 		panic(fmt.Errorf("failed to watch services: %w", err))
 	}
 	for _, x := range list.Items {
+		x.Spec.ClusterIP == "None" {
+			continue
+		}
 		if _, ok := x.Spec.Selector[KeyPipelineName]; ok {
 			log.Printf("waiting for service %q\n", x.Name)
 			InvokeTestAPI("/http/wait-for?url=%s", url.QueryEscape("https://"+x.Name))
