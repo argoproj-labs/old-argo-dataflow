@@ -130,7 +130,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	step.Status.Selector = selector.String()
 
 	ownerReferences := []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)}
-	headlessSvcName := "headless-" + pipelineName + "-" + stepName
+	headlessSvcName := "step-" + pipelineName + "-" + stepName
 
 	for replica := 0; replica < desiredReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
@@ -234,20 +234,19 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	for _, s := range step.Spec.Sources {
 		serviceName := pipelineName + "-" + stepName
 		if x := s.HTTP; x != nil {
-			if x := s.HTTP; x != nil {
-				if n := x.ServiceName; n != "" {
-					serviceName = n
-				}
-				serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
-			} else if x := s.S3; x != nil {
-				serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
-			} else if x := s.Volume; x != nil {
-				serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
+			if n := x.ServiceName; n != "" {
+				serviceName = n
 			}
+			serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
+		} else if x := s.S3; x != nil {
+			serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
+		} else if x := s.Volume; x != nil {
+			serviceObjMap[serviceName] = buildServiceObj(serviceName, false)
 		}
 	}
 
 	for _, obj := range serviceObjMap {
+		fmt.Println(obj.Name)
 		if err := r.Client.Create(ctx, obj); util.IgnoreAlreadyExists(err) != nil {
 			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
 			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
