@@ -3,7 +3,6 @@ namespace: argo-dataflow-system
 resources:
   - ../default
   - ../apps/testapi
-  - ../apps/jaeger
 
 patchesStrategicMerge:
   - controller-manager-deploy.yaml
