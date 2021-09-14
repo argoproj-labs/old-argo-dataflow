@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
+
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/antonmedv/expr"
@@ -21,12 +23,13 @@ import (
 var logger = sharedutil.NewLogger()
 
 type dbSink struct {
-	db      *sql.DB
-	actions []dfv1.SQLAction
-	progs   map[string]*vm.Program
+	sinkName string
+	db       *sql.DB
+	actions  []dfv1.SQLAction
+	progs    map[string]*vm.Program
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.DBSink) (sink.Interface, error) {
+func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.DBSink) (sink.Interface, error) {
 	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
@@ -58,9 +61,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.DBS
 		}
 	}
 	return dbSink{
-		db:      db,
-		actions: x.Actions,
-		progs:   progs,
+		sinkName,
+		db,
+		x.Actions,
+		progs,
 	}, nil
 }
 
@@ -102,6 +106,8 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 }
 
 func (d dbSink) execStatement(ctx context.Context, tx *sql.Tx, sql string, args []string, msg []byte) (sql.Result, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", d.sinkName))
+	defer span.Finish()
 	stmt, err := tx.Prepare(sql)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a prepared statement: %w", err)

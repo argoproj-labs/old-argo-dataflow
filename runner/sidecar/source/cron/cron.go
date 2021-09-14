@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
+
 	"github.com/google/uuid"
 
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -21,7 +23,7 @@ type cronSource struct {
 	crn *cron.Cron
 }
 
-func New(ctx context.Context, sourceURN string, x dfv1.Cron, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, sourceName, sourceURN string, x dfv1.Cron, process source.Process) (source.Interface, error) {
 	crn := cron.New(
 		cron.WithParser(cron.NewParser(cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
 		cron.WithChain(cron.Recover(logger)),
@@ -33,6 +35,8 @@ func New(ctx context.Context, sourceURN string, x dfv1.Cron, process source.Proc
 	}()
 
 	_, err := crn.AddFunc(x.Schedule, func() {
+		span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("cron-source-%s", sourceName))
+		defer span.Finish()
 		msg := []byte(time.Now().Format(x.Layout))
 		if err := process(
 			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String(), time.Now()),
@@ -44,7 +48,7 @@ func New(ctx context.Context, sourceURN string, x dfv1.Cron, process source.Proc
 	if err != nil {
 		return nil, fmt.Errorf("failed to schedule cron %q: %w", x.Schedule, err)
 	}
-	return cronSource{crn: crn}, nil
+	return cronSource{crn}, nil
 }
 
 func (s cronSource) Close() error {

@@ -2,10 +2,13 @@ package volume
 
 import (
 	"context"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/opentracing/opentracing-go"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
@@ -30,6 +33,8 @@ func New(ctx context.Context, pipelineName, stepName, sourceName, sourceURN stri
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
 		Process: func(ctx context.Context, msg []byte) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("volume-source-%s", sourceName))
+			defer span.Finish()
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			return process(

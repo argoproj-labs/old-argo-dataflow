@@ -10,13 +10,18 @@ import (
 	"sync"
 	"time"
 
-	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
+	jaegerlog "github.com/uber/jaeger-client-go/log"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/uber/jaeger-client-go"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
+	"github.com/uber/jaeger-lib/metrics"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -63,11 +68,32 @@ func Exec(ctx context.Context) error {
 
 	sharedutil.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
+	cfg := jaegercfg.Configuration{
+		ServiceName: fmt.Sprintf("dataflow-sidecar-%s-%s", pipelineName, stepName),
+		Sampler: &jaegercfg.SamplerConfig{
+			Type:  jaeger.SamplerTypeRateLimiting,
+			Param: 1,
+		},
+		Reporter: &jaegercfg.ReporterConfig{
+			LogSpans: true,
+		},
+	}
+	tracer, closer, err := cfg.NewTracer(
+		jaegercfg.Logger(jaegerlog.StdLogger),
+		jaegercfg.Metrics(metrics.NullFactory),
+	)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = closer.Close() }()
+
+	opentracing.SetGlobalTracer(tracer)
+
 	logger.Info("step", "cluster", cluster, "step", sharedutil.MustJSON(step))
 
 	if cluster == "" {
 		// this must be configured in the controller
-		return fmt.Errorf("cluster (%q) was not specifcied", dfv1.EnvCluster)
+		return fmt.Errorf("cluster (%q) was not specified", dfv1.EnvCluster)
 	}
 
 	stepName = step.Spec.Name

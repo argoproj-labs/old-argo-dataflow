@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
+
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -73,6 +75,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 				return
 			default:
 				if err = queryData(ctx, db, sourceURN, x.Query, x.OffsetColumn, offset, func(ctx context.Context, d rowData) error {
+					span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("db-source-%s", sourceName))
+					defer span.Finish()
 					jsonData, err := json.Marshal(d)
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)
@@ -109,9 +113,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 		}
 	}()
 
-	return dbSource{
-		db: db,
-	}, nil
+	return dbSource{db}, nil
 }
 
 func (d dbSource) Close() error {

@@ -1,8 +1,12 @@
 package http
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
@@ -14,8 +18,18 @@ type httpSource struct {
 }
 
 func New(sourceURN, sourceName, authorization string, process source.Process) source.Interface {
-	h := &httpSource{ready: true}
+	h := &httpSource{true}
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
+		wireContext, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+		operationName := fmt.Sprintf("http-source-%s", sourceName)
+		var span opentracing.Span
+		if err != nil {
+			span = opentracing.StartSpan(operationName)
+		} else {
+			span = opentracing.StartSpan(operationName, ext.RPCServerOption(wireContext))
+		}
+		defer span.Finish()
+		ctx := opentracing.ContextWithSpan(r.Context(), span)
 		if r.Header.Get("Authorization") != authorization {
 			w.WriteHeader(403)
 			return
@@ -32,7 +46,7 @@ func New(sourceURN, sourceName, authorization string, process source.Process) so
 			return
 		}
 		if err := process(
-			dfv1.ContextWithMeta(r.Context(), sourceURN, uuid.New().String()),
+			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String()),
 			msg,
 		); err != nil {
 			w.WriteHeader(500)

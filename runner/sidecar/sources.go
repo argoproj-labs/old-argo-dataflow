@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
@@ -67,6 +69,8 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		processWithRetry := func(ctx context.Context, msg []byte) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, "process")
+			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
 			rateCounter.Incr(1)
@@ -105,7 +109,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		}
 		if x := s.Cron; x != nil {
-			if y, err := cron.New(ctx, sourceURN, *x, processWithRetry); err != nil {
+			if y, err := cron.New(ctx, sourceName, sourceURN, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

@@ -72,7 +72,7 @@ func New(ctx context.Context, r NewReq) (source.HasPending, error) {
 					func() {
 						defer jobs.Done(item)
 						itemS := item.(string)
-						req, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(itemS))
+						req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBufferString(itemS))
 						if err != nil {
 							logger.Error(err, "failed to create request", "item", item)
 						} else {

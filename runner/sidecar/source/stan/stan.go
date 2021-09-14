@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
+
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -53,6 +55,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
+			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("stan-source-%s", sourceName))
+			defer span.Finish()
 			if err := process(
 				dfv1.ContextWithMeta(ctx, sourceURN, fmt.Sprint(msg.Sequence), msg.Sequence, time.Unix(0, msg.Timestamp)),
 				msg.Data,

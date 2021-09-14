@@ -1,7 +1,10 @@
 package kafka
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/opentracing/opentracing-go"
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -9,6 +12,7 @@ import (
 )
 
 type handler struct {
+	sourceName   string
 	sourceURN    string
 	process      source.Process
 	i            int
@@ -26,12 +30,10 @@ func (handler) Cleanup(_ sarama.ConsumerGroupSession) error {
 }
 
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	ctx := sess.Context()
 	logger.Info("starting consuming claim", "partition", claim.Partition())
 	for msg := range claim.Messages() {
-		if err := h.process(
-			dfv1.ContextWithMeta(sess.Context(), h.sourceURN, fmt.Sprintf("%d-%d", msg.Partition, msg.Offset), msg.Timestamp),
-			msg.Value,
-		); err != nil {
+		if err := h.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
 			sess.MarkMessage(msg, "")
@@ -42,4 +44,13 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 		}
 	}
 	return nil
+}
+
+func (h handler) processMessage(ctx context.Context, msg *sarama.ConsumerMessage) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-source-%s", h.sourceName))
+	defer span.Finish()
+	return h.process(
+		dfv1.ContextWithMeta(ctx, h.sourceURN, fmt.Sprintf("%d-%d", msg.Partition, msg.Offset), msg.Timestamp),
+		msg.Value,
+	)
 }

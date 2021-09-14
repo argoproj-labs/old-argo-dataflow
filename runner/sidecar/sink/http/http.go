@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
+
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -18,12 +20,13 @@ import (
 )
 
 type httpSink struct {
-	header http.Header
-	client *http.Client
-	url    string
+	sinkName string
+	header   http.Header
+	client   *http.Client
+	url      string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.HTTPSink) (sink.Interface, error) {
+func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.HTTPSink) (sink.Interface, error) {
 	header := http.Header{}
 	for _, h := range x.Headers {
 		if h.Value != "" {
@@ -38,18 +41,21 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.HTT
 		}
 	}
 	return httpSink{
-		url:    x.URL,
-		header: header,
-		client: &http.Client{
+		sinkName,
+		header,
+		&http.Client{
 			Timeout: 10 * time.Second,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: x.InsecureSkipVerify},
 			},
 		},
+		x.URL,
 	}, nil
 }
 
 func (h httpSink) Sink(ctx context.Context, msg []byte) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("http-sink-%s", h.sinkName))
+	defer span.Finish()
 	req, err := http.NewRequestWithContext(ctx, "POST", h.url, bytes.NewBuffer(msg))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %w", err)
@@ -57,6 +63,10 @@ func (h httpSink) Sink(ctx context.Context, msg []byte) error {
 	req.Header = h.header
 	req.Header.Add(dfv1.MetaSource.String(), dfv1.GetMetaSource(ctx))
 	req.Header.Add(dfv1.MetaID.String(), dfv1.GetMetaID(ctx))
+	if err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err != nil {
+		return fmt.Errorf("failed to inject tracing headers: %w", err)
+	}
+
 	if resp, err := h.client.Do(req); err != nil {
 		return fmt.Errorf("failed to send HTTP request: %w", err)
 	} else {

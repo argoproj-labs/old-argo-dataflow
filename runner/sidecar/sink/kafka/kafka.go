@@ -2,7 +2,10 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"io"
+
+	"github.com/opentracing/opentracing-go"
 
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -38,11 +41,12 @@ func (s syncProducer) SendMessage(ctx context.Context, msg *sarama.ProducerMessa
 }
 
 type kafkaSink struct {
+	sinkName string
 	producer producer
 	topic    string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
+func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
 	config, err := kafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
 		return nil, err
@@ -92,23 +96,31 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 			}
 		}()
 
-		return kafkaSink{asyncProducer{producer}, x.Topic}, nil
+		return kafkaSink{sinkName, asyncProducer{producer}, x.Topic}, nil
 	} else {
 		config.Producer.Return.Successes = true
 		producer, err := sarama.NewSyncProducer(x.Brokers, config)
 		if err != nil {
 			return nil, err
 		}
-		return kafkaSink{syncProducer{producer}, x.Topic}, nil
+		return kafkaSink{sinkName, syncProducer{producer}, x.Topic}, nil
 	}
 }
 
 func (h kafkaSink) Sink(ctx context.Context, msg []byte) error {
-	headers := []sarama.RecordHeader{
-		{Key: []byte(dfv1.MetaSource.String()), Value: []byte(dfv1.GetMetaSource(ctx))},
-		{Key: []byte(dfv1.MetaID.String()), Value: []byte(dfv1.GetMetaID(ctx))},
-	}
-	return h.producer.SendMessage(ctx, &sarama.ProducerMessage{Headers: headers, Value: sarama.ByteEncoder(msg), Topic: h.topic})
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", h.sinkName))
+	defer span.Finish()
+	return h.producer.SendMessage(
+		ctx,
+		&sarama.ProducerMessage{
+			Headers: []sarama.RecordHeader{
+				{Key: []byte(dfv1.MetaSource.String()), Value: []byte(dfv1.GetMetaSource(ctx))},
+				{Key: []byte(dfv1.MetaID.String()), Value: []byte(dfv1.GetMetaID(ctx))},
+			},
+			Value: sarama.ByteEncoder(msg),
+			Topic: h.topic,
+		},
+	)
 }
 
 func (h kafkaSink) Close() error {
