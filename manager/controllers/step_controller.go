@@ -130,7 +130,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	step.Status.Selector = selector.String()
 
 	ownerReferences := []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)}
-	headlessSvcName := pipelineName + "-" + stepName + "-svc"
+	headlessSvcName := "headless-" + pipelineName + "-" + stepName
 
 	for replica := 0; replica < desiredReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
