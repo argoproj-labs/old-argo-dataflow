@@ -130,6 +130,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	step.Status.Selector = selector.String()
 
 	ownerReferences := []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)}
+	headlessSvcName := pipelineName + "-" + stepName + "-svc"
 
 	for replica := 0; replica < desiredReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
@@ -185,7 +186,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						Sidecar:          step.Spec.Sidecar,
 						ImagePullSecrets: reqImagePullSecrets,
 						Hostname:         podName,
-						Subdomain:        pipelineName + "-" + stepName + "-svc",
+						Subdomain:        headlessSvcName,
 					},
 				),
 			},
@@ -228,7 +229,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return svc
 	}
 
-	serviceObjMap := map[string]*corev1.Service{pipelineName+"-"+stepName+"-svc", buildServiceObj(pipelineName+"-"+stepName+"-svc"}
+	serviceObjMap := make(map[string]*corev1.Service)
+	serviceObjMap[headlessSvcName] = buildServiceObj(headlessSvcName, true)
 	for _, s := range step.Spec.Sources {
 		serviceName := pipelineName + "-" + stepName
 		if x := s.HTTP; x != nil {
