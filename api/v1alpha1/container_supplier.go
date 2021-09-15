@@ -15,3 +15,7 @@ type getContainerReq struct {
 type containerSupplier interface {
 	getContainer(req getContainerReq) corev1.Container
 }
+
+type volumeMountSupplier interface {
+	getVolumeMount() corev1.VolumeMount
+}

@@ -23,7 +23,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 				{Name: "ARGO_DATAFLOW_POD", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
 				{Name: "ARGO_DATAFLOW_PIPELINE_NAME", Value: "my-pl"},
 				{Name: "ARGO_DATAFLOW_REPLICA", Value: fmt.Sprintf("%d", replica)},
-				{Name: "ARGO_DATAFLOW_STEP", Value: `{"metadata":{"creationTimestamp":null},"spec":{"name":"main","cat":{"resources":{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"64Mi"}}},"scale":{},"sidecar":{"resources":{}}},"status":{"phase":"","replicas":0,"lastScaledAt":null}}`},
+				{Name: "ARGO_DATAFLOW_STEP", Value: "{\"metadata\":{\"creationTimestamp\":null},\"spec\":{\"name\":\"main\",\"cat\":{},\"scale\":{},\"sidecar\":{\"resources\":{}}},\"status\":{\"phase\":\"\",\"replicas\":0,\"lastScaledAt\":null}}"},
 				{Name: "ARGO_DATAFLOW_UPDATE_INTERVAL", Value: "1m0s"},
 				{Name: "GODEBUG"},
 			}
@@ -45,7 +45,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 					Step{
 						Spec: StepSpec{
 							Name: "main",
-							Cat:  &Cat{AbstractStep{Resources: standardResources}},
+							Cat:  &Cat{},
 						},
 					},
 					GetPodSpecReq{
@@ -80,18 +80,6 @@ func TestStep_GetPodSpec(t *testing.T) {
 										HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3570), Scheme: "HTTPS"},
 									},
 								},
-								Resources:       standardResources,
-								SecurityContext: dropAll,
-								VolumeMounts:    mounts,
-							},
-							{
-								Args:            []string{"cat"},
-								Image:           "my-runner",
-								ImagePullPolicy: corev1.PullAlways,
-								Name:            "main",
-								Lifecycle: &corev1.Lifecycle{PreStop: &corev1.Handler{
-									Exec: &corev1.ExecAction{Command: []string{"/var/run/argo-dataflow/prestop"}},
-								}},
 								Resources:       standardResources,
 								SecurityContext: dropAll,
 								VolumeMounts:    mounts,
@@ -152,7 +140,7 @@ func TestStep_GetServiceObj(t *testing.T) {
 	step := Step{
 		Spec: StepSpec{
 			Name: "main",
-			Cat:  &Cat{AbstractStep{Resources: standardResources}},
+			Cat:  &Cat{},
 		},
 	}
 	t.Run("headless", func(t *testing.T) {

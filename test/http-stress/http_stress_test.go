@@ -20,14 +20,8 @@ func TestHTTPSourceStress(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "http"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name: "main",
-				Cat: &Cat{
-					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
-						Requests: v1.ResourceList{
-							v1.ResourceMemory: Params.ResourceMemory,
-						},
-					}},
-				},
+				Name:     "main",
+				Cat:      &Cat{},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{DefaultLogSink},
@@ -63,12 +57,8 @@ func TestHTTPSinkStress(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "http"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
-				Name: "main",
-				Cat: &Cat{AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
-					Requests: v1.ResourceList{
-						v1.ResourceMemory: Params.ResourceMemory,
-					},
-				}}},
+				Name:     "main",
+				Cat:      &Cat{},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}, DefaultLogSink},

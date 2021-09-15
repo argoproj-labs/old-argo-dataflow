@@ -126,7 +126,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	if req.Replica == 0 {
 		priorityClassName = "lead-replica"
 	}
-	return corev1.PodSpec{
+	spec := corev1.PodSpec{
 		Hostname:           req.Hostname,
 		Subdomain:          req.Subdomain,
 		Volumes:            append(in.Spec.Volumes, volumes...),
@@ -185,7 +185,11 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				},
 				SecurityContext: dropAll,
 			},
-			in.Spec.getType().getContainer(getContainerReq{
+		},
+	}
+	if s, ok := in.Spec.Get().(containerSupplier); ok {
+		spec.Containers = append(spec.Containers,
+			s.getContainer(getContainerReq{
 				imageFormat:     req.ImageFormat,
 				imagePullPolicy: req.PullPolicy,
 				lifecycle: &corev1.Lifecycle{
@@ -198,9 +202,12 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				runnerImage:     req.RunnerImage,
 				securityContext: dropAll,
 				volumeMounts:    volumeMounts,
-			}),
-		},
+			}))
 	}
+	if s, ok := in.Spec.Get().(volumeMountSupplier); ok {
+		spec.Containers[0].VolumeMounts = append(spec.Containers[0].VolumeMounts, s.getVolumeMount())
+	}
+	return spec
 }
 
 func (in Step) GetHeadlessServiceName(pipelineName string) string {

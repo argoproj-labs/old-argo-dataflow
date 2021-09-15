@@ -51,15 +51,6 @@ func (b containerBuilder) resources(x corev1.ResourceRequirements) containerBuil
 	return b
 }
 
-func (b containerBuilder) enablePrometheus() containerBuilder {
-	return b.port(8080)
-}
-
-func (b containerBuilder) port(n int32) containerBuilder {
-	b.Ports = append(b.Ports, corev1.ContainerPort{ContainerPort: n})
-	return b
-}
-
 func (b containerBuilder) build() corev1.Container {
 	return corev1.Container(b)
 }

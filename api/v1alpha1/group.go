@@ -16,17 +16,13 @@ type Group struct {
 	Storage    *Storage    `json:"storage,omitempty" protobuf:"bytes,4,opt,name=storage"`
 }
 
-func (g *Group) getContainer(req getContainerReq) corev1.Container {
-	builder := containerBuilder{}.
-		init(req).
-		args("group", g.Key, g.EndOfGroup, string(g.Format))
+func (g Group) getVolumeMount() corev1.VolumeMount {
 	if g.Storage != nil {
-		builder = builder.appendVolumeMounts(corev1.VolumeMount{
+		return corev1.VolumeMount{
 			Name:      g.Storage.Name,
 			MountPath: PathGroups,
 			SubPath:   g.Storage.SubPath,
-		})
+		}
 	}
-	return builder.
-		build()
+	return corev1.VolumeMount{}
 }

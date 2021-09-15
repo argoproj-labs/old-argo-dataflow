@@ -28,5 +28,5 @@ func (in Container) GetIn() *Interface {
 	if in.In != nil {
 		return in.In
 	}
-	return DefaultInterface
+	return &Interface{HTTP: &HTTP{}}
 }

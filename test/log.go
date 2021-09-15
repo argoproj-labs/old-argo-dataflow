@@ -137,7 +137,8 @@ func tailLogs(podName, containerName string) {
 	log.Printf("tailing logs for %q/%q\n", podName, containerName)
 	stream, err := podsInterface.GetLogs(podName, &corev1.PodLogOptions{Container: containerName}).Stream(ctx)
 	if err != nil {
-		panic(err)
+		log.Printf("ERROR: %v", err)
+		return
 	}
 	defer func() { _ = stream.Close() }()
 	for s := bufio.NewScanner(stream); s.Scan(); {

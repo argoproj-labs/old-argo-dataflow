@@ -38,11 +38,6 @@ message AWSEndpoint {
   optional string url = 1;
 }
 
-message AbstractStep {
-  // +kubebuilder:default={limits: {"cpu": "500m", "memory": "256Mi"}, requests: {"cpu": "100m", "memory": "64Mi"}}
-  optional k8s.io.api.core.v1.ResourceRequirements resources = 1;
-}
-
 message AbstractVolumeSource {
   // HostPath represents a pre-existing file or directory on the host
   // machine that is directly exposed to the container. This is generally
@@ -228,7 +223,6 @@ message Backoff {
 }
 
 message Cat {
-  optional AbstractStep abstractStep = 1;
 }
 
 message Code {
@@ -301,8 +295,6 @@ message Database {
 }
 
 message Dedupe {
-  optional AbstractStep abstractStep = 1;
-
   // +kubebuilder:default="sha1(msg)"
   optional string uid = 2;
 
@@ -313,17 +305,13 @@ message Dedupe {
 }
 
 message Expand {
-  optional AbstractStep abstractStep = 1;
 }
 
 message Filter {
-  optional AbstractStep abstractStep = 1;
-
   optional string expression = 2;
 }
 
 message Flatten {
-  optional AbstractStep abstractStep = 1;
 }
 
 message GetPodSpecReq {
@@ -472,8 +460,6 @@ message Log {
 }
 
 message Map {
-  optional AbstractStep abstractStep = 1;
-
   optional string expression = 2;
 }
 

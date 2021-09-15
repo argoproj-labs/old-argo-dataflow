@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/argoproj-labs/argo-dataflow/shared/exec"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
@@ -66,6 +68,8 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			defer span.Finish()
 			inFlight.Inc()
 			defer inFlight.Dec()
+			start := time.Now()
+			defer func() { messageTimeSeconds.Observe(time.Since(start).Seconds()) }()
 			if _, err := fifo.Write(data); err != nil {
 				return fmt.Errorf("failed to send to main: %w", err)
 			}
@@ -80,14 +84,15 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			return nil, err
 		}
 		addStopHook(waitUnready)
-		return func(ctx context.Context, data []byte) error {
-			span, ctx := opentracing.StartSpanFromContext(ctx, "messages")
+
+		return func(ctx context.Context, msg []byte) error {
+			span, _ := opentracing.StartSpanFromContext(ctx, "http")
 			defer span.Finish()
 			inFlight.Inc()
 			defer inFlight.Dec()
 			start := time.Now()
 			defer func() { messageTimeSeconds.Observe(time.Since(start).Seconds()) }()
-			req, err := http.NewRequestWithContext(ctx, "POST", "http://127.0.0.1:8080/messages", bytes.NewBuffer(data))
+			req, err := http.NewRequestWithContext(ctx, "POST", "http://localhost:8080/messages", bytes.NewBuffer(msg))
 			if err != nil {
 				return err
 			}
@@ -110,6 +115,28 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 				}
 			}
 			return nil
+		}, nil
+	} else if processor := exec.Instance.Get(step.Spec.Get()); processor != nil {
+		logger.Info("using exec interface")
+		if err := processor.Init(ctx); err != nil {
+			return nil, err
+		}
+		return func(ctx context.Context, msg []byte) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, "exec")
+			defer span.Finish()
+			inFlight.Inc()
+			defer inFlight.Dec()
+			start := time.Now()
+			defer func() { messageTimeSeconds.Observe(time.Since(start).Seconds()) }()
+			out, err := processor.Exec(ctx, msg)
+			if err != nil {
+				return err
+			}
+			if out != nil {
+				return sink(ctx, out)
+			} else {
+				return nil
+			}
 		}, nil
 	} else {
 		return nil, fmt.Errorf("in interface misconfigured")

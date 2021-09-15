@@ -56,32 +56,32 @@ func (in StepSpec) GetIn() *Interface {
 	if in.Container != nil {
 		return in.Container.GetIn()
 	}
-	return DefaultInterface
+	return &Interface{}
 }
 
-func (in StepSpec) getType() containerSupplier {
+func (in StepSpec) Get() interface{} {
 	if x := in.Cat; x != nil {
-		return x
+		return *x
 	} else if x := in.Container; x != nil {
-		return x
+		return *x
 	} else if x := in.Dedupe; x != nil {
-		return x
+		return *x
 	} else if x := in.Expand; x != nil {
-		return x
+		return *x
 	} else if x := in.Filter; x != nil {
-		return x
+		return *x
 	} else if x := in.Flatten; x != nil {
-		return x
+		return *x
 	} else if x := in.Git; x != nil {
-		return x
+		return *x
 	} else if x := in.Group; x != nil {
-		return x
+		return *x
 	} else if x := in.Code; x != nil {
-		return x
+		return *x
 	} else if x := in.Map; x != nil {
-		return x
+		return *x
 	} else {
-		panic("invalid step spec")
+		return nil
 	}
 }
 
