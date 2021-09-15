@@ -37,21 +37,25 @@ import (
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
+const stepFinalizer = "step-controller"
+
 // StepReconciler reconciles a Step object
 type StepReconciler struct {
 	client.Client
-	Log              logr.Logger
-	Scheme           *runtime.Scheme
-	Recorder         record.EventRecorder
-	ContainerKiller  containerkiller.Interface
-	DynamicInterface dynamic.Interface
-	Cluster          string
+	Log                 logr.Logger
+	Scheme              *runtime.Scheme
+	Recorder            record.EventRecorder
+	ContainerKiller     containerkiller.Interface
+	DynamicInterface    dynamic.Interface
+	MetricsCacheHandler *scaling.MetricsCacheHandler
+	Cluster             string
 }
 
 type hash struct {
@@ -66,13 +70,19 @@ type hash struct {
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("step", req.NamespacedName.String())
-
 	step := &dfv1.Step{}
 	if err := r.Get(ctx, req.NamespacedName, step); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	if step.GetDeletionTimestamp() != nil {
+		if controllerutil.ContainsFinalizer(step, stepFinalizer) {
+			r.stopMetricsCacheLoop(step)
+			controllerutil.RemoveFinalizer(step, stepFinalizer)
+			if err := r.Client.Update(ctx, step); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		return ctrl.Result{}, nil
 	}
 
@@ -83,6 +93,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	currentReplicas := int(step.Status.Replicas)
 	if step.Spec.Scale.DesiredReplicas != "" {
+		if err := r.startMetricsCacheLoop(step); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to request metrics cache loop: %w", err)
+		}
 		desiredReplicas, err := scaling.GetDesiredReplicas(*step)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -127,7 +140,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	step.Status.Selector = selector.String()
 
 	ownerReferences := []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)}
-	headlessSvcName := step.GetHeadlessServiceName(pipelineName)
+	headlessSvcName := step.GetHeadlessServiceName()
 
 	for replica := 0; replica < desiredReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
@@ -277,6 +290,24 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		log.Info("requeue", "requeueAfter", requeueAfter.String())
 	}
 	return ctrl.Result{RequeueAfter: requeueAfter}, nil
+}
+
+func (r *StepReconciler) startMetricsCacheLoop(step *dfv1.Step) error {
+	if ok, err := r.MetricsCacheHandler.Contains(step); err != nil {
+		return err
+	} else if ok {
+		return nil
+	}
+	return r.MetricsCacheHandler.EnqueueStep(step)
+}
+
+func (r *StepReconciler) stopMetricsCacheLoop(step *dfv1.Step) error {
+	if ok, err := r.MetricsCacheHandler.Contains(step); err != nil {
+		return err
+	} else if !ok {
+		return nil
+	}
+	return r.MetricsCacheHandler.DeleteStep(step)
 }
 
 func eventReason(currentReplicas, desiredReplicas int) string {

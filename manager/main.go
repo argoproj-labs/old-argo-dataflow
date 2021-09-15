@@ -27,6 +27,7 @@ import (
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers"
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -84,13 +85,14 @@ func main() {
 	}
 
 	if err = (&controllers.StepReconciler{
-		Client:           mgr.GetClient(),
-		Log:              ctrl.Log.WithName("controllers").WithName("Step"),
-		Scheme:           mgr.GetScheme(),
-		Recorder:         mgr.GetEventRecorderFor("step-reconciler"),
-		ContainerKiller:  containerKiller,
-		DynamicInterface: dynamicInterface,
-		Cluster:          os.Getenv(dfv1.EnvCluster),
+		Client:              mgr.GetClient(),
+		Log:                 ctrl.Log.WithName("controllers").WithName("Step"),
+		Scheme:              mgr.GetScheme(),
+		Recorder:            mgr.GetEventRecorderFor("step-reconciler"),
+		ContainerKiller:     containerKiller,
+		DynamicInterface:    dynamicInterface,
+		MetricsCacheHandler: scaling.NewMetricsCacheHandler(mgr.GetClient()),
+		Cluster:             os.Getenv(dfv1.EnvCluster),
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
