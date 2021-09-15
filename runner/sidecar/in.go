@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,21 +15,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
-
-var (
-	// https://www.loginradius.com/blog/async/tune-the-go-http-client-for-high-performance/
-	httpTransport = http.DefaultTransport.(*http.Transport).Clone()
-	httpClient    = &http.Client{
-		Transport: httpTransport,
-		Timeout:   10 * time.Second,
-	}
-)
-
-func init() {
-	httpTransport.MaxIdleConns = 32
-	httpTransport.MaxConnsPerHost = 32
-	httpTransport.MaxIdleConnsPerHost = 32
-}
 
 func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (func(context.Context, []byte) error, error) {
 	inFlight := promauto.NewGauge(prometheus.GaugeOpts{
@@ -80,6 +64,12 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			return nil, err
 		}
 		addStopHook(waitUnready)
+		// https://www.loginradius.com/blog/async/tune-the-go-http-client-for-high-performance/
+		t := http.DefaultTransport.(*http.Transport).Clone()
+		t.MaxIdleConns = 100
+		t.MaxConnsPerHost = 100
+		t.MaxIdleConnsPerHost = 100
+		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 		return func(ctx context.Context, data []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, "messages")
 			defer span.Finish()
@@ -87,7 +77,7 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			defer inFlight.Dec()
 			start := time.Now()
 			defer func() { messageTimeSeconds.Observe(time.Since(start).Seconds()) }()
-			req, err := http.NewRequestWithContext(ctx, "POST", "http://127.0.0.1:8080/messages", bytes.NewBuffer(data))
+			req, err := http.NewRequestWithContext(ctx, "POST", "http://localhost:8080/messages", bytes.NewBuffer(data))
 			if err != nil {
 				return err
 			}
@@ -117,20 +107,13 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 }
 
 func waitReady(ctx context.Context) error {
-	const ipcSockPath = "/var/run/argo-dataflow/ipc.sock"
 	for {
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("failed to wait for ready: %w", ctx.Err())
 		default:
-			if _, err := os.Stat(ipcSockPath); err == nil {
-				logger.Info("switching to Unix socket", "path", ipcSockPath)
-				httpTransport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-					return (&net.Dialer{}).DialContext(ctx, "unix", ipcSockPath)
-				}
-			}
 			logger.Info("waiting for HTTP in interface to be ready")
-			if resp, err := httpClient.Get("http://127.0.0.1:8080/ready"); err == nil && resp.StatusCode < 300 {
+			if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode < 300 {
 				logger.Info("HTTP in interface ready")
 				return nil
 			}
@@ -146,7 +129,7 @@ func waitUnready(ctx context.Context) error {
 			return fmt.Errorf("failed to wait for un-ready: %w", ctx.Err())
 		default:
 			logger.Info("waiting for HTTP in interface to be unready")
-			if resp, err := httpClient.Get("http://127.0.0.1:8080/ready"); err != nil || resp.StatusCode >= 300 {
+			if resp, err := http.Get("http://localhost:8080/ready"); err != nil || resp.StatusCode >= 300 {
 				logger.Info("HTTP in interface unready")
 				return nil
 			}

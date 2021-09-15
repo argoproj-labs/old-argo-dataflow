@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,15 +37,15 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 			header.Add(h.Name, string(secret.Data[r.Key]))
 		}
 	}
-	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.MaxIdleConns = 32
-	t.MaxConnsPerHost = 32
-	t.MaxIdleConnsPerHost = 32
-	t.TLSClientConfig.InsecureSkipVerify = x.InsecureSkipVerify
 	return httpSink{
 		sinkName,
 		header,
-		&http.Client{Timeout: 10 * time.Second, Transport: t},
+		&http.Client{
+			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: x.InsecureSkipVerify},
+			},
+		},
 		x.URL,
 	}, nil
 }
@@ -66,8 +67,8 @@ func (h httpSink) Sink(ctx context.Context, msg []byte) error {
 	if resp, err := h.client.Do(req); err != nil {
 		return fmt.Errorf("failed to send HTTP request: %w", err)
 	} else {
+		defer func() { _ = resp.Body.Close() }()
 		_, _ = io.Copy(io.Discard, resp.Body)
-		_ = resp.Body.Close()
 		if resp.StatusCode >= 300 {
 			return fmt.Errorf("failed to send HTTP request: %q", resp.Status)
 		}
