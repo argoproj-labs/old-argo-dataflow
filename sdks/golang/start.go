@@ -22,9 +22,10 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		ctx := dfv1.MetaExtract(r.Context(), r.Header)
-		defer func() { _ = r.Body.Close() }()
 		out, err := func() ([]byte, error) {
-			if in, err := ioutil.ReadAll(r.Body); err != nil {
+			in, err := ioutil.ReadAll(r.Body)
+			_ = r.Body.Close()
+			if err != nil {
 				return nil, err
 			} else {
 				return handler(ctx, in)

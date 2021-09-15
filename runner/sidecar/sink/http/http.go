@@ -69,8 +69,8 @@ func (h httpSink) Sink(ctx context.Context, msg []byte) error {
 	if resp, err := h.client.Do(req); err != nil {
 		return fmt.Errorf("failed to send HTTP request: %w", err)
 	} else {
-		defer func() { _ = resp.Body.Close() }()
 		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
 		if resp.StatusCode >= 300 {
 			return fmt.Errorf("failed to send HTTP request: %q", resp.Status)
 		}
