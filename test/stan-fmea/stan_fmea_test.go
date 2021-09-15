@@ -11,6 +11,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/mysql.yaml
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/stan.yaml
 
 func TestStanFMEA_PodDeletedDisruption(t *testing.T) {

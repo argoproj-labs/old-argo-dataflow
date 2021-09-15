@@ -230,3 +230,5 @@ jaeger:
 	kubectl -n argo-dataflow-system wait deploy/my-jaeger --for=condition=available
 	# expose Jaeger UI: http://localhost:16686
 	kubectl -n argo-dataflow-system  port-forward svc/my-jaeger-query 16686:16686
+nojaeger:
+	kubectl -n argo-dataflow-system delete --ignore-not-found -f config/apps/jaeger.yaml
