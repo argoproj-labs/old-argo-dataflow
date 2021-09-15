@@ -82,6 +82,7 @@ func TestHTTPSinkStress(t *testing.T) {
 	})
 
 	WaitForPipeline()
+	WaitForPod()
 
 	defer StartPortForward("http-main-0")()
 
