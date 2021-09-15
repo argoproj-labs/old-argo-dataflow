@@ -4,7 +4,6 @@ package http_fmea
 
 import (
 	"testing"
-	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -38,13 +37,13 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	// with a single replica, if you loose a replica, you loose service
 	go PumpHTTPTolerantly(n)
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForSunkMessages()
 
 	DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("http-main-0")
 
-	WaitForStep(TotalSourceMessages(n), 1*time.Minute)
-	WaitForStep(NoErrors)
+	WaitForTotalSourceMessages(n)
+	WaitForNoErrors()
 }
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
@@ -73,11 +72,11 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 
 	PumpHTTPTolerantly(n)
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForSunkMessages()
 
 	DeletePod("http-main-0") // delete the pod to see that we continue to process messages
 	WaitForPod("http-main-0")
 
-	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
-	WaitForStep(NoErrors)
+	WaitForTotalSunkMessages(n)
+	WaitForNoErrors()
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -70,5 +71,5 @@ func getWaitFor(un metav1.Object) string {
 	if v := un.GetAnnotations()["dataflow.argoproj.io/wait-for"]; v != "" {
 		return v
 	}
-	return ConditionSunkMessages
+	return ConditionRunning
 }

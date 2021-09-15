@@ -21,34 +21,6 @@ import (
 
 var stepInterface = dynamicInterface.Resource(StepGroupVersionResource).Namespace(namespace)
 
-func NoErrors(s Step) bool {
-	return s.Status.SourceStatuses.GetErrors() == 0
-}
-
-func NothingPending(s Step) bool {
-	return s.Status.SourceStatuses.GetPending() == 0
-}
-
-func TotalSourceMessagesFunc(f func(int) bool) func(s Step) bool {
-	return func(s Step) bool { return f(int(s.Status.SourceStatuses.GetTotal())) }
-}
-
-func TotalSourceMessages(n int) func(s Step) bool {
-	return TotalSourceMessagesFunc(func(t int) bool { return t == n })
-}
-
-func TotalSunkMessagesFunc(f func(int) bool) func(s Step) bool {
-	return func(s Step) bool { return f(int(s.Status.SinkStatues.GetTotal())) }
-}
-
-func TotalSunkMessages(n int) func(s Step) bool {
-	return TotalSunkMessagesBetween(n, n)
-}
-
-func TotalSunkMessagesBetween(n, m int) func(s Step) bool {
-	return TotalSunkMessagesFunc(func(t int) bool { return n <= t && t <= m })
-}
-
 func WaitForStep(opts ...interface{}) {
 	var (
 		listOptions = metav1.ListOptions{}

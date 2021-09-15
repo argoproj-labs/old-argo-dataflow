@@ -36,8 +36,8 @@ func TestS3Source(t *testing.T) {
 
 	WaitForPod()
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", "my-content")
 

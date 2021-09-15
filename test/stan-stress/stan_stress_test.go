@@ -53,7 +53,7 @@ func TestStanSourceStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpSTANSubject(longSubject, n, prefix, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n), Params.Timeout)
+	WaitForTotalSunkMessages(n)
 }
 
 func TestStanSinkStress(t *testing.T) {
@@ -91,5 +91,5 @@ func TestStanSinkStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpSTANSubject(longSubject, n, prefix, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n*2), Params.Timeout) // 2 sinks
+	WaitForTotalSunkMessages(n * 2) // 2 sinks
 }

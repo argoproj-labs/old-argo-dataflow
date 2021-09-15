@@ -20,9 +20,8 @@ import (
 
 var pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
 
-func UntilRunning(pl Pipeline) bool      { return untilHasCondition(ConditionRunning)(pl) }
-func UntilCompleted(pl Pipeline) bool    { return untilHasCondition(ConditionCompleted)(pl) }
-func UntilSunkMessages(pl Pipeline) bool { return untilHasCondition(ConditionSunkMessages)(pl) }
+func UntilRunning(pl Pipeline) bool   { return untilHasCondition(ConditionRunning)(pl) }
+func UntilCompleted(pl Pipeline) bool { return untilHasCondition(ConditionCompleted)(pl) }
 
 func untilHasCondition(condition string) func(pl Pipeline) bool {
 	return func(pl Pipeline) bool {

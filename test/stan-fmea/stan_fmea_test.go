@@ -4,7 +4,6 @@ package stan_fmea
 
 import (
 	"testing"
-	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -41,12 +40,12 @@ func TestStanFMEA_PodDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForSunkMessages()
 
 	DeletePod("stan-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("stan-main-0")
 
-	WaitForStep(TotalSunkMessagesBetween(n, n+1), 1*time.Minute)
+	WaitForTotalSunkMessagesBetween(n, n+1)
 }
 
 func TestStanFMEA_STANServiceDisruption(t *testing.T) {
@@ -73,13 +72,13 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForSunkMessages()
 
 	RestartStatefulSet("stan")
 	WaitForPod("stan-0")
 
-	WaitForStep(TotalSunkMessagesBetween(n, n+CommitN), 1*time.Minute)
-	WaitForStep(NoErrors)
+	WaitForTotalSunkMessagesBetween(n, n+CommitN)
+	WaitForNoErrors()
 }
 
 // when deleted and re-created, the pipeline should start at the same place in the queue
@@ -108,12 +107,12 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForSunkMessages()
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
 	WaitForCounter(n, n+CommitN)
-	WaitForStep(NoErrors)
+	WaitForNoErrors()
 }

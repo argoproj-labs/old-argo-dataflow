@@ -40,10 +40,10 @@ func TestSTAN(t *testing.T) {
 
 	PumpSTANSubject(longSubject, 7)
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForSunkMessages()
 
-	WaitForStep(TotalSourceMessages(7))
-	WaitForStep(TotalSunkMessages(7))
+	WaitForTotalSourceMessages(7)
+	WaitForTotalSunkMessages(7)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

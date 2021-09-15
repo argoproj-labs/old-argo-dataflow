@@ -47,10 +47,10 @@ func TestDedupe(t *testing.T) {
 	SendMessageViaHTTP("baz")
 	SendMessageViaHTTP("baz")
 
-	WaitForStep(TotalSourceMessages(6))
-	WaitForStep(TotalSunkMessages(4))
+	WaitForTotalSourceMessages(6)
+	WaitForTotalSunkMessages(4)
 
-	ExpectMetric("duplicate_messages", 2, 8080)
+	ExpectMetric("duplicate_messages", Eq(2), 8080)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

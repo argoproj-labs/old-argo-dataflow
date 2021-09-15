@@ -121,7 +121,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	pending, running, succeeded, failed := 0, 0, 0, 0
 	newStatus := *pipeline.Status.DeepCopy()
 	newStatus.Phase = dfv1.PipelineUnknown
-	terminate, sunkMessages := false, false
+	terminate := false
 	for _, step := range steps.Items {
 		stepName := step.Spec.Name
 		if !pipeline.Spec.HasStep(stepName) { // this happens when a pipeline changes and a step is removed
@@ -148,7 +148,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			panic("should never happen")
 		}
 		terminate = terminate || step.Status.Phase.Completed() && step.Spec.Terminator
-		sunkMessages = sunkMessages || step.Status.SinkStatues.AnySunk()
 	}
 
 	if newStatus.Phase.Completed() {
@@ -173,10 +172,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	newStatus.Message = strings.Join(ss, ", ")
 
 	for c, ok := range map[string]bool{
-		dfv1.ConditionRunning:      newStatus.Phase == dfv1.PipelineRunning,
-		dfv1.ConditionCompleted:    newStatus.Phase.Completed(),
-		dfv1.ConditionSunkMessages: sunkMessages,
-		dfv1.ConditionTerminating:  terminate,
+		dfv1.ConditionRunning:     newStatus.Phase == dfv1.PipelineRunning,
+		dfv1.ConditionCompleted:   newStatus.Phase.Completed(),
+		dfv1.ConditionTerminating: terminate,
 	} {
 		if ok {
 			meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: c, Status: metav1.ConditionTrue, Reason: c})

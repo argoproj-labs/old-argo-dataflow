@@ -34,7 +34,7 @@ func TestHTTP(t *testing.T) {
 
 	SendMessageViaHTTP("my-msg")
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForSunkMessages()
 	WaitForCounter(1, 1)
 
 	DeletePipelines()

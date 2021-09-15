@@ -90,8 +90,8 @@ func TestDBSink(t *testing.T) {
 	defer StartPortForward("db-main-0")()
 	SendMessageViaHTTP(`{"message": "hello", "number": 100}`)
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	// TODO: verify the table records.
 

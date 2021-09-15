@@ -38,8 +38,8 @@ func TestCatStep(t *testing.T) {
 
 	SendMessageViaHTTP("foo-bar")
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", `foo-bar`)
 
