@@ -13,6 +13,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/opentracing/opentracing-go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -73,6 +74,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 				return
 			default:
 				if err = queryData(ctx, db, sourceURN, x.Query, x.OffsetColumn, offset, func(ctx context.Context, d rowData) error {
+					span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("db-source-%s", sourceName))
+					defer span.Finish()
 					jsonData, err := json.Marshal(d)
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)

@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/Shopify/sarama"
@@ -9,6 +10,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
@@ -105,6 +107,8 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 }
 
 func (h kafkaSink) Sink(ctx context.Context, msg []byte) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", h.sinkName))
+	defer span.Finish()
 	source, id, _, err := dfv1.MetaFromContext(ctx)
 	if err != nil {
 		return err

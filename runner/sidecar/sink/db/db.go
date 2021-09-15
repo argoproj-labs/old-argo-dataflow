@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -15,7 +13,9 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/opentracing/opentracing-go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 var logger = sharedutil.NewLogger()
@@ -104,6 +104,8 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 }
 
 func (d dbSink) execStatement(ctx context.Context, tx *sql.Tx, sql string, args []string, msg []byte) (sql.Result, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", d.sinkName))
+	defer span.Finish()
 	stmt, err := tx.Prepare(sql)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get a prepared statement: %w", err)

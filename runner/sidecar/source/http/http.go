@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -8,6 +9,8 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/google/uuid"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 )
 
 type httpSource struct {
@@ -17,7 +20,16 @@ type httpSource struct {
 func New(sourceURN, sourceName, authorization string, process source.Process) source.Interface {
 	h := &httpSource{true}
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+		wireContext, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+		operationName := fmt.Sprintf("http-source-%s", sourceName)
+		var span opentracing.Span
+		if err != nil {
+			span = opentracing.StartSpan(operationName)
+		} else {
+			span = opentracing.StartSpan(operationName, ext.RPCServerOption(wireContext))
+		}
+		defer span.Finish()
+		ctx := opentracing.ContextWithSpan(r.Context(), span)
 		if r.Header.Get("Authorization") != authorization {
 			w.WriteHeader(403)
 			return

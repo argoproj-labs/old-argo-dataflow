@@ -6,17 +6,16 @@ import (
 	"fmt"
 	"os"
 
-	"k8s.io/utils/pointer"
-
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/opentracing/opentracing-go"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/utils/pointer"
 )
 
 type s3Sink struct {
@@ -77,6 +76,8 @@ func New(ctx context.Context, sinkName string, secretInterface v1.SecretInterfac
 }
 
 func (h s3Sink) Sink(ctx context.Context, msg []byte) error {
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-sink-%s", h.sinkName))
+	defer span.Finish()
 	m := &message{}
 	if err := json.Unmarshal(msg, m); err != nil {
 		return err

@@ -9,10 +9,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/uuid"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-
+	"github.com/google/uuid"
+	"github.com/opentracing/opentracing-go"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
@@ -29,7 +28,8 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 	}
 	authorization := string(v)
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+		span, ctx := opentracing.StartSpanFromContext(r.Context(), "/messages")
+		defer span.Finish()
 		if r.Header.Get("Authorization") != authorization {
 			w.WriteHeader(403)
 			return

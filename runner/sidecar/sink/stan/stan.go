@@ -6,13 +6,13 @@ import (
 	"math/rand"
 	"time"
 
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 var logger = sharedutil.NewLogger()
@@ -69,6 +69,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 }
 
 func (s stanSink) Sink(ctx context.Context, msg []byte) error {
+	span, _ := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("stan-sink-%s", s.sinkName))
+	defer span.Finish()
 	return s.conn.Publish(s.subject, msg)
 }
 

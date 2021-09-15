@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-
-	"k8s.io/apimachinery/pkg/util/runtime"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/google/uuid"
+	"github.com/opentracing/opentracing-go"
 	"github.com/robfig/cron/v3"
+	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
 var logger = sharedutil.NewLogger()
@@ -33,6 +32,8 @@ func New(ctx context.Context, sourceName, sourceURN string, x dfv1.Cron, process
 	}()
 
 	_, err := crn.AddFunc(x.Schedule, func() {
+		span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("cron-source-%s", sourceName))
+		defer span.Finish()
 		msg := []byte(time.Now().Format(x.Layout))
 		if err := process(
 			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String(), time.Now()),

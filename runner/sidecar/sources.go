@@ -6,7 +6,6 @@ import (
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
 	dbsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/db"
@@ -16,6 +15,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/stan"
 	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -67,6 +67,8 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		processWithRetry := func(ctx context.Context, msg []byte) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
+			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
 			rateCounter.Incr(1)
@@ -85,14 +87,14 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
+					// we need to copy anything except the timeout from the parent context
 					source, id, t, err := dfv1.MetaFromContext(ctx)
 					if err != nil {
 						return err
 					}
-					// we need to copy anything except the timeout from the parent context
 					ctx, cancel := context.WithTimeout(
 						dfv1.ContextWithMeta(
-							context.Background(),
+							opentracing.ContextWithSpan(context.Background(), span),
 							source, id, t,
 						),
 						15*time.Second,
