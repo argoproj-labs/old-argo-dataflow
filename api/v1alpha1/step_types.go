@@ -54,8 +54,10 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	)
 	volumes := []corev1.Volume{
 		{
-			Name:         varVolumeName,
-			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+			Name: varVolumeName,
+			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{
+				Medium: corev1.StorageMediumMemory,
+			}},
 		},
 		{
 			Name: sshVolumeName,
