@@ -40,6 +40,7 @@ func New(sourceURN, sourceName, authorization string, process source.Process) so
 			return
 		}
 		msg, err := ioutil.ReadAll(r.Body)
+		_ = r.Body.Close()
 		if err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
