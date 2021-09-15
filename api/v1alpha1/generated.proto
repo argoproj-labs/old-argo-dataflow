@@ -484,15 +484,16 @@ message Metadata {
 }
 
 message Metrics {
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 total = 1;
 
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 errors = 2;
 
-  optional k8s.io.apimachinery.pkg.api.resource.Quantity rate = 3;
-
-  // current rate of messages per second
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 retries = 4;
 
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 totalBytes = 5;
 }
 
@@ -675,10 +676,13 @@ message Source {
 }
 
 message SourceStatus {
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 pending = 3;
 
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 lastPending = 5;
 
+  // DEPRECATED: This is likely to be removed in future versions.
   map<string, Metrics> metrics = 4;
 }
 

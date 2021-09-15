@@ -16,7 +16,6 @@ import (
 	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/opentracing/opentracing-go"
-	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -65,15 +64,13 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 
-		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		processWithRetry := func(ctx context.Context, msg []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
 			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
-			rateCounter.Incr(1)
 			withLock(func() {
-				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter), uint64(len(msg)))
+				step.Status.SourceStatuses.IncrTotal(sourceName, replica, uint64(len(msg)))
 			})
 			backoff := newBackoff(s.Retry)
 			for {

@@ -4,35 +4,32 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func TestSourceStatuses_Set(t *testing.T) {
 	ss := SourceStatuses{}
 
-	ss.IncrTotal("bar", 1, resource.MustParse("1"), 1)
+	ss.IncrTotal("bar", 1, 1)
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
 		if assert.Len(t, s.Metrics, 1) {
 			assert.Equal(t, uint64(1), s.Metrics["1"].Total)
-			assert.Equal(t, resource.MustParse("1"), s.Metrics["1"].Rate)
 			assert.Equal(t, uint64(1), s.Metrics["1"].TotalBytes)
 		}
 	}
 
-	ss.IncrTotal("bar", 1, resource.MustParse("1"), 1)
+	ss.IncrTotal("bar", 1, 1)
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
 		if assert.Len(t, s.Metrics, 1) {
 			assert.Equal(t, uint64(2), s.Metrics["1"].Total)
-			assert.Equal(t, resource.MustParse("1"), s.Metrics["1"].Rate)
 			assert.Equal(t, uint64(2), s.Metrics["1"].TotalBytes)
 		}
 	}
 
-	ss.IncrTotal("bar", 0, resource.MustParse("1"), 1)
+	ss.IncrTotal("bar", 0, 1)
 
 	if assert.Len(t, ss, 1) {
 		s := ss["bar"]
@@ -43,7 +40,7 @@ func TestSourceStatuses_Set(t *testing.T) {
 		}
 	}
 
-	ss.IncrTotal("baz", 0, resource.MustParse("1"), 1)
+	ss.IncrTotal("baz", 0, 1)
 
 	if assert.Len(t, ss, 2) {
 		s := ss["baz"]
