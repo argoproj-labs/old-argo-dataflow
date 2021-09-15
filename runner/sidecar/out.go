@@ -35,6 +35,7 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 			return
 		}
 		data, err := ioutil.ReadAll(r.Body)
+		_ = r.Body.Close()
 		if err != nil {
 			logger.Error(err, "failed to read message body from main via HTTP")
 			w.WriteHeader(400)
