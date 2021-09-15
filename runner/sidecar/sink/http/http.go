@@ -24,7 +24,6 @@ type httpSink struct {
 
 func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.HTTPSink) (sink.Interface, error) {
 	header := http.Header{}
-	header.Set("Connection", "keep-alive")
 	for _, h := range x.Headers {
 		if h.Value != "" {
 			header.Add(h.Name, h.Value)

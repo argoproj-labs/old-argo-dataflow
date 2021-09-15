@@ -27,7 +27,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
-	github.com/klauspost/compress v1.13.1 // indirect
+	github.com/klauspost/compress v1.13.5 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/nats-io/nats-streaming-server v0.21.1 // indirect

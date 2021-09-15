@@ -82,7 +82,6 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			if err != nil {
 				return err
 			}
-			req.Header.Set("Connection", "keep-alive")
 			if err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err != nil {
 				return fmt.Errorf("failed to inject tracing headers: %w", err)
 			}

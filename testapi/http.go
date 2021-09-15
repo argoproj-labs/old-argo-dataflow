@@ -47,7 +47,6 @@ func init() {
 				if err != nil {
 					results <- err
 				} else {
-					req.Header.Set("Connection", "keep-alive")
 					req.Header.Set("Authorization", "Bearer my-bearer-token")
 					if resp, err := httpClient.Do(req); err != nil {
 						results <- err

@@ -76,7 +76,6 @@ func New(ctx context.Context, r NewReq) (source.HasPending, error) {
 						if err != nil {
 							logger.Error(err, "failed to create request", "item", item)
 						} else {
-							req.Header.Set("Connection", "keep-alive")
 							req.Header.Set("Authorization", authorization)
 							resp, err := httpClient.Do(req)
 							if err != nil {
