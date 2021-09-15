@@ -22,12 +22,16 @@ func New(sinkName string, x dfv1.Log) sink.Interface {
 }
 
 func (s logSink) Sink(ctx context.Context, msg []byte) error {
-	span, _ := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("log-sink-%s", s.sinkName))
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("log-sink-%s", s.sinkName))
 	defer span.Finish()
 	text := string(msg)
 	if s.truncate != nil && len(text) > int(*s.truncate) {
 		text = text[0:*s.truncate]
 	}
-	logger.Info(text, "type", "log")
+	source, id, _, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return err
+	}
+	logger.Info(text, "type", "log", "source", source, "id", id)
 	return nil
 }

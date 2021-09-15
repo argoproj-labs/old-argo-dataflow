@@ -7,10 +7,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
-
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
@@ -41,7 +42,7 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 			return
 		}
 		if err := sink(
-			ctx,
+			dfv1.ContextWithMeta(ctx, fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:messages", pod, namespace, cluster), uuid.New().String(), time.Now()),
 			data,
 		); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
@@ -70,7 +71,7 @@ func connectOutFIFO(ctx context.Context, sink func(context.Context, []byte) erro
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
 				if err := sink(
-					ctx,
+					dfv1.ContextWithMeta(ctx, fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:fifo", pod, namespace, cluster), uuid.New().String(), time.Now()),
 					scanner.Bytes(),
 				); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)

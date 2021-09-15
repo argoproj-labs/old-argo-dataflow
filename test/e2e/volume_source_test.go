@@ -31,7 +31,7 @@ func TestVolumeSource(t *testing.T) {
 					Map:  &Map{Expression: "io.cat(object(msg).path)"},
 					Sources: []Source{{Volume: &VolumeSource{
 						ReadOnly: true,
-						VolumeSource: corev1.VolumeSource{
+						AbstractVolumeSource: AbstractVolumeSource{
 							ConfigMap: &corev1.ConfigMapVolumeSource{
 								LocalObjectReference: corev1.LocalObjectReference{
 									Name: "test-volume-source",

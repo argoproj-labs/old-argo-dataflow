@@ -23,6 +23,7 @@ const (
 	EnvImagePrefix      = "ARGO_DATAFLOW_IMAGE_PREFIX" // default "quay.io/argoproj"
 	EnvNamespace        = "ARGO_DATAFLOW_NAMESPACE"
 	EnvPipelineName     = "ARGO_DATAFLOW_PIPELINE_NAME"
+	EnvPod              = "ARGO_DATAFLOW_POD"
 	EnvReplica          = "ARGO_DATAFLOW_REPLICA"
 	EnvStep             = "ARGO_DATAFLOW_STEP"
 	EnvPeekDelay        = "ARGO_DATAFLOW_PEEK_DELAY"         // how long between peeking (default 4m)

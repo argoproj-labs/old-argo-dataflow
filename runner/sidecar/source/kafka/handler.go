@@ -13,6 +13,7 @@ import (
 
 type handler struct {
 	sourceName   string
+	sourceURN    string
 	process      source.Process
 	i            int
 	manualCommit bool
@@ -49,5 +50,8 @@ func (h handler) processMessage(ctx context.Context, msg *sarama.ConsumerMessage
 	defer runtime.HandleCrash()
 	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-source-%s", h.sourceName))
 	defer span.Finish()
-	return h.process(ctx, msg.Value)
+	return h.process(
+		dfv1.ContextWithMeta(ctx, h.sourceURN, fmt.Sprintf("%d-%d", msg.Partition, msg.Offset), msg.Timestamp),
+		msg.Value,
+	)
 }

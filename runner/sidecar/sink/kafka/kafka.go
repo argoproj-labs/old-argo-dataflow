@@ -107,11 +107,19 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 }
 
 func (h kafkaSink) Sink(ctx context.Context, msg []byte) error {
-	span, _ := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", h.sinkName))
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", h.sinkName))
 	defer span.Finish()
+	source, id, _, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return err
+	}
 	return h.producer.SendMessage(
 		ctx,
 		&sarama.ProducerMessage{
+			Headers: []sarama.RecordHeader{
+				{Key: []byte("source"), Value: []byte(source)},
+				{Key: []byte("id"), Value: []byte(id)},
+			},
 			Value: sarama.ByteEncoder(msg),
 			Topic: h.topic,
 		},

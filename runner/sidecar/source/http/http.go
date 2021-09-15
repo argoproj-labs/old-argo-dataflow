@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
+	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 )
@@ -14,7 +17,7 @@ type httpSource struct {
 	ready bool
 }
 
-func New(sourceName, authorization string, process source.Process) source.Interface {
+func New(sourceURN, sourceName, authorization string, process source.Process) source.Interface {
 	h := &httpSource{true}
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
 		wireContext, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
@@ -42,7 +45,10 @@ func New(sourceName, authorization string, process source.Process) source.Interf
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		if err := process(ctx, msg); err != nil {
+		if err := process(
+			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String(), time.Now()),
+			msg,
+		); err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 		} else {

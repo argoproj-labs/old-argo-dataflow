@@ -15,6 +15,7 @@ import (
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/utils/pointer"
 )
 
 type s3Sink struct {
@@ -85,10 +86,15 @@ func (h s3Sink) Sink(ctx context.Context, msg []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to open %q: %w", m.Path, err)
 	}
+	source, id, _, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return err
+	}
 	_, err = h.client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: &h.bucket,
-		Key:    &m.Key,
-		Body:   f,
+		Bucket:  &h.bucket,
+		Key:     &m.Key,
+		Body:    f,
+		Tagging: pointer.StringPtr(fmt.Sprintf("%s=%s,%s=%s", dfv1.MetaSource, source, dfv1.MetaID, id)),
 	}, s3.WithAPIOptions(
 		// https://aws.github.io/aws-sdk-go-v2/docs/sdk-utilities/s3/#unseekable-streaming-input
 		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,

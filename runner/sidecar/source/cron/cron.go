@@ -8,6 +8,7 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
 	"github.com/robfig/cron/v3"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -19,7 +20,7 @@ type cronSource struct {
 	crn *cron.Cron
 }
 
-func New(ctx context.Context, sourceName string, x dfv1.Cron, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, sourceName, sourceURN string, x dfv1.Cron, process source.Process) (source.Interface, error) {
 	crn := cron.New(
 		cron.WithParser(cron.NewParser(cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
 		cron.WithChain(cron.Recover(logger)),
@@ -34,7 +35,10 @@ func New(ctx context.Context, sourceName string, x dfv1.Cron, process source.Pro
 		span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("cron-source-%s", sourceName))
 		defer span.Finish()
 		msg := []byte(time.Now().Format(x.Layout))
-		if err := process(ctx, msg); err != nil {
+		if err := process(
+			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String(), time.Now()),
+			msg,
+		); err != nil {
 			logger.Error(err, "failed to process message")
 		}
 	})

@@ -1,10 +1,14 @@
 package util
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	time "time"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 
 	"github.com/Masterminds/sprig"
 )
@@ -15,9 +19,18 @@ var io = map[string]interface{}{
 	"cat": cat,
 }
 
-func ExprEnv(msg []byte) map[string]interface{} {
+func ExprEnv(ctx context.Context, msg []byte) (map[string]interface{}, error) {
+	source, id, t, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return map[string]interface{}{
 		// values
+		"ctx": map[string]string{
+			"source": source,
+			"id":     id,
+			"time":   t.Format(time.RFC3339),
+		},
 		"msg": msg,
 		// funcs
 		"bytes":  _bytes,
@@ -28,7 +41,7 @@ func ExprEnv(msg []byte) map[string]interface{} {
 		"sprig":  _sprig,
 		"sha1":   _sha1,
 		"io":     io,
-	}
+	}, nil
 }
 
 func _bytes(v interface{}) []byte {

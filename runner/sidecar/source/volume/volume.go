@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/opentracing/opentracing-go"
 
@@ -20,7 +21,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.VolumeSource, process source.Process, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, pipelineName, stepName, sourceName, sourceURN string, x dfv1.VolumeSource, process source.Process, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
 	return loadbalanced.New(ctx, loadbalanced.NewReq{
@@ -28,6 +29,7 @@ func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.
 		PipelineName: pipelineName,
 		StepName:     stepName,
 		SourceName:   sourceName,
+		SourceURN:    sourceURN,
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
@@ -36,7 +38,10 @@ func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.
 			defer span.Finish()
 			key := string(msg)
 			path := filepath.Join(dir, key)
-			return process(ctx, []byte(sharedutil.MustJSON(message{Path: path})))
+			return process(
+				dfv1.ContextWithMeta(ctx, sourceURN, key, time.Now()),
+				[]byte(sharedutil.MustJSON(message{Path: path})),
+			)
 		},
 		ListItems: func() ([]interface{}, error) {
 			var keys []interface{}

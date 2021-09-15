@@ -10,7 +10,6 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,7 +24,7 @@ func TestHTTPSourceStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceMemory: resource.MustParse("512Mi"),
+							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
 				},
@@ -34,7 +33,7 @@ func TestHTTPSourceStress(t *testing.T) {
 				Sinks:    []Sink{DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceMemory: resource.MustParse("512Mi"),
+						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}},
 			}},
@@ -67,7 +66,7 @@ func TestHTTPSinkStress(t *testing.T) {
 				Name: "main",
 				Cat: &Cat{AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceMemory: resource.MustParse("512Mi"),
+						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}}},
 				Replicas: Params.Replicas,
@@ -75,7 +74,7 @@ func TestHTTPSinkStress(t *testing.T) {
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}, DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceMemory: resource.MustParse("512Mi"),
+						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}},
 			}},
@@ -83,6 +82,7 @@ func TestHTTPSinkStress(t *testing.T) {
 	})
 
 	WaitForPipeline()
+	WaitForPod()
 
 	defer StartPortForward("http-main-0")()
 

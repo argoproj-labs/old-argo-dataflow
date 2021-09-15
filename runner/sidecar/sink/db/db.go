@@ -104,7 +104,7 @@ func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 }
 
 func (d dbSink) execStatement(ctx context.Context, tx *sql.Tx, sql string, args []string, msg []byte) (sql.Result, error) {
-	span, _ := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", d.sinkName))
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", d.sinkName))
 	defer span.Finish()
 	stmt, err := tx.Prepare(sql)
 	if err != nil {
@@ -114,7 +114,11 @@ func (d dbSink) execStatement(ctx context.Context, tx *sql.Tx, sql string, args 
 	l := []interface{}{}
 	for _, arg := range args {
 		prog := d.progs[arg]
-		res, err := expr.Run(prog, util.ExprEnv(msg))
+		env, err := util.ExprEnv(ctx, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create expr env: %w", err)
+		}
+		res, err := expr.Run(prog, env)
 		if err != nil {
 			return nil, err
 		}

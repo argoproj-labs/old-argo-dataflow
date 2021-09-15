@@ -46,7 +46,11 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 		return fmt.Errorf("failed to compile %q: %w", endOfGroup, err)
 	}
 	return golang.StartWithContext(ctx, func(ctx context.Context, msg []byte) ([]byte, error) {
-		res, err := expr.Run(prog, util.ExprEnv(msg))
+		env, err := util.ExprEnv(ctx, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create expr env: %w", err)
+		}
+		res, err := expr.Run(prog, env)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run program %q: %w", key, err)
 		}
@@ -63,7 +67,11 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 			if err := ioutil.WriteFile(path, msg, 0o600); err != nil {
 				return nil, fmt.Errorf("failed to create message file %q: %w", path, err)
 			}
-			res, err = expr.Run(endProg, util.ExprEnv(msg))
+			env, err := util.ExprEnv(ctx, msg)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create expr env: %w", err)
+			}
+			res, err = expr.Run(endProg, env)
 			if err != nil {
 				return nil, fmt.Errorf("failed to run program %q: %w", endOfGroup, err)
 			}
