@@ -66,9 +66,10 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 		addStopHook(waitUnready)
 		// https://www.loginradius.com/blog/async/tune-the-go-http-client-for-high-performance/
 		t := http.DefaultTransport.(*http.Transport).Clone()
-		t.MaxIdleConns = 100
-		t.MaxConnsPerHost = 100
-		t.MaxIdleConnsPerHost = 100
+		t.ForceAttemptHTTP2 = false
+		t.MaxIdleConns = 32
+		t.MaxConnsPerHost = 32
+		t.MaxIdleConnsPerHost = 32
 		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 		return func(ctx context.Context, data []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, "messages")
@@ -77,10 +78,11 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			defer inFlight.Dec()
 			start := time.Now()
 			defer func() { messageTimeSeconds.Observe(time.Since(start).Seconds()) }()
-			req, err := http.NewRequestWithContext(ctx, "POST", "http://localhost:8080/messages", bytes.NewBuffer(data))
+			req, err := http.NewRequestWithContext(ctx, "POST", "http://127.0.0.1:8080/messages", bytes.NewBuffer(data))
 			if err != nil {
 				return err
 			}
+			req.Header.Set("Connection", "keep-alive")
 			if err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(req.Header)); err != nil {
 				return fmt.Errorf("failed to inject tracing headers: %w", err)
 			}
@@ -113,7 +115,7 @@ func waitReady(ctx context.Context) error {
 			return fmt.Errorf("failed to wait for ready: %w", ctx.Err())
 		default:
 			logger.Info("waiting for HTTP in interface to be ready")
-			if resp, err := http.Get("http://localhost:8080/ready"); err == nil && resp.StatusCode < 300 {
+			if resp, err := http.Get("http://127.0.0.1:8080/ready"); err == nil && resp.StatusCode < 300 {
 				logger.Info("HTTP in interface ready")
 				return nil
 			}
@@ -129,7 +131,7 @@ func waitUnready(ctx context.Context) error {
 			return fmt.Errorf("failed to wait for un-ready: %w", ctx.Err())
 		default:
 			logger.Info("waiting for HTTP in interface to be unready")
-			if resp, err := http.Get("http://localhost:8080/ready"); err != nil || resp.StatusCode >= 300 {
+			if resp, err := http.Get("http://127.0.0.1:8080/ready"); err != nil || resp.StatusCode >= 300 {
 				logger.Info("HTTP in interface unready")
 				return nil
 			}

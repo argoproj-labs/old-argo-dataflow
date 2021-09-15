@@ -100,7 +100,7 @@ func getAWSCfg(ctx context.Context) aws.Config {
 	opts = append(opts,
 		awscfg.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
 			return aws.Endpoint{
-				URL: "http://localhost:5000", HostnameImmutable: true, SigningRegion: region,
+				URL: "http://127.0.0.1:5000", HostnameImmutable: true, SigningRegion: region,
 			}, nil
 		},
 		)))

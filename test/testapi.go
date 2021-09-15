@@ -12,7 +12,7 @@ import (
 )
 
 func InvokeTestAPI(format string, args ...interface{}) string {
-	url := "http://localhost:8378" + fmt.Sprintf(format, args...)
+	url := "http://127.0.0.1:8378" + fmt.Sprintf(format, args...)
 	log.Printf("getting test API %s\n", url)
 	r, err := http.Get(url)
 	if err != nil {

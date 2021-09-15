@@ -24,7 +24,7 @@ func TestMessagesEndpoint(t *testing.T) {
 						Command: []string{"bash", "-c"},
 						Args: []string{`
 set -eux -o pipefail
-curl -H "Authorization: $(cat /var/run/argo-dataflow/authorization)" http://localhost:3569/messages -d 'foo-bar'
+curl -H "Authorization: $(cat /var/run/argo-dataflow/authorization)" http://127.0.0.1:3569/messages -d 'foo-bar'
 `},
 					},
 					Sinks: []Sink{DefaultLogSink},

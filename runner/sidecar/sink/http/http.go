@@ -3,7 +3,6 @@ package http
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,6 +24,7 @@ type httpSink struct {
 
 func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.HTTPSink) (sink.Interface, error) {
 	header := http.Header{}
+	header.Set("Connection", "keep-alive")
 	for _, h := range x.Headers {
 		if h.Value != "" {
 			header.Add(h.Name, h.Value)
@@ -37,14 +37,17 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 			header.Add(h.Name, string(secret.Data[r.Key]))
 		}
 	}
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 32
+	t.MaxConnsPerHost = 32
+	t.MaxIdleConnsPerHost = 32
+	t.TLSClientConfig.InsecureSkipVerify = x.InsecureSkipVerify
 	return httpSink{
 		sinkName,
 		header,
 		&http.Client{
-			Timeout: 10 * time.Second,
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: x.InsecureSkipVerify},
-			},
+			Transport: t,
+			Timeout:   10 * time.Second,
 		},
 		x.URL,
 	}, nil

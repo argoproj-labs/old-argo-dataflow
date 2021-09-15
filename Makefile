@@ -226,5 +226,6 @@ ui:
 	killall node || true
 	cd ../../argoproj/argo-workflows && yarn --cwd ui install && yarn --cwd ui start
 jaeger:
+	kubectl apply --force -f config/apps/jaeger.yaml
 	# expose Jaeger UI: http://localhost:16686
 	kubectl -n argo-dataflow-system  port-forward svc/my-jaeger-query 16686:16686

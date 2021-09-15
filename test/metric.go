@@ -50,7 +50,7 @@ func getValue(m *io_prometheus_client.Metric) float64 {
 }
 
 func getMetrics(ctx context.Context, port int) map[string]*io_prometheus_client.MetricFamily {
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("http://localhost:%d/metrics", port), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("http://127.0.0.1:%d/metrics", port), nil)
 	if err != nil {
 		panic(err)
 	}
