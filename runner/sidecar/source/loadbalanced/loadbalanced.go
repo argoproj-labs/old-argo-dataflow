@@ -3,7 +3,6 @@ package loadbalanced
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -54,10 +53,10 @@ func New(ctx context.Context, r NewReq) (source.HasPending, error) {
 	if r.LeadReplica {
 		endpoint := "https://" + r.PipelineName + "-" + r.StepName + "/sources/" + r.SourceName
 		t := http.DefaultTransport.(*http.Transport).Clone()
-		t.MaxIdleConns = 100
-		t.MaxConnsPerHost = 100
-		t.MaxIdleConnsPerHost = 100
-		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		t.MaxIdleConns = 32
+		t.MaxConnsPerHost = 32
+		t.MaxIdleConnsPerHost = 32
+		t.TLSClientConfig.InsecureSkipVerify = true
 		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 
 		logger.Info("starting lead replica's workers", "source", r.SourceName, "endpoint", endpoint)

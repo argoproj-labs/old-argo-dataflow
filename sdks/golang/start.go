@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -22,9 +23,10 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
 		ctx := dfv1.MetaExtract(r.Context(), r.Header)
-		defer func() { _ = r.Body.Close() }()
 		out, err := func() ([]byte, error) {
-			if in, err := ioutil.ReadAll(r.Body); err != nil {
+			in, err := ioutil.ReadAll(r.Body)
+			_ = r.Body.Close()
+			if err != nil {
 				return nil, err
 			} else {
 				return handler(ctx, in)
@@ -41,8 +43,7 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 		}
 	})
 	// https://medium.com/honestbee-tw-engineer/gracefully-shutdown-in-go-http-server-5f5e6b83da5a
-	server := &http.Server{Addr: ":8080"}
-
+	httpServer := &http.Server{Addr: ":8080"}
 	go func() {
 		defer func() {
 			r := recover()
@@ -50,12 +51,35 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 				println(r)
 			}
 		}()
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+	udsServer := &http.Server{}
+	listener, err := net.Listen("unix", "/var/run/argo-dataflow/main.sock")
+	if err != nil {
+		return err
+	}
+	defer func() { _ = listener.Close() }()
+	go func() {
+		defer func() {
+			r := recover()
+			if r != nil {
+				println(r)
+			}
+		}()
+		if err := udsServer.Serve(listener); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
 	}()
 	log.Println("ready")
 	defer log.Println("done")
 	<-ctx.Done()
-	return server.Shutdown(context.Background())
+	if err := httpServer.Shutdown(context.Background()); err != nil {
+		return err
+	}
+	if err := udsServer.Shutdown(context.Background()); err != nil {
+		return err
+	}
+	return nil
 }
