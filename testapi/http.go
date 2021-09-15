@@ -21,9 +21,7 @@ func init() {
 	t.MaxConnsPerHost = 32
 	t.MaxIdleConnsPerHost = 32
 	t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	httpClient := &http.Client{
-		Timeout: 10 * time.Second,
-	}
+	httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
