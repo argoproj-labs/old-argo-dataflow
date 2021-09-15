@@ -19,7 +19,6 @@ import (
 	_init "github.com/argoproj-labs/argo-dataflow/runner/init"
 	_map "github.com/argoproj-labs/argo-dataflow/runner/map"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
-	"github.com/argoproj-labs/argo-dataflow/runner/sleep"
 	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 
@@ -71,8 +70,6 @@ func main() {
 			return _map.Exec(ctx, os.Args[2])
 		case "sidecar":
 			return sidecar.Exec(ctx)
-		case "sleep":
-			return sleep.Exec(os.Args[2])
 		default:
 			return fmt.Errorf("unknown comand")
 		}
