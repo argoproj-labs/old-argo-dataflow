@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+
 	volumesink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/volume"
 
 	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
@@ -20,6 +23,11 @@ import (
 
 func connectSinks(ctx context.Context) (func(context.Context, []byte) error, error) {
 	sinks := map[string]sink.Interface{}
+	totalCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "total",
+		Help:      "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_total",
+	}, []string{"sinkName", "replica"})
 	for _, s := range step.Spec.Sinks {
 		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
 		sinkName := s.Name
@@ -78,6 +86,7 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, err
 
 	return func(ctx context.Context, msg []byte) error {
 		for sinkName, f := range sinks {
+			totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
 			withLock(func() {
 				step.Status.SinkStatues.IncrTotal(sinkName, replica, uint64(len(msg)))
 			})

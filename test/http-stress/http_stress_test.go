@@ -4,6 +4,7 @@ package http_stress
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -13,10 +14,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/kafka.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/moto.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/mysql.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/stan.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 
 func TestHTTPSourceStress(t *testing.T) {
 	defer Setup(t)()
@@ -58,7 +59,7 @@ func TestHTTPSourceStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n), Params.Timeout)
+	WaitForTotalSunkMessages(n)
 }
 
 func TestHTTPSinkStress(t *testing.T) {
@@ -99,5 +100,5 @@ func TestHTTPSinkStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n*2), Params.Timeout)
+	WaitForTotalSunkMessages(n, 3*time.Minute)
 }

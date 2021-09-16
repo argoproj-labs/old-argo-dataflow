@@ -89,16 +89,6 @@ func (in SourceStatuses) GetTotal() uint64 {
 	return v
 }
 
-// DEPRECATED: This is likely to be removed in future versions.
-func (in SourceStatuses) AnySunk() bool {
-	for _, s := range in {
-		if s.AnySunk() {
-			return true
-		}
-	}
-	return false
-}
-
 // IncrRetries increase the retry_count metrics by 1
 // DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) IncrRetries(name string, replica int) {
@@ -110,13 +100,4 @@ func (in SourceStatuses) IncrRetries(name string, replica int) {
 	m.Retries++
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
-}
-
-// DEPRECATED: This is likely to be removed in future versions.
-func (in SourceStatuses) GetTotalBytes() uint64 {
-	var v uint64
-	for _, s := range in {
-		v += s.GetTotalBytes()
-	}
-	return v
 }

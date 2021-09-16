@@ -34,8 +34,8 @@ func TestFilterStep(t *testing.T) {
 	SendMessageViaHTTP("foo-bar")
 	SendMessageViaHTTP("baz-qux")
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", `foo-bar`)
 

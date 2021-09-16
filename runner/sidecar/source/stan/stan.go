@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nats-io/nats-streaming-server/server"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedstan "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
@@ -127,13 +129,11 @@ func (s stanSource) Close() error {
 	return s.conn.Close()
 }
 
+var httpClient = http.Client{
+	Timeout: time.Second * 3,
+}
+
 func (s stanSource) GetPending(ctx context.Context) (uint64, error) {
-	httpClient := http.Client{
-		Timeout: time.Second * 3,
-	}
-
-	type obj = map[string]interface{}
-
 	pendingMessages := func(ctx context.Context, channel, queueNameCombo string) (int64, error) {
 		monitoringEndpoint := fmt.Sprintf("%s/streaming/channelsz?channel=%s&subs=1", s.natsMonitoringURL, channel)
 		req, err := http.NewRequestWithContext(ctx, "GET", monitoringEndpoint, nil)
@@ -148,33 +148,17 @@ func (s stanSource) GetPending(ctx context.Context) (uint64, error) {
 			return 0, fmt.Errorf("invalid response: %s", resp.Status)
 		}
 		defer func() { _ = resp.Body.Close() }()
-		o := make(obj)
+		o := server.Channelz{}
 		if err := json.NewDecoder(resp.Body).Decode(&o); err != nil {
 			return 0, err
 		}
-		lastSeq, ok := o["last_seq"].(float64)
-		if !ok {
-			return 0, fmt.Errorf("unrecognized last_seq: %v", o["last_seq"])
-		}
-		subs, ok := o["subscriptions"]
-		if !ok {
-			return 0, fmt.Errorf("no suscriptions field found in the monitoring endpoint response")
-		}
-		maxLastSent := float64(0)
-		for _, i := range subs.([]interface{}) {
-			s := i.(obj)
-			if fmt.Sprintf("%v", s["queue_name"]) != queueNameCombo {
-				continue
-			}
-			lastSent, ok := s["last_sent"].(float64)
-			if !ok {
-				return 0, fmt.Errorf("unrecognized last_sent: %v", s["last_sent"])
-			}
-			if lastSent > maxLastSent {
-				maxLastSent = lastSent
+		maxLastSent := uint64(0)
+		for _, s := range o.Subscriptions {
+			if s.QueueName == queueNameCombo && s.LastSent > maxLastSent {
+				maxLastSent = s.LastSent
 			}
 		}
-		return int64(lastSeq) - int64(maxLastSent), nil
+		return int64(o.LastSeq - maxLastSent), nil
 	}
 
 	// queueNameCombo := {durableName}:{queueGroup}

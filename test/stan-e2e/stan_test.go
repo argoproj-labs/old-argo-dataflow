@@ -10,9 +10,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/kafka.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/moto.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/stan.yaml
 
 func TestSTAN(t *testing.T) {
@@ -40,10 +40,11 @@ func TestSTAN(t *testing.T) {
 
 	PumpSTANSubject(longSubject, 7)
 
-	WaitForPipeline(UntilSunkMessages)
+	defer StartPortForward("stan-main-0")()
+	WaitForSunkMessages()
 
-	WaitForStep(TotalSourceMessages(7))
-	WaitForStep(TotalSunkMessages(7))
+	WaitForTotalSourceMessages(7)
+	WaitForTotalSunkMessages(7)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

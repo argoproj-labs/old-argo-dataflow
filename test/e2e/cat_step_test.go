@@ -10,10 +10,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/kafka.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/moto.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/mysql.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/stan.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 
 func TestCatStep(t *testing.T) {
 	defer Setup(t)()
@@ -38,8 +38,8 @@ func TestCatStep(t *testing.T) {
 
 	SendMessageViaHTTP("foo-bar")
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", `foo-bar`)
 

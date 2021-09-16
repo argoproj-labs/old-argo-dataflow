@@ -12,9 +12,9 @@ import (
 )
 
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/moto.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/mysql.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/stan.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	defer Setup(t)()
@@ -44,8 +44,9 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("kafka-main-0")
 
-	WaitForStep(TotalSunkMessagesBetween(n, n+CommitN*2), 2*time.Minute)
-	WaitForStep(NoErrors)
+	ExpectKafkaTopicCount(sinkTopic, n, n+CommitN*2, 2*time.Minute)
+	defer StartPortForward("kafka-main-0")()
+	WaitForNoErrors()
 }
 
 func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
@@ -54,6 +55,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
@@ -61,7 +63,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
-				Sinks:   []Sink{DefaultLogSink},
+				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
 			}},
 		},
 	})
@@ -76,8 +78,9 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	RestartStatefulSet("kafka-broker")
 	WaitForPod("kafka-broker-0")
 
-	WaitForStep(TotalSunkMessages(n), 3*time.Minute)
-	WaitForStep(NoErrors)
+	ExpectKafkaTopicCount(sinkTopic, n, n, 2*time.Minute)
+	defer StartPortForward("kafka-main-0")()
+	WaitForNoErrors()
 	ExpectLogLine("main", "Failed to connect to broker kafka-broker:9092")
 }
 
@@ -85,6 +88,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 
 	pl := Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
@@ -93,10 +97,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
-				Sinks: []Sink{
-					DefaultLogSink,
-					{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}},
-				},
+				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
 			}},
 		},
 	}
@@ -109,11 +110,12 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
-	WaitForPipeline(UntilSunkMessages)
+	defer StartPortForward("kafka-main-0")()
+	WaitForSunkMessages()
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
-	WaitForCounter(n, n+CommitN*2)
+	ExpectKafkaTopicCount(sinkTopic, n, n+CommitN*2, time.Minute)
 }

@@ -9,12 +9,9 @@ import (
 
 const (
 	// conditions
-	ConditionCompleted = "Completed" // the pipeline completed
-	ConditionRunning   = "Running"   // added if any step is currently running
-	// DEPRECATED: This is likely to be removed in future versions as in depends on metrics in source/sink status, and
-	// we plan to remove that.
-	ConditionSunkMessages = "SunkMessages" // added if any messages have been written to a sink for any step
-	ConditionTerminating  = "Terminating"  // added if any terminator step terminated
+	ConditionCompleted   = "Completed"   // the pipeline completed
+	ConditionRunning     = "Running"     // added if any step is currently running
+	ConditionTerminating = "Terminating" // added if any terminator step terminated
 	// container names
 	CtrInit    = "init"
 	CtrMain    = "main"
