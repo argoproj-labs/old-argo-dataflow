@@ -18,7 +18,6 @@ func TestStep_GetPodSpec(t *testing.T) {
 		t.Run(fmt.Sprintf("Replica%d", replica), func(t *testing.T) {
 			env := []corev1.EnvVar{
 				{Name: "ARGO_DATAFLOW_CLUSTER", Value: "my-cluster"},
-				{Name: "ARGO_DATAFLOW_DEBUG", Value: "false"},
 				{Name: "ARGO_DATAFLOW_NAMESPACE", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.namespace"}}},
 				{Name: "ARGO_DATAFLOW_POD", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
 				{Name: "ARGO_DATAFLOW_PIPELINE_NAME", Value: "my-pl"},

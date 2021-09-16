@@ -52,7 +52,6 @@ type StepReconciler struct {
 	ContainerKiller  containerkiller.Interface
 	DynamicInterface dynamic.Interface
 	Cluster          string
-	Debug            bool
 }
 
 type hash struct {
@@ -173,7 +172,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
 						Cluster:          r.Cluster,
-						Debug:            r.Debug,
 						PipelineName:     pipelineName,
 						Replica:          int32(replica),
 						ImageFormat:      imageFormat,

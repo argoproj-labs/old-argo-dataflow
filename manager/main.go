@@ -91,7 +91,6 @@ func main() {
 		ContainerKiller:  containerKiller,
 		DynamicInterface: dynamicInterface,
 		Cluster:          os.Getenv(dfv1.EnvCluster),
-		Debug:            os.Getenv(dfv1.EnvDebug) == "true",
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
