@@ -41,10 +41,8 @@ func TestMetrics(t *testing.T) {
 
 	sendHTTPMsag("my-msg")
 
-	WaitForNothingPending()
 	WaitForSunkMessages()
 	WaitForTotalSourceMessages(1)
-	WaitForNothingPending()
 
 	ExpectMetric("input_inflight", Eq(0))
 	ExpectMetric("version_major", Eq(0))
