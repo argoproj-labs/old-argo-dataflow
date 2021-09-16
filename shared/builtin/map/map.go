@@ -4,19 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
-
 	"github.com/antonmedv/expr"
-
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
+	"github.com/argoproj-labs/argo-dataflow/shared/builtin"
 )
 
-func Exec(ctx context.Context, x string) error {
-	prog, err := expr.Compile(x)
+func New(expression string) (builtin.Process, error) {
+	prog, err := expr.Compile(expression)
 	if err != nil {
-		return fmt.Errorf("failed to compile %q: %w", x, err)
+		return nil, fmt.Errorf("failed to compile %q: %w", expression, err)
 	}
-	return golang.StartWithContext(ctx, func(ctx context.Context, msg []byte) ([]byte, error) {
+	return func(ctx context.Context, msg []byte) ([]byte, error) {
 		env, err := util.ExprEnv(ctx, msg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create expr env: %w", err)
@@ -30,5 +28,5 @@ func Exec(ctx context.Context, x string) error {
 			return nil, fmt.Errorf("must return []byte")
 		}
 		return b, nil
-	})
+	}, nil
 }
