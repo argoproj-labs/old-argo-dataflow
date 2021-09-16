@@ -36,7 +36,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if x.Kafka.MaxMessageBytes > 0 {
 		config.Consumer.Fetch.Max = x.Kafka.MaxMessageBytes
 	}
-	config.Consumer.Offsets.AutoCommit.Enable = x.AutoCommit.Enable
+	config.Consumer.Offsets.AutoCommit.Enable = false
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
@@ -51,7 +51,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
-	h := handler{sourceName, sourceURN, process, 0, !x.AutoCommit.Enable}
+	h := handler{sourceName, sourceURN, process, 0}
 	go wait.JitterUntil(func() {
 		defer runtime.HandleCrash()
 		ctx := context.Background()

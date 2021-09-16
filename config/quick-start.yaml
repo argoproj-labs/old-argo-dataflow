@@ -3539,15 +3539,6 @@ spec:
                             type: object
                           kafka:
                             properties:
-                              autoCommit:
-                                default:
-                                  enable: false
-                                properties:
-                                  enable:
-                                    type: boolean
-                                required:
-                                - enable
-                                type: object
                               brokers:
                                 items:
                                   type: string
@@ -10494,15 +10485,6 @@ spec:
                       type: object
                     kafka:
                       properties:
-                        autoCommit:
-                          default:
-                            enable: false
-                          properties:
-                            enable:
-                              type: boolean
-                          required:
-                          - enable
-                          type: object
                         brokers:
                           items:
                             type: string

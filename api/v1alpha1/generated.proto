@@ -431,10 +431,6 @@ message Kafka {
   optional string topic = 3;
 }
 
-message KafkaAutoCommit {
-  optional bool enable = 1;
-}
-
 message KafkaConfig {
   repeated string brokers = 1;
 
@@ -462,9 +458,6 @@ message KafkaSource {
 
   // +kubebuilder:default=Last
   optional string startOffset = 2;
-
-  // +kubebuilder:default={enable:false}
-  optional KafkaAutoCommit autoCommit = 3;
 }
 
 message Log {

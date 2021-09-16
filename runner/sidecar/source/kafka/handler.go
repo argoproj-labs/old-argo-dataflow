@@ -12,11 +12,10 @@ import (
 )
 
 type handler struct {
-	sourceName   string
-	sourceURN    string
-	process      source.Process
-	i            int
-	manualCommit bool
+	sourceName string
+	sourceURN  string
+	process    source.Process
+	i          int
 }
 
 func (handler) Setup(_ sarama.ConsumerGroupSession) error {
@@ -38,7 +37,7 @@ func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Con
 		} else {
 			sess.MarkMessage(msg, "")
 			h.i++
-			if h.manualCommit && h.i%dfv1.CommitN == 0 {
+			if h.i%dfv1.CommitN == 0 {
 				sess.Commit()
 			}
 		}
