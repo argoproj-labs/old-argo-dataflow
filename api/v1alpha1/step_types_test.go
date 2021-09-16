@@ -110,7 +110,9 @@ func TestStep_GetPodSpec(t *testing.T) {
 							{
 								Name: "var-run-argo-dataflow",
 								VolumeSource: corev1.VolumeSource{
-									EmptyDir: &corev1.EmptyDirVolumeSource{},
+									EmptyDir: &corev1.EmptyDirVolumeSource{
+										Medium: corev1.StorageMediumMemory,
+									},
 								},
 							}, {
 								Name: "ssh",

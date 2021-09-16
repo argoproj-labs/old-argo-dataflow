@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+
 	volumesink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/volume"
 
 	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
@@ -16,19 +19,21 @@ import (
 	logsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/stan"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/paulbellamy/ratecounter"
 )
 
 func connectSinks(ctx context.Context) (func(context.Context, []byte) error, error) {
 	sinks := map[string]sink.Interface{}
-	rateCounters := map[string]*ratecounter.RateCounter{}
+	totalCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "total",
+		Help:      "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_total",
+	}, []string{"sinkName", "replica"})
 	for _, s := range step.Spec.Sinks {
 		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
 		sinkName := s.Name
 		if _, exists := sinks[sinkName]; exists {
 			return nil, fmt.Errorf("duplicate sink named %q", sinkName)
 		}
-		rateCounters[sinkName] = ratecounter.NewRateCounter(updateInterval)
 		if x := s.STAN; x != nil {
 			if y, err := stan.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sinkName, *x); err != nil {
 				return nil, err
@@ -81,10 +86,9 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, err
 
 	return func(ctx context.Context, msg []byte) error {
 		for sinkName, f := range sinks {
-			counter := rateCounters[sinkName]
-			counter.Incr(1)
+			totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
 			withLock(func() {
-				step.Status.SinkStatues.IncrTotal(sinkName, replica, rateToResourceQuantity(counter), uint64(len(msg)))
+				step.Status.SinkStatues.IncrTotal(sinkName, replica, uint64(len(msg)))
 			})
 			if err := f.Sink(ctx, msg); err != nil {
 				withLock(func() { step.Status.SinkStatues.IncrErrors(sinkName, replica) })

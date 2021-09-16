@@ -4,12 +4,16 @@ package http_fmea
 
 import (
 	"testing"
-	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 
 func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	defer Setup(t)()
@@ -21,7 +25,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{HTTP: &HTTPSource{}}},
-				Sinks:   []Sink{DefaultLogSink},
+				Sinks:   []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
 			}},
 		},
 	})
@@ -33,13 +37,17 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	// with a single replica, if you loose a replica, you loose service
 	go PumpHTTPTolerantly(n)
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForPod("http-main-0")
+	stopPortForward := StartPortForward("http-main-0")
+	WaitForSunkMessages()
+	stopPortForward()
 
 	DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("http-main-0")
 
-	WaitForStep(TotalSourceMessages(n), 1*time.Minute)
-	WaitForStep(NoErrors)
+	WaitForCounter(n, n)
+	defer StartPortForward("http-main-0")()
+	WaitForNoErrors()
 }
 
 func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
@@ -53,7 +61,7 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: 2,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
-				Sinks:    []Sink{DefaultLogSink},
+				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
 			}},
 		},
 	})
@@ -68,11 +76,15 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 
 	PumpHTTPTolerantly(n)
 
-	WaitForPipeline(UntilSunkMessages)
+	stopPortForward := StartPortForward("http-main-0")
+	WaitForSunkMessages()
+	stopPortForward()
 
 	DeletePod("http-main-0") // delete the pod to see that we continue to process messages
 	WaitForPod("http-main-0")
 
-	WaitForStep(TotalSunkMessages(n), 1*time.Minute)
-	WaitForStep(NoErrors)
+	defer StartPortForward("http-main-0")()
+	PumpHTTPTolerantly(n)
+	WaitForCounter(2*n, 2*n)
+	WaitForNoErrors()
 }

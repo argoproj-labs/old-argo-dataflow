@@ -38,7 +38,7 @@ func TestPythonCodeStep(t *testing.T) {
 
 	SendMessageViaHTTP("foo-bar")
 
-	WaitForStep(TotalSunkMessages(1))
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", `hi! foo-bar`)
 

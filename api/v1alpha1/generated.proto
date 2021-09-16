@@ -419,10 +419,6 @@ message Kafka {
   optional string topic = 3;
 }
 
-message KafkaAutoCommit {
-  optional bool enable = 1;
-}
-
 message KafkaConfig {
   repeated string brokers = 1;
 
@@ -450,9 +446,6 @@ message KafkaSource {
 
   // +kubebuilder:default=Last
   optional string startOffset = 2;
-
-  // +kubebuilder:default={enable:false}
-  optional KafkaAutoCommit autoCommit = 3;
 }
 
 message Log {
@@ -470,15 +463,16 @@ message Metadata {
 }
 
 message Metrics {
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 total = 1;
 
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 errors = 2;
 
-  optional k8s.io.apimachinery.pkg.api.resource.Quantity rate = 3;
-
-  // current rate of messages per second
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 retries = 4;
 
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 totalBytes = 5;
 }
 
@@ -661,10 +655,13 @@ message Source {
 }
 
 message SourceStatus {
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 pending = 3;
 
+  // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 lastPending = 5;
 
+  // DEPRECATED: This is likely to be removed in future versions.
   map<string, Metrics> metrics = 4;
 }
 

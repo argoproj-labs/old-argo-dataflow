@@ -45,10 +45,12 @@ func TestVolumeSource(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
 	WaitForPod()
+	defer StartPortForward("volume-main-0")()
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", "my-content")
 

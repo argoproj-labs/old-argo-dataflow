@@ -3,9 +3,11 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -34,4 +36,29 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 	}
 	log.Printf("puming Kafka topic %q sleeping %v with %d messages sized %d\n", topic, sleep, n, size)
 	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d&prefix=%s&size=%d", topic, sleep, n, prefix, size)
+}
+
+func ExpectKafkaTopicCount(topic string, min, max int, timeout time.Duration) {
+	log.Printf("expecting count of Kafka topic %q to be %d to %d\n", topic, min, max)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	for {
+		select {
+		case <-ctx.Done():
+			panic(fmt.Errorf("timeout waiting for %d to %d messages in topic %q", min, max, topic))
+		default:
+			count, err := strconv.Atoi(InvokeTestAPI("/kafka/count-topic?topic=%s", topic))
+			if err != nil {
+				panic(fmt.Errorf("failed to count topic %q: %w", topic, err))
+			}
+			log.Printf("count of Kafka topic %q is %d\n", topic, count)
+			if min <= count && count <= max {
+				return
+			}
+			if count > max {
+				panic(fmt.Errorf("too many messages %d > %d", count, max))
+			}
+			time.Sleep(time.Second)
+		}
+	}
 }

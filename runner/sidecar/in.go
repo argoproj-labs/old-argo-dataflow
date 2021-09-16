@@ -80,8 +80,12 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 		}, nil
 	} else if in.HTTP != nil {
 		logger.Info("HTTP in interface configured")
-		if err := waitReady(ctx); err != nil {
-			return nil, err
+		if len(step.Spec.Sources) > 0 {
+			if err := waitReady(ctx); err != nil {
+				return nil, err
+			}
+		} else {
+			logger.Info("not waiting for HTTP to be read, this maybe a generator step and so may never be ready")
 		}
 		addStopHook(waitUnready)
 

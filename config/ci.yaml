@@ -3326,15 +3326,6 @@ spec:
                             type: object
                           kafka:
                             properties:
-                              autoCommit:
-                                default:
-                                  enable: false
-                                properties:
-                                  enable:
-                                    type: boolean
-                                required:
-                                - enable
-                                type: object
                               brokers:
                                 items:
                                   type: string
@@ -10074,15 +10065,6 @@ spec:
                       type: object
                     kafka:
                       properties:
-                        autoCommit:
-                          default:
-                            enable: false
-                          properties:
-                            enable:
-                              type: boolean
-                          required:
-                          - enable
-                          type: object
                         brokers:
                           items:
                             type: string
@@ -13389,32 +13371,40 @@ spec:
                 additionalProperties:
                   properties:
                     lastPending:
+                      description: 'DEPRECATED: This is likely to be removed in future
+                        versions.'
                       format: int64
                       type: integer
                     metrics:
                       additionalProperties:
                         properties:
                           errors:
+                            description: 'DEPRECATED: This is likely to be removed
+                              in future versions.'
                             format: int64
                             type: integer
-                          rate:
-                            anyOf:
-                            - type: integer
-                            - type: string
-                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                            x-kubernetes-int-or-string: true
                           retries:
+                            description: 'DEPRECATED: This is likely to be removed
+                              in future versions.'
                             format: int64
                             type: integer
                           total:
+                            description: 'DEPRECATED: This is likely to be removed
+                              in future versions.'
                             format: int64
                             type: integer
                           totalBytes:
+                            description: 'DEPRECATED: This is likely to be removed
+                              in future versions.'
                             format: int64
                             type: integer
                         type: object
+                      description: 'DEPRECATED: This is likely to be removed in future
+                        versions.'
                       type: object
                     pending:
+                      description: 'DEPRECATED: This is likely to be removed in future
+                        versions.'
                       format: int64
                       type: integer
                   type: object
@@ -13423,32 +13413,40 @@ spec:
                 additionalProperties:
                   properties:
                     lastPending:
+                      description: 'DEPRECATED: This is likely to be removed in future
+                        versions.'
                       format: int64
                       type: integer
                     metrics:
                       additionalProperties:
                         properties:
                           errors:
+                            description: 'DEPRECATED: This is likely to be removed
+                              in future versions.'
                             format: int64
                             type: integer
-                          rate:
-                            anyOf:
-                            - type: integer
-                            - type: string
-                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                            x-kubernetes-int-or-string: true
                           retries:
+                            description: 'DEPRECATED: This is likely to be removed
+                              in future versions.'
                             format: int64
                             type: integer
                           total:
+                            description: 'DEPRECATED: This is likely to be removed
+                              in future versions.'
                             format: int64
                             type: integer
                           totalBytes:
+                            description: 'DEPRECATED: This is likely to be removed
+                              in future versions.'
                             format: int64
                             type: integer
                         type: object
+                      description: 'DEPRECATED: This is likely to be removed in future
+                        versions.'
                       type: object
                     pending:
+                      description: 'DEPRECATED: This is likely to be removed in future
+                        versions.'
                       format: int64
                       type: integer
                   type: object

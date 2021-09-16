@@ -21,34 +21,6 @@ import (
 
 var stepInterface = dynamicInterface.Resource(StepGroupVersionResource).Namespace(namespace)
 
-func NoErrors(s Step) bool {
-	return s.Status.SourceStatuses.GetErrors() == 0
-}
-
-func NothingPending(s Step) bool {
-	return s.Status.SourceStatuses.GetPending() == 0
-}
-
-func TotalSourceMessagesFunc(f func(int) bool) func(s Step) bool {
-	return func(s Step) bool { return f(int(s.Status.SourceStatuses.GetTotal())) }
-}
-
-func TotalSourceMessages(n int) func(s Step) bool {
-	return TotalSourceMessagesFunc(func(t int) bool { return t == n })
-}
-
-func TotalSunkMessagesFunc(f func(int) bool) func(s Step) bool {
-	return func(s Step) bool { return f(int(s.Status.SinkStatues.GetTotal())) }
-}
-
-func TotalSunkMessages(n int) func(s Step) bool {
-	return TotalSunkMessagesBetween(n, n)
-}
-
-func TotalSunkMessagesBetween(n, m int) func(s Step) bool {
-	return TotalSunkMessagesFunc(func(t int) bool { return n <= t && t <= m })
-}
-
 func WaitForStep(opts ...interface{}) {
 	var (
 		listOptions = metav1.ListOptions{}
@@ -107,7 +79,7 @@ func formatSourceStatuses(statuses SourceStatuses) string {
 	}
 	for _, s := range statuses {
 		for _, m := range s.Metrics {
-			sourceText = append(sourceText, p.Sprintf("%s%s%s%.1f %s%d", sym(symbol.Pending, s.GetPending()), sym(symbol.Error, m.Errors), symbol.Rate, m.Rate.AsApproximateFloat64(), symbol.Total, m.Total))
+			sourceText = append(sourceText, p.Sprintf("%s%s %s%d", sym(symbol.Pending, s.GetPending()), sym(symbol.Error, m.Errors), symbol.Total, m.Total))
 		}
 	}
 	return strings.Join(sourceText, ",")

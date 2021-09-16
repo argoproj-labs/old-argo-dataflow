@@ -2,25 +2,24 @@ package v1alpha1
 
 import (
 	"strconv"
-
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 type SourceStatuses map[string]SourceStatus // key is source name
 
-func (in SourceStatuses) IncrTotal(name string, replica int, rate resource.Quantity, msgSize uint64) {
+// DEPRECATED: This is likely to be removed in future versions.
+func (in SourceStatuses) IncrTotal(name string, replica int, msgSize uint64) {
 	x := in[name]
 	if x.Metrics == nil {
 		x.Metrics = map[string]Metrics{}
 	}
 	m := x.Metrics[strconv.Itoa(replica)]
 	m.Total++
-	m.Rate = rate
 	m.TotalBytes += msgSize
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
 }
 
+// DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) Get(name string) SourceStatus {
 	if x, ok := in[name]; ok {
 		return x
@@ -28,6 +27,7 @@ func (in SourceStatuses) Get(name string) SourceStatus {
 	return SourceStatus{}
 }
 
+// DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) IncrErrors(name string, replica int) {
 	x := in[name]
 	if x.Metrics == nil {
@@ -39,6 +39,7 @@ func (in SourceStatuses) IncrErrors(name string, replica int) {
 	in[name] = x
 }
 
+// DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) SetPending(name string, pending uint64) {
 	x := in[name]
 	x.LastPending = x.Pending
@@ -46,6 +47,7 @@ func (in SourceStatuses) SetPending(name string, pending uint64) {
 	in[name] = x
 }
 
+// DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) GetPending() uint64 {
 	var v uint64
 	for _, s := range in {
@@ -56,6 +58,7 @@ func (in SourceStatuses) GetPending() uint64 {
 	return v
 }
 
+// DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) GetLastPending() uint64 {
 	var v uint64
 	for _, s := range in {
@@ -66,6 +69,7 @@ func (in SourceStatuses) GetLastPending() uint64 {
 	return v
 }
 
+// DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) GetErrors() uint64 {
 	var v uint64
 	for _, s := range in {
@@ -76,6 +80,7 @@ func (in SourceStatuses) GetErrors() uint64 {
 	return v
 }
 
+// DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) GetTotal() uint64 {
 	var v uint64
 	for _, s := range in {
@@ -84,16 +89,8 @@ func (in SourceStatuses) GetTotal() uint64 {
 	return v
 }
 
-func (in SourceStatuses) AnySunk() bool {
-	for _, s := range in {
-		if s.AnySunk() {
-			return true
-		}
-	}
-	return false
-}
-
 // IncrRetries increase the retry_count metrics by 1
+// DEPRECATED: This is likely to be removed in future versions.
 func (in SourceStatuses) IncrRetries(name string, replica int) {
 	x := in[name]
 	if x.Metrics == nil {
@@ -103,12 +100,4 @@ func (in SourceStatuses) IncrRetries(name string, replica int) {
 	m.Retries++
 	x.Metrics[strconv.Itoa(replica)] = m
 	in[name] = x
-}
-
-func (in SourceStatuses) GetTotalBytes() uint64 {
-	var v uint64
-	for _, s := range in {
-		v += s.GetTotalBytes()
-	}
-	return v
 }
