@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.104 (2021-09-16)
+
+ * [f50e8a7](https://github.com/argoproj-labs/argo-dataflow/commit/f50e8a730b63f529e9cb833195ce0bf9109c0bba) feat: add ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET config
+ * [4cb372e](https://github.com/argoproj-labs/argo-dataflow/commit/4cb372e893ffcffd022c3e3d06f2879ff7efb5ab) feat!: Remove `step..metrics` (#334)
+ * [884ae0d](https://github.com/argoproj-labs/argo-dataflow/commit/884ae0d4e6fd098deae5d4b35da09d436714547d) Revert "fix: Remove Golang SDK dependencies"
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.103 (2021-09-16)
 
  * [0fe072e](https://github.com/argoproj-labs/argo-dataflow/commit/0fe072e335ffe3a5d805b3f9b33cbd301c5fda9e) fix: Remove Golang SDK dependencies
