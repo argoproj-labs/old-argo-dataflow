@@ -12,6 +12,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	pmodel "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -64,7 +65,10 @@ func (m *MetricsCacheHandler) EnqueueStep(step *dfv1.Step) error {
 		cancel()
 		return nil
 	}
-	go m.startCachingLoop(ctx, step.DeepCopy())
+	go func() {
+		defer runtime.HandleCrash()
+		m.startCachingLoop(ctx, step.DeepCopy())
+	}()
 	return nil
 }
 
