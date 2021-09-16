@@ -50,6 +50,8 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 }
 
 func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
+	t.SkipNow()
+
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
