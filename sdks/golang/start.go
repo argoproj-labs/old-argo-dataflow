@@ -6,8 +6,13 @@ import (
 	"log"
 	"net"
 	"net/http"
+)
 
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+type meta struct{ string }
+
+var (
+	MetaSource = meta{"source"}
+	MetaID     = meta{"id"}
 )
 
 func Start(handler func(ctx context.Context, msg []byte) ([]byte, error)) {
@@ -22,7 +27,15 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 		w.WriteHeader(204)
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		ctx := dfv1.MetaExtract(r.Context(), r.Header)
+		ctx := context.WithValue(
+			context.WithValue(
+				r.Context(),
+				MetaSource,
+				r.Header.Get("source"),
+			),
+			MetaID,
+			r.Header.Get("id"),
+		)
 		out, err := func() ([]byte, error) {
 			in, err := ioutil.ReadAll(r.Body)
 			_ = r.Body.Close()
