@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.103 (2021-09-16)
+
+ * [0fe072e](https://github.com/argoproj-labs/argo-dataflow/commit/0fe072e335ffe3a5d805b3f9b33cbd301c5fda9e) fix: Remove Golang SDK dependencies
+ * [76e1d95](https://github.com/argoproj-labs/argo-dataflow/commit/76e1d95354f60938514679fb625e665ed4c7da80) fix!: Remove Kafka auto-commit. Fixes #327
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.102 (2021-09-16)
 
  * [69e608a](https://github.com/argoproj-labs/argo-dataflow/commit/69e608a53a4f326eda0c00063d20950b441879b0) feat!: Remove `SunkMessages` condition. Add `sinks_total` metric. (#328)
