@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -22,8 +23,7 @@ func WaitForTotalSourceMessages(v int) {
 }
 
 func WaitForNoErrors() {
-	// TODO - noop, but needs completing
-	// ExpectMetric("sources_errors", Eq(0))
+	ExpectMetric("sources_errors", Eq(missing))
 }
 
 func WaitForSunkMessages(opts ...interface{}) {
@@ -33,6 +33,8 @@ func WaitForSunkMessages(opts ...interface{}) {
 func WaitForTotalSunkMessages(v int, opts ...interface{}) {
 	ExpectMetric("sinks_total", Eq(float64(v)), opts...)
 }
+
+var missing = rand.Float64()
 
 func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 	ctx := context.Background()
@@ -57,8 +59,10 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 			println(getMetrics(ctx, port))
 			panic(fmt.Errorf("failed to wait for metric named %q to be %s: %w", name, matcher, ctx.Err()))
 		default:
+			found := false
 			for n, family := range getMetrics(ctx, port) {
 				if n == name {
+					found = true
 					for _, m := range family.Metric {
 						v := getValue(m)
 						if matcher.match(v) {
@@ -68,6 +72,9 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 						}
 					}
 				}
+			}
+			if !found && matcher.match(missing) {
+				return
 			}
 			time.Sleep(2 * time.Second)
 		}

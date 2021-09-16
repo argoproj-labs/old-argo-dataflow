@@ -141,6 +141,6 @@ func tailLogs(podName, containerName string) {
 	}
 	defer func() { _ = stream.Close() }()
 	for s := bufio.NewScanner(stream); s.Scan(); {
-		log.Println("📄 " + s.Text())
+		log.Println("> " + s.Text())
 	}
 }

@@ -45,12 +45,11 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	WaitForPod("kafka-main-0")
 
 	ExpectKafkaTopicCount(sinkTopic, n, n+CommitN*2, 2*time.Minute)
+	defer StartPortForward("kafka-main-0")()
 	WaitForNoErrors()
 }
 
 func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
-	t.SkipNow()
-
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
@@ -78,6 +77,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	WaitForPod("kafka-broker-0")
 
 	ExpectKafkaTopicCount(sinkTopic, n, n, 2*time.Minute)
+	defer StartPortForward("kafka-main-0")()
 	WaitForNoErrors()
 	ExpectLogLine("main", "Failed to connect to broker kafka-broker:9092")
 }

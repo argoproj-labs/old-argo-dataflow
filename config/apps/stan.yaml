@@ -233,7 +233,7 @@ spec:
           name: metrics
         readinessProbe:
           httpGet:
-            path: /
+            path: /streaming/channelsz
             port: 8222
         volumeMounts:
         - mountPath: /etc/stan-config

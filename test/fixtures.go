@@ -48,7 +48,6 @@ func Setup(t *testing.T) (teardown func()) {
 		log.Printf("\n")
 		r := recover() // tests should panic on error, we recover so we can run other tests
 		if r != nil {
-			log.Printf("📄 logs\n")
 			TailLogs()
 			log.Printf("\n")
 			log.Printf("❌ FAIL: %s %v\n", t.Name(), r)
@@ -57,12 +56,10 @@ func Setup(t *testing.T) (teardown func()) {
 			log.Printf("\n")
 			t.Fail()
 		} else if t.Failed() {
-			log.Printf("\n")
 			log.Printf("❌ FAIL: %s\n", t.Name())
 			log.Printf("\n")
 			TailLogs()
 		} else {
-			log.Printf("\n")
 			log.Printf("✅ PASS: %s\n", t.Name())
 			log.Printf("\n")
 		}

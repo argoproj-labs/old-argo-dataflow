@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/nats-io/nats-streaming-server/server"
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/nats-io/nats-streaming-server/server"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedstan "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
@@ -133,7 +134,6 @@ var httpClient = http.Client{
 }
 
 func (s stanSource) GetPending(ctx context.Context) (uint64, error) {
-
 	pendingMessages := func(ctx context.Context, channel, queueNameCombo string) (int64, error) {
 		monitoringEndpoint := fmt.Sprintf("%s/streaming/channelsz?channel=%s&subs=1", s.natsMonitoringURL, channel)
 		req, err := http.NewRequestWithContext(ctx, "GET", monitoringEndpoint, nil)

@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nats-io/nats-streaming-server/server"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/nats-io/nats-streaming-server/server"
 
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"

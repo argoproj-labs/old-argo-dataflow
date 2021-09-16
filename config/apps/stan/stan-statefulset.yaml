@@ -20,4 +20,4 @@ spec:
           readinessProbe:
             httpGet:
               port: 8222
-              path: /
+              path: /streaming/channelsz

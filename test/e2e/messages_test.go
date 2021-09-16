@@ -34,10 +34,5 @@ curl -H "Authorization: $(cat /var/run/argo-dataflow/authorization)" http://loca
 	})
 
 	WaitForPipeline()
-	WaitForPod()
-	defer StartPortForward("messages-main-0")()
-	WaitForSunkMessages()
-	WaitForTotalSunkMessages(1)
-
 	ExpectLogLine("main", `foo-bar`)
 }

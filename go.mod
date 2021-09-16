@@ -30,7 +30,7 @@ require (
 	github.com/klauspost/compress v1.13.1 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mitchellh/copystructure v1.1.1 // indirect
-	github.com/nats-io/nats-streaming-server v0.21.1 // indirect
+	github.com/nats-io/nats-streaming-server v0.21.1
 	github.com/nats-io/nats.go v1.11.0
 	github.com/nats-io/stan.go v0.8.3
 	github.com/onsi/ginkgo v1.14.1
