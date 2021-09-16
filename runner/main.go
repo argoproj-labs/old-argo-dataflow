@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
@@ -64,6 +65,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			http.Handle("/metrics", promhttp.Handler())
 			return start(p)
 		case "expand":
 			return start(expand.New())
