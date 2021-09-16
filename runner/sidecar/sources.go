@@ -69,9 +69,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
-			withLock(func() {
-				step.Status.SourceStatuses.IncrTotal(sourceName, replica, uint64(len(msg)))
-			})
 			backoff := newBackoff(s.Retry)
 			for {
 				select {
@@ -82,7 +79,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					if uint64(backoff.Steps) < s.Retry.Steps { // this is a retry
 						logger.Info("retry", "source", sourceName, "backoff", backoff)
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
 					// we need to copy anything except the timeout from the parent context
 					source, id, t, err := dfv1.MetaFromContext(ctx)
@@ -104,7 +100,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					logger.Error(err, "⚠ →", "source", sourceName, "backoffSteps", backoff.Steps)
 					if backoff.Steps <= 0 {
 						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-						withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica) })
 						return err
 					}
 					time.Sleep(backoff.Step())

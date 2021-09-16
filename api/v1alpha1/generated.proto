@@ -476,20 +476,6 @@ message Metadata {
   map<string, string> labels = 2;
 }
 
-message Metrics {
-  // DEPRECATED: This is likely to be removed in future versions.
-  optional uint64 total = 1;
-
-  // DEPRECATED: This is likely to be removed in future versions.
-  optional uint64 errors = 2;
-
-  // DEPRECATED: This is likely to be removed in future versions.
-  optional uint64 retries = 4;
-
-  // DEPRECATED: This is likely to be removed in future versions.
-  optional uint64 totalBytes = 5;
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=pl
 // +kubebuilder:subresource:status
@@ -674,9 +660,6 @@ message SourceStatus {
 
   // DEPRECATED: This is likely to be removed in future versions.
   optional uint64 lastPending = 5;
-
-  // DEPRECATED: This is likely to be removed in future versions.
-  map<string, Metrics> metrics = 4;
 }
 
 // +kubebuilder:object:root=true

@@ -28,6 +28,11 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, err
 		Name:      "total",
 		Help:      "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_total",
 	}, []string{"sinkName", "replica"})
+	errorsCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "errors",
+		Help:      "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_errors",
+	}, []string{"sinkName", "replica"})
 	for _, s := range step.Spec.Sinks {
 		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
 		sinkName := s.Name
@@ -87,11 +92,8 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, err
 	return func(ctx context.Context, msg []byte) error {
 		for sinkName, f := range sinks {
 			totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
-			withLock(func() {
-				step.Status.SinkStatues.IncrTotal(sinkName, replica, uint64(len(msg)))
-			})
 			if err := f.Sink(ctx, msg); err != nil {
-				withLock(func() { step.Status.SinkStatues.IncrErrors(sinkName, replica) })
+				errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
 				return err
 			}
 		}

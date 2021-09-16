@@ -26,6 +26,12 @@ Only exposed by replica 0.
 
 Golden metric type: traffic.
 
+### sinks_errors
+
+Use this to track errors.
+
+Golden metric type: error.
+
 ### sinks_total
 
 Use this to track throughput. Includes retries and errors.
@@ -33,8 +39,6 @@ Use this to track throughput. Includes retries and errors.
 ### sources_errors
 
 Use this to track errors.
-
-Only exposed by replica 0.
 
 Golden metric type: error.
 
@@ -47,8 +51,6 @@ Golden metric type: error.
 ### sources_total
 
 Use this to track throughput.
-
-Only exposed by replica 0.
 
 Golden metric type: traffic.
 

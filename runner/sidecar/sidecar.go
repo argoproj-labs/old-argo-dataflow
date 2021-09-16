@@ -276,23 +276,6 @@ func patchStepStatus() {
 					}
 					// the step will change while this goroutine is running, so we must copy the data for this
 					// replica back to the status
-					r := strconv.Itoa(replica)
-					for name, s := range step.Status.SourceStatuses {
-						if v.Status.SourceStatuses[name].Metrics == nil {
-							x := v.Status.SourceStatuses[name]
-							x.Metrics = map[string]dfv1.Metrics{}
-							v.Status.SourceStatuses[name] = x
-						}
-						v.Status.SourceStatuses[name].Metrics[r] = s.Metrics[r]
-					}
-					for name, s := range step.Status.SinkStatues {
-						if v.Status.SinkStatues[name].Metrics == nil {
-							x := v.Status.SinkStatues[name]
-							x.Metrics = map[string]dfv1.Metrics{}
-							v.Status.SinkStatues[name] = x
-						}
-						v.Status.SinkStatues[name].Metrics[r] = s.Metrics[r]
-					}
 					step = v
 				})
 			}
