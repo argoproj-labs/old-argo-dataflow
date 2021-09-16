@@ -25,5 +25,5 @@ func TestNew(t *testing.T) {
 	items := make([]string, 0)
 	err = json.Unmarshal(resp, &items)
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []string{"1",  "end"}, items)
+	assert.ElementsMatch(t, []string{"1", "end"}, items)
 }

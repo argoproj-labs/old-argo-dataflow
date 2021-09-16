@@ -13795,33 +13795,6 @@ spec:
                         versions.'
                       format: int64
                       type: integer
-                    metrics:
-                      additionalProperties:
-                        properties:
-                          errors:
-                            description: 'DEPRECATED: This is likely to be removed
-                              in future versions.'
-                            format: int64
-                            type: integer
-                          retries:
-                            description: 'DEPRECATED: This is likely to be removed
-                              in future versions.'
-                            format: int64
-                            type: integer
-                          total:
-                            description: 'DEPRECATED: This is likely to be removed
-                              in future versions.'
-                            format: int64
-                            type: integer
-                          totalBytes:
-                            description: 'DEPRECATED: This is likely to be removed
-                              in future versions.'
-                            format: int64
-                            type: integer
-                        type: object
-                      description: 'DEPRECATED: This is likely to be removed in future
-                        versions.'
-                      type: object
                     pending:
                       description: 'DEPRECATED: This is likely to be removed in future
                         versions.'
@@ -13837,33 +13810,6 @@ spec:
                         versions.'
                       format: int64
                       type: integer
-                    metrics:
-                      additionalProperties:
-                        properties:
-                          errors:
-                            description: 'DEPRECATED: This is likely to be removed
-                              in future versions.'
-                            format: int64
-                            type: integer
-                          retries:
-                            description: 'DEPRECATED: This is likely to be removed
-                              in future versions.'
-                            format: int64
-                            type: integer
-                          total:
-                            description: 'DEPRECATED: This is likely to be removed
-                              in future versions.'
-                            format: int64
-                            type: integer
-                          totalBytes:
-                            description: 'DEPRECATED: This is likely to be removed
-                              in future versions.'
-                            format: int64
-                            type: integer
-                        type: object
-                      description: 'DEPRECATED: This is likely to be removed in future
-                        versions.'
-                      type: object
                     pending:
                       description: 'DEPRECATED: This is likely to be removed in future
                         versions.'

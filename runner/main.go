@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
 	"os"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	_init "github.com/argoproj-labs/argo-dataflow/runner/init"

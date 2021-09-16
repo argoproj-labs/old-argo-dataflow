@@ -6,60 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSourceStatuses_Set(t *testing.T) {
-	ss := SourceStatuses{}
-
-	ss.IncrTotal("bar", 1, 1)
-
-	if assert.Len(t, ss, 1) {
-		s := ss["bar"]
-		if assert.Len(t, s.Metrics, 1) {
-			assert.Equal(t, uint64(1), s.Metrics["1"].Total)
-			assert.Equal(t, uint64(1), s.Metrics["1"].TotalBytes)
-		}
-	}
-
-	ss.IncrTotal("bar", 1, 1)
-
-	if assert.Len(t, ss, 1) {
-		s := ss["bar"]
-		if assert.Len(t, s.Metrics, 1) {
-			assert.Equal(t, uint64(2), s.Metrics["1"].Total)
-			assert.Equal(t, uint64(2), s.Metrics["1"].TotalBytes)
-		}
-	}
-
-	ss.IncrTotal("bar", 0, 1)
-
-	if assert.Len(t, ss, 1) {
-		s := ss["bar"]
-		if assert.Len(t, s.Metrics, 2) {
-			assert.Equal(t, uint64(1), s.Metrics["0"].Total)
-			assert.Equal(t, uint64(2), s.Metrics["1"].Total)
-			assert.Equal(t, uint64(2), s.Metrics["1"].TotalBytes)
-		}
-	}
-
-	ss.IncrTotal("baz", 0, 1)
-
-	if assert.Len(t, ss, 2) {
-		s := ss["baz"]
-		if assert.Len(t, s.Metrics, 1) {
-			assert.Equal(t, uint64(1), s.Metrics["0"].Total)
-		}
-	}
-}
-
-func TestSourceStatuses_IncErrors(t *testing.T) {
-	ss := SourceStatuses{}
-	ss.IncrErrors("foo", 0)
-	assert.Equal(t, uint64(1), ss["foo"].Metrics["0"].Errors)
-	ss.IncrErrors("foo", 0)
-	assert.Equal(t, uint64(2), ss["foo"].Metrics["0"].Errors)
-	ss.IncrErrors("bar", 0)
-	assert.Equal(t, uint64(1), ss["bar"].Metrics["0"].Errors)
-}
-
 func TestSourceStatuses_SetPending(t *testing.T) {
 	ss := SourceStatuses{}
 
@@ -94,17 +40,4 @@ func TestSourceStatus_GetLastPending(t *testing.T) {
 	assert.Equal(t, uint64(0), SourceStatuses{}.GetLastPending())
 	v := uint64(1)
 	assert.Equal(t, uint64(1), SourceStatuses{"0": {LastPending: &v}}.GetLastPending())
-}
-
-func TestSourceStatuses_IncrRetries(t *testing.T) {
-	sources := SourceStatuses{}
-	sources.IncrRetries("one", 1)
-	assert.Equal(t, uint64(1), sources.Get("one").GetRetries())
-	sources.IncrRetries("one", 2)
-	assert.Equal(t, uint64(2), sources.Get("one").GetRetries())
-	sources.IncrRetries("one", 1)
-	assert.Equal(t, uint64(3), sources.Get("one").GetRetries())
-	sources.IncrRetries("two", 1)
-	assert.Equal(t, uint64(3), sources.Get("one").GetRetries())
-	assert.Equal(t, uint64(1), sources.Get("two").GetRetries())
 }
