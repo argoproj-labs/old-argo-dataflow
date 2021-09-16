@@ -39,6 +39,41 @@ func init() {
 		}
 		w.WriteHeader(201)
 	})
+	http.HandleFunc("/kafka/count-topic", func(w http.ResponseWriter, r *http.Request) {
+		topics := r.URL.Query()["topic"]
+		if len(topics) < 1 {
+			w.WriteHeader(400)
+			return
+		}
+		topic := topics[0]
+		client, err := sarama.NewClient(addrs, config)
+		if err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+
+		partitions, err := client.Partitions(topic)
+		if err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+
+		count := 0
+		for _, p := range partitions {
+			offset, err := client.GetOffset(topic, p, sarama.OffsetNewest)
+			if err != nil {
+				w.WriteHeader(500)
+				_, _ = w.Write([]byte(err.Error()))
+				return
+			}
+			count += int(offset)
+		}
+
+		w.WriteHeader(200)
+		_, _ = w.Write([]byte(strconv.Itoa(count)))
+	})
 	http.HandleFunc("/kafka/pump-topic", func(w http.ResponseWriter, r *http.Request) {
 		topic := r.URL.Query().Get("topic")
 		mf := newMessageFactory(r.URL.Query())

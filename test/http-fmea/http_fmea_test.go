@@ -3,18 +3,16 @@
 package http_fmea
 
 import (
-	"testing"
-	"time"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
 
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/kafka.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/moto.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/mysql.yaml
-//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f../../config/apps/stan.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 
 func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	defer Setup(t)()
@@ -26,7 +24,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{HTTP: &HTTPSource{}}},
-				Sinks:   []Sink{DefaultLogSink},
+				Sinks:   []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
 			}},
 		},
 	})
@@ -46,8 +44,7 @@ func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
 	DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("http-main-0")
 
-	defer StartPortForward("http-main-0")()
-	WaitForTotalSourceMessages(n)
+	WaitForCounter(n, n)
 	WaitForNoErrors()
 }
 
@@ -62,7 +59,7 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: 2,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
-				Sinks:    []Sink{DefaultLogSink},
+				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
 			}},
 		},
 	})
@@ -86,6 +83,6 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 
 	defer StartPortForward("http-main-0")()
 	PumpHTTPTolerantly(n)
-	WaitForSunkMessages(time.Minute)
+	WaitForCounter(2*n, 2*n)
 	WaitForNoErrors()
 }

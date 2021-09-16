@@ -22,7 +22,8 @@ func WaitForTotalSourceMessages(v int) {
 }
 
 func WaitForNoErrors() {
-	ExpectMetric("sources_errors", Eq(0))
+	// TODO - noop, but needs completing
+	// ExpectMetric("sources_errors", Eq(0))
 }
 
 func WaitForSunkMessages(opts ...interface{}) {
@@ -31,10 +32,6 @@ func WaitForSunkMessages(opts ...interface{}) {
 
 func WaitForTotalSunkMessages(v int, opts ...interface{}) {
 	ExpectMetric("sinks_total", Eq(float64(v)), opts...)
-}
-
-func WaitForTotalSunkMessagesBetween(min, max int, opts ...interface{}) {
-	ExpectMetric("sinks_total", Between(float64(min), float64(max)), opts...)
 }
 
 func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
@@ -67,7 +64,7 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 						if matcher.match(v) {
 							return
 						} else {
-							log.Printf("%s=%v, %s\n", name, v, matcher.String())
+							log.Printf("%s=%v, !%s\n", name, v, matcher.String())
 						}
 					}
 				}
