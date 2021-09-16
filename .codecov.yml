@@ -13,6 +13,7 @@ ignore:
   - runner
   - runtimes
   - shared/containerkiller
+  - shared/podexec
   - shared/util/error.go
   - shared/util/io.go
 coverage:

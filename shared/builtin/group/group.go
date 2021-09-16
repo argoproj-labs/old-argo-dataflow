@@ -31,8 +31,8 @@ func withLock(dir string, f func() ([]byte, error)) ([]byte, error) {
 	return msgs, err
 }
 
-func New(key string, endOfGroup string, groupFormat dfv1.GroupFormat) (builtin.Process, error) {
-	if err := os.Mkdir(dfv1.PathGroups, 0o700); sharedutil.IgnoreExist(err) != nil {
+func New(pathGroups, key, endOfGroup string, groupFormat dfv1.GroupFormat) (builtin.Process, error) {
+	if err := os.Mkdir(pathGroups, 0o700); sharedutil.IgnoreExist(err) != nil {
 		return nil, fmt.Errorf("failed to create groups dir: %w", err)
 	}
 	prog, err := expr.Compile(key)
@@ -56,7 +56,7 @@ func New(key string, endOfGroup string, groupFormat dfv1.GroupFormat) (builtin.P
 		if !ok {
 			return nil, fmt.Errorf("key expression must return a string")
 		}
-		dir := filepath.Join(dfv1.PathGroups, group)
+		dir := filepath.Join(pathGroups, group)
 		return withLock(dir, func() ([]byte, error) {
 			if err := os.MkdirAll(dir, 0o700); sharedutil.IgnoreExist(err) != nil {
 				return nil, fmt.Errorf("failed to create group sub-dir %q: %w", dir, err)
@@ -64,10 +64,6 @@ func New(key string, endOfGroup string, groupFormat dfv1.GroupFormat) (builtin.P
 			path := filepath.Join(dir, uuid.New().String())
 			if err := ioutil.WriteFile(path, msg, 0o600); err != nil {
 				return nil, fmt.Errorf("failed to create message file %q: %w", path, err)
-			}
-			env, err := util.ExprEnv(ctx, msg)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create expr env: %w", err)
 			}
 			res, err = expr.Run(endProg, env)
 			if err != nil {
@@ -90,7 +86,7 @@ func New(key string, endOfGroup string, groupFormat dfv1.GroupFormat) (builtin.P
 			})
 			msgs := make([][]byte, len(items))
 			for i, f := range items {
-				msg, err := ioutil.ReadFile(filepath.Join(dfv1.PathGroups, group, f.Name()))
+				msg, err := ioutil.ReadFile(filepath.Join(pathGroups, group, f.Name()))
 				if err != nil {
 					return nil, fmt.Errorf("failed to read file %q: %w", f.Name(), err)
 				}
@@ -116,7 +112,7 @@ func New(key string, endOfGroup string, groupFormat dfv1.GroupFormat) (builtin.P
 				}
 				return data, os.RemoveAll(dir)
 			}
-			return nil, fmt.Errorf("unknown group format %q", format)
+			return nil, fmt.Errorf("unknown group format %q", groupFormat)
 		})
 	}, nil
 }

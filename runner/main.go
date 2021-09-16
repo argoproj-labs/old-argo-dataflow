@@ -76,7 +76,7 @@ func main() {
 		case "flatten":
 			return start(flatten.New())
 		case "group":
-			p, err := group.New(os.Args[2], os.Args[3], dfv1.GroupFormat(os.Args[4]))
+			p, err := group.New(dfv1.PathGroups, os.Args[2], os.Args[3], dfv1.GroupFormat(os.Args[4]))
 			if err != nil {
 				return err
 			}
