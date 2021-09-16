@@ -36,6 +36,7 @@ func TestS3Source(t *testing.T) {
 
 	WaitForPod()
 
+	defer StartPortForward("s3-main-0")()
 	WaitForSunkMessages()
 	WaitForTotalSunkMessages(1)
 

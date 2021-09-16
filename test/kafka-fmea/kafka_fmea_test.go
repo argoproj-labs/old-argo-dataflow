@@ -4,6 +4,7 @@ package kafka_fmea
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -43,7 +44,7 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("kafka-main-0")
 
-	WaitForTotalSunkMessagesBetween(n, n+CommitN*2)
+	WaitForTotalSunkMessagesBetween(n, n+CommitN*2, 2*time.Minute)
 	WaitForNoErrors()
 }
 
@@ -75,7 +76,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	RestartStatefulSet("kafka-broker")
 	WaitForPod("kafka-broker-0")
 
-	WaitForTotalSunkMessages(n)
+	WaitForTotalSunkMessages(n, 3*time.Minute)
 	WaitForNoErrors()
 	ExpectLogLine("main", "Failed to connect to broker kafka-broker:9092")
 }
@@ -108,6 +109,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
+	defer StartPortForward("kafka-main-0")()
 	WaitForSunkMessages()
 
 	DeletePipelines()

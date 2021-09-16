@@ -4,6 +4,7 @@ package stan_fmea
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -40,12 +41,17 @@ func TestStanFMEA_PodDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
+	stopPortForward := StartPortForward("stan-main-0")
 	WaitForSunkMessages()
+	stopPortForward()
 
 	DeletePod("stan-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("stan-main-0")
 
-	WaitForTotalSunkMessagesBetween(n, n+1)
+	WaitForPipeline()
+	WaitForPod()
+	defer StartPortForward("stan-main-0")()
+	WaitForTotalSunkMessagesBetween(n, n+1, time.Minute)
 }
 
 func TestStanFMEA_STANServiceDisruption(t *testing.T) {
@@ -72,12 +78,13 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
+	defer StartPortForward("stan-main-0")()
 	WaitForSunkMessages()
 
 	RestartStatefulSet("stan")
 	WaitForPod("stan-0")
 
-	WaitForTotalSunkMessagesBetween(n, n+CommitN)
+	WaitForTotalSunkMessagesBetween(n, n+CommitN, time.Minute)
 	WaitForNoErrors()
 }
 
@@ -107,12 +114,17 @@ func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpSTANSubject(longSubject, n)
 
+	stopPortForward := StartPortForward("stan-main-0")
 	WaitForSunkMessages()
+	stopPortForward()
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
+	WaitForPipeline()
+	WaitForPod()
+	defer StartPortForward("stan-main-0")()
 	WaitForCounter(n, n+CommitN)
 	WaitForNoErrors()
 }

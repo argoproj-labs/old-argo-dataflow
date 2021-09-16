@@ -40,6 +40,7 @@ func TestSTAN(t *testing.T) {
 
 	PumpSTANSubject(longSubject, 7)
 
+	defer StartPortForward("stan-main-0")()
 	WaitForSunkMessages()
 
 	WaitForTotalSourceMessages(7)

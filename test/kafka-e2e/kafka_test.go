@@ -37,6 +37,7 @@ func TestKafka(t *testing.T) {
 
 	PumpKafkaTopic(topic, 17)
 
+	defer StartPortForward("kafka-main-0")()
 	WaitForSunkMessages()
 
 	WaitForTotalSourceMessages(17)
@@ -68,6 +69,7 @@ func TestKafkaAutoCommit(t *testing.T) {
 
 	PumpKafkaTopic(topic, 17)
 
+	defer StartPortForward("kafka-main-0")()
 	WaitForSunkMessages()
 
 	WaitForTotalSourceMessages(17)

@@ -25,7 +25,6 @@ func TestMessagesEndpoint(t *testing.T) {
 						Args: []string{`
 set -eux -o pipefail
 curl -H "Authorization: $(cat /var/run/argo-dataflow/authorization)" http://localhost:3569/messages -d 'foo-bar'
-sleep 60
 `},
 					},
 					Sinks: []Sink{DefaultLogSink},

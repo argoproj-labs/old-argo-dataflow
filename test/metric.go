@@ -22,35 +22,38 @@ func WaitForTotalSourceMessages(v int) {
 }
 
 func WaitForNoErrors() {
-	ExpectMetric("errors", Eq(0))
+	ExpectMetric("sources_errors", Eq(0))
 }
 
-func WaitForSunkMessages() {
-	ExpectMetric("sinks_total", Gt(0))
+func WaitForSunkMessages(opts ...interface{}) {
+	ExpectMetric("sinks_total", Gt(0), opts...)
 }
 
-func WaitForTotalSunkMessages(v int) {
-	ExpectMetric("sinks_total", Eq(float64(v)))
+func WaitForTotalSunkMessages(v int, opts ...interface{}) {
+	ExpectMetric("sinks_total", Eq(float64(v)), opts...)
 }
 
-func WaitForTotalSunkMessagesBetween(min, max int) {
-	ExpectMetric("sinks_total", Between(float64(min), float64(max)))
+func WaitForTotalSunkMessagesBetween(min, max int, opts ...interface{}) {
+	ExpectMetric("sinks_total", Between(float64(min), float64(max)), opts...)
 }
 
 func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 	ctx := context.Background()
 	port := 3569
+	timeout := 30 * time.Second
 	for _, opt := range opts {
 		switch v := opt.(type) {
 		case int:
 			port = v
+		case time.Duration:
+			timeout = v
 		default:
 			panic(fmt.Errorf("unsupported option type %T", v))
 		}
 	}
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	log.Printf("expect metric %q to be %s\n", name, matcher)
+	log.Printf("expect metric %q to be %s within %v\n", name, matcher, timeout.String())
 	for {
 		select {
 		case <-ctx.Done():
@@ -64,12 +67,12 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 						if matcher.match(v) {
 							return
 						} else {
-							log.Printf("want %s, got, %s=%v\n", matcher.String(), name, v)
+							log.Printf("%s=%v, %s\n", name, v, matcher.String())
 						}
 					}
 				}
 			}
-			time.Sleep(time.Second)
+			time.Sleep(2 * time.Second)
 		}
 	}
 }

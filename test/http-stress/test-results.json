@@ -1,10 +1,10 @@
 {
-  "TestHTTPSinkStress/.tps": 500,
+  "TestHTTPSinkStress/.tps": 950,
   "TestHTTPSinkStress/N=10,messageSize=100.tps": 0,
   "TestHTTPSinkStress/N=10,messageSize=1000.tps": 500,
   "TestHTTPSinkStress/messageSize=1000.tps": 450,
   "TestHTTPSinkStress/replicas=2.tps": 650,
-  "TestHTTPSourceStress/.tps": 1050,
+  "TestHTTPSourceStress/.tps": 1300,
   "TestHTTPSourceStress/N=10,messageSize=100.tps": 0,
   "TestHTTPSourceStress/N=10,messageSize=1000.tps": 1050,
   "TestHTTPSourceStress/N=100000.tps": 1000,

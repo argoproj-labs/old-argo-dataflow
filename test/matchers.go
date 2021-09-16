@@ -11,7 +11,7 @@ func (m matcher) String() string { return m.string }
 
 func Eq(v float64) matcher {
 	return matcher{
-		fmt.Sprintf("==%v", v),
+		fmt.Sprintf("=%v", v),
 		func(w float64) bool {
 			return w == v
 		},

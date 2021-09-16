@@ -4,6 +4,7 @@ package http_stress
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
@@ -99,5 +100,5 @@ func TestHTTPSinkStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, Params.MessageSize)
-	WaitForTotalSunkMessages(n * 2)
+	WaitForTotalSunkMessages(n, 3*time.Minute)
 }
