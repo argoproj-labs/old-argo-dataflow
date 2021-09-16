@@ -77,7 +77,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	if step.GetDeletionTimestamp() != nil {
 		if controllerutil.ContainsFinalizer(step, stepFinalizer) {
-			r.stopMetricsCacheLoop(step)
+			if err := r.stopMetricsCacheLoop(step); err != nil {
+				return ctrl.Result{}, err
+			}
 			controllerutil.RemoveFinalizer(step, stepFinalizer)
 			if err := r.Client.Update(ctx, step); err != nil {
 				return ctrl.Result{}, err
