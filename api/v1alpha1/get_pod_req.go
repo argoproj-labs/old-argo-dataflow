@@ -8,7 +8,6 @@ import (
 
 type GetPodSpecReq struct {
 	Cluster          string                        `protobuf:"bytes,1,opt,name=cluster"`
-	Debug            bool                          `protobuf:"varint,2,opt,name=debug"`
 	PipelineName     string                        `protobuf:"bytes,3,opt,name=pipelineName"`
 	Replica          int32                         `protobuf:"varint,4,opt,name=replica"`
 	ImageFormat      string                        `protobuf:"bytes,5,opt,name=imageFormat"`

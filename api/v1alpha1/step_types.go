@@ -100,7 +100,6 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	step, _ := json.Marshal(in.withoutManagedFields())
 	envVars := []corev1.EnvVar{
 		{Name: EnvCluster, Value: req.Cluster},
-		{Name: EnvDebug, Value: strconv.FormatBool(req.Debug)},
 		{Name: EnvNamespace, ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.namespace"}}},
 		{Name: EnvPod, ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
 		{Name: EnvPipelineName, Value: req.PipelineName},
@@ -108,6 +107,12 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		{Name: EnvStep, Value: string(step)},
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 		{Name: "GODEBUG", Value: os.Getenv("GODEBUG")},
+	}
+
+	for _, n := range []string{EnvDebug, EnvUnixDomainSocket} {
+		if value, ok := os.LookupEnv(EnvDebug); ok {
+			envVars = append(envVars, corev1.EnvVar{Name: n, Value: value})
+		}
 	}
 
 	// add all Jaeger envvar
