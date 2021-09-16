@@ -31,7 +31,7 @@ func withLock(dir string, f func() ([]byte, error)) ([]byte, error) {
 	return msgs, err
 }
 
-func New(key string, endOfGroup string, format dfv1.GroupFormat) (builtin.Process, error) {
+func New(key string, endOfGroup string, groupFormat dfv1.GroupFormat) (builtin.Process, error) {
 	if err := os.Mkdir(dfv1.PathGroups, 0o700); sharedutil.IgnoreExist(err) != nil {
 		return nil, fmt.Errorf("failed to create groups dir: %w", err)
 	}
@@ -96,7 +96,7 @@ func New(key string, endOfGroup string, format dfv1.GroupFormat) (builtin.Proces
 				}
 				msgs[i] = msg
 			}
-			switch format {
+			switch groupFormat {
 			case dfv1.GroupFormatUnknown:
 			// noop - this is same as default switch branch
 			case dfv1.GroupFormatJSONBytesArray:
