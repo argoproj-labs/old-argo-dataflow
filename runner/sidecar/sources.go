@@ -166,7 +166,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				} else {
 					logger.Info("got pending", "source", sourceName, "pending", pending)
 					pendingGauge.WithLabelValues(sourceName).Set(float64(pending))
-					withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, pending) })
 				}
 				return nil
 			})
