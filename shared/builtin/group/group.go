@@ -9,13 +9,11 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
-
+	"github.com/antonmedv/expr"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
+	"github.com/argoproj-labs/argo-dataflow/shared/builtin"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-
-	"github.com/antonmedv/expr"
 	"github.com/google/uuid"
 	"github.com/juju/fslock"
 )
@@ -33,26 +31,26 @@ func withLock(dir string, f func() ([]byte, error)) ([]byte, error) {
 	return msgs, err
 }
 
-func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.GroupFormat) error {
+func New(key string, endOfGroup string, format dfv1.GroupFormat) (builtin.Process, error) {
 	if err := os.Mkdir(dfv1.PathGroups, 0o700); sharedutil.IgnoreExist(err) != nil {
-		return fmt.Errorf("failed to create groups dir: %w", err)
+		return nil, fmt.Errorf("failed to create groups dir: %w", err)
 	}
 	prog, err := expr.Compile(key)
 	if err != nil {
-		return fmt.Errorf("failed to compile %q: %w", key, err)
+		return nil, fmt.Errorf("failed to compile %q: %w", key, err)
 	}
 	endProg, err := expr.Compile(endOfGroup)
 	if err != nil {
-		return fmt.Errorf("failed to compile %q: %w", endOfGroup, err)
+		return nil, fmt.Errorf("failed to compile %q: %w", endOfGroup, err)
 	}
-	return golang.StartWithContext(ctx, func(ctx context.Context, msg []byte) ([]byte, error) {
+	return func(ctx context.Context, msg []byte) ([]byte, error) {
 		env, err := util.ExprEnv(ctx, msg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create expr env: %w", err)
 		}
 		res, err := expr.Run(prog, env)
 		if err != nil {
-			return nil, fmt.Errorf("failed to run program %q: %w", key, err)
+			return nil, fmt.Errorf("failed to run program: %w", err)
 		}
 		group, ok := res.(string)
 		if !ok {
@@ -73,18 +71,18 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 			}
 			res, err = expr.Run(endProg, env)
 			if err != nil {
-				return nil, fmt.Errorf("failed to run program %q: %w", endOfGroup, err)
+				return nil, fmt.Errorf("failed to run program: %w", err)
 			}
 			end, ok := res.(bool)
 			if !ok {
-				return nil, fmt.Errorf("end-of-group expression %q must return a bool", endOfGroup)
+				return nil, fmt.Errorf("end-of-group expression must return a bool")
 			}
 			if !end {
 				return nil, nil
 			}
 			items, err := ioutil.ReadDir(dir)
 			if err != nil {
-				return nil, fmt.Errorf("failed to read dir %q: %w", endOfGroup, err)
+				return nil, fmt.Errorf("failed to read dir: %w", err)
 			}
 			// return items is creating date order, this is only at accuracy of system clock
 			sort.Slice(items, func(i, j int) bool {
@@ -98,7 +96,7 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 				}
 				msgs[i] = msg
 			}
-			switch groupFormat {
+			switch format {
 			case dfv1.GroupFormatUnknown:
 			// noop - this is same as default switch branch
 			case dfv1.GroupFormatJSONBytesArray:
@@ -118,7 +116,7 @@ func Exec(ctx context.Context, key string, endOfGroup string, groupFormat dfv1.G
 				}
 				return data, os.RemoveAll(dir)
 			}
-			return nil, fmt.Errorf("unknown group format %q", groupFormat)
+			return nil, fmt.Errorf("unknown group format %q", format)
 		})
-	})
+	}, nil
 }
