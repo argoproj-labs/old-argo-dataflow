@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.105 (2021-09-17)
+
+ * [cc7706d](https://github.com/argoproj-labs/argo-dataflow/commit/cc7706d99ca28933f51bd8ba44b9efad12f4e6f3) fix: fix logging an signal handling (#339)
+ * [ae8ad3f](https://github.com/argoproj-labs/argo-dataflow/commit/ae8ad3ff68ce33ed0077034aad403c77832c42a8) feat: make meta just plain string
+ * [d2bf012](https://github.com/argoproj-labs/argo-dataflow/commit/d2bf01250d9638077d320a6644b1d0c43eecf120) feat: Run Kafka offset commit loop every 1s, 2x faster, more robust.
+ * [13d5b50](https://github.com/argoproj-labs/argo-dataflow/commit/13d5b500280edbc5e8712cce76a013ef062f6010) fix: golang1-16 runtimes
+ * [84bf124](https://github.com/argoproj-labs/argo-dataflow/commit/84bf1240fdf9096531785606ab9255caa3386207) feat: add ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET config (#335)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.104 (2021-09-16)
 
  * [f50e8a7](https://github.com/argoproj-labs/argo-dataflow/commit/f50e8a730b63f529e9cb833195ce0bf9109c0bba) feat: add ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET config
