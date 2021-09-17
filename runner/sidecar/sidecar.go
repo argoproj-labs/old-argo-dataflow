@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -21,12 +20,7 @@ import (
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	jaegerlog "github.com/uber/jaeger-client-go/log"
 	"github.com/uber/jaeger-lib/metrics"
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -38,7 +32,6 @@ var (
 	cluster             = os.Getenv(dfv1.EnvCluster)
 	namespace           = os.Getenv(dfv1.EnvNamespace)
 	pod                 = os.Getenv(dfv1.EnvPod)
-	patchMu             = sync.Mutex{}
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
 	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
 	dynamicInterface    dynamic.Interface
@@ -73,12 +66,6 @@ func Exec(ctx context.Context) error {
 	}
 
 	stepName = step.Spec.Name
-	if step.Status.SourceStatuses == nil {
-		step.Status.SourceStatuses = dfv1.SourceStatuses{}
-	}
-	if step.Status.SinkStatues == nil {
-		step.Status.SinkStatues = dfv1.SourceStatuses{}
-	}
 	lastStep = *step.DeepCopy()
 
 	if v, err := strconv.Atoi(os.Getenv(dfv1.EnvReplica)); err != nil {
@@ -128,8 +115,6 @@ func Exec(ctx context.Context) error {
 	defer logger.Info("done")
 	defer stop()
 	defer preStop("defer")
-
-	addStopHook(patchStepStatusHook)
 
 	sink, err := connectSinks(ctx)
 	if err != nil {
@@ -216,71 +201,10 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	go wait.JitterUntil(func() { defer runtimeutil.HandleCrash(); patchStepStatus() }, updateInterval, 1.2, true, ctx.Done())
-
 	ready = true
 	logger.Info("ready")
 	<-ctx.Done()
 	return nil
-}
-
-func patchStepStatusHook(context.Context) error {
-	patchStepStatus()
-	return nil
-}
-
-func patchStepStatus() {
-	ctx := context.Background()
-	patchMu.Lock()
-	defer patchMu.Unlock()
-	if ready { // don't run these if we are not ready, pollutes the logs with errors
-		for _, f := range prePatchHooks {
-			n := sharedutil.GetFuncName(f)
-			logger.Info("executing pre-patch hook", "func", n)
-			if err := f(ctx); err != nil {
-				logger.Error(err, "failed to execute hook", "func", n)
-			}
-		}
-	}
-	mu.RLock()
-	notEqual, patch := sharedutil.NotEqual(dfv1.Step{Status: lastStep.Status}, dfv1.Step{Status: step.Status})
-	mu.RUnlock()
-	if notEqual {
-		logger.Info("patching step status", "patch", patch)
-		if un, err := dynamicInterface.
-			Resource(dfv1.StepGroupVersionResource).
-			Namespace(namespace).
-			Patch(
-				ctx,
-				pipelineName+"-"+stepName,
-				types.MergePatchType,
-				[]byte(patch),
-				metav1.PatchOptions{},
-				"status",
-			); err != nil {
-			if !apierr.IsNotFound(err) { // the step can be deleted before the pod
-				logger.Error(err, "failed to patch step status")
-			}
-		} else {
-			v := dfv1.Step{}
-			if err := runtime.DefaultUnstructuredConverter.FromUnstructured(un.Object, &v); err != nil {
-				logger.Error(err, "failed to from-unstructured")
-			} else {
-				lastStep = *v.DeepCopy()
-				withLock(func() {
-					if v.Status.SourceStatuses == nil {
-						v.Status.SourceStatuses = dfv1.SourceStatuses{}
-					}
-					if v.Status.SinkStatues == nil {
-						v.Status.SinkStatues = dfv1.SourceStatuses{}
-					}
-					// the step will change while this goroutine is running, so we must copy the data for this
-					// replica back to the status
-					step = v
-				})
-			}
-		}
-	}
 }
 
 func enrichSpec(ctx context.Context) error {

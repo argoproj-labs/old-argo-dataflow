@@ -54,12 +54,12 @@ func (m *MetricsCacheHandler) Contains(step *dfv1.Step) (bool, error) {
 	return ok, nil
 }
 
-func (m *MetricsCacheHandler) EnqueueStep(step *dfv1.Step) error {
+func (m *MetricsCacheHandler) EnqueueStep(ctx context.Context, step *dfv1.Step) error {
 	key, err := cache.MetaNamespaceKeyFunc(step)
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	_, existing := m.cachedContexts.LoadOrStore(key, cancel)
 	if existing {
 		cancel()

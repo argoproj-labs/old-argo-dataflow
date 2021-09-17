@@ -95,7 +95,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	currentReplicas := int(step.Status.Replicas)
 	if step.Spec.Scale.DesiredReplicas != "" {
-		if err := r.startMetricsCacheLoop(step); err != nil {
+		if err := r.startMetricsCacheLoop(ctx, step); err != nil {
 			return ctrl.Result{}, fmt.Errorf("failed to start metrics cache loop: %w", err)
 		}
 		desiredReplicas, err := scaling.GetDesiredReplicas(*step)
@@ -294,13 +294,13 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	return ctrl.Result{RequeueAfter: requeueAfter}, nil
 }
 
-func (r *StepReconciler) startMetricsCacheLoop(step *dfv1.Step) error {
+func (r *StepReconciler) startMetricsCacheLoop(ctx context.Context, step *dfv1.Step) error {
 	if ok, err := r.MetricsCacheHandler.Contains(step); err != nil {
 		return err
 	} else if ok {
 		return nil
 	}
-	return r.MetricsCacheHandler.EnqueueStep(step)
+	return r.MetricsCacheHandler.EnqueueStep(ctx, step)
 }
 
 func (r *StepReconciler) stopMetricsCacheLoop(step *dfv1.Step) error {
