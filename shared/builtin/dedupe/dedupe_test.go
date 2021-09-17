@@ -2,10 +2,11 @@ package dedupe
 
 import (
 	"context"
+	"testing"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"testing"
 )
 
 func TestNew(t *testing.T) {

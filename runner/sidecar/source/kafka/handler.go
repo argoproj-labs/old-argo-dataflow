@@ -65,8 +65,8 @@ func (h handler) processMessage(ctx context.Context, msg *sarama.ConsumerMessage
 	return h.process(
 		dfv1.ContextWithMeta(ctx, dfv1.Meta{
 			Source: h.sourceURN,
-			ID: fmt.Sprintf("%d-%d", msg.Partition, msg.Offset),
-			Time: msg.Timestamp,
+			ID:     fmt.Sprintf("%d-%d", msg.Partition, msg.Offset),
+			Time:   msg.Timestamp,
 		}),
 		msg.Value,
 	)

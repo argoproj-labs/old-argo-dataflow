@@ -3,10 +3,11 @@ package group
 import (
 	"context"
 	"encoding/json"
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew(t *testing.T) {
