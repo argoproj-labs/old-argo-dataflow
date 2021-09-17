@@ -36,6 +36,18 @@ func Test_101_two_node_pipeline(t *testing.T) {
 	WaitForPodsToBeDeleted()
 }
 
+func Test_102_dedupe_pipeline(t *testing.T) {
+	defer Setup(t)()
+
+	CreatePipelineFromFile("../../examples/102-dedupe-pipeline.yaml")
+
+	WaitForPipeline()
+	WaitForPipeline(UntilRunning, 90*time.Second)
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
+}
+
 func Test_102_filter_pipeline(t *testing.T) {
 	defer Setup(t)()
 

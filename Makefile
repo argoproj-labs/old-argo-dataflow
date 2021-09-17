@@ -206,7 +206,7 @@ kubebuilder:
 	mv kubebuilder_$(version)_$(name)_$(arch) kubebuilder && sudo mv kubebuilder /usr/local/
 
 .PHONY: examples
-examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
+examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md test/examples/examples_test.go
 
 .PHONY: tests
 tests: test/examples/examples_test.go

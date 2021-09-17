@@ -20,6 +20,14 @@ While they read from Kafka, they are connected by a NATS Streaming subject.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-two-node-pipeline.yaml
 ```
 
+### [102-dedupe](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-dedupe-pipeline.yaml)
+
+This is an example of built-in de-duplication step.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-dedupe-pipeline.yaml
+```
+
 ### [102-filter](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/102-filter-pipeline.yaml)
 
 This is an example of built-in filtering.
