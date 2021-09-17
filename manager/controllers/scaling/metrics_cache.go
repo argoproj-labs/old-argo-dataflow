@@ -65,7 +65,7 @@ func (m *MetricsCacheHandler) Contains(step *dfv1.Step) (bool, error) {
 	return ok, nil
 }
 
-func (m *MetricsCacheHandler) EnqueueStep(step *dfv1.Step) error {
+func (m *MetricsCacheHandler) StartWatchingStep(step *dfv1.Step) error {
 	key, err := cache.MetaNamespaceKeyFunc(step)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func (m *MetricsCacheHandler) EnqueueStep(step *dfv1.Step) error {
 	return nil
 }
 
-func (m *MetricsCacheHandler) DequeueStep(step *dfv1.Step) error {
+func (m *MetricsCacheHandler) StopWatchingStep(step *dfv1.Step) error {
 	key, err := cache.MetaNamespaceKeyFunc(step)
 	if err != nil {
 		return err
