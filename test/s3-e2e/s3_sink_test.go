@@ -46,6 +46,7 @@ func Handler(ctx context.Context, m []byte) ([]byte, error) {
 		},
 	})
 
+	WaitForPipeline()
 	WaitForPod()
 
 	defer StartPortForward("s3-main-0")()

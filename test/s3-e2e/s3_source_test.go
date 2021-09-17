@@ -34,6 +34,7 @@ func TestS3Source(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
 	WaitForPod()
 
 	defer StartPortForward("s3-main-0")()
