@@ -64,7 +64,18 @@ func init() {
 		}
 		jobs := make(chan req, n)
 		results := make(chan interface{}, n)
-		for w := 1; w <= 3; w++ {
+		workers, err := strconv.Atoi(r.URL.Query().Get("workers"))
+		if err != nil {
+			w.WriteHeader(400)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		// default workers 2
+		if workers == 0 {
+			workers = 2
+		}
+
+		for w := 1; w <= workers; w++ {
 			go worker(jobs, results)
 		}
 		_, _ = fmt.Fprintf(w, "sending %d messages of size %d to %q\n", n, mf.size, url)
@@ -73,6 +84,7 @@ func init() {
 			time.Sleep(duration)
 		}
 		close(jobs)
+
 		for a := 1; a <= n; a++ {
 			res := <-results
 			switch v := res.(type) {
