@@ -70,7 +70,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 	}, nil
 }
 
-func (s stanSink) Sink(msg []byte) error {
+func (s stanSink) Sink(ctx context.Context, msg []byte) error {
 	return s.conn.Publish(s.subject, msg)
 }
 

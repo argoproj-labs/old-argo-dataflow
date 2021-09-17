@@ -7,7 +7,10 @@ import (
 )
 
 func TestFlatten_getContainer(t *testing.T) {
-	x := Flatten{}
+	x := Flatten{
+		AbstractStep{Resources:standardResources},
+	}
 	c := x.getContainer(getContainerReq{})
 	assert.Equal(t, []string{"flatten"}, c.Args)
+	assert.Equal(t, c.Resources, standardResources)
 }

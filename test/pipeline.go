@@ -20,12 +20,14 @@ import (
 
 var pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
 
-func UntilRunning(pl Pipeline) bool {
-	return meta.FindStatusCondition(pl.Status.Conditions, ConditionRunning) != nil
-}
+func UntilRunning(pl Pipeline) bool      { return untilHasCondition(ConditionRunning)(pl) }
+func UntilCompleted(pl Pipeline) bool    { return untilHasCondition(ConditionCompleted)(pl) }
+func UntilSunkMessages(pl Pipeline) bool { return untilHasCondition(ConditionSunkMessages)(pl) }
 
-func UntilMessagesSunk(pl Pipeline) bool {
-	return meta.FindStatusCondition(pl.Status.Conditions, ConditionSunkMessages) != nil
+func untilHasCondition(condition string) func(pl Pipeline) bool {
+	return func(pl Pipeline) bool {
+		return meta.FindStatusCondition(pl.Status.Conditions, condition) != nil
+	}
 }
 
 func UntilSucceeded(pl Pipeline) bool {
@@ -51,6 +53,14 @@ func CreatePipeline(pl Pipeline) {
 	createSecretsForHTTPSources(pl, FromUnstructured(created), ctx)
 }
 
+func CreatePipelineFromFile(filename string) {
+	un, err := sharedutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	CreatePipeline(FromUnstructured(&un.Items[0]))
+}
+
 func createSecretsForHTTPSources(pl Pipeline, x Pipeline, ctx context.Context) {
 	for _, step := range x.Spec.Steps {
 		for _, source := range step.Sources {
@@ -70,18 +80,23 @@ func createSecretsForHTTPSources(pl Pipeline, x Pipeline, ctx context.Context) {
 }
 
 func WaitForPipeline(opts ...interface{}) {
-	f := UntilRunning
+	var (
+		f       = UntilRunning
+		timeout = 30 * time.Second
+	)
 	for _, o := range opts {
 		switch v := o.(type) {
 		case func(Pipeline) bool:
 			f = v
+		case time.Duration:
+			timeout = v
 		default:
-			panic("un-supported option type")
+			panic(fmt.Errorf("un-supported option type: %T", o))
 		}
 	}
 	funcName := sharedutil.GetFuncName(f)
 	log.Printf("waiting for pipeline %q\n", funcName)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	w, err := pipelineInterface.Watch(ctx, metav1.ListOptions{})
 	if err != nil {

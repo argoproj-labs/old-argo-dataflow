@@ -9,7 +9,7 @@ type Interface interface {
 	io.Closer
 }
 
-type Func func(ctx context.Context, msg []byte) error
+type Process func(ctx context.Context, msg []byte) error
 
 type HasPending interface {
 	Interface

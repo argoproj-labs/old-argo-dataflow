@@ -139,13 +139,18 @@ class LogSink(Sink):
 
 
 class HTTPSink(Sink):
-    def __init__(self, url, name=None):
+    def __init__(self, url, name=None, insecureSkipVerify=None, headers=[]):
         super().__init__(name)
+        self._insecureSkipVerify = insecureSkipVerify
         self._url = url
+        self._headers = headers
 
     def dump(self):
         x = super().dump()
-        x['http'] = {'url': self._url}
+        h = {'url': self._url, 'headers': self._headers}
+        if self._insecureSkipVerify:
+            h['insecureSkipVerify'] = self._insecureSkipVerify
+        x['http'] = h
         return x
 
 
@@ -189,8 +194,8 @@ class Step:
         self._sinks.append(LogSink(name=name))
         return self
 
-    def http(self, url, name=None):
-        self._sinks.append(HTTPSink(url, name=name))
+    def http(self, url, name=None, insecureSkipVerify=None, headers=[]):
+        self._sinks.append(HTTPSink(url, name=name, insecureSkipVerify=insecureSkipVerify, headers=headers))
         return self
 
     def kafka(self, subject, name=None, a_sync=False):
@@ -472,8 +477,8 @@ def filter(name, filter):
     return FilterStep(name, filter)
 
 
-def git(name, url, branch, path, image):
-    return GitStep(name, url, branch, path, image)
+def git(name, url, branch, path, image, env=None, command=None):
+    return GitStep(name, url, branch, path, image, env=env, command=command)
 
 
 def group(name, key, format, endOfGroup, storage):

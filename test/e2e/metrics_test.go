@@ -18,10 +18,17 @@ func TestMetrics(t *testing.T) {
 		Spec: PipelineSpec{
 			Steps: []StepSpec{
 				{
-					Name:    "main",
-					Cat:     &Cat{},
-					Sources: []Source{{HTTP: &HTTPSource{}}},
-					Sinks:   []Sink{DefaultLogSink},
+					Name: "main",
+					Cat:  &Cat{},
+					Sources: []Source{
+						{
+							HTTP: &HTTPSource{},
+							Retry: Backoff{
+								Steps: 2,
+							},
+						},
+					},
+					Sinks: []Sink{{HTTP: &HTTPSink{URL: "http://no-existing.com"}}},
 				},
 			},
 		},
@@ -32,24 +39,26 @@ func TestMetrics(t *testing.T) {
 
 	defer StartPortForward("metrics-main-0")()
 
-	SendMessageViaHTTP("my-msg")
+	sendHTTPMsag("my-msg")
 
-	WaitForPipeline(UntilMessagesSunk)
 	WaitForStep(NothingPending)
 	WaitForStep(TotalSourceMessages(1))
 	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetPending() == 0 })
-	WaitForStep(TotalSunkMessages(1))
 
 	ExpectMetric("input_inflight", 0)
 	ExpectMetric("version_major", 0)
 	ExpectMetric("version_minor", 0)
 	ExpectMetric("version_patch", 0)
 	ExpectMetric("replicas", 1)
-	ExpectMetric("sources_errors", 0)
-	ExpectMetric("sources_pending", 0)
+	ExpectMetric("sources_errors", 1)
 	ExpectMetric("sources_total", 1)
-	ExpectMetric("sources_retries", 0)
+	ExpectMetric("sources_retries", 2)
 	ExpectMetric("sources_totalBytes", 6)
-	SendMessageViaHTTP("my-msg")
+	sendHTTPMsag("my-msg")
 	ExpectMetric("sources_totalBytes", 12)
+}
+
+func sendHTTPMsag(msg string) {
+	defer func() { _ = recover() }()
+	SendMessageViaHTTP(msg)
 }

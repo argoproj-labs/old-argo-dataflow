@@ -5,12 +5,14 @@ import (
 )
 
 type Map struct {
-	Expression string `json:"expression" protobuf:"bytes,1,opt,name=expression"`
+	AbstractStep `json:",inline" protobuf:"bytes,1,opt,name=abstractStep"`
+	Expression   string `json:"expression" protobuf:"bytes,2,opt,name=expression"`
 }
 
 func (m Map) getContainer(req getContainerReq) corev1.Container {
 	return containerBuilder{}.
 		init(req).
 		args("map", m.Expression).
+		resources(m.Resources).
 		build()
 }

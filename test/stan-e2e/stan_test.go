@@ -37,7 +37,7 @@ func TestSTAN(t *testing.T) {
 
 	PumpSTANSubject(longSubject, 7)
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 
 	WaitForStep(TotalSourceMessages(7))
 	WaitForStep(TotalSunkMessages(7))

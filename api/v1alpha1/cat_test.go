@@ -13,7 +13,7 @@ func TestCat_getContainer(t *testing.T) {
 	x := Cat{}
 	c := x.getContainer(getContainerReq{})
 	assert.Equal(t, []string{"cat"}, c.Args)
-	assert.Equal(t, standardResources, c.Resources)
+	assert.Equal(t,x.Resources, c.Resources)
 
 	resource := v1.ResourceRequirements{
 		Requests: v1.ResourceList{

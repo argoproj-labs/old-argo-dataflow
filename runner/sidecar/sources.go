@@ -3,12 +3,8 @@ package sidecar
 import (
 	"context"
 	"fmt"
-	"io"
 	"time"
 
-	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
 	dbsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/db"
@@ -16,6 +12,7 @@ import (
 	kafkasource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/kafka"
 	s3source "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/s3"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/stan"
+	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/paulbellamy/ratecounter"
 	"github.com/prometheus/client_golang/prometheus"
@@ -23,7 +20,40 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func connectSources(ctx context.Context, toMain func(context.Context, []byte) error) error {
+func connectSources(ctx context.Context, process func(context.Context, []byte) error) error {
+	var pendingGauge *prometheus.GaugeVec
+	if leadReplica() {
+		pendingGauge = promauto.NewGaugeVec(prometheus.GaugeOpts{
+			Subsystem: "sources",
+			Name:      "pending",
+			Help:      "Pending messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_pending",
+		}, []string{"sourceName"})
+	}
+
+	totalCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sources",
+		Name:      "total",
+		Help:      "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total",
+	}, []string{"sourceName", "replica"})
+
+	errorsCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sources",
+		Name:      "errors",
+		Help:      "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors",
+	}, []string{"sourceName", "replica"})
+
+	retriesCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sources",
+		Name:      "retries",
+		Help:      "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
+	}, []string{"sourceName", "replica"})
+
+	totalBytesCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sources",
+		Name:      "totalBytes",
+		Help:      "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
+	}, []string{"sourceName", "replica"})
+
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
 		logger.Info("connecting source", "source", sharedutil.MustJSON(s))
@@ -32,12 +62,10 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 
-		if leadReplica() { // only replica zero updates this value, so it the only replica that can be accurate
-			newSourceMetrics(s, sourceName)
-		}
-
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
-		f := func(ctx context.Context, msg []byte) error {
+		processWithRetry := func(ctx context.Context, msg []byte) error {
+			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
+			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
 			rateCounter.Incr(1)
 			withLock(func() {
 				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter), uint64(len(msg)))
@@ -46,18 +74,23 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			for {
 				select {
 				case <-ctx.Done():
+					// we don't report error here, this is normal cancellation
 					return fmt.Errorf("could not send message: %w", ctx.Err())
 				default:
 					if uint64(backoff.Steps) < s.Retry.Steps { // this is a retry
 						logger.Info("retry", "source", sourceName, "backoff", backoff)
+						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
-					err := toMain(ctx, msg)
+					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+					err := process(ctx, msg)
+					cancel()
 					if err == nil {
 						return nil
 					}
 					logger.Error(err, "⚠ →", "source", sourceName, "backoffSteps", backoff.Steps)
 					if backoff.Steps <= 0 {
+						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica) })
 						return err
 					}
@@ -66,20 +99,20 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			}
 		}
 		if x := s.Cron; x != nil {
-			if y, err := cron.New(*x, f); err != nil {
+			if y, err := cron.New(ctx, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
+			if y, err := stan.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
 			groupID := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
-			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, *x, f); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
@@ -90,21 +123,21 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 			if err != nil {
 				return fmt.Errorf("failed to get secret %q: %w", step.Name, err)
 			}
-			sources[sourceName] = httpsource.New(sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), f)
+			sources[sourceName] = httpsource.New(sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
 		} else if x := s.S3; x != nil {
-			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, f, leadReplica()); err != nil {
+			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, processWithRetry, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.DB; x != nil {
-			if y, err := dbsource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, f); err != nil {
+			if y, err := dbsource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Volume; x != nil {
-			if y, err := volumeSource.New(ctx, pipelineName, stepName, sourceName, *x, f, leadReplica()); err != nil {
+			if y, err := volumeSource.New(ctx, pipelineName, stepName, sourceName, *x, processWithRetry, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
@@ -112,13 +145,10 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		} else {
 			return fmt.Errorf("source misconfigured")
 		}
-		if x, ok := sources[sourceName].(io.Closer); ok {
-			logger.Info("adding pre-stop hook", "source", sourceName)
-			addPreStopHook(func(ctx context.Context) error {
-				logger.Info("closing", "source", sourceName)
-				return x.Close()
-			})
-		}
+		addPreStopHook(func(ctx context.Context) error {
+			logger.Info("closing", "source", sourceName)
+			return sources[sourceName].Close()
+		})
 		if x, ok := sources[sourceName].(source.HasPending); ok && leadReplica() {
 			logger.Info("adding pre-patch hook", "source", sourceName)
 			prePatchHooks = append(prePatchHooks, func(ctx context.Context) error {
@@ -127,6 +157,7 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 					return err
 				} else {
 					logger.Info("got pending", "source", sourceName, "pending", pending)
+					pendingGauge.WithLabelValues(sourceName).Set(float64(pending))
 					withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, pending) })
 				}
 				return nil
@@ -134,58 +165,4 @@ func connectSources(ctx context.Context, toMain func(context.Context, []byte) er
 		}
 	}
 	return nil
-}
-
-func newSourceMetrics(source dfv1.Source, sourceName string) {
-	promauto.NewCounterFunc(prometheus.CounterOpts{
-		Subsystem:   "sources",
-		Name:        "pending",
-		Help:        "Pending messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_pending",
-		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 {
-		mu.Lock()
-		defer mu.Unlock()
-		return float64(step.Status.SourceStatuses.Get(sourceName).GetPending())
-	})
-	promauto.NewCounterFunc(prometheus.CounterOpts{
-		Subsystem:   "sources",
-		Name:        "total",
-		Help:        "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total",
-		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 {
-		mu.RLock()
-		defer mu.RUnlock()
-		return float64(step.Status.SourceStatuses.Get(sourceName).GetTotal())
-	})
-	promauto.NewCounterFunc(prometheus.CounterOpts{
-		Subsystem:   "sources",
-		Name:        "errors",
-		Help:        "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_errors",
-		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 {
-		mu.RLock()
-		defer mu.RUnlock()
-		return float64(step.Status.SourceStatuses.Get(sourceName).GetErrors())
-	})
-	promauto.NewCounterFunc(prometheus.CounterOpts{
-		Subsystem:   "sources",
-		Name:        "retries",
-		Help:        "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
-		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 {
-		mu.RLock()
-		defer mu.RUnlock()
-		return float64(step.Status.SourceStatuses.Get(sourceName).GetRetries())
-	})
-
-	promauto.NewCounterFunc(prometheus.CounterOpts{
-		Subsystem:   "sources",
-		Name:        "totalBytes",
-		Help:        "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
-		ConstLabels: map[string]string{"sourceName": source.Name},
-	}, func() float64 {
-		mu.RLock()
-		defer mu.RUnlock()
-		return float64(step.Status.SourceStatuses.Get(sourceName).GetTotalBytes())
-	})
 }

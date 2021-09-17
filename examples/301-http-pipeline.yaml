@@ -14,17 +14,21 @@ metadata:
 spec:
   steps:
   - cat: {}
-    name: cron
-    sinks:
-    - http:
-        url: http://http-main/sources/default
-    sources:
-    - cron:
-        schedule: '*/3 * * * * *'
-  - cat: {}
     name: main
     sinks:
     - log: {}
     sources:
     - http:
         serviceName: http-main
+  - cat: {}
+    name: cron
+    sinks:
+    - http:
+        headers:
+        - name: Authorization
+          value: Bearer my-bearer-token
+        insecureSkipVerify: true
+        url: https://http-main/sources/default
+    sources:
+    - cron:
+        schedule: '*/3 * * * * *'

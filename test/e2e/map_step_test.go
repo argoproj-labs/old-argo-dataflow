@@ -33,7 +33,7 @@ func TestMapStep(t *testing.T) {
 
 	SendMessageViaHTTP("foo-bar")
 
-	WaitForPipeline(UntilMessagesSunk)
+	WaitForPipeline(UntilSunkMessages)
 	WaitForStep(TotalSunkMessages(1))
 
 	ExpectLogLine("main", `hi! foo-bar`)

@@ -1,5 +1,38 @@
 # Changelog
 
+## v0.0.101 (2021-09-08)
+
+ * [9a0d7cf](https://github.com/argoproj-labs/argo-dataflow/commit/9a0d7cf8cc7a787a45df554d8730e024d27d462b) fix: fix-up context handling (#305)
+ * [fbae663](https://github.com/argoproj-labs/argo-dataflow/commit/fbae6639d91a29f7da4f12fd066d665fc0955287) fix: report error correctly
+ * [c3cb97f](https://github.com/argoproj-labs/argo-dataflow/commit/c3cb97fd53194335bea4b8133f1a8ff2e64cdd83) feat: support insecureSkipVerify for HTTP sink (#304)
+ * [19bc8c8](https://github.com/argoproj-labs/argo-dataflow/commit/19bc8c8281f4f495b8e51097b383c769b1d96965) feat: Updating Python SDK to support Generator Steps & Asyncio handlers. (#299)
+
+### Contributors
+
+ * Alex Collins
+ * Dominik Deren
+
+## v0.0.100 (2021-09-07)
+
+ * [ab6d38a](https://github.com/argoproj-labs/argo-dataflow/commit/ab6d38a41806fdc85908d0d3bb63480199bf5c10) fix: log failed to process message
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.99 (2021-09-02)
+
+ * [45f7847](https://github.com/argoproj-labs/argo-dataflow/commit/45f784725a15eb432bf5fe2d6ea558e93ee6b312) feat: Expand Kafka sink auto-commit config (#293)
+ * [6b406c2](https://github.com/argoproj-labs/argo-dataflow/commit/6b406c2a4c62f655d9ae4ae3dce480559266bd29) feat: Added options  MaxMessageSize and Resource for step container for processing large messages (#282)
+ * [01dc7a6](https://github.com/argoproj-labs/argo-dataflow/commit/01dc7a66733ad9ad2e0559ad8c9d7ccac4b7ad4b) fix: Argo-Server should still use old image repository (#290)
+ * [f4d0ca5](https://github.com/argoproj-labs/argo-dataflow/commit/f4d0ca5d9f640c1f60f936ccd3a4938734716275) fix: fix image name in config
+
+### Contributors
+
+ * Alex Collins
+ * Dominik Deren
+ * Saravanan Balasubramanian
+
 ## v0.0.98 (2021-08-30)
 
  * [50efb44](https://github.com/argoproj-labs/argo-dataflow/commit/50efb447c85952cb3d62408ff38d564304e99dea) feat: support for AWS session token for S3 (#281)

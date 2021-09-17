@@ -23,6 +23,13 @@ bin
 *.swp
 *.swo
 *~
+.vscode
 
-# Used in nodejs SDK.
+# Used in nodejs SDK
 node_modules
+
+# Used in Python SDK
+venv
+*.egg-info
+sdks/python/build/*
+dsls/python/build/*

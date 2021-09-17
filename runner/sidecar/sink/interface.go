@@ -1,5 +1,7 @@
 package sink
 
+import "context"
+
 type Interface interface {
-	Sink(msg []byte) error
+	Sink(ctx context.Context, msg []byte) error
 }

@@ -64,7 +64,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.DBS
 	}, nil
 }
 
-func (d dbSink) Sink(msg []byte) error {
+func (d dbSink) Sink(ctx context.Context, msg []byte) error {
 	tx, err := d.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to start a transaction: %w", err)

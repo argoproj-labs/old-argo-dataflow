@@ -8,7 +8,7 @@ CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 K3D ?= $(shell [ "`command -v kubectl`" != '' ] && [ "`kubectl config current-context`" = k3d-k3s-default ] && echo true || echo false)
-
+UI ?= false
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -41,10 +41,6 @@ test-stress-large-messages:
 test-db-e2e:
 test-e2e:
 test-examples:
-	kubectl -n argo-dataflow-system apply -f config/apps/kafka.yaml
-	kubectl -n argo-dataflow-system apply -f config/apps/stan.yaml
-	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m
-	go test -timeout 20m -tags examples -v -count 1 ./examples
 test-http-fmea:
 test-http-stress:
 test-hpa:
@@ -78,7 +74,7 @@ pprof:
 
 pre-commit: codegen proto test install runner testapi lint start
 
-codegen: generate manifests examples
+codegen: generate manifests examples tests
 	go generate ./...
 	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
 	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
@@ -89,7 +85,7 @@ $(GOBIN)/goreman:
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: deploy build runner $(GOBIN)/goreman wait
 	kubectl config set-context --current --namespace=argo-dataflow-system
-	goreman -set-ports=false -logtime=false start
+	env UI=$(UI) goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
 	kubectl -n argo-dataflow-system wait deploy --all --for=condition=available --timeout=2m
@@ -129,8 +125,12 @@ manifests: crds $(shell find config config/apps -maxdepth 1 -name '*.yaml')
 generate: $(GOBIN)/controller-gen
 	$(GOBIN)/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-docs/EXAMPLES.md: $(shell find examples -name '*.yaml') examples/main.go
-	go run ./examples | grep -v 'time=' > docs/EXAMPLES.md
+docs/EXAMPLES.md: examples/main.go
+	go run ./examples docs | grep -v 'time=' > docs/EXAMPLES.md
+
+test/examples/examples_test.go: examples/main.go
+	go run ./examples tests | grep -v 'time=' > test/examples/examples_test.go
+	gofmt -w test/examples/examples_test.go
 
 .PHONY: CHANGELOG.md
 CHANGELOG.md: /dev/null
@@ -209,9 +209,12 @@ kubebuilder:
 .PHONY: examples
 examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md
 
+.PHONY: tests
+tests: test/examples/examples_test.go
+
 .PHONY: install-dsls
 install-dsls:
-	pip3 install dsls/python
+	pip3 install --use-feature=in-tree-build dsls/python
 
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
 	cd examples && python3 $*-pipeline.py

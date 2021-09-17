@@ -136,23 +136,29 @@ message Database {
 }
 
 message Dedupe {
+  optional AbstractStep abstractStep = 1;
+
   // +kubebuilder:default="sha1(msg)"
-  optional string uid = 1;
+  optional string uid = 2;
 
   // MaxSize is the maximum number of entries to keep in the in-memory database used to store recent UIDs.
   // Larger number mean bigger windows of time for dedupe, but greater memory usage.
   // +kubebuilder:default="1M"
-  optional k8s.io.apimachinery.pkg.api.resource.Quantity maxSize = 2;
+  optional k8s.io.apimachinery.pkg.api.resource.Quantity maxSize = 3;
 }
 
 message Expand {
+  optional AbstractStep abstractStep = 1;
 }
 
 message Filter {
-  optional string expression = 1;
+  optional AbstractStep abstractStep = 1;
+
+  optional string expression = 2;
 }
 
 message Flatten {
+  optional AbstractStep abstractStep = 1;
 }
 
 message GetPodSpecReq {
@@ -235,6 +241,8 @@ message HTTPSink {
   optional string url = 1;
 
   repeated HTTPHeader headers = 2;
+
+  optional bool insecureSkipVerify = 3;
 }
 
 message HTTPSource {
@@ -297,7 +305,9 @@ message Log {
 }
 
 message Map {
-  optional string expression = 1;
+  optional AbstractStep abstractStep = 1;
+
+  optional string expression = 2;
 }
 
 message Metadata {

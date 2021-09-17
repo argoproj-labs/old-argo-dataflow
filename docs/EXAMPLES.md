@@ -145,6 +145,8 @@ This example of a pipeline using Git.
 The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
 your code when the step starts. This example presents how one can use go runtime git step.
 
+[Link to directory that is be cloned with git](../examples/git/)
+
 [Learn about Git steps](../docs/GIT.md)
 
 ```
@@ -158,10 +160,28 @@ This example of a pipeline using Git with NodeJS.
 The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
 your code when the step starts. This example presents how one can use nodejs runtime git step.
 
+[Link to directory that is be cloned with git](../examples/git-nodejs/)
+
 [Learn about Git steps](../docs/GIT.md)
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-nodejs-pipeline.yaml
+```
+
+### [106-git-python-generator](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-python-generator-pipeline.yaml)
+
+This example of a pipeline using Git, showing how to use Generator Step.
+
+The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
+your code when the step starts. This example presents how one can use python runtime git generator step. Generator steps
+are long running processes generating values over time. Such a step doesn't have a source, only sink(s).
+
+[Link to directory that is be cloned with git](../examples/git-python-generator-step/)
+
+[Learn about Git steps](../docs/GIT.md)
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-python-generator-pipeline.yaml
 ```
 
 ### [106-git-python](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/106-git-python-pipeline.yaml)
@@ -170,6 +190,8 @@ This example of a pipeline using Git.
 
 The Git handler allows you to check your application source code into Git. Dataflow will checkout and build
 your code when the step starts. This example presents how one can use python runtime git step.
+
+[Link to directory that is be cloned with git](../examples/git-python/)
 
 [Learn about Git steps](../docs/GIT.md)
 

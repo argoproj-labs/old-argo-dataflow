@@ -19,7 +19,7 @@ import (
 	"github.com/paulbellamy/ratecounter"
 )
 
-func connectSinks(ctx context.Context) (func([]byte) error, error) {
+func connectSinks(ctx context.Context) (func(context.Context, []byte) error, error) {
 	sinks := map[string]sink.Interface{}
 	rateCounters := map[string]*ratecounter.RateCounter{}
 	for _, sink := range step.Spec.Sinks {
@@ -79,14 +79,14 @@ func connectSinks(ctx context.Context) (func([]byte) error, error) {
 		}
 	}
 
-	return func(msg []byte) error {
+	return func(ctx context.Context, msg []byte) error {
 		for sinkName, f := range sinks {
 			counter := rateCounters[sinkName]
 			counter.Incr(1)
 			withLock(func() {
 				step.Status.SinkStatues.IncrTotal(sinkName, replica, rateToResourceQuantity(counter), uint64(len(msg)))
 			})
-			if err := f.Sink(msg); err != nil {
+			if err := f.Sink(ctx, msg); err != nil {
 				withLock(func() { step.Status.SinkStatues.IncrErrors(sinkName, replica) })
 				return err
 			}
