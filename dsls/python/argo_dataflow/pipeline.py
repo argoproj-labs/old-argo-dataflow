@@ -294,6 +294,16 @@ class ContainerStep(Step):
         return x
 
 
+class DedupeStep(Step):
+    def __init__(self, name, sources=[]):
+        super().__init__(name, sources=sources)
+
+    def dump(self):
+        x = super().dump()
+        x['dedupe'] = {}
+        return x
+
+
 class ExpandStep(Step):
     def __init__(self, name, sources=[]):
         super().__init__(name, sources=sources)
@@ -438,6 +448,9 @@ class Source:
         return ContainerStep(name, sources=[self], image=image, args=args, fifo=fifo, volumes=volumes,
                              volumeMounts=volumeMounts, env=env, resources=resources, terminator=terminator)
 
+    def dedupe(self, name):
+        return DedupeStep(name, sources=[self])
+
     def expand(self, name):
         return ExpandStep(name, sources=[self])
 
@@ -467,6 +480,10 @@ def cat(name):
 def container(name, image, args, fifo=False, volumes=[], volumeMounts=[], env={}, resources={}, terminator=False):
     return ContainerStep(name, sources=[], terminator=terminator, image=image, args=args, fifo=fifo, volumes=volumes,
                          volumeMounts=volumeMounts, env=env, resources=resources)
+
+
+def dedupe(name):
+    return DedupeStep(name)
 
 
 def expand(name):
