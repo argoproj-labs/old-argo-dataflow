@@ -38,7 +38,7 @@ var missing = rand.Float64()
 
 func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 	ctx := context.Background()
-	port := 3570
+	port := 3569
 	timeout := 30 * time.Second
 	for _, opt := range opts {
 		switch v := opt.(type) {
