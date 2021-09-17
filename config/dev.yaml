@@ -13787,36 +13787,6 @@ spec:
                 type: integer
               selector:
                 type: string
-              sinkStatuses:
-                additionalProperties:
-                  properties:
-                    lastPending:
-                      description: 'DEPRECATED: This is likely to be removed in future
-                        versions.'
-                      format: int64
-                      type: integer
-                    pending:
-                      description: 'DEPRECATED: This is likely to be removed in future
-                        versions.'
-                      format: int64
-                      type: integer
-                  type: object
-                type: object
-              sourceStatuses:
-                additionalProperties:
-                  properties:
-                    lastPending:
-                      description: 'DEPRECATED: This is likely to be removed in future
-                        versions.'
-                      format: int64
-                      type: integer
-                    pending:
-                      description: 'DEPRECATED: This is likely to be removed in future
-                        versions.'
-                      format: int64
-                      type: integer
-                  type: object
-                type: object
             required:
             - phase
             - replicas
