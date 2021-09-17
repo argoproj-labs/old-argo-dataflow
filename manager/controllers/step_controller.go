@@ -34,6 +34,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -295,18 +296,22 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 }
 
 func (r *StepReconciler) startMetricsCacheLoop(step *dfv1.Step) error {
-	if ok, err := r.MetricsCacheHandler.Contains(step); err != nil {
-		return err
-	} else if ok {
+	key, err := cache.MetaNamespaceKeyFunc(step)
+	if err != nil {
+		return fmt.Errorf("failed to get key for step object: %w", err)
+	}
+	if r.MetricsCacheHandler.Contains(key) {
 		return nil
 	}
 	return r.MetricsCacheHandler.StartWatchingStep(step)
 }
 
 func (r *StepReconciler) stopMetricsCacheLoop(step *dfv1.Step) error {
-	if ok, err := r.MetricsCacheHandler.Contains(step); err != nil {
-		return err
-	} else if !ok {
+	key, err := cache.MetaNamespaceKeyFunc(step)
+	if err != nil {
+		return fmt.Errorf("failed to get key for step object: %w", err)
+	}
+	if !r.MetricsCacheHandler.Contains(key) {
 		return nil
 	}
 	return r.MetricsCacheHandler.StopWatchingStep(step)

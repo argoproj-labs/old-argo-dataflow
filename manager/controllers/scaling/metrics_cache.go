@@ -54,15 +54,11 @@ func NewMetricsCacheHandler(client client.Client, workers int) *MetricsCacheHand
 	}
 }
 
-func (m *MetricsCacheHandler) Contains(step *dfv1.Step) (bool, error) {
-	key, err := cache.MetaNamespaceKeyFunc(step)
-	if err != nil {
-		return false, fmt.Errorf("failed to get key for step object: %w", err)
-	}
+func (m *MetricsCacheHandler) Contains(key string) bool {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 	_, ok := m.stepMap[key]
-	return ok, nil
+	return ok
 }
 
 func (m *MetricsCacheHandler) Length() int {
