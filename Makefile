@@ -77,8 +77,6 @@ pre-commit: codegen proto test install runner testapi lint start
 
 codegen: generate manifests examples tests
 	go generate ./...
-	cd runtimes/golang1-16 && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
-	cd examples/git && go get -u github.com/argoproj-labs/argo-dataflow && go mod tidy
 
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7

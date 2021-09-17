@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"os/signal"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -46,7 +47,8 @@ func init() {
 }
 
 func main() {
-	ctx := golang.SetupSignalsHandler(context.Background())
+	ctx, stop := signal.NotifyContext(context.Background())
+	defer stop()
 
 	start := func(f builtin.Process) error {
 		return golang.StartWithContext(ctx, f)
