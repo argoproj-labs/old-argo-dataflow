@@ -20,14 +20,13 @@ var (
 	logger     = sharedutil.NewLogger()
 	db         = &uniqItems{ids: map[string]*item{}}
 	mu         = sync.Mutex{}
-	duplicates = 0
 )
 
 func New(ctx context.Context, uid string, maxSize resource.Quantity) (builtin.Process, error) {
-	promauto.NewCounterFunc(prometheus.CounterOpts{
+	duplicates := promauto.NewCounter(prometheus.CounterOpts{
 		Name: "duplicate_messages",
 		Help: "Duplicates messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#duplicate_messages",
-	}, func() float64 { return float64(duplicates) })
+	})
 
 	prog, err := expr.Compile(uid)
 	if err != nil {
@@ -67,7 +66,7 @@ func New(ctx context.Context, uid string, maxSize resource.Quantity) (builtin.Pr
 		defer mu.Unlock()
 		dupe := db.update(id)
 		if dupe {
-			duplicates++
+			duplicates.Inc()
 			return nil, nil
 		}
 		return msg, nil
