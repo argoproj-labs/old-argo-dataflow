@@ -4,6 +4,7 @@ Deploy into the `argo-dataflow-system` namespace:
 
 ```bash
 kubectl create ns argo-dataflow-system
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/argo-server.yaml
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/quick-start.yaml
 ```
 

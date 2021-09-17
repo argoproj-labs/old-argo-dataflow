@@ -4,15 +4,20 @@ package http_stress
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	. "github.com/argoproj-labs/argo-dataflow/test/stress"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 
 func TestHTTPSourceStress(t *testing.T) {
 	defer Setup(t)()
@@ -25,8 +30,8 @@ func TestHTTPSourceStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceCPU: resource.MustParse("200m"),
-							v1.ResourceMemory: resource.MustParse("1Gi"),
+							v1.ResourceCPU: params.ResourceCPU,
+							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
 				},
@@ -35,8 +40,8 @@ func TestHTTPSourceStress(t *testing.T) {
 				Sinks:    []Sink{DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceCPU: resource.MustParse("200m"),
-						v1.ResourceMemory: resource.MustParse("1Gi"),
+						v1.ResourceCPU: params.ResourceCPU,
+						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}},
 			}},
@@ -56,7 +61,7 @@ func TestHTTPSourceStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n), Params.Timeout)
+	WaitForTotalSunkMessages(n)
 }
 
 func TestHTTPSinkStress(t *testing.T) {
@@ -69,8 +74,8 @@ func TestHTTPSinkStress(t *testing.T) {
 				Name: "main",
 				Cat: &Cat{AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceCPU: resource.MustParse("200m"),
-						v1.ResourceMemory: resource.MustParse("1Gi"),
+						v1.ResourceCPU: params.ResourceCPU,
+						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}}},
 				Replicas: Params.Replicas,
@@ -78,8 +83,8 @@ func TestHTTPSinkStress(t *testing.T) {
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}, DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceCPU: resource.MustParse("200m"),
-						v1.ResourceMemory: resource.MustParse("1Gi"),
+						v1.ResourceCPU: params.ResourceCPU,
+						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}},
 			}},
@@ -87,6 +92,7 @@ func TestHTTPSinkStress(t *testing.T) {
 	})
 
 	WaitForPipeline()
+	WaitForPod()
 
 	defer StartPortForward("http-main-0")()
 
@@ -98,5 +104,5 @@ func TestHTTPSinkStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpHTTP("https://http-main/sources/default", prefix, n, Params.MessageSize, Params.Workers )
-	WaitForStep(TotalSunkMessages(n*2), Params.Timeout)
+	WaitForTotalSunkMessages(n, 3*time.Minute)
 }

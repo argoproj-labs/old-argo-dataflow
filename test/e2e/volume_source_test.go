@@ -31,7 +31,7 @@ func TestVolumeSource(t *testing.T) {
 					Map:  &Map{Expression: "io.cat(object(msg).path)"},
 					Sources: []Source{{Volume: &VolumeSource{
 						ReadOnly: true,
-						VolumeSource: corev1.VolumeSource{
+						AbstractVolumeSource: AbstractVolumeSource{
 							ConfigMap: &corev1.ConfigMapVolumeSource{
 								LocalObjectReference: corev1.LocalObjectReference{
 									Name: "test-volume-source",
@@ -45,10 +45,12 @@ func TestVolumeSource(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
 	WaitForPod()
+	defer StartPortForward("volume-main-0")()
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", "my-content")
 

@@ -4,19 +4,23 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
 	"time"
 
-	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	tls2 "github.com/argoproj-labs/argo-dataflow/runner/sidecar/tls"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
+	jaegerlog "github.com/uber/jaeger-client-go/log"
+	"github.com/uber/jaeger-lib/metrics"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,8 +35,9 @@ import (
 
 var (
 	logger              = sharedutil.NewLogger()
-	clusterName         = os.Getenv(dfv1.EnvClusterName)
+	cluster             = os.Getenv(dfv1.EnvCluster)
 	namespace           = os.Getenv(dfv1.EnvNamespace)
+	pod                 = os.Getenv(dfv1.EnvPod)
 	patchMu             = sync.Mutex{}
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
 	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
@@ -60,11 +65,11 @@ func Exec(ctx context.Context) error {
 
 	sharedutil.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
-	logger.Info("step", "clusterName", clusterName, "step", sharedutil.MustJSON(step))
+	logger.Info("step", "cluster", cluster, "step", sharedutil.MustJSON(step))
 
-	if clusterName == "" {
+	if cluster == "" {
 		// this must be configured in the controller
-		return fmt.Errorf("cluster name (%q) was not specifcied", dfv1.EnvClusterName)
+		return fmt.Errorf("cluster (%q) was not specified", dfv1.EnvCluster)
 	}
 
 	stepName = step.Spec.Name
@@ -86,6 +91,27 @@ func Exec(ctx context.Context) error {
 	} else {
 		updateInterval = v
 	}
+
+	cfg, err := (&jaegercfg.Configuration{
+		Disabled:    true,
+		ServiceName: fmt.Sprintf("dataflow-step-%s-%s", pipelineName, stepName),
+	}).FromEnv()
+	if err != nil {
+		return err
+	}
+
+	logger.Info("jaeger config", "config", sharedutil.MustJSON(cfg))
+
+	tracer, closer, err := cfg.NewTracer(
+		jaegercfg.Logger(jaegerlog.StdLogger),
+		jaegercfg.Metrics(metrics.NullFactory),
+	)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = closer.Close() }()
+
+	opentracing.SetGlobalTracer(tracer)
 
 	if err := enrichSpec(ctx); err != nil {
 		return err
@@ -124,7 +150,13 @@ func Exec(ctx context.Context) error {
 		promauto.NewGaugeFunc(prometheus.GaugeOpts{
 			Name: "replicas",
 			Help: "Number of replicas, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#replicas",
-		}, func() float64 { return float64(step.Status.Replicas) })
+		}, func() float64 {
+			if ips, err := net.LookupIP(fmt.Sprintf("%s.%s.svc", step.GetHeadlessServiceName(pipelineName), namespace)); err != nil {
+				return 0
+			} else {
+				return float64(len(ips))
+			}
+		})
 		promauto.NewGaugeFunc(prometheus.GaugeOpts{
 			Name: "version_major",
 			Help: "Major version number, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#version_major",
@@ -244,23 +276,6 @@ func patchStepStatus() {
 					}
 					// the step will change while this goroutine is running, so we must copy the data for this
 					// replica back to the status
-					r := strconv.Itoa(replica)
-					for name, s := range step.Status.SourceStatuses {
-						if v.Status.SourceStatuses[name].Metrics == nil {
-							x := v.Status.SourceStatuses[name]
-							x.Metrics = map[string]dfv1.Metrics{}
-							v.Status.SourceStatuses[name] = x
-						}
-						v.Status.SourceStatuses[name].Metrics[r] = s.Metrics[r]
-					}
-					for name, s := range step.Status.SinkStatues {
-						if v.Status.SinkStatues[name].Metrics == nil {
-							x := v.Status.SinkStatues[name]
-							x.Metrics = map[string]dfv1.Metrics{}
-							v.Status.SinkStatues[name] = x
-						}
-						v.Status.SinkStatues[name].Metrics[r] = s.Metrics[r]
-					}
 					step = v
 				})
 			}
@@ -277,7 +292,12 @@ func enrichSpec(ctx context.Context) error {
 
 func enrichSources(ctx context.Context) error {
 	for i, source := range step.Spec.Sources {
-		if x := source.STAN; x != nil {
+		if x := source.HTTP; x != nil {
+			if x.ServiceName == "" {
+				x.ServiceName = pipelineName + "-" + stepName
+			}
+			source.HTTP = x
+		} else if x := source.STAN; x != nil {
 			if err := enrichSTAN(ctx, x); err != nil {
 				return err
 			}

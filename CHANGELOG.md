@@ -1,5 +1,55 @@
 # Changelog
 
+## v0.0.104 (2021-09-16)
+
+ * [f50e8a7](https://github.com/argoproj-labs/argo-dataflow/commit/f50e8a730b63f529e9cb833195ce0bf9109c0bba) feat: add ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET config
+ * [4cb372e](https://github.com/argoproj-labs/argo-dataflow/commit/4cb372e893ffcffd022c3e3d06f2879ff7efb5ab) feat!: Remove `step..metrics` (#334)
+ * [884ae0d](https://github.com/argoproj-labs/argo-dataflow/commit/884ae0d4e6fd098deae5d4b35da09d436714547d) Revert "fix: Remove Golang SDK dependencies"
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.103 (2021-09-16)
+
+ * [0fe072e](https://github.com/argoproj-labs/argo-dataflow/commit/0fe072e335ffe3a5d805b3f9b33cbd301c5fda9e) fix: Remove Golang SDK dependencies
+ * [76e1d95](https://github.com/argoproj-labs/argo-dataflow/commit/76e1d95354f60938514679fb625e665ed4c7da80) fix!: Remove Kafka auto-commit. Fixes #327
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.102 (2021-09-16)
+
+ * [69e608a](https://github.com/argoproj-labs/argo-dataflow/commit/69e608a53a4f326eda0c00063d20950b441879b0) feat!: Remove `SunkMessages` condition. Add `sinks_total` metric. (#328)
+ * [4168dd0](https://github.com/argoproj-labs/argo-dataflow/commit/4168dd0eb796ffffcc70095779bf1928aa94dec6) feat!: Remove `metrics.rate` field.
+ * [2192cd5](https://github.com/argoproj-labs/argo-dataflow/commit/2192cd55233377fdeb66cef9cf23d62c0e497b13) feat!: Remove `metrics.rate` field.
+ * [b2dd247](https://github.com/argoproj-labs/argo-dataflow/commit/b2dd247170cb2997028e9b32b0b244f1c160a809) feat!: Remove `metrics.rate` field.
+ * [ae75900](https://github.com/argoproj-labs/argo-dataflow/commit/ae75900d38370c3284195458b7e11dacc8e00718) feat!: Remove `metrics.rate` field.
+ * [91a9d39](https://github.com/argoproj-labs/argo-dataflow/commit/91a9d3964831f1f1d596a7d5827a0ac7ed18c937) feat!: Remove `metrics.rate` field.
+ * [7c80fea](https://github.com/argoproj-labs/argo-dataflow/commit/7c80feafef64dddb1e5f798c1dddbb0586f0bf69) feat: switch `/var/run/...` to be `tmpfs`
+ * [3665bdb](https://github.com/argoproj-labs/argo-dataflow/commit/3665bdb3917cbd3fe8864890c9dc20ae94f7cae2) feat: use unix domain socket
+ * [7db2d38](https://github.com/argoproj-labs/argo-dataflow/commit/7db2d38f1ea7042332c42c94306c2d6c2ae2a733) Revert "feat: use unix domain socket"
+ * [44b321e](https://github.com/argoproj-labs/argo-dataflow/commit/44b321eba08a17858e6eacc34e55ce64beff523a) feat: use unix domain socket
+ * [9574072](https://github.com/argoproj-labs/argo-dataflow/commit/9574072c95241cdca0f2d00ea9b7b9c755a34f92) fix: use 32 connections
+ * [c0c3aac](https://github.com/argoproj-labs/argo-dataflow/commit/c0c3aac9416bb0a595210e8a02f091ed32b7e3ae) fix: close http source request body
+ * [259cf36](https://github.com/argoproj-labs/argo-dataflow/commit/259cf362d75c225c1c33a83b73b11dfab7e7bc6e) fix: close HTTP request body
+ * [3a6e5f0](https://github.com/argoproj-labs/argo-dataflow/commit/3a6e5f010025b400f5d84f161d7c942d931c328a) feat: Meta-data. Fixes #161  (#314)
+ * [0ac1ec2](https://github.com/argoproj-labs/argo-dataflow/commit/0ac1ec24eacdf60fc82d6a6c8ae6f432a2d7fb3b) feat: Add OpenTracing. Fixes #295 (#322)
+ * [8a16a02](https://github.com/argoproj-labs/argo-dataflow/commit/8a16a0245c4b6639cd700b8eea25824700699e3a) feat: expose replicas metric with a new approach (#315)
+ * [dfefd4e](https://github.com/argoproj-labs/argo-dataflow/commit/dfefd4e0fe6156e10e8ade4e8c887eb10c222978) refactor: make volumes consistent (#317)
+ * [1a73899](https://github.com/argoproj-labs/argo-dataflow/commit/1a73899e86458ad283425ef8d25519012b1d23d7) Revert "fix: uses signal.NotifyContext"
+ * [5c7ed77](https://github.com/argoproj-labs/argo-dataflow/commit/5c7ed772a2f597f15af0b0e5c5634d7f3a3a8ce0) fix: uses signal.NotifyContext
+ * [8e992cc](https://github.com/argoproj-labs/argo-dataflow/commit/8e992cc5f6b35f3671b2edc99cb6bd96d714abc4) chore!: change clusterName to cluster. Fixes #313
+ * [935cf15](https://github.com/argoproj-labs/argo-dataflow/commit/935cf15cbdb3968bdd24ad4cd26d13c31bbed420) fix: quick-start add create argo-server step and set default ARGO_DATAFLOW_CLUSTER_NAME env (#233)
+ * [fe7c683](https://github.com/argoproj-labs/argo-dataflow/commit/fe7c683f0a58ed3419ed7e502e27fa3869c3c594) feat: export prometheus metrics from memory (#311)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+ * meijin
+
 ## v0.0.101 (2021-09-08)
 
  * [9a0d7cf](https://github.com/argoproj-labs/argo-dataflow/commit/9a0d7cf8cc7a787a45df554d8730e024d27d462b) fix: fix-up context handling (#305)

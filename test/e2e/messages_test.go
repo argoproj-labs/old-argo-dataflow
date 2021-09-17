@@ -33,8 +33,6 @@ curl -H "Authorization: $(cat /var/run/argo-dataflow/authorization)" http://loca
 		},
 	})
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
-
+	WaitForPipeline()
 	ExpectLogLine("main", `foo-bar`)
 }

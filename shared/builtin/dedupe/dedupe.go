@@ -3,18 +3,15 @@ package dedupe
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"sync"
 	"time"
 
-	"github.com/argoproj-labs/argo-dataflow/sdks/golang"
-
 	"github.com/antonmedv/expr"
 	"github.com/argoproj-labs/argo-dataflow/runner/util"
+	"github.com/argoproj-labs/argo-dataflow/shared/builtin"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -26,21 +23,20 @@ var (
 	duplicates = 0
 )
 
-func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
+func New(ctx context.Context, uid string, maxSize resource.Quantity) (builtin.Process, error) {
 	promauto.NewCounterFunc(prometheus.CounterOpts{
 		Name: "duplicate_messages",
 		Help: "Duplicates messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#duplicate_messages",
 	}, func() float64 { return float64(duplicates) })
 
-	http.Handle("/metrics", promhttp.Handler())
-
-	prog, err := expr.Compile(x)
+	prog, err := expr.Compile(uid)
 	if err != nil {
-		return fmt.Errorf("failed to compile %q: %w", x, err)
+		return nil, fmt.Errorf("failed to compile %q: %w", uid, err)
 	}
+
 	int64MaxSize, ok := maxSize.AsInt64()
 	if !ok {
-		return fmt.Errorf("max size %v must be int64", maxSize)
+		return nil, fmt.Errorf("max size %v must be int64", maxSize)
 	}
 
 	go wait.JitterUntil(func() {
@@ -54,15 +50,18 @@ func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
 			}()
 		}
 	}, 15*time.Second, 1.2, true, ctx.Done())
-
-	return golang.StartWithContext(ctx, func(ctx context.Context, msg []byte) ([]byte, error) {
-		r, err := expr.Run(prog, util.ExprEnv(msg))
+	return func(ctx context.Context, msg []byte) ([]byte, error) {
+		env, err := util.ExprEnv(ctx, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create expr env: %w", err)
+		}
+		r, err := expr.Run(prog, env)
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute program: %w", err)
 		}
 		id, ok := r.(string)
 		if !ok {
-			return nil, fmt.Errorf("expression %q did not evaluate to string", x)
+			return nil, fmt.Errorf("expression did not evaluate to string")
 		}
 		mu.Lock()
 		defer mu.Unlock()
@@ -72,5 +71,5 @@ func Exec(ctx context.Context, x string, maxSize resource.Quantity) error {
 			return nil, nil
 		}
 		return msg, nil
-	})
+	}, nil
 }

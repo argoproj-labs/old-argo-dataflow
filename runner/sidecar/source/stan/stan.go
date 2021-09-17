@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"github.com/nats-io/nats-streaming-server/server"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedstan "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
@@ -16,7 +16,9 @@ import (
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
+	"github.com/opentracing/opentracing-go"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 var logger = sharedutil.NewLogger()
@@ -29,7 +31,7 @@ type stanSource struct {
 	queueName         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName string, replica int, sourceName string, x dfv1.STAN, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.STAN, process source.Process) (source.Interface, error) {
 	genClientID := func() string {
 		// In a particular situation, the stan connection status is inconsistent between stan server and client,
 		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
@@ -49,11 +51,16 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 
 	// https://docs.nats.io/developing-with-nats-streaming/queues
 	var sub stan.Subscription
-	queueName := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
+	queueName := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-			if err := process(ctx, msg.Data); err != nil {
+			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("stan-source-%s", sourceName))
+			defer span.Finish()
+			if err := process(
+				dfv1.ContextWithMeta(ctx, sourceURN, fmt.Sprint(msg.Sequence), time.Unix(0, msg.Timestamp)),
+				msg.Data,
+			); err != nil {
 				logger.Error(err, "failed to process message")
 			} else if err := msg.Ack(); err != nil {
 				logger.Error(err, "failed to ack message", "source", sourceName)
@@ -122,13 +129,11 @@ func (s stanSource) Close() error {
 	return s.conn.Close()
 }
 
+var httpClient = http.Client{
+	Timeout: time.Second * 3,
+}
+
 func (s stanSource) GetPending(ctx context.Context) (uint64, error) {
-	httpClient := http.Client{
-		Timeout: time.Second * 3,
-	}
-
-	type obj = map[string]interface{}
-
 	pendingMessages := func(ctx context.Context, channel, queueNameCombo string) (int64, error) {
 		monitoringEndpoint := fmt.Sprintf("%s/streaming/channelsz?channel=%s&subs=1", s.natsMonitoringURL, channel)
 		req, err := http.NewRequestWithContext(ctx, "GET", monitoringEndpoint, nil)
@@ -143,33 +148,17 @@ func (s stanSource) GetPending(ctx context.Context) (uint64, error) {
 			return 0, fmt.Errorf("invalid response: %s", resp.Status)
 		}
 		defer func() { _ = resp.Body.Close() }()
-		o := make(obj)
+		o := server.Channelz{}
 		if err := json.NewDecoder(resp.Body).Decode(&o); err != nil {
 			return 0, err
 		}
-		lastSeq, ok := o["last_seq"].(float64)
-		if !ok {
-			return 0, fmt.Errorf("unrecognized last_seq: %v", o["last_seq"])
-		}
-		subs, ok := o["subscriptions"]
-		if !ok {
-			return 0, fmt.Errorf("no suscriptions field found in the monitoring endpoint response")
-		}
-		maxLastSent := float64(0)
-		for _, i := range subs.([]interface{}) {
-			s := i.(obj)
-			if fmt.Sprintf("%v", s["queue_name"]) != queueNameCombo {
-				continue
-			}
-			lastSent, ok := s["last_sent"].(float64)
-			if !ok {
-				return 0, fmt.Errorf("unrecognized last_sent: %v", s["last_sent"])
-			}
-			if lastSent > maxLastSent {
-				maxLastSent = lastSent
+		maxLastSent := uint64(0)
+		for _, s := range o.Subscriptions {
+			if s.QueueName == queueNameCombo && s.LastSent > maxLastSent {
+				maxLastSent = s.LastSent
 			}
 		}
-		return int64(lastSeq) - int64(maxLastSent), nil
+		return int64(o.LastSeq - maxLastSent), nil
 	}
 
 	// queueNameCombo := {durableName}:{queueGroup}

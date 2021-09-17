@@ -33,8 +33,8 @@ func TestExpandStep(t *testing.T) {
 
 	SendMessageViaHTTP(`{"foo.bar": "baz"}`)
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", `"foo\\":`)
 

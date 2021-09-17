@@ -9,6 +9,7 @@ CONFIG ?= dev
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 K3D ?= $(shell [ "`command -v kubectl`" != '' ] && [ "`kubectl config current-context`" = k3d-k3s-default ] && echo true || echo false)
 UI ?= false
+JAEGER_DISABLED ?= true
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -85,7 +86,7 @@ $(GOBIN)/goreman:
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: deploy build runner $(GOBIN)/goreman wait
 	kubectl config set-context --current --namespace=argo-dataflow-system
-	env UI=$(UI) goreman -set-ports=false -logtime=false start
+	env UI=$(UI) JAEGER_DISABLED=$(JAEGER_DISABLED) goreman -set-ports=false -logtime=false start
 wait:
 	kubectl -n argo-dataflow-system get pod
 	kubectl -n argo-dataflow-system wait deploy --all --for=condition=available --timeout=2m
@@ -224,3 +225,10 @@ argocli:
 ui:
 	killall node || true
 	cd ../../argoproj/argo-workflows && yarn --cwd ui install && yarn --cwd ui start
+jaeger:
+	kubectl -n argo-dataflow-system apply --force -f config/apps/jaeger.yaml
+	kubectl -n argo-dataflow-system wait deploy/my-jaeger --for=condition=available
+	# expose Jaeger UI: http://localhost:16686
+	kubectl -n argo-dataflow-system  port-forward svc/my-jaeger-query 16686:16686
+nojaeger:
+	kubectl -n argo-dataflow-system delete --ignore-not-found -f config/apps/jaeger.yaml

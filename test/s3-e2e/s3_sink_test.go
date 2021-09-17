@@ -10,6 +10,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/moto.yaml
 
 func TestS3Sink(t *testing.T) {
@@ -43,13 +46,14 @@ func Handler(ctx context.Context, m []byte) ([]byte, error) {
 		},
 	})
 
+	WaitForPipeline()
 	WaitForPod()
 
 	defer StartPortForward("s3-main-0")()
 	SendMessageViaHTTP("my-msg")
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

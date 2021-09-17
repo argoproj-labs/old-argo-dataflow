@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
 	dbsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/db"
@@ -14,7 +15,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/stan"
 	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/paulbellamy/ratecounter"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,20 +57,18 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
-		logger.Info("connecting source", "source", sharedutil.MustJSON(s))
 		sourceName := s.Name
+		sourceURN := s.GenURN(cluster, namespace)
+		logger.Info("connecting source", "source", sharedutil.MustJSON(s), "urn", sourceURN)
 		if _, exists := sources[sourceName]; exists {
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 
-		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		processWithRetry := func(ctx context.Context, msg []byte) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
+			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
-			rateCounter.Incr(1)
-			withLock(func() {
-				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter), uint64(len(msg)))
-			})
 			backoff := newBackoff(s.Retry)
 			for {
 				select {
@@ -80,10 +79,20 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					if uint64(backoff.Steps) < s.Retry.Steps { // this is a retry
 						logger.Info("retry", "source", sourceName, "backoff", backoff)
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
-					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-					err := process(ctx, msg)
+					// we need to copy anything except the timeout from the parent context
+					source, id, t, err := dfv1.MetaFromContext(ctx)
+					if err != nil {
+						return err
+					}
+					ctx, cancel := context.WithTimeout(
+						dfv1.ContextWithMeta(
+							opentracing.ContextWithSpan(context.Background(), span),
+							source, id, t,
+						),
+						15*time.Second,
+					)
+					err = process(ctx, msg)
 					cancel()
 					if err == nil {
 						return nil
@@ -91,7 +100,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					logger.Error(err, "⚠ →", "source", sourceName, "backoffSteps", backoff.Steps)
 					if backoff.Steps <= 0 {
 						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-						withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica) })
 						return err
 					}
 					time.Sleep(backoff.Step())
@@ -99,20 +107,20 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		}
 		if x := s.Cron; x != nil {
-			if y, err := cron.New(ctx, *x, processWithRetry); err != nil {
+			if y, err := cron.New(ctx, sourceName, sourceURN, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, processWithRetry); err != nil {
+			if y, err := stan.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			groupID := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
-			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, *x, processWithRetry); err != nil {
+			groupID := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
+			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, sourceURN, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
@@ -123,21 +131,21 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			if err != nil {
 				return fmt.Errorf("failed to get secret %q: %w", step.Name, err)
 			}
-			sources[sourceName] = httpsource.New(sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
+			sources[sourceName] = httpsource.New(sourceURN, sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
 		} else if x := s.S3; x != nil {
-			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, processWithRetry, leadReplica()); err != nil {
+			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.DB; x != nil {
-			if y, err := dbsource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, sourceName, *x, processWithRetry); err != nil {
+			if y, err := dbsource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Volume; x != nil {
-			if y, err := volumeSource.New(ctx, pipelineName, stepName, sourceName, *x, processWithRetry, leadReplica()); err != nil {
+			if y, err := volumeSource.New(ctx, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

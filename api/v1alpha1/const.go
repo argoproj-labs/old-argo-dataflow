@@ -9,20 +9,21 @@ import (
 
 const (
 	// conditions
-	ConditionCompleted    = "Completed"    // the pipeline completed
-	ConditionRunning      = "Running"      // added if any step is currently running
-	ConditionSunkMessages = "SunkMessages" // added if any messages have been written to a sink for any step
-	ConditionTerminating  = "Terminating"  // added if any terminator step terminated
+	ConditionCompleted   = "Completed"   // the pipeline completed
+	ConditionRunning     = "Running"     // added if any step is currently running
+	ConditionTerminating = "Terminating" // added if any terminator step terminated
 	// container names
 	CtrInit    = "init"
 	CtrMain    = "main"
 	CtrSidecar = "sidecar"
 	// env vars
-	EnvClusterName      = "ARGO_DATAFLOW_CLUSTER_NAME"
-	EnvDebug            = "ARGO_DATAFLOW_DEBUG"        // enable default mode, default "false"
-	EnvImagePrefix      = "ARGO_DATAFLOW_IMAGE_PREFIX" // default "quay.io/argoproj"
+	EnvCluster          = "ARGO_DATAFLOW_CLUSTER"
+	EnvDebug            = "ARGO_DATAFLOW_DEBUG"              // enable default mode, default "false"
+	EnvUnixDomainSocket = "ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET" // use Unix Domain Socket, default "true"
+	EnvImagePrefix      = "ARGO_DATAFLOW_IMAGE_PREFIX"       // default "quay.io/argoproj"
 	EnvNamespace        = "ARGO_DATAFLOW_NAMESPACE"
 	EnvPipelineName     = "ARGO_DATAFLOW_PIPELINE_NAME"
+	EnvPod              = "ARGO_DATAFLOW_POD"
 	EnvReplica          = "ARGO_DATAFLOW_REPLICA"
 	EnvStep             = "ARGO_DATAFLOW_STEP"
 	EnvPeekDelay        = "ARGO_DATAFLOW_PEEK_DELAY"         // how long between peeking (default 4m)

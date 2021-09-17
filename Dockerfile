@@ -65,7 +65,8 @@ ADD runtimes/golang1-16 /workspace
 RUN chown -R 9653 /.cache /workspace
 WORKDIR /workspace
 USER 9653:9653
-RUN go get -u github.com/argoproj-labs/argo-dataflow
+RUN go mod download
+RUN go mod tidy
 RUN go build ./...
 ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/workspace/entrypoint.sh"]

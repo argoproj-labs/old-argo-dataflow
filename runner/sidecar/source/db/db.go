@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/runtime"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/opentracing/opentracing-go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -30,7 +33,7 @@ type dbSource struct {
 	db *sql.DB
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterName, namespace, pipelineName, stepName, sourceName string, x dfv1.DBSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, x dfv1.DBSource, process source.Process) (source.Interface, error) {
 	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
@@ -49,8 +52,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 	}
 
 	var offset string
-	remark := fmt.Sprintf("%s.%s.%s.%s.sources.%s", clusterName, namespace, pipelineName, stepName, sourceName)
-	uid := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
+	remark := fmt.Sprintf("%s.%s.%s.%s.sources.%s", cluster, namespace, pipelineName, stepName, sourceName)
+	uid := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
 	offset, err = getOffsetFromDB(ctx, db, uid)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -63,13 +66,16 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 	}
 
 	go func() {
+		defer runtime.HandleCrash()
 		for {
 			time.Sleep(x.PollInterval.Duration)
 			select {
 			case <-ctx.Done():
 				return
 			default:
-				if err = queryData(ctx, db, x.Query, x.OffsetColumn, offset, func(d rowData) error {
+				if err = queryData(ctx, db, sourceURN, x.Query, x.OffsetColumn, offset, func(ctx context.Context, d rowData) error {
+					span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("db-source-%s", sourceName))
+					defer span.Finish()
 					jsonData, err := json.Marshal(d)
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)
@@ -88,6 +94,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 
 	// update offset in db
 	go func() {
+		defer runtime.HandleCrash()
 		ticker := time.NewTicker(x.CommitInterval.Duration)
 		defer ticker.Stop()
 		for {
@@ -105,9 +112,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 		}
 	}()
 
-	return dbSource{
-		db: db,
-	}, nil
+	return dbSource{db}, nil
 }
 
 func (d dbSource) Close() error {
@@ -153,7 +158,7 @@ func insertOffset(ctx context.Context, db *sql.DB, uid, remark, offset string) (
 	}
 }
 
-func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset string, f func(rowData) error) error {
+func queryData(ctx context.Context, db *sql.DB, sourceURN, query, offsetColumn, offset string, f func(context.Context, rowData) error) error {
 	sql := fmt.Sprintf("select * from (%s) as dataflow_query_table order by %s", query, offsetColumn)
 	params := []interface{}{}
 	if offset != "" {
@@ -195,7 +200,11 @@ func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset stri
 				entry[col] = val
 			}
 		}
-		if err = f(entry); err != nil {
+		id := fmt.Sprint(entry[offsetColumn])
+		if err = f(
+			dfv1.ContextWithMeta(ctx, sourceURN, id, time.Now()),
+			entry,
+		); err != nil {
 			logger.Error(err, "failed to process message")
 		}
 	}

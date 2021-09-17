@@ -6,37 +6,79 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 )
 
-func ExpectMetric(name string, value float64, opts ...interface{}) {
+func WaitForNothingPending() {
+	ExpectMetric("pending", Eq(0))
+}
+
+func WaitForTotalSourceMessages(v int) {
+	ExpectMetric("sources_total", Eq(float64(v)))
+}
+
+func WaitForNoErrors() {
+	ExpectMetric("sources_errors", Eq(missing))
+}
+
+func WaitForSunkMessages(opts ...interface{}) {
+	ExpectMetric("sinks_total", Gt(0), opts...)
+}
+
+func WaitForTotalSunkMessages(v int, opts ...interface{}) {
+	ExpectMetric("sinks_total", Eq(float64(v)), opts...)
+}
+
+var missing = rand.Float64()
+
+func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 	ctx := context.Background()
 	port := 3569
+	timeout := 30 * time.Second
 	for _, opt := range opts {
 		switch v := opt.(type) {
 		case int:
 			port = v
+		case time.Duration:
+			timeout = v
 		default:
 			panic(fmt.Errorf("unsupported option type %T", v))
 		}
 	}
-	log.Printf("expect metric %q to be %f on %d\n", name, value, port)
-	for n, family := range getMetrics(ctx, port) {
-		if n == name {
-			for _, m := range family.Metric {
-				v := getValue(m)
-				if value == v {
-					return
-				} else {
-					panic(fmt.Errorf("metric %q expected %f, got %f", n, value, v))
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	log.Printf("expect metric %q to be %s within %v\n", name, matcher, timeout.String())
+	for {
+		select {
+		case <-ctx.Done():
+			println(getMetrics(ctx, port))
+			panic(fmt.Errorf("failed to wait for metric named %q to be %s: %w", name, matcher, ctx.Err()))
+		default:
+			found := false
+			for n, family := range getMetrics(ctx, port) {
+				if n == name {
+					found = true
+					for _, m := range family.Metric {
+						v := getValue(m)
+						if matcher.match(v) {
+							return
+						} else {
+							log.Printf("%s=%v, !%s\n", name, v, matcher.String())
+						}
+					}
 				}
 			}
+			if !found && matcher.match(missing) {
+				return
+			}
+			time.Sleep(2 * time.Second)
 		}
 	}
-	panic(fmt.Errorf("metric named %q not found in %q on %d", name, getMetrics(ctx, port), port))
 }
 
 func getValue(m *io_prometheus_client.Metric) float64 {

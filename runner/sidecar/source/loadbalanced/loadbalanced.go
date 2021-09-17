@@ -3,7 +3,6 @@ package loadbalanced
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -35,6 +34,7 @@ type NewReq struct {
 	PipelineName string
 	StepName     string
 	SourceName   string
+	SourceURN    string
 	LeadReplica  bool
 	Concurrency  int
 	PollPeriod   time.Duration
@@ -49,14 +49,14 @@ func New(ctx context.Context, r NewReq) (source.HasPending, error) {
 	// (b) it would be good to limit the size of this work queue and have the `Add
 	jobs := workqueue.New()
 	authorization := sharedutil.RandString()
-	httpSource := httpsource.New(r.SourceName, authorization, r.Process)
+	httpSource := httpsource.New(r.SourceURN, r.SourceName, authorization, r.Process)
 	if r.LeadReplica {
 		endpoint := "https://" + r.PipelineName + "-" + r.StepName + "/sources/" + r.SourceName
 		t := http.DefaultTransport.(*http.Transport).Clone()
-		t.MaxIdleConns = 100
-		t.MaxConnsPerHost = 100
-		t.MaxIdleConnsPerHost = 100
-		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		t.MaxIdleConns = 32
+		t.MaxConnsPerHost = 32
+		t.MaxIdleConnsPerHost = 32
+		t.TLSClientConfig.InsecureSkipVerify = true
 		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 
 		logger.Info("starting lead replica's workers", "source", r.SourceName, "endpoint", endpoint)
@@ -71,7 +71,7 @@ func New(ctx context.Context, r NewReq) (source.HasPending, error) {
 					func() {
 						defer jobs.Done(item)
 						itemS := item.(string)
-						req, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(itemS))
+						req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBufferString(itemS))
 						if err != nil {
 							logger.Error(err, "failed to create request", "item", item)
 						} else {

@@ -5,23 +5,24 @@ package kafka_stress
 import (
 	"testing"
 
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-
 	. "github.com/argoproj-labs/argo-dataflow/test/stress"
+	v1 "k8s.io/api/core/v1"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
 
 func TestKafkaSourceStress(t *testing.T) {
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
-	msgSize := int32(50000000)
+	msgSize := int32(Params.MessageSize)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
@@ -30,8 +31,8 @@ func TestKafkaSourceStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceCPU: resource.MustParse("400m"),
-							v1.ResourceMemory: resource.MustParse("1Gi"),
+							v1.ResourceCPU: params.ResourceCPU,
+							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
 				},
@@ -53,7 +54,7 @@ func TestKafkaSourceStress(t *testing.T) {
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n), Params.Timeout)
+	WaitForTotalSunkMessages(n, Params.Timeout)
 }
 
 func TestKafkaSinkStress(t *testing.T) {
@@ -61,7 +62,7 @@ func TestKafkaSinkStress(t *testing.T) {
 
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()
-	msgSize := int32(50000000)
+	msgSize := int32(Params.MessageSize)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
@@ -70,8 +71,8 @@ func TestKafkaSinkStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceCPU: resource.MustParse("400m"),
-							v1.ResourceMemory: resource.MustParse("1Gi"),
+							v1.ResourceCPU: params.ResourceCPU,
+							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
 				},
@@ -97,5 +98,5 @@ func TestKafkaSinkStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n*2), Params.Timeout) // 2 sinks
+	WaitForTotalSunkMessages(n, Params.Timeout)
 }

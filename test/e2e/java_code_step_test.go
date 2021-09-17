@@ -42,7 +42,7 @@ public class Handler {
 
 	SendMessageViaHTTP("foo-bar")
 
-	WaitForStep(TotalSunkMessages(1))
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", `hi! foo-bar`)
 

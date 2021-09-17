@@ -10,6 +10,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
 
 func TestKafka(t *testing.T) {
@@ -34,41 +37,11 @@ func TestKafka(t *testing.T) {
 
 	PumpKafkaTopic(topic, 17)
 
-	WaitForPipeline(UntilSunkMessages)
+	defer StartPortForward("kafka-main-0")()
+	WaitForSunkMessages()
 
-	WaitForStep(TotalSourceMessages(17))
-	WaitForStep(TotalSunkMessages(17))
-
-	DeletePipelines()
-	WaitForPodsToBeDeleted()
-}
-
-func TestKafkaAutoCommit(t *testing.T) {
-	defer Setup(t)()
-
-	topic := CreateKafkaTopic()
-	sinkTopic := CreateKafkaTopic()
-
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
-		Spec: PipelineSpec{
-			Steps: []StepSpec{{
-				Name:    "main",
-				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}, AutoCommit: KafkaAutoCommit{Enable: true}}}},
-				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
-			}},
-		},
-	})
-	WaitForPipeline()
-	WaitForPod()
-
-	PumpKafkaTopic(topic, 17)
-
-	WaitForPipeline(UntilSunkMessages)
-
-	WaitForStep(TotalSourceMessages(17))
-	WaitForStep(TotalSunkMessages(17))
+	WaitForTotalSourceMessages(17)
+	WaitForTotalSunkMessages(17)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
@@ -98,12 +71,12 @@ func TestKafkaAsync(t *testing.T) {
 
 	PumpKafkaTopic(topic, 17)
 
-	WaitForPipeline(UntilSunkMessages)
+	WaitForSunkMessages()
 
-	WaitForStep(TotalSourceMessages(17))
-	WaitForStep(TotalSunkMessages(17))
+	WaitForTotalSourceMessages(17)
+	WaitForTotalSunkMessages(17)
 
-	ExpectMetric("sinks_kafka_produced_successes", 17)
+	ExpectMetric("sinks_kafka_produced_successes", Eq(17))
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

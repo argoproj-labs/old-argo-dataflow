@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+
 	volumesink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/volume"
 
 	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
@@ -16,53 +19,60 @@ import (
 	logsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/stan"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/paulbellamy/ratecounter"
 )
 
 func connectSinks(ctx context.Context) (func(context.Context, []byte) error, error) {
 	sinks := map[string]sink.Interface{}
-	rateCounters := map[string]*ratecounter.RateCounter{}
-	for _, sink := range step.Spec.Sinks {
-		logger.Info("connecting sink", "sink", sharedutil.MustJSON(sink))
-		sinkName := sink.Name
+	totalCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "total",
+		Help:      "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_total",
+	}, []string{"sinkName", "replica"})
+	errorsCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "errors",
+		Help:      "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_errors",
+	}, []string{"sinkName", "replica"})
+	for _, s := range step.Spec.Sinks {
+		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
+		sinkName := s.Name
 		if _, exists := sinks[sinkName]; exists {
 			return nil, fmt.Errorf("duplicate sink named %q", sinkName)
 		}
-		rateCounters[sinkName] = ratecounter.NewRateCounter(updateInterval)
-		if x := sink.STAN; x != nil {
+		if x := s.STAN; x != nil {
 			if y, err := stan.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sinkName, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.Kafka; x != nil {
-			if y, err := kafka.New(ctx, secretInterface, *x); err != nil {
+		} else if x := s.Kafka; x != nil {
+			if y, err := kafka.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.Log; x != nil {
-			sinks[sinkName] = logsink.New(*x)
-		} else if x := sink.HTTP; x != nil {
-			if y, err := http.New(ctx, secretInterface, *x); err != nil {
+		} else if x := s.Log; x != nil {
+			sinks[sinkName] = logsink.New(sinkName, *x)
+		} else if x := s.HTTP; x != nil {
+			if y, err := http.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.S3; x != nil {
-			if y, err := s3sink.New(ctx, secretInterface, *x); err != nil {
+		} else if x := s.S3; x != nil {
+			if y, err := s3sink.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.DB; x != nil {
-			if y, err := dbsink.New(ctx, secretInterface, *x); err != nil {
+		} else if x := s.DB; x != nil {
+			if y, err := dbsink.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
 			}
-		} else if x := sink.Volume; x != nil {
-			if y, err := volumesink.New(); err != nil {
+		} else if x := s.Volume; x != nil {
+			if y, err := volumesink.New(sinkName); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y
@@ -81,13 +91,9 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, err
 
 	return func(ctx context.Context, msg []byte) error {
 		for sinkName, f := range sinks {
-			counter := rateCounters[sinkName]
-			counter.Incr(1)
-			withLock(func() {
-				step.Status.SinkStatues.IncrTotal(sinkName, replica, rateToResourceQuantity(counter), uint64(len(msg)))
-			})
+			totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
 			if err := f.Sink(ctx, msg); err != nil {
-				withLock(func() { step.Status.SinkStatues.IncrErrors(sinkName, replica) })
+				errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
 				return err
 			}
 		}
