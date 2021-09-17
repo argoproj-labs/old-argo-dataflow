@@ -21,7 +21,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.1.2
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
 	github.com/mitchellh/copystructure v1.2.0 // indirect
