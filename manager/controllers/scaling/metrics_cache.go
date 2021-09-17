@@ -65,6 +65,12 @@ func (m *MetricsCacheHandler) Contains(step *dfv1.Step) (bool, error) {
 	return ok, nil
 }
 
+func (m *MetricsCacheHandler) Length() int {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	return m.stepList.Len()
+}
+
 func (m *MetricsCacheHandler) StartWatchingStep(step *dfv1.Step) error {
 	key, err := cache.MetaNamespaceKeyFunc(step)
 	if err != nil {
@@ -121,7 +127,7 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) {
 		default:
 			assign()
 		}
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(time.Millisecond * time.Duration(20000/m.Length()))
 	}
 }
 
