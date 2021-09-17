@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"k8s.io/client-go/dynamic"
 
@@ -84,6 +85,8 @@ func main() {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
 
+	metricsCacheHandler := scaling.NewMetricsCacheHandler(mgr.GetClient(), 5)
+
 	if err = (&controllers.StepReconciler{
 		Client:              mgr.GetClient(),
 		Log:                 ctrl.Log.WithName("controllers").WithName("Step"),
@@ -91,15 +94,23 @@ func main() {
 		Recorder:            mgr.GetEventRecorderFor("step-reconciler"),
 		ContainerKiller:     containerKiller,
 		DynamicInterface:    dynamicInterface,
-		MetricsCacheHandler: scaling.NewMetricsCacheHandler(mgr.GetClient()),
+		MetricsCacheHandler: metricsCacheHandler,
 		Cluster:             os.Getenv(dfv1.EnvCluster),
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
 	// +kubebuilder:scaffold:builder
 
+	ctx := ctrl.SetupSignalHandler()
+	go func() {
+		time.Sleep(2 * time.Second) // wait for manager started
+		if err := metricsCacheHandler.Start(ctx); err != nil {
+			panic(fmt.Errorf("unable to start metrics caching job: %w", err))
+		}
+	}()
+
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		panic(fmt.Errorf("problem running manager: %w", err))
 	}
 }

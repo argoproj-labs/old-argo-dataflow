@@ -1,6 +1,7 @@
 package scaling
 
 import (
+	"container/list"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -34,14 +35,22 @@ func init() {
 }
 
 type MetricsCacheHandler struct {
-	client         client.Client
-	cachedContexts *sync.Map
+	client client.Client
+
+	stepMap  map[string]*list.Element
+	stepList *list.List
+	lock     sync.RWMutex
+	workers  int
 }
 
-func NewMetricsCacheHandler(client client.Client) *MetricsCacheHandler {
+func NewMetricsCacheHandler(client client.Client, workers int) *MetricsCacheHandler {
 	return &MetricsCacheHandler{
-		client:         client,
-		cachedContexts: &sync.Map{},
+		client:  client,
+		workers: workers,
+
+		stepMap:  make(map[string]*list.Element),
+		stepList: list.New(),
+		lock:     sync.RWMutex{},
 	}
 }
 
@@ -50,25 +59,22 @@ func (m *MetricsCacheHandler) Contains(step *dfv1.Step) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to get key for step object: %w", err)
 	}
-	_, ok := m.cachedContexts.Load(key)
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	_, ok := m.stepMap[key]
 	return ok, nil
 }
 
-func (m *MetricsCacheHandler) EnqueueStep(ctx context.Context, step *dfv1.Step) error {
+func (m *MetricsCacheHandler) EnqueueStep(step *dfv1.Step) error {
 	key, err := cache.MetaNamespaceKeyFunc(step)
 	if err != nil {
 		return err
 	}
-	ctx, cancel := context.WithCancel(ctx)
-	_, existing := m.cachedContexts.LoadOrStore(key, cancel)
-	if existing {
-		cancel()
-		return nil
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	if _, ok := m.stepMap[key]; !ok {
+		m.stepMap[key] = m.stepList.PushBack(step)
 	}
-	go func() {
-		defer runtime.HandleCrash()
-		m.startCachingLoop(ctx, step.DeepCopy())
-	}()
 	return nil
 }
 
@@ -77,23 +83,74 @@ func (m *MetricsCacheHandler) DeleteStep(step *dfv1.Step) error {
 	if err != nil {
 		return err
 	}
-	if obj, existing := m.cachedContexts.LoadAndDelete(key); !existing {
-		return nil
-	} else {
-		if cancel, ok := obj.(context.CancelFunc); ok {
-			cancel()
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	if e, ok := m.stepMap[key]; ok {
+		_ = m.stepList.Remove(e)
+		delete(m.stepMap, key)
+	}
+	return nil
+}
+
+func (m *MetricsCacheHandler) initializeQueue(ctx context.Context) error {
+	steps := &dfv1.StepList{}
+	if err := m.client.List(ctx, steps, &client.ListOptions{}); err != nil {
+		return fmt.Errorf("failed to list all the step objects: %w", err)
+	}
+	for _, step := range steps.Items {
+		if err := m.EnqueueStep(&step); err != nil {
+			return fmt.Errorf("failed to put step %s/%s to metrics cache queue: %w", step.Namespace, step.Name, err)
 		}
 	}
 	return nil
 }
 
-func (m *MetricsCacheHandler) startCachingLoop(ctx context.Context, step *dfv1.Step) {
+func (m *MetricsCacheHandler) Start(ctx context.Context) error {
+	if err := m.initializeQueue(ctx); err != nil {
+		return err
+	}
+
+	stepCh := make(chan *dfv1.Step)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	for i := 1; i <= m.workers; i++ {
+		go m.pullMetrics(ctx, i, stepCh)
+	}
+
+	assign := func() {
+		m.lock.Lock()
+		defer m.lock.Unlock()
+		if m.stepList.Len() == 0 {
+			return
+		}
+		e := m.stepList.Front()
+		if step, ok := e.Value.(*dfv1.Step); ok {
+			m.stepList.MoveToBack(e)
+			stepCh <- step
+		}
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Info("exiting metrics fetching loop...", "namespace", step.Namespace, "step", step.Name)
-			return
+			logger.Info("exiting metrics caching job assigning task")
+			return nil
 		default:
+			assign()
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func (m *MetricsCacheHandler) pullMetrics(ctx context.Context, id int, stepCh <-chan *dfv1.Step) {
+	defer runtime.HandleCrash()
+	logger.Info(fmt.Sprintf("started metrics cache worker %v", id))
+	for {
+		select {
+		case <-ctx.Done():
+			logger.Info(fmt.Sprintf("stopped metrics cache worker %v", id))
+			return
+		case step := <-stepCh:
 			if pending, err := getPendingMetric(*step); err != nil {
 				logger.Error(err, "failed to get pending message", "namespace", step.Namespace, "step", step.Name)
 			} else {
@@ -105,7 +162,6 @@ func (m *MetricsCacheHandler) startCachingLoop(ctx context.Context, step *dfv1.S
 				_ = metricsCache.Add(pendingKey, pending)
 			}
 		}
-		time.Sleep(30 * time.Second)
 	}
 }
 
