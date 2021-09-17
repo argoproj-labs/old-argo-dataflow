@@ -20,7 +20,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 
 	"k8s.io/client-go/dynamic"
 
@@ -102,12 +101,7 @@ func main() {
 	// +kubebuilder:scaffold:builder
 
 	ctx := ctrl.SetupSignalHandler()
-	go func() {
-		time.Sleep(2 * time.Second) // wait for manager started
-		if err := metricsCacheHandler.Start(ctx); err != nil {
-			panic(fmt.Errorf("unable to start metrics caching job: %w", err))
-		}
-	}()
+	go metricsCacheHandler.Start(ctx)
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctx); err != nil {

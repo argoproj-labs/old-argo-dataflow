@@ -92,24 +92,7 @@ func (m *MetricsCacheHandler) DequeueStep(step *dfv1.Step) error {
 	return nil
 }
 
-func (m *MetricsCacheHandler) initializeQueue(ctx context.Context) error {
-	steps := &dfv1.StepList{}
-	if err := m.client.List(ctx, steps, &client.ListOptions{}); err != nil {
-		return fmt.Errorf("failed to list all the step objects: %w", err)
-	}
-	for _, step := range steps.Items {
-		if err := m.EnqueueStep(&step); err != nil {
-			return fmt.Errorf("failed to put step %s/%s to metrics cache queue: %w", step.Namespace, step.Name, err)
-		}
-	}
-	return nil
-}
-
-func (m *MetricsCacheHandler) Start(ctx context.Context) error {
-	if err := m.initializeQueue(ctx); err != nil {
-		return err
-	}
-
+func (m *MetricsCacheHandler) Start(ctx context.Context) {
 	stepCh := make(chan *dfv1.Step)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -134,7 +117,7 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			logger.Info("exiting metrics caching assigning job")
-			return nil
+			return
 		default:
 			assign()
 		}
