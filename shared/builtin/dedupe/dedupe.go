@@ -17,9 +17,9 @@ import (
 )
 
 var (
-	logger     = sharedutil.NewLogger()
-	db         = &uniqItems{ids: map[string]*item{}}
-	mu         = sync.Mutex{}
+	logger = sharedutil.NewLogger()
+	db     = &uniqItems{ids: map[string]*item{}}
+	mu     = sync.Mutex{}
 )
 
 func New(ctx context.Context, uid string, maxSize resource.Quantity) (builtin.Process, error) {
