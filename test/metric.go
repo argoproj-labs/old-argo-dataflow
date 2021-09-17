@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/prometheus/client_model/go"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 )
 
@@ -38,7 +38,7 @@ var missing = rand.Float64()
 
 func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 	ctx := context.Background()
-	port := 3569
+	port := 3570
 	timeout := 30 * time.Second
 	for _, opt := range opts {
 		switch v := opt.(type) {

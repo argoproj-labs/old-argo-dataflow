@@ -21,7 +21,6 @@ import (
 	jaegerlog "github.com/uber/jaeger-client-go/log"
 	"github.com/uber/jaeger-lib/metrics"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -34,8 +33,6 @@ var (
 	pod                 = os.Getenv(dfv1.EnvPod)
 	pipelineName        = os.Getenv(dfv1.EnvPipelineName)
 	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
-	dynamicInterface    dynamic.Interface
-	lastStep            dfv1.Step
 	kubernetesInterface kubernetes.Interface
 	secretInterface     corev1.SecretInterface
 	prePatchHooks       []func(ctx context.Context) error // hooks to run before patching
@@ -52,7 +49,6 @@ func becomeUnreadyHook(context.Context) error {
 
 func Exec(ctx context.Context) error {
 	restConfig := ctrl.GetConfigOrDie()
-	dynamicInterface = dynamic.NewForConfigOrDie(restConfig)
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 	secretInterface = kubernetesInterface.CoreV1().Secrets(namespace)
 
@@ -66,7 +62,6 @@ func Exec(ctx context.Context) error {
 	}
 
 	stepName = step.Spec.Name
-	lastStep = *step.DeepCopy()
 
 	if v, err := strconv.Atoi(os.Getenv(dfv1.EnvReplica)); err != nil {
 		return err
