@@ -13940,12 +13940,6 @@ metadata:
   namespace: argo-dataflow-system
 rules:
 - apiGroups:
-  - dataflow.argoproj.io
-  resources:
-  - steps/status
-  verbs:
-  - patch
-- apiGroups:
   - ""
   resources:
   - secrets
