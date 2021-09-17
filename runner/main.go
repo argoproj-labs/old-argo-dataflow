@@ -9,6 +9,7 @@ import (
 	"net/http/pprof"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -47,7 +48,7 @@ func init() {
 }
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background())
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	defer stop()
 
 	start := func(f builtin.Process) error {
