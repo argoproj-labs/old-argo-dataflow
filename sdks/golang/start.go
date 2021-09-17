@@ -6,12 +6,14 @@ import (
 	"log"
 	"net"
 	"net/http"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"os/signal"
 )
 
+//go:generate sh gen.sh
+
 func Start(handler func(ctx context.Context, msg []byte) ([]byte, error)) {
-	ctx := SetupSignalsHandler(context.Background())
+	ctx, stop := signal.NotifyContext(context.Background())
+	defer stop()
 	if err := StartWithContext(ctx, handler); err != nil {
 		panic(err)
 	}
@@ -22,7 +24,7 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 		w.WriteHeader(204)
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		ctx := dfv1.MetaExtract(r.Context(), r.Header)
+		ctx := MetaExtract(r.Context(), r.Header)
 		out, err := func() ([]byte, error) {
 			in, err := ioutil.ReadAll(r.Body)
 			_ = r.Body.Close()

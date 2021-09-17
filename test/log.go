@@ -51,27 +51,31 @@ func ExpectLogLine(step, pattern string, opts ...interface{}) {
 }
 
 func podsLogContains(ctx context.Context, podList *corev1.PodList, containerName, pattern string, timeout time.Duration) bool {
-	cctx, cancel := context.WithTimeout(ctx, timeout)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	errChan := make(chan error)
 	resultChan := make(chan bool)
 	for _, p := range podList.Items {
-		go func(podName string) {
-			log.Printf("watching pod: %s\n", podName)
-			contains, err := podLogContains(cctx, podName, containerName, pattern)
-			if err != nil {
-				errChan <- err
-				return
+		for _, s := range p.Status.ContainerStatuses {
+			if s.Name == containerName && s.State.Running != nil {
+				go func(podName string) {
+					log.Printf("watching pod: %s\n", podName)
+					contains, err := podLogContains(ctx, podName, containerName, pattern)
+					if err != nil {
+						errChan <- err
+						return
+					}
+					if contains {
+						resultChan <- true
+					}
+				}(p.Name)
 			}
-			if contains {
-				resultChan <- true
-			}
-		}(p.Name)
+		}
 	}
 
 	for {
 		select {
-		case <-cctx.Done():
+		case <-ctx.Done():
 			return false
 		case result := <-resultChan:
 			if result {
