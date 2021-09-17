@@ -56,7 +56,6 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 	for {
 		select {
 		case <-ctx.Done():
-			println(getMetrics(ctx, port))
 			panic(fmt.Errorf("failed to wait for metric named %q to be %s: %w", name, matcher, ctx.Err()))
 		default:
 			found := false

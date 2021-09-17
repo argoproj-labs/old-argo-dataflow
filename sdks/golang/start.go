@@ -7,12 +7,13 @@ import (
 	"net"
 	"net/http"
 	"os/signal"
+	"syscall"
 )
 
 //go:generate sh gen.sh
 
 func Start(handler func(ctx context.Context, msg []byte) ([]byte, error)) {
-	ctx, stop := signal.NotifyContext(context.Background())
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	defer stop()
 	if err := StartWithContext(ctx, handler); err != nil {
 		panic(err)
@@ -47,12 +48,7 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 	// https://medium.com/honestbee-tw-engineer/gracefully-shutdown-in-go-http-server-5f5e6b83da5a
 	httpServer := &http.Server{Addr: ":8080"}
 	go func() {
-		defer func() {
-			r := recover()
-			if r != nil {
-				println(r)
-			}
-		}()
+		defer HandleCrash()
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
@@ -64,12 +60,7 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 	}
 	defer func() { _ = listener.Close() }()
 	go func() {
-		defer func() {
-			r := recover()
-			if r != nil {
-				println(r)
-			}
-		}()
+		defer HandleCrash()
 		if err := udsServer.Serve(listener); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
