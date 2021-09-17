@@ -78,7 +78,7 @@ func (m *MetricsCacheHandler) EnqueueStep(step *dfv1.Step) error {
 	return nil
 }
 
-func (m *MetricsCacheHandler) DeleteStep(step *dfv1.Step) error {
+func (m *MetricsCacheHandler) DequeueStep(step *dfv1.Step) error {
 	key, err := cache.MetaNamespaceKeyFunc(step)
 	if err != nil {
 		return err

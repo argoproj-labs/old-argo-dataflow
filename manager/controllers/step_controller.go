@@ -309,7 +309,7 @@ func (r *StepReconciler) stopMetricsCacheLoop(step *dfv1.Step) error {
 	} else if !ok {
 		return nil
 	}
-	return r.MetricsCacheHandler.DeleteStep(step)
+	return r.MetricsCacheHandler.DequeueStep(step)
 }
 
 func eventReason(currentReplicas, desiredReplicas int) string {
