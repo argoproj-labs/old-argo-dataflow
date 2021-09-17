@@ -9,7 +9,7 @@ metadata:
 spec:
   steps:
   - dedupe: {}
-    name: name
+    name: main
     sinks:
     - kafka:
         topic: output-topic
