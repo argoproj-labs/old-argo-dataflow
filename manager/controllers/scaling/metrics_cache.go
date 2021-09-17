@@ -132,7 +132,7 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) {
 			if l == 0 {
 				return 20000
 			}
-			result := 20000 / m.Length()
+			result := 20000 / l
 			if result > 0 {
 				return result
 			}
