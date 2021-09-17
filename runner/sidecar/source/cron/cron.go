@@ -36,7 +36,7 @@ func New(ctx context.Context, sourceName, sourceURN string, x dfv1.Cron, process
 		defer span.Finish()
 		msg := []byte(time.Now().Format(x.Layout))
 		if err := process(
-			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String(), time.Now()),
+			dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: sourceURN, ID: uuid.New().String(), Time: time.Now()}),
 			msg,
 		); err != nil {
 			logger.Error(err, "failed to process message")

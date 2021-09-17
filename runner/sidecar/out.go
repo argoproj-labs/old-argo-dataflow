@@ -43,7 +43,7 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 			return
 		}
 		if err := sink(
-			dfv1.ContextWithMeta(ctx, fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:messages", pod, namespace, cluster), uuid.New().String(), time.Now()),
+			dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:messages", pod, namespace, cluster), ID: uuid.New().String(), Time: time.Now()}),
 			data,
 		); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
@@ -72,7 +72,7 @@ func connectOutFIFO(ctx context.Context, sink func(context.Context, []byte) erro
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
 				if err := sink(
-					dfv1.ContextWithMeta(ctx, fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:fifo", pod, namespace, cluster), uuid.New().String(), time.Now()),
+					dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:fifo", pod, namespace, cluster), ID: uuid.New().String(), Time: time.Now()}),
 					scanner.Bytes(),
 				); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)

@@ -39,7 +39,11 @@ func New(ctx context.Context, pipelineName, stepName, sourceName, sourceURN stri
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			return process(
-				dfv1.ContextWithMeta(ctx, sourceURN, key, time.Now()),
+				dfv1.ContextWithMeta(ctx, dfv1.Meta{
+					Source: sourceURN,
+					ID: key,
+					Time: time.Now(),
+				}),
 				[]byte(sharedutil.MustJSON(message{Path: path})),
 			)
 		},

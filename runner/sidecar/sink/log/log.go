@@ -28,10 +28,10 @@ func (s logSink) Sink(ctx context.Context, msg []byte) error {
 	if s.truncate != nil && len(text) > int(*s.truncate) {
 		text = text[0:*s.truncate]
 	}
-	source, id, _, err := dfv1.MetaFromContext(ctx)
+	m, err := dfv1.MetaFromContext(ctx)
 	if err != nil {
 		return err
 	}
-	logger.Info(text, "type", "log", "source", source, "id", id)
+	logger.Info(text, "type", "log", "source", m.Source, "id", m.ID)
 	return nil
 }

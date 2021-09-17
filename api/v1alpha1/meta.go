@@ -23,54 +23,54 @@ var (
 	MetaTime = "dataflow-time"
 )
 
-func ContextWithMeta(ctx context.Context, source, id string, time time.Time) context.Context {
-	return context.WithValue(
-		context.WithValue(
-			context.WithValue(
-				ctx,
-				MetaSource,
-				source,
-			),
-			MetaID,
-			id,
-		),
-		MetaTime,
-		time,
-	)
+type Meta struct {
+	Source string
+	ID     string
+	Time   time.Time
 }
 
-func MetaFromContext(ctx context.Context) (source, id string, t time.Time, err error) {
+func ContextWithMeta(ctx context.Context, m Meta) context.Context {
+	ctx = context.WithValue(ctx, MetaID, m.ID)
+	ctx = context.WithValue(ctx, MetaTime, m.Time)
+	ctx = context.WithValue(ctx, MetaSource, m.Source)
+	return ctx
+}
+
+func MetaFromContext(ctx context.Context) (Meta, error) {
 	source, ok := ctx.Value(MetaSource).(string)
 	if !ok {
-		return "", "", time.Time{}, fmt.Errorf("failed to get source from context")
+		return Meta{}, fmt.Errorf("failed to get source from context")
 	}
-	id, ok = ctx.Value(MetaID).(string)
+	id, ok := ctx.Value(MetaID).(string)
 	if !ok {
-		return "", "", time.Time{}, fmt.Errorf("failed to get id from context")
+		return Meta{}, fmt.Errorf("failed to get id from context")
 	}
-	t, ok = ctx.Value(MetaTime).(time.Time)
+	t, ok := ctx.Value(MetaTime).(time.Time)
 	if !ok {
-		return "", "", time.Time{}, fmt.Errorf("failed to get time from context")
+		return Meta{}, fmt.Errorf("failed to get time from context")
 	}
-	return source, id, t, nil
+	return Meta{Source: source, ID: id, Time: t}, nil
 }
 
 func MetaInject(ctx context.Context, h http.Header) error {
-	source, id, t, err := MetaFromContext(ctx)
+	meta, err := MetaFromContext(ctx)
 	if err != nil {
 		return err
 	}
-	h.Add(MetaSource, source)
-	h.Add(MetaID, id)
-	h.Add(MetaTime, t.Format(time.RFC3339))
+	h.Add(MetaSource, meta.Source)
+	h.Add(MetaID, meta.ID)
+	h.Add(MetaTime, meta.Time.Format(time.RFC3339))
 	return nil
 }
 
 func MetaExtract(ctx context.Context, h http.Header) context.Context {
 	t, _ := time.Parse(time.RFC3339, h.Get(MetaTime))
-	return ContextWithMeta(ctx,
-		h.Get(MetaSource),
-		h.Get(MetaID),
-		t,
+	return ContextWithMeta(
+		ctx,
+		Meta{
+			Source: h.Get(MetaSource),
+			ID:     h.Get(MetaID),
+			Time:   t,
+		},
 	)
 }

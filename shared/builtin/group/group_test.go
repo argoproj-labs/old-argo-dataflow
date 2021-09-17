@@ -3,18 +3,16 @@ package group
 import (
 	"context"
 	"encoding/json"
-	"os"
-	"testing"
-	"time"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"testing"
 )
 
 func TestNew(t *testing.T) {
 	tmp, err := os.MkdirTemp("/tmp", "test")
 	assert.NoError(t, err)
-	ctx := dfv1.ContextWithMeta(context.Background(), "my-source", "my-id", time.Time{})
+	ctx := dfv1.ContextWithMeta(context.Background(), dfv1.Meta{Source: "my-source", ID: "my-id"})
 	p, err := New(tmp, `"1"`, `string(msg) == "end"`, dfv1.GroupFormatJSONStringArray)
 	assert.NoError(t, err)
 	resp, err := p(ctx, []byte("1"))

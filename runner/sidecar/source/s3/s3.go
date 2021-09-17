@@ -114,7 +114,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 				}
 			}()
 			return process(
-				dfv1.ContextWithMeta(ctx, sourceURN, key, *output.LastModified),
+				dfv1.ContextWithMeta(ctx, dfv1.Meta{
+					Source: sourceURN,
+					ID: key,
+					Time: *output.LastModified,
+				}),
 				[]byte(sharedutil.MustJSON(message{Key: key, Path: path})),
 			)
 		},
