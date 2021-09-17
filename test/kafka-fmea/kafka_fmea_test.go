@@ -44,7 +44,7 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("kafka-main-0")
 
-	ExpectKafkaTopicCount(sinkTopic, n, n+CommitN*2, 2*time.Minute)
+	ExpectKafkaTopicCount(sinkTopic, n, n, 2*time.Minute)
 	defer StartPortForward("kafka-main-0")()
 	WaitForNoErrors()
 }
@@ -117,5 +117,5 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
-	ExpectKafkaTopicCount(sinkTopic, n, n+CommitN*2, time.Minute)
+	ExpectKafkaTopicCount(sinkTopic, n, n, time.Minute)
 }
