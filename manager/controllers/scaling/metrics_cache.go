@@ -128,6 +128,10 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) {
 			assign()
 		}
 		time.Sleep(time.Millisecond * time.Duration(func() int {
+			l := m.Length()
+			if l == 0 {
+				return 20000
+			}
 			result := 20000 / m.Length()
 			if result > 0 {
 				return result

@@ -73,7 +73,7 @@ func WaitForPod(opts ...interface{}) {
 		}
 	}
 	log.Printf("waiting for pod %q %q\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f))
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	w, err := podInterface.Watch(ctx, listOptions)
 	if err != nil {
