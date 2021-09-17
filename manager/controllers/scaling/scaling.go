@@ -37,13 +37,20 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 		return 0, fmt.Errorf("failed to evaluate %q: %w", scale.PeekDelay, err)
 	}
 	desiredReplicas := currentReplicas
-	pending := int(step.Status.SourceStatuses.GetPending())
-	pendingDelta := pending - int(step.Status.SourceStatuses.GetLastPending())
+	pending, ok := GetPending(step)
+	if !ok { // Haven't got pending data
+		return 1, nil
+	}
+	lastPending, ok := GetLastPending(step)
+	if !ok { // Haven't got last-pending data
+		return currentReplicas, nil
+	}
+	pendingDelta := pending - lastPending
 	if scale.DesiredReplicas != "" {
 		r, err := expr.Eval(scale.DesiredReplicas, map[string]interface{}{
 			"currentReplicas": currentReplicas,
-			"pending":         pending,
-			"pendingDelta":    pendingDelta,
+			"pending":         int(pending),
+			"pendingDelta":    int(pendingDelta),
 			"minmax":          minmax,
 			"limit":           limit(currentReplicas),
 		})

@@ -31,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
@@ -92,6 +93,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			},
 			Spec: step,
 		}
+		controllerutil.AddFinalizer(obj, stepFinalizer)
 		if err := r.Client.Create(ctx, obj); err != nil {
 			if apierr.IsAlreadyExists(err) {
 				old := &dfv1.Step{}

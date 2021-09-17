@@ -210,8 +210,8 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	}
 }
 
-func (in Step) GetHeadlessServiceName(pipelineName string) string {
-	return "step-" + pipelineName + "-" + in.Spec.Name
+func (in Step) GetHeadlessServiceName() string {
+	return "step-" + in.Name
 }
 
 func (in Step) GetServiceObj(serviceName, pipelineName string, isHeadless bool) *corev1.Service {
