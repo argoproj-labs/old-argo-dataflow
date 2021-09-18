@@ -35,7 +35,6 @@ var (
 	ready               = false // we are ready to serve HTTP requests, also updates pod status condition
 	kubernetesInterface kubernetes.Interface
 	secretInterface     corev1.SecretInterface
-	prePatchHooks       []func(ctx context.Context) error // hooks to run before patching
 	replica             int
 	step                dfv1.Step // this is updated on start, and then periodically as we update the status
 	stepName            string
