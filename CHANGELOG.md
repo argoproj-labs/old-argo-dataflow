@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.107 (2021-09-17)
+
+ * [657062a](https://github.com/argoproj-labs/argo-dataflow/commit/657062ae24e5b578c8c1846becd7523756050b35) fix: short-term fix for pending metric not being updated (#346)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.106 (2021-09-17)
 
  * [06bdf8d](https://github.com/argoproj-labs/argo-dataflow/commit/06bdf8d5ba00e8ed02ff060ea0f70372f8c8f29c) fix: run only one Kafka offset committer per step (#343)
