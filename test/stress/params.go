@@ -22,14 +22,14 @@ var Params = struct {
 	ResourceMemory resource.Quantity
 	ResourceCPU    resource.Quantity
 }{
-	N:           sharedutil.GetEnvInt("N", 10000),
-	Replicas:    uint32(sharedutil.GetEnvInt("REPLICAS", 1)),
-	Timeout:     sharedutil.GetEnvDuration("TIMEOUT", 3*time.Minute),
-	Async:       os.Getenv("ASYNC") == "true",
-	MessageSize: sharedutil.GetEnvInt("MESSAGE_SIZE", 0),
-	Workers:     uint32(sharedutil.GetEnvInt("WORKERS", 2)),
+	N:              sharedutil.GetEnvInt("N", 10000),
+	Replicas:       uint32(sharedutil.GetEnvInt("REPLICAS", 1)),
+	Timeout:        sharedutil.GetEnvDuration("TIMEOUT", 3*time.Minute),
+	Async:          os.Getenv("ASYNC") == "true",
+	MessageSize:    sharedutil.GetEnvInt("MESSAGE_SIZE", 0),
+	Workers:        uint32(sharedutil.GetEnvInt("WORKERS", 2)),
 	ResourceMemory: resource.MustParse(getEnvString("REQUEST_MEM", "256mi")),
-	ResourceCPU: resource.MustParse(getEnvString("REQUEST_CPU", "100m")),
+	ResourceCPU:    resource.MustParse(getEnvString("REQUEST_CPU", "100m")),
 }
 
 func getEnvString(key, def string) string {

@@ -31,13 +31,13 @@ func TestKafkaSourceStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceCPU: params.ResourceCPU,
+							v1.ResourceCPU:    Params.ResourceCPU,
 							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
 				},
 				Replicas: Params.Replicas,
-				Sources:  []Source{{Kafka: &KafkaSource{ StartOffset: "First", Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
+				Sources:  []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
@@ -71,7 +71,7 @@ func TestKafkaSinkStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceCPU: params.ResourceCPU,
+							v1.ResourceCPU:    Params.ResourceCPU,
 							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
