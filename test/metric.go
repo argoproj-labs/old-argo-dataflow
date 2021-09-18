@@ -14,8 +14,8 @@ import (
 	"github.com/prometheus/common/expfmt"
 )
 
-func WaitForNothingPending() {
-	ExpectMetric("pending", Eq(0))
+func WaitForPending() {
+	ExpectMetric("pending", Gt(0))
 }
 
 func WaitForTotalSourceMessages(v int) {
