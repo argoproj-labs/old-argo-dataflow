@@ -24,9 +24,12 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
+	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
+	github.com/nats-io/nats-server/v2 v2.5.0 // indirect
 	github.com/nats-io/nats-streaming-server v0.21.1
-	github.com/nats-io/nats.go v1.11.0
+	github.com/nats-io/nats.go v1.12.1
 	github.com/nats-io/stan.go v0.8.3
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
@@ -39,6 +42,9 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
+	golang.org/x/crypto v0.0.0-20210915214749-c084706c2272 // indirect
+	golang.org/x/sys v0.0.0-20210917161153-d61c044b1678 // indirect
+	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	k8s.io/api v0.20.4
 	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v0.20.4
