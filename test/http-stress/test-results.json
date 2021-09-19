@@ -5,7 +5,7 @@
   "TestHTTPSinkStress/N=50000.tps": 1000,
   "TestHTTPSinkStress/messageSize=1000.tps": 450,
   "TestHTTPSinkStress/replicas=2.tps": 1150,
-  "TestHTTPSourceStress/.tps": 1450,
+  "TestHTTPSourceStress/.tps": 1150,
   "TestHTTPSourceStress/N=10,messageSize=100.tps": 0,
   "TestHTTPSourceStress/N=10,messageSize=1000.tps": 1050,
   "TestHTTPSourceStress/N=100000.tps": 1000,
