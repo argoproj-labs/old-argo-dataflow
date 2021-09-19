@@ -29,5 +29,12 @@ var Params = struct {
 }
 
 func init() {
-	log.Printf("replicas=%d,n=%d,async=%v,messageSize=%d\n", Params.Replicas, Params.N, Params.Async, Params.MessageSize)
+	log.Printf("n=%d,replicas=%d,timeout=%s,async=%v,messageSize=%d,resourceMemory%s\n",
+		Params.N,
+		Params.Replicas,
+		Params.Timeout.String(),
+		Params.Async,
+		Params.MessageSize,
+		Params.ResourceMemory.String(),
+	)
 }

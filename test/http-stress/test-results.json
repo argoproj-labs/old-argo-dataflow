@@ -1,15 +1,16 @@
 {
-  "TestHTTPSinkStress/.tps": 950,
+  "TestHTTPSinkStress/.tps": 1100,
   "TestHTTPSinkStress/N=10,messageSize=100.tps": 0,
   "TestHTTPSinkStress/N=10,messageSize=1000.tps": 500,
+  "TestHTTPSinkStress/N=50000.tps": 1000,
   "TestHTTPSinkStress/messageSize=1000.tps": 450,
-  "TestHTTPSinkStress/replicas=2.tps": 650,
-  "TestHTTPSourceStress/.tps": 1300,
+  "TestHTTPSinkStress/replicas=2.tps": 1150,
+  "TestHTTPSourceStress/.tps": 1450,
   "TestHTTPSourceStress/N=10,messageSize=100.tps": 0,
   "TestHTTPSourceStress/N=10,messageSize=1000.tps": 1050,
   "TestHTTPSourceStress/N=100000.tps": 1000,
-  "TestHTTPSourceStress/N=50000.tps": 950,
+  "TestHTTPSourceStress/N=50000.tps": 1450,
   "TestHTTPSourceStress/messageSize=1000.tps": 550,
   "TestHTTPSourceStress/messageSize=1000000.tps": 600,
-  "TestHTTPSourceStress/replicas=2.tps": 950
+  "TestHTTPSourceStress/replicas=2.tps": 1500
 }
