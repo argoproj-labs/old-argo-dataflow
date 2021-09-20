@@ -70,7 +70,7 @@ func TestGetDesiredReplicas(t *testing.T) {
 
 func TestRequeueAfter(t *testing.T) {
 	t.Run("ScaledUp", func(t *testing.T) {
-		requeueAfter, err := RequeueAfter(dfv1.Step{}, 1, 0)
+		requeueAfter, err := RequeueAfter(dfv1.Step{})
 		assert.NoError(t, err)
 		assert.Equal(t, time.Duration(0), requeueAfter)
 	})
@@ -79,16 +79,16 @@ func TestRequeueAfter(t *testing.T) {
 			Spec: dfv1.StepSpec{
 				Scale: dfv1.Scale{ScalingDelay: `"4m"`},
 			},
-		}, 0, 1)
+		})
 		assert.NoError(t, err)
 		assert.Equal(t, time.Duration(0), requeueAfter)
 	})
 	t.Run("NoPeek", func(t *testing.T) {
 		requeueAfter, err := RequeueAfter(dfv1.Step{
 			Spec: dfv1.StepSpec{
-				Scale: dfv1.Scale{ScalingDelay: `"4m"`},
+				Scale: dfv1.Scale{ScalingDelay: `"4m"`, DesiredReplicas: `limit(pending / (10 * 60 * 1000), 0, 1, 1)`},
 			},
-		}, 0, 0)
+		})
 		assert.NoError(t, err)
 		assert.Equal(t, 4*time.Minute, requeueAfter)
 	})
