@@ -40,7 +40,7 @@ func PumpHTTP(_url, prefix string, n int, opts ...interface{}) {
 		}
 	}
 	log.Printf("sending %d messages sized %d prefixed %q via HTTP to %q\n", n, size, prefix, _url)
-	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=0&size=%d&authorization=%s", url.QueryEscape(_url), prefix, n, size, GetAuthorization())
+	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=0&size=%d&authorization=%s", url.QueryEscape(_url), prefix, n, size, url.QueryEscape(GetAuthorization()))
 }
 
 func PumpHTTPTolerantly(n int) {

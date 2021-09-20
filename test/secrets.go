@@ -21,9 +21,13 @@ func GetAuthorization() string {
 				if err != nil {
 					panic(err)
 				}
-				return string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", source.Name)])
+				data, ok := secret.Data[fmt.Sprintf("sources.%s.http.authorization", source.Name)]
+				if !ok {
+					panic(fmt.Errorf("source %q not found", source.Name))
+				}
+				return string(data)
 			}
 		}
 	}
-	panic("not HTTP source")
+	panic(fmt.Errorf("not HTTP source"))
 }
