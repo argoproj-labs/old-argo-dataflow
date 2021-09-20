@@ -10,10 +10,9 @@ import (
 
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	httpsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/http"
-	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/go-logr/logr"
-
 	"k8s.io/apimachinery/pkg/util/runtime"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/workqueue"
 )
 
@@ -43,13 +42,15 @@ type NewReq struct {
 	ListItems    func() ([]interface{}, error)
 }
 
-func New(ctx context.Context, r NewReq) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) (source.HasPending, error) {
 	logger := r.Logger.WithValues("sourceName", r.SourceName)
 	// (a) in the future we could use a named queue to expose metrics
 	// (b) it would be good to limit the size of this work queue and have the `Add
 	jobs := workqueue.New()
-	authorization := sharedutil.RandString()
-	httpSource := httpsource.New(r.SourceURN, r.SourceName, authorization, r.Process)
+	authorization, httpSource, err := httpsource.New(ctx, secretInterface, r.PipelineName, r.StepName, r.SourceURN, r.SourceName, r.Process)
+	if err != nil {
+		return nil, err
+	}
 	if r.LeadReplica {
 		endpoint := "https://" + r.PipelineName + "-" + r.StepName + "/sources/" + r.SourceName
 		t := http.DefaultTransport.(*http.Transport).Clone()

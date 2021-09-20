@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
@@ -55,6 +57,10 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		Name:      "totalBytes",
 		Help:      "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
 	}, []string{"sourceName", "replica"})
+
+	if err := createSecret(ctx); err != nil {
+		return err
+	}
 
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
@@ -127,12 +133,11 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				sources[sourceName] = y
 			}
 		} else if x := s.HTTP; x != nil {
-			// we don't want to share this secret
-			secret, err := secretInterface.Get(ctx, step.Name, metav1.GetOptions{})
-			if err != nil {
-				return fmt.Errorf("failed to get secret %q: %w", step.Name, err)
+			if _, y, err := httpsource.New(ctx, secretInterface, pipelineName, stepName, sourceURN, sourceName, processWithRetry); err != nil {
+				return err
+			} else {
+				sources[sourceName] = y
 			}
-			sources[sourceName] = httpsource.New(sourceURN, sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
 		} else if x := s.S3; x != nil {
 			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
 				return err
@@ -146,7 +151,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				sources[sourceName] = y
 			}
 		} else if x := s.Volume; x != nil {
-			if y, err := volumeSource.New(ctx, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
+			if y, err := volumeSource.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
@@ -170,6 +175,24 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				}
 			}, updateInterval, 1.2, true)
 		}
+	}
+	return nil
+}
+
+func createSecret(ctx context.Context) error {
+	data := map[string]string{}
+	for _, s := range step.Spec.Sources {
+		data[fmt.Sprintf("sources.%s.http.authorization", s.Name)] = fmt.Sprintf("Bearer %s", sharedutil.RandString())
+	}
+	_, err := secretInterface.Create(ctx, &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            step.Name,
+			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)},
+		},
+		StringData: data,
+	}, metav1.CreateOptions{})
+	if sharedutil.IgnoreAlreadyExists(err) != nil {
+		return fmt.Errorf("failed to create secret %q: %w", step.Name, err)
 	}
 	return nil
 }

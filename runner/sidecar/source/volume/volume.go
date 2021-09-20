@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"github.com/opentracing/opentracing-go"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -21,10 +23,10 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, pipelineName, stepName, sourceName, sourceURN string, x dfv1.VolumeSource, process source.Process, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.VolumeSource, process source.Process, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
-	return loadbalanced.New(ctx, loadbalanced.NewReq{
+	return loadbalanced.New(ctx, secretInterface, loadbalanced.NewReq{
 		Logger:       logger,
 		PipelineName: pipelineName,
 		StepName:     stepName,
