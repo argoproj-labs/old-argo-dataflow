@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.108 (2021-09-19)
+
+ * [c09d10a](https://github.com/argoproj-labs/argo-dataflow/commit/c09d10a65545e2d639f3eb79907ab6735b8c88b0) fix: correct Unix Domain Socket env var name
+ * [ad85dff](https://github.com/argoproj-labs/argo-dataflow/commit/ad85dff00f69d8025c82c9bc3b1a5ca74bf19b51) fix: update NATS dep to fix Snyk failure (#349)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.107 (2021-09-17)
 
  * [657062a](https://github.com/argoproj-labs/argo-dataflow/commit/657062ae24e5b578c8c1846becd7523756050b35) fix: short-term fix for pending metric not being updated (#346)
