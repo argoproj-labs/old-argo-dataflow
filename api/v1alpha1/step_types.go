@@ -110,7 +110,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	}
 
 	for _, n := range []string{EnvDebug, EnvUnixDomainSocket} {
-		if value, ok := os.LookupEnv(EnvDebug); ok {
+		if value, ok := os.LookupEnv(n); ok {
 			envVars = append(envVars, corev1.EnvVar{Name: n, Value: value})
 		}
 	}

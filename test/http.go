@@ -17,7 +17,7 @@ func SendMessageViaHTTP(msg string) {
 	if err != nil {
 		panic(err)
 	}
-	req.Header.Set("Authorization", "Bearer my-bearer-token")
+	req.Header.Set("Authorization", GetAuthorization())
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		panic(err)
@@ -43,7 +43,7 @@ func PumpHTTP(_url, prefix string, n int, opts ...interface{}) {
 		}
 	}
 	log.Printf("sending %d messages sized %d prefixed %q via HTTP to %q\n", n, size, prefix, _url)
-	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=0&size=%d&workers=%d", url.QueryEscape(_url), prefix, n, size, workers)
+	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=0&size=%d&workers=%d&authorization=%s", url.QueryEscape(_url), prefix, n, size, workers, url.QueryEscape(GetAuthorization()))
 }
 
 func PumpHTTPTolerantly(n int) {
