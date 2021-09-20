@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.109 (2021-09-20)
+
+ * [32f3e63](https://github.com/argoproj-labs/argo-dataflow/commit/32f3e631a501c5906aefe93305b6fdf264940aab) fix: Correct typo that meant ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET was ignored.
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.108 (2021-09-19)
 
  * [c09d10a](https://github.com/argoproj-labs/argo-dataflow/commit/c09d10a65545e2d639f3eb79907ab6735b8c88b0) fix: correct Unix Domain Socket env var name
