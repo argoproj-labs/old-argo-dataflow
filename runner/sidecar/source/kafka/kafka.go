@@ -51,7 +51,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
-	h := handler{sourceName, sourceURN, process}
+	h := newHandler(sourceName, sourceURN, process)
 	go wait.JitterUntil(func() {
 		defer runtime.HandleCrash()
 		ctx := context.Background()

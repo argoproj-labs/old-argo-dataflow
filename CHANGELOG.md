@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.0.107 (2021-09-17)
+
+ * [657062a](https://github.com/argoproj-labs/argo-dataflow/commit/657062ae24e5b578c8c1846becd7523756050b35) fix: short-term fix for pending metric not being updated (#346)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.106 (2021-09-17)
+
+ * [06bdf8d](https://github.com/argoproj-labs/argo-dataflow/commit/06bdf8d5ba00e8ed02ff060ea0f70372f8c8f29c) fix: run only one Kafka offset committer per step (#343)
+ * [0733e32](https://github.com/argoproj-labs/argo-dataflow/commit/0733e3224d31a6f294a8f88381383e5dbfea9f1a) feat: update `dedupe` to use `NewCounter` rather than `NewCounterFunc` (#342)
+ * [0764aa1](https://github.com/argoproj-labs/argo-dataflow/commit/0764aa134a60365f0cb4c13d3b16736631c8e117) feat: scale based on metrics (#337)
+ * [489ded6](https://github.com/argoproj-labs/argo-dataflow/commit/489ded6fcca010368594c44f192d9963b2079d1b) feat: Add dedupe to Python DSL (#341)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
+## v0.0.105 (2021-09-17)
+
+ * [cc7706d](https://github.com/argoproj-labs/argo-dataflow/commit/cc7706d99ca28933f51bd8ba44b9efad12f4e6f3) fix: fix logging an signal handling (#339)
+ * [ae8ad3f](https://github.com/argoproj-labs/argo-dataflow/commit/ae8ad3ff68ce33ed0077034aad403c77832c42a8) feat: make meta just plain string
+ * [d2bf012](https://github.com/argoproj-labs/argo-dataflow/commit/d2bf01250d9638077d320a6644b1d0c43eecf120) feat: Run Kafka offset commit loop every 1s, 2x faster, more robust.
+ * [13d5b50](https://github.com/argoproj-labs/argo-dataflow/commit/13d5b500280edbc5e8712cce76a013ef062f6010) fix: golang1-16 runtimes
+ * [84bf124](https://github.com/argoproj-labs/argo-dataflow/commit/84bf1240fdf9096531785606ab9255caa3386207) feat: add ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET config (#335)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.104 (2021-09-16)
 
  * [f50e8a7](https://github.com/argoproj-labs/argo-dataflow/commit/f50e8a730b63f529e9cb833195ce0bf9109c0bba) feat: add ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET config

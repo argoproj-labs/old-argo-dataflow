@@ -127,10 +127,11 @@ func waitReady(ctx context.Context) error {
 		case <-ctx.Done():
 			return fmt.Errorf("failed to wait for ready: %w", ctx.Err())
 		default:
-			if _, err := os.Stat(ipcSockPath); os.Getenv(dfv1.EnvDebug) != "false" && err == nil {
+			if _, err := os.Stat(ipcSockPath); os.Getenv(dfv1.EnvUnixDomainSocket) != "false" && err == nil {
 				logger.Info("switching to Unix socket", "path", ipcSockPath)
+				dialer := &net.Dialer{}
 				httpTransport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-					return (&net.Dialer{}).DialContext(ctx, "unix", ipcSockPath)
+					return dialer.DialContext(ctx, "unix", ipcSockPath)
 				}
 			}
 			logger.Info("waiting for HTTP in interface to be ready")

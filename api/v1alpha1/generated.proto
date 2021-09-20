@@ -652,14 +652,6 @@ message Source {
   optional Backoff retry = 7;
 }
 
-message SourceStatus {
-  // DEPRECATED: This is likely to be removed in future versions.
-  optional uint64 pending = 3;
-
-  // DEPRECATED: This is likely to be removed in future versions.
-  optional uint64 lastPending = 5;
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
@@ -755,19 +747,15 @@ message StepSpec {
 message StepStatus {
   optional string phase = 1;
 
-  optional string reason = 8;
+  optional string reason = 6;
 
   optional string message = 2;
 
-  optional uint32 replicas = 5;
+  optional uint32 replicas = 3;
 
-  optional string selector = 7;
+  optional string selector = 5;
 
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastScaledAt = 6;
-
-  map<string, SourceStatus> sourceStatuses = 3;
-
-  map<string, SourceStatus> sinkStatuses = 4;
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time lastScaledAt = 4;
 }
 
 message Storage {

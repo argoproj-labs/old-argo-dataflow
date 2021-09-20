@@ -40,5 +40,14 @@ func getEnvString(key, def string) string {
 }
 
 func init() {
-	log.Printf("replicas=%d,n=%d,async=%v,messageSize=%d, workers=%d\n", Params.Replicas, Params.N, Params.Async, Params.MessageSize, Params.Workers)
+	log.Printf("n=%d,replicas=%d,timeout=%s,async=%v,workers=%d,messageSize=%d,resourceMemory=%s,resourceCPU=%s\n",
+		Params.N,
+		Params.Replicas,
+		Params.Timeout.String(),
+		Params.Async,
+		Params.MessageSize,
+		Params.Workers,
+		Params.ResourceMemory.String(),
+		Params.ResourceCPU.String(),
+	)
 }

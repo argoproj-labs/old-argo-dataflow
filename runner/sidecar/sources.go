@@ -19,6 +19,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func connectSources(ctx context.Context, process func(context.Context, []byte) error) error {
@@ -158,18 +159,16 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			return sources[sourceName].Close()
 		})
 		if x, ok := sources[sourceName].(source.HasPending); ok && leadReplica() {
-			logger.Info("adding pre-patch hook", "source", sourceName)
-			prePatchHooks = append(prePatchHooks, func(ctx context.Context) error {
+			logger.Info("starting pending loop", "source", sourceName, "updateInterval", updateInterval.String())
+			go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 				logger.Info("getting pending", "source", sourceName)
 				if pending, err := x.GetPending(ctx); err != nil {
-					return err
+					logger.Error(err, "failed to get pending", "source", sourceName)
 				} else {
 					logger.Info("got pending", "source", sourceName, "pending", pending)
 					pendingGauge.WithLabelValues(sourceName).Set(float64(pending))
-					withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, pending) })
 				}
-				return nil
-			})
+			}, updateInterval, 1.2, true)
 		}
 	}
 	return nil

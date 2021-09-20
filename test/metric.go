@@ -10,12 +10,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/prometheus/client_model/go"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 )
 
-func WaitForNothingPending() {
-	ExpectMetric("pending", Eq(0))
+func WaitForPending() {
+	ExpectMetric("pending", Gt(0))
 }
 
 func WaitForTotalSourceMessages(v int) {
@@ -56,7 +56,6 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 	for {
 		select {
 		case <-ctx.Done():
-			println(getMetrics(ctx, port))
 			panic(fmt.Errorf("failed to wait for metric named %q to be %s: %w", name, matcher, ctx.Err()))
 		default:
 			found := false

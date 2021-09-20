@@ -98,6 +98,7 @@ func TestDBSource(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
 	WaitForPod()
 
 	defer StartPortForward("db-source-insert-0")()

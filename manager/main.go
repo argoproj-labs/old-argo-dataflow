@@ -27,6 +27,7 @@ import (
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers"
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -83,21 +84,27 @@ func main() {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
 
+	metricsCacheHandler := scaling.NewMetricsCacheHandler(mgr.GetClient(), 5)
+
 	if err = (&controllers.StepReconciler{
-		Client:           mgr.GetClient(),
-		Log:              ctrl.Log.WithName("controllers").WithName("Step"),
-		Scheme:           mgr.GetScheme(),
-		Recorder:         mgr.GetEventRecorderFor("step-reconciler"),
-		ContainerKiller:  containerKiller,
-		DynamicInterface: dynamicInterface,
-		Cluster:          os.Getenv(dfv1.EnvCluster),
+		Client:              mgr.GetClient(),
+		Log:                 ctrl.Log.WithName("controllers").WithName("Step"),
+		Scheme:              mgr.GetScheme(),
+		Recorder:            mgr.GetEventRecorderFor("step-reconciler"),
+		ContainerKiller:     containerKiller,
+		DynamicInterface:    dynamicInterface,
+		MetricsCacheHandler: metricsCacheHandler,
+		Cluster:             os.Getenv(dfv1.EnvCluster),
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
 	// +kubebuilder:scaffold:builder
 
+	ctx := ctrl.SetupSignalHandler()
+	go metricsCacheHandler.Start(ctx)
+
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		panic(fmt.Errorf("problem running manager: %w", err))
 	}
 }
