@@ -24,6 +24,10 @@ func init() {
 	httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
+		authorization := r.URL.Query().Get("authorization")
+		if authorization == "" {
+			authorization = "Bearer my-bearer-token"
+		}
 		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
 		if err != nil {
 			w.WriteHeader(400)
@@ -47,7 +51,7 @@ func init() {
 				if err != nil {
 					results <- err
 				} else {
-					req.Header.Set("Authorization", "Bearer my-bearer-token")
+					req.Header.Set("Authorization", authorization)
 					if resp, err := httpClient.Do(req); err != nil {
 						results <- err
 					} else {

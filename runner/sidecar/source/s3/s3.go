@@ -78,7 +78,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 
 	client := s3.New(options)
 
-	return loadbalanced.New(ctx, loadbalanced.NewReq{
+	return loadbalanced.New(ctx, secretInterface, loadbalanced.NewReq{
 		Logger:       logger,
 		PipelineName: pipelineName,
 		StepName:     stepName,
