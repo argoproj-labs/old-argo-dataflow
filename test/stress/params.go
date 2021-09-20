@@ -28,7 +28,7 @@ var Params = struct {
 	Async:          os.Getenv("ASYNC") == "true",
 	MessageSize:    sharedutil.GetEnvInt("MESSAGE_SIZE", 0),
 	Workers:        uint32(sharedutil.GetEnvInt("WORKERS", 2)),
-	ResourceMemory: resource.MustParse(getEnvString("REQUEST_MEM", "256mi")),
+	ResourceMemory: resource.MustParse(getEnvString("REQUEST_MEM", "256Mi")),
 	ResourceCPU:    resource.MustParse(getEnvString("REQUEST_CPU", "100m")),
 }
 
