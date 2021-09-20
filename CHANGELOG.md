@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.111 (2021-09-20)
+
+ * [a618b38](https://github.com/argoproj-labs/argo-dataflow/commit/a618b38ab6d628cc87c80f365ce3f1cd7a717aab) fix: Partial revert of 76e1d95 (#360)
+ * [2176e72](https://github.com/argoproj-labs/argo-dataflow/commit/2176e72210a724f2f52c90324c4c0f2c553b2606) fix: more reasonable desired replicas calculation (#359)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.110 (2021-09-20)
 
  * [6cd0639](https://github.com/argoproj-labs/argo-dataflow/commit/6cd06390f2bf0c82b123aa7e982a0d31f0958641) fix: requeue interval change (#357)
