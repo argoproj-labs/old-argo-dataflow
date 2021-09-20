@@ -39,7 +39,11 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 	desiredReplicas := currentReplicas
 	pending, ok := GetPending(step)
 	if !ok { // Haven't got pending data
-		return 1, nil
+		if currentReplicas > 0 {
+			return currentReplicas, nil
+		} else {
+			return 1, nil
+		}
 	}
 	lastPending, ok := GetLastPending(step)
 	if !ok { // Haven't got last-pending data
