@@ -29,6 +29,7 @@ func TestHTTPSourceStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
+							v1.ResourceCPU:    Params.ResourceCPU,
 							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
@@ -38,6 +39,7 @@ func TestHTTPSourceStress(t *testing.T) {
 				Sinks:    []Sink{DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
+						v1.ResourceCPU:    Params.ResourceCPU,
 						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}},
@@ -71,6 +73,7 @@ func TestHTTPSinkStress(t *testing.T) {
 				Name: "main",
 				Cat: &Cat{AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
+						v1.ResourceCPU:    Params.ResourceCPU,
 						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}}},
@@ -79,6 +82,7 @@ func TestHTTPSinkStress(t *testing.T) {
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}, DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
+						v1.ResourceCPU:    Params.ResourceCPU,
 						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}},
@@ -98,6 +102,6 @@ func TestHTTPSinkStress(t *testing.T) {
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 
-	go PumpHTTP("https://http-main/sources/default", prefix, n, Params.MessageSize)
+	go PumpHTTP("https://http-main/sources/default", prefix, n, Params.MessageSize, Params.Workers)
 	WaitForTotalSunkMessages(n, Params.Timeout)
 }

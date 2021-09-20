@@ -31,12 +31,13 @@ func TestKafkaSourceStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
+							v1.ResourceCPU:    Params.ResourceCPU,
 							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
 				},
 				Replicas: Params.Replicas,
-				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
+				Sources:  []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
@@ -52,7 +53,6 @@ func TestKafkaSourceStress(t *testing.T) {
 	prefix := "kafka-source-stress"
 
 	defer StartTPSReporter(t, "main", prefix, n)()
-
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
 	WaitForPending()
 	WaitForTotalSunkMessages(n, Params.Timeout)
@@ -72,6 +72,7 @@ func TestKafkaSinkStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
+							v1.ResourceCPU:    Params.ResourceCPU,
 							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
