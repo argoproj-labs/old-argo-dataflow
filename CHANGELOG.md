@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.110 (2021-09-20)
+
+ * [6cd0639](https://github.com/argoproj-labs/argo-dataflow/commit/6cd06390f2bf0c82b123aa7e982a0d31f0958641) fix: requeue interval change (#357)
+ * [124d6cb](https://github.com/argoproj-labs/argo-dataflow/commit/124d6cb13f722994ad3c0466c3ddac2d11224446) fix: Auto create HTTP auth secret. Fixes #319 (#353)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.109 (2021-09-20)
 
  * [32f3e63](https://github.com/argoproj-labs/argo-dataflow/commit/32f3e631a501c5906aefe93305b6fdf264940aab) fix: Correct typo that meant ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET was ignored.
