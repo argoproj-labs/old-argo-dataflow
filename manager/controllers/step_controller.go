@@ -285,7 +285,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	requeueAfter, err := scaling.RequeueAfter(*step, currentReplicas, desiredReplicas)
+	requeueAfter, err := scaling.RequeueAfter(*step)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

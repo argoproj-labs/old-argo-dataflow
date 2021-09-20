@@ -86,16 +86,16 @@ func evalAsDuration(input string, env map[string]interface{}) (time.Duration, er
 	}
 }
 
-func RequeueAfter(step dfv1.Step, currentReplicas, desiredReplicas int) (time.Duration, error) {
-	if currentReplicas <= 0 && desiredReplicas == 0 {
-		scale := step.Spec.Scale
-		if scalingDelay, err := evalAsDuration(scale.ScalingDelay, map[string]interface{}{
-			"defaultScalingDelay": defaultScalingDelay,
-		}); err != nil {
-			return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
-		} else {
-			return scalingDelay, nil
-		}
+func RequeueAfter(step dfv1.Step) (time.Duration, error) {
+	scale := step.Spec.Scale
+	if scale.DesiredReplicas == "" {
+		return 0, nil
 	}
-	return 0, nil
+	if scalingDelay, err := evalAsDuration(scale.ScalingDelay, map[string]interface{}{
+		"defaultScalingDelay": defaultScalingDelay,
+	}); err != nil {
+		return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
+	} else {
+		return scalingDelay, nil
+	}
 }
