@@ -376,8 +376,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 This example has two sinks.
 
-* When using two sinks, you should put the most reliable first in the list, if the message cannot be delivered,
-  then subsequent sinks will get the message.
+* When using two sinks, you should put the most reliable first in the list, if the message cannot be delivered, then subsequent sinks will not get the message.
 
 
 ```
