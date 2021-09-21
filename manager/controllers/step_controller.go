@@ -129,6 +129,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	desiredReplicas := int(step.Spec.Replicas)
 
+	oldStatus := step.Status.DeepCopy()
 	if currentReplicas != desiredReplicas || step.Status.Selector == "" {
 		log.Info("replicas changed", "currentReplicas", currentReplicas, "desiredReplicas", desiredReplicas)
 		step.Status.Replicas = uint32(desiredReplicas)
@@ -138,7 +139,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
 	hash := util.MustHash(hash{runnerImage, step.Spec.WithOutReplicas()}) // we must remove data (e.g. replicas) which does not change the pod, otherwise it would cause the pod to be re-created all the time
-	oldStatus := step.Status.DeepCopy()
 	step.Status.Phase, step.Status.Reason, step.Status.Message = dfv1.StepUnknown, "", ""
 	step.Status.Selector = selector.String()
 
