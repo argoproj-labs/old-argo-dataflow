@@ -26,8 +26,8 @@ to 1 so it can "peek" the the message queue. The number of pending messages is m
 of replicas re-calculated.""")
      .step(
         (kafka('input-topic')
-         .cat('main')
+         .cat()
          .scale('limit(currentReplicas + pendingDelta / (60 * 250) + pending / (10 * 60 * 250), 0, 4, 2)', scalingDelay='"1m"', peekDelay='"20m"')
          .kafka('output-topic'))
     )
-     .save())
+        .save())

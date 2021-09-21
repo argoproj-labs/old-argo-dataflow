@@ -85,7 +85,8 @@ class PipelineBuilder:
         # https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/CustomObjectsApi.md
         api = kubernetes.client.CustomObjectsApi()
         try:
-            x = api.get_namespaced_custom_object(GROUP, VERSION, self._namespace, RESOURCE_PLURAL, self._name)
+            x = api.get_namespaced_custom_object(
+                GROUP, VERSION, self._namespace, RESOURCE_PLURAL, self._name)
             self._resourceVersion = x['metadata']['resourceVersion']
             api.replace_namespaced_custom_object(GROUP, VERSION, self._namespace, RESOURCE_PLURAL, self._name,
                                                  self.dump())
@@ -93,7 +94,8 @@ class PipelineBuilder:
         except kubernetes.client.rest.ApiException as e:
             if e.status == 404:
                 pass
-                api.create_namespaced_custom_object(GROUP, VERSION, self._namespace, RESOURCE_PLURAL, self.dump())
+                api.create_namespaced_custom_object(
+                    GROUP, VERSION, self._namespace, RESOURCE_PLURAL, self.dump())
                 print('created pipeline ' + self._namespace + '/' + self._name)
         return self
 
@@ -139,7 +141,7 @@ class LogSink(Sink):
 
 
 class HTTPSink(Sink):
-    def __init__(self, url, name=None, insecureSkipVerify=None, headers=[]):
+    def __init__(self, url, name=None, insecureSkipVerify=None, headers=None):
         super().__init__(name)
         self._insecureSkipVerify = insecureSkipVerify
         self._url = url
@@ -147,7 +149,9 @@ class HTTPSink(Sink):
 
     def dump(self):
         x = super().dump()
-        h = {'url': self._url, 'headers': self._headers}
+        h = {'url': self._url}
+        if self._headers:
+            h['headers'] = self._headers
         if self._insecureSkipVerify:
             h['insecureSkipVerify'] = self._insecureSkipVerify
         x['http'] = h
@@ -180,12 +184,12 @@ class STANSink(Sink):
 
 
 class Step:
-    def __init__(self, name, sources=[], volumes=[], terminator=False, sidecarResource=None):
-        self._name = name
-        self._sources = sources
-        self._sinks = []
+    def __init__(self, name, sources=None, sinks=None, volumes=None, terminator=False, sidecarResource=None):
+        self._name = name or 'main'
+        self._sources = sources or []
+        self._sinks = sinks or []
         self._scale = None
-        self._volumes = volumes
+        self._volumes = volumes or []
         self._terminator = terminator
         self._annotations = []
         self._sidecarResources = sidecarResource
@@ -194,8 +198,9 @@ class Step:
         self._sinks.append(LogSink(name=name))
         return self
 
-    def http(self, url, name=None, insecureSkipVerify=None, headers=[]):
-        self._sinks.append(HTTPSink(url, name=name, insecureSkipVerify=insecureSkipVerify, headers=headers))
+    def http(self, url, name=None, insecureSkipVerify=None, headers=None):
+        self._sinks.append(HTTPSink(
+            url, name=name, insecureSkipVerify=insecureSkipVerify, headers=headers))
         return self
 
     def kafka(self, subject, name=None, a_sync=False):
@@ -255,8 +260,8 @@ class Step:
 
 
 class CatStep(Step):
-    def __init__(self, name, sources):
-        super().__init__(name, sources=sources)
+    def __init__(self, name=None, sources=None, sinks=None):
+        super().__init__(name=name, sources=sources, sinks=sinks)
 
     def dump(self):
         x = super().dump()
@@ -265,13 +270,16 @@ class CatStep(Step):
 
 
 class ContainerStep(Step):
-    def __init__(self, name, image, args, fifo=False, volumes=[], volumeMounts=[], sources=[], env={}, resources={},
+    def __init__(self, name=None, image=None, args=None, fifo=False, volumes=None, volumeMounts=None, sources=None, sinks=None,
+                 env=None, resources=None,
                  terminator=False):
-        super().__init__(name, sources=sources, volumes=volumes, terminator=terminator)
+        super().__init__(name, sources=sources, sinks=sinks,
+                         volumes=volumes, terminator=terminator)
+        assert image
         self._image = image
-        self._args = args
+        self._args = args or []
         self._fifo = fifo
-        self._volumeMounts = volumeMounts
+        self._volumeMounts = volumeMounts or []
         self._env = env
         self._resources = resources
 
@@ -287,7 +295,8 @@ class ContainerStep(Step):
         if len(self._volumeMounts) > 0:
             c['volumeMounts'] = self._volumeMounts
         if self._env:
-            c['env'] = [{'name': x, 'value': self._env[x]} for k, x in enumerate(self._env)]
+            c['env'] = [{'name': x, 'value': self._env[x]}
+                        for k, x in enumerate(self._env)]
         if self._resources:
             c['resources'] = self._resources
         x['container'] = c
@@ -295,8 +304,8 @@ class ContainerStep(Step):
 
 
 class DedupeStep(Step):
-    def __init__(self, name, sources=[]):
-        super().__init__(name, sources=sources)
+    def __init__(self, name=None, sources=None, sinks=None):
+        super().__init__(name, sources=sources, sinks=sinks)
 
     def dump(self):
         x = super().dump()
@@ -305,8 +314,8 @@ class DedupeStep(Step):
 
 
 class ExpandStep(Step):
-    def __init__(self, name, sources=[]):
-        super().__init__(name, sources=sources)
+    def __init__(self, name=None, sources=None, sinks=None):
+        super().__init__(name, sources=sources, sinks=sinks)
 
     def dump(self):
         x = super().dump()
@@ -315,8 +324,9 @@ class ExpandStep(Step):
 
 
 class FilterStep(Step):
-    def __init__(self, name, expression, sources=[]):
-        super().__init__(name, sources=sources)
+    def __init__(self, name=None, expression=None, sources=None, sinks=None):
+        super().__init__(name, sources=sources, sinks=sinks)
+        assert expression
         self._expression = expression
 
     def dump(self):
@@ -328,11 +338,14 @@ class FilterStep(Step):
 
 
 class GitStep(Step):
-    def __init__(self, name, url, branch, path, image, sources=[], env=None, terminator=False, command=None):
-        super().__init__(name, sources=sources, terminator=terminator)
+    def __init__(self, name=None, url=None, branch=None, path=None, image=None, sources=None, sinks=None, env=None, terminator=False,
+                 command=None):
+        super().__init__(name, sources=sources, sinks=sinks, terminator=terminator)
+        assert url
+        assert image
         self._url = url
-        self._branch = branch
-        self._path = path
+        self._branch = branch or 'main'
+        self._path = path or '.'
         self._image = image
         self._env = env
         self._command = command
@@ -361,8 +374,11 @@ def storageVolumes(storage=None):
 
 
 class GroupStep(Step):
-    def __init__(self, name, key, format, endOfGroup, storage=None, sources=[]):
-        super().__init__(name, sources=sources, volumes=storageVolumes(storage))
+    def __init__(self, name=None, key=None, format=None, endOfGroup=None, storage=None, sources=None, sinks=None):
+        super().__init__(name, sources=sources, sinks=sinks, volumes=storageVolumes(storage))
+        assert key
+        assert format
+        assert endOfGroup
         self._key = key
         self._format = format
         self._endOfGroup = endOfGroup
@@ -384,8 +400,8 @@ class GroupStep(Step):
 
 
 class FlattenStep(Step):
-    def __init__(self, name, sources=[]):
-        super().__init__(name, sources=sources)
+    def __init__(self, name=None, sources=None, sinks=None):
+        super().__init__(name, sources=sources, sinks=sinks)
 
     def dump(self):
         x = super().dump()
@@ -394,8 +410,8 @@ class FlattenStep(Step):
 
 
 class CodeStep(Step):
-    def __init__(self, name, source=None, code=None, runtime=None, sources=[], terminator=False):
-        super().__init__(name, sources=sources, terminator=terminator)
+    def __init__(self, name=None, source=None, code=None, runtime=None, sources=None, sinks=None, terminator=False):
+        super().__init__(name, sources=sources, sinks=sinks, terminator=terminator)
         if source:
             self._source = inspect.getsource(source)
         else:
@@ -415,8 +431,9 @@ class CodeStep(Step):
 
 
 class MapStep(Step):
-    def __init__(self, name, expression, sources=[]):
-        super().__init__(name, sources=sources)
+    def __init__(self, name=None, expression=None, sources=None, sinks=None):
+        super().__init__(name, sources=sources, sinks=sinks)
+        assert expression
         self._expression = expression
 
     def dump(self):
@@ -440,83 +457,85 @@ class Source:
             x['retry'] = self._retry
         return x
 
-    def cat(self, name):
+    def cat(self, name=None):
         return CatStep(name, sources=[self])
 
-    def container(self, name, image, args=[], fifo=False, volumes=[], volumeMounts=[], env={}, resources={},
+    def container(self, name=None, image=None, args=None, fifo=False, volumes=None, volumeMounts=None, env=None, resources=None,
                   terminator=False):
         return ContainerStep(name, sources=[self], image=image, args=args, fifo=fifo, volumes=volumes,
                              volumeMounts=volumeMounts, env=env, resources=resources, terminator=terminator)
 
-    def dedupe(self, name):
+    def dedupe(self, name=None):
         return DedupeStep(name, sources=[self])
 
-    def expand(self, name):
+    def expand(self, name=None):
         return ExpandStep(name, sources=[self])
 
-    def filter(self, name, expression):
+    def filter(self, name=None, expression=None):
         return FilterStep(name, expression, sources=[self])
 
-    def git(self, name, url, branch, path, image, env=None, command=None):
+    def git(self, name=None, url=None, branch=None, path=None, image=None, env=None, command=None):
         return GitStep(name, url, branch, path, image, sources=[self], env=env, command=command)
 
-    def group(self, name, key, format, endOfGroup, storage):
+    def group(self, name=None, key=None, format=None, endOfGroup=None, storage=None):
         return GroupStep(name, key, format, endOfGroup, storage, sources=[self])
 
-    def flatten(self, name):
+    def flatten(self, name=None):
         return FlattenStep(name, sources=[self])
 
-    def code(self, name, source=None, code=None, runtime=None):
+    def code(self, name=None, source=None, code=None, runtime=None):
         return CodeStep(name, source=source, code=code, runtime=runtime, sources=[self])
 
-    def map(self, name, expression):
+    def map(self, name=None, expression=None):
         return MapStep(name, expression, sources=[self])
 
 
-def cat(name):
-    return CatStep(name, [])
+def cat(name=None):
+    return CatStep(name)
 
 
-def container(name, image, args, fifo=False, volumes=[], volumeMounts=[], env={}, resources={}, terminator=False):
-    return ContainerStep(name, sources=[], terminator=terminator, image=image, args=args, fifo=fifo, volumes=volumes,
+def container(name=None, image=None, args=None, fifo=False, volumes=None, volumeMounts=None, env=None, resources=None,
+              terminator=False):
+    return ContainerStep(name, terminator=terminator, image=image, args=args, fifo=fifo, volumes=volumes,
                          volumeMounts=volumeMounts, env=env, resources=resources)
 
 
-def dedupe(name):
+def dedupe(name=None):
     return DedupeStep(name)
 
 
-def expand(name):
+def expand(name=None):
     return ExpandStep(name)
 
 
-def filter(name, filter):
+def filter(name=None, filter=None):
     return FilterStep(name, filter)
 
 
-def git(name, url, branch, path, image, env=None, command=None):
+def git(name=None, url=None, branch=None, path=None, image=None, env=None, command=None):
     return GitStep(name, url, branch, path, image, env=env, command=command)
 
 
-def group(name, key, format, endOfGroup, storage):
+def group(name=None, key=None, format=None, endOfGroup=None, storage=None):
     return GroupStep(name, key, format, endOfGroup, storage)
 
 
-def flatten(name):
+def flatten(name=None):
     return FlattenStep(name)
 
 
-def handler(name, handler=None, code=None, runtime=None):
+def handler(name=None, handler=None, code=None, runtime=None):
     return CodeStep(name, handler, code, runtime)
 
 
-def map(name, map):
+def map(name=None, map=None):
     return MapStep(name, map)
 
 
 class CronSource(Source):
-    def __init__(self, schedule, layout, name=None, retry=None):
+    def __init__(self, schedule=None, layout=None, name=None, retry=None):
         super().__init__(name=name, retry=retry)
+        assert schedule
         self._schedule = schedule
         self._layout = layout
 
@@ -546,6 +565,7 @@ class HTTPSource(Source):
 class KafkaSource(Source):
     def __init__(self, topic, name=None, retry=None):
         super().__init__(name=name, retry=retry)
+        assert topic
         self._topic = topic
 
     def dump(self):
@@ -557,6 +577,7 @@ class KafkaSource(Source):
 class STANSource(Source):
     def __init__(self, subject, name=None, retry=None):
         super().__init__(name=name, retry=retry)
+        assert subject
         self._subject = subject
 
     def dump(self):
@@ -566,7 +587,7 @@ class STANSource(Source):
         return x
 
 
-def cron(schedule, layout=None, name=None, retry=None):
+def cron(schedule=None, layout=None, name=None, retry=None):
     return CronSource(schedule, layout=layout, name=name, retry=retry)
 
 
@@ -574,9 +595,9 @@ def http(name=None, retry=None, serviceName=None):
     return HTTPSource(name=name, serviceName=serviceName, retry=retry)
 
 
-def kafka(topic, name=None, retry=None):
+def kafka(topic=None, name=None, retry=None):
     return KafkaSource(topic, name=name, retry=retry)
 
 
-def stan(subject, name=None, retry=None):
+def stan(subject=None, name=None, retry=None):
     return STANSource(subject, name=name, retry=retry)

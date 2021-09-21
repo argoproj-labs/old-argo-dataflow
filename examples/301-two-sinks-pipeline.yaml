@@ -6,8 +6,8 @@ metadata:
       This example has two sinks.
 
       * When using two sinks, you should put the most reliable first in the list, if the message cannot be delivered,
-        then subsequent sinks will get the message.
-  creationTimestamp: null
+      then subsequent sinks will get the message.
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 301-two-sinks
 spec:
   steps:

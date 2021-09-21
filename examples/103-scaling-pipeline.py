@@ -12,7 +12,7 @@ kubectl scale step/scaling-main --replicas 3
 ```""")
      .step(
         (kafka('input-topic')
-         .cat('main')
+         .cat()
          .kafka('output-topic'))
     )
-     .save())
+        .save())

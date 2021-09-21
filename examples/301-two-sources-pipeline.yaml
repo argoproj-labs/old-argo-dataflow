@@ -4,7 +4,7 @@ metadata:
   annotations:
     dataflow.argoproj.io/description: |
       This example has two sources
-  creationTimestamp: null
+    dataflow.argoproj.io/owner: argoproj-labs
   name: 301-two-sources
 spec:
   steps:
@@ -15,8 +15,6 @@ spec:
     sources:
     - kafka:
         topic: input-topic
-      name: kafka
     - cron:
-        layout: "15:04:05"
+        layout: '15:04:05'
         schedule: '*/3 * * * * *'
-      name: cron

@@ -6,7 +6,7 @@ if __name__ == '__main__':
      .describe("""This is an example of built-in de-duplication step.""")
      .step(
         (kafka('input-topic')
-         .dedupe('main')
+         .dedupe()
          .kafka('output-topic'))
     )
-     .save())
+        .save())

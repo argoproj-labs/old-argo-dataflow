@@ -9,7 +9,8 @@ if __name__ == '__main__':
      .step(
         (kafka('input-topic')
          .container('read-pets',
-                    args=['sh', '-c', """cat /in/text | tee -a /var/run/argo-dataflow/out"""],
+                    args=[
+                        'sh', '-c', """cat /in/text | tee -a /var/run/argo-dataflow/out"""],
                     image='ubuntu:latest',
                     volumes=[{'name': 'in', 'configMap': {'name': 'pets'}}]
                     )
@@ -20,19 +21,19 @@ if __name__ == '__main__':
          .filter('filter-cats', 'string(msg) contains "cat"')
          .stan('cats'))
     )
-     .step(
+        .step(
         (stan('cats')
          .map("process-cats", 'json("Meow! " + object(msg).name)'))
-            .kafka('output-topic')
+        .kafka('output-topic')
     )
-     .step(
+        .step(
         (stan('pets')
          .filter('filter-dogs', 'string(msg) contains "dog"')
          .stan('dogs'))
     )
-     .step(
+        .step(
         (stan('dogs')
          .map("process-dogs", 'json("Woof! " + object(msg).name)'))
-            .kafka('output-topic')
+        .kafka('output-topic')
     )
-     .save())
+        .save())

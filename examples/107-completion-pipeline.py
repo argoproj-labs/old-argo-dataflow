@@ -14,8 +14,8 @@ For a pipeline to terminate one of two things must happen:
      .annotate('dataflow.argoproj.io/wait-for', 'Completed')
      .step(
         (container('main',
-                    args=['sh', '-c', 'exit 0'],
-                    image='golang:1.16'
-                    )
+                   args=['sh', '-c', 'exit 0'],
+                   image='golang:1.16'
+                   )
          ))
      .save())

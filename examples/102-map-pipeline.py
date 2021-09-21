@@ -12,7 +12,7 @@ They have a single variable, `msg`, which is a byte array.
 [Learn about expressions](../docs/EXPRESSIONS.md)""")
      .step(
         (kafka('input-topic')
-         .map('main', "bytes('hi ' + string(msg))")
+         .map(expression="bytes('hi ' + string(msg))")
          .kafka('output-topic'))
     )
-     .save())
+        .save())

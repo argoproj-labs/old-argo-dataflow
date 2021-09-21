@@ -12,7 +12,7 @@ if __name__ == '__main__':
      .annotate("dataflow.argoproj.io/test", "true")
      .step(
         (kafka('input-topic')
-         .cat('main')
+         .cat()
          .kafka('output-topic', a_sync=True)
          ))
      .save())
