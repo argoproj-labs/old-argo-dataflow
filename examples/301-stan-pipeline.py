@@ -10,7 +10,7 @@ if __name__ == '__main__':
      .annotate('dataflow.argoproj.io/test', 'false')
      .step(
         (stan('input-subject')
-         .cat('main')
+         .cat()
          .stan('output-subject')
          ))
      .save())

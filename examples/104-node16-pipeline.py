@@ -13,7 +13,7 @@ if __name__ == '__main__':
 [Learn about handlers](../docs/HANDLERS.md)""")
      .step(
         (kafka('input-topic')
-         .code('main', code="""module.exports = async function (messageBuf, context) {
+         .code(code="""module.exports = async function (messageBuf, context) {
   const msg = messageBuf.toString('utf8')
   return Buffer.from('hi ' + msg)
 }""", runtime='node16')

@@ -13,7 +13,7 @@ if __name__ == '__main__':
 [Learn about handlers](../docs/HANDLERS.md)""")
      .step(
         (kafka('input-topic')
-         .code('main', code="""import java.util.Map;
+         .code(code="""import java.util.Map;
 
 public class Handler {
     public static byte[] Handle(byte[] msg, Map<String,String> context) throws Exception {

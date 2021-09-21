@@ -24,6 +24,6 @@ This logs the message.
 """)
      .step(
         (cron('*/3 * * * * *', layout='15:04:05')
-         .cat('main')
+         .cat()
          .log())
     ).save())

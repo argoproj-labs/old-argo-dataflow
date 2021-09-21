@@ -15,7 +15,7 @@ messages between steps.
      .annotate("dataflow.argoproj.io/needs", "dataflow-103-http-main-source-default-secret.yaml")
      .step(
         (http(serviceName='http-main')
-         .cat('main')
+         .cat()
          .log()
          ))
      .step(

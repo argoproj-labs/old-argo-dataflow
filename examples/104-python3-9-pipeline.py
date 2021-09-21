@@ -13,7 +13,7 @@ if __name__ == '__main__':
 [Learn about handlers](../docs/HANDLERS.md)""")
      .step(
         (kafka('input-topic')
-         .code('main', handler)
+         .code(source=handler)
          .kafka('output-topic')
          ))
      .save())

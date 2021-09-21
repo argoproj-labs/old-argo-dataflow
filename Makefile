@@ -154,11 +154,15 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 $(GOPATH)/bin/gofumpt:
 	go install mvdan.cc/gofumpt@v0.1.1
 
-lint: $(GOPATH)/bin/gofumpt
+/usr/local/bin/autopep8:
+	pip3 install autopep8
+
+lint: $(GOPATH)/bin/gofumpt /usr/local/bin/autopep8
 	go mod tidy
 	# run gofumpt outside of golangci-lint because it seems to be unreliable inside it
 	gofumpt -l -w .
 	golangci-lint run --fix
+	autopep8 --in-place $(shell find . -type f -name '*.py')
 	kubectl apply --dry-run=client -f examples
 
 .PHONY: controller
