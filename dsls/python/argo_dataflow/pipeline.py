@@ -270,7 +270,8 @@ class CatStep(Step):
 
 
 class ContainerStep(Step):
-    def __init__(self, name=None, image=None, args=None, fifo=False, volumes=None, volumeMounts=None, sources=None, sinks=None,
+    def __init__(self, name=None, image=None, args=None, fifo=False, volumes=None, volumeMounts=None, sources=None,
+                 sinks=None,
                  env=None, resources=None,
                  terminator=False):
         super().__init__(name, sources=sources, sinks=sinks,
@@ -338,7 +339,8 @@ class FilterStep(Step):
 
 
 class GitStep(Step):
-    def __init__(self, name=None, url=None, branch=None, path=None, image=None, sources=None, sinks=None, env=None, terminator=False,
+    def __init__(self, name=None, url=None, branch=None, path=None, image=None, sources=None, sinks=None, env=None,
+                 terminator=False,
                  command=None):
         super().__init__(name, sources=sources, sinks=sinks, terminator=terminator)
         assert url
@@ -460,7 +462,8 @@ class Source:
     def cat(self, name=None):
         return CatStep(name, sources=[self])
 
-    def container(self, name=None, image=None, args=None, fifo=False, volumes=None, volumeMounts=None, env=None, resources=None,
+    def container(self, name=None, image=None, args=None, fifo=False, volumes=None, volumeMounts=None, env=None,
+                  resources=None,
                   terminator=False):
         return ContainerStep(name, sources=[self], image=image, args=args, fifo=fifo, volumes=volumes,
                              volumeMounts=volumeMounts, env=env, resources=resources, terminator=terminator)
@@ -570,8 +573,9 @@ class KafkaSource(Source):
 
     def dump(self):
         x = super().dump()
-        x['topic'] = self._topic
-        return {'kafka': x}
+        y = {'topic': self._topic}
+        x['kafka'] = y
+        return x
 
 
 class STANSource(Source):
