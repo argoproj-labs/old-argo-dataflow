@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 )
@@ -54,11 +55,13 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 		}
 	}()
 	udsServer := &http.Server{}
-	listener, err := net.Listen("unix", "/var/run/argo-dataflow/main.sock")
+	address := "/var/run/argo-dataflow/main.sock"
+	listener, err := net.Listen("unix", address)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = listener.Close() }()
+	defer func() { _ = os.Remove(address) }()
 	go func() {
 		defer HandleCrash()
 		if err := udsServer.Serve(listener); err != nil && err != http.ErrServerClosed {
