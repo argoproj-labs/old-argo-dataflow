@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.113 (2021-09-21)
+
+ * [57a1634](https://github.com/argoproj-labs/argo-dataflow/commit/57a1634b42b8712f25c0e6a66d9037222cdcc06a) fix: not upating status even replicas changed (#366)
+ * [50742ca](https://github.com/argoproj-labs/argo-dataflow/commit/50742ca82409c84e75b05d0fdc89fd25f68b24ae) feat: update Python DSL to support multiple sources and sinks (#365)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.112 (2021-09-20)
 
  * [40eac37](https://github.com/argoproj-labs/argo-dataflow/commit/40eac37cbcbc3a9e92c34b45b8146714a9ecd11c) fix: Kafka commit session end of consume claim
