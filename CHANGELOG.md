@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.112 (2021-09-20)
+
+ * [40eac37](https://github.com/argoproj-labs/argo-dataflow/commit/40eac37cbcbc3a9e92c34b45b8146714a9ecd11c) fix: Kafka commit session end of consume claim
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.111 (2021-09-20)
 
  * [a618b38](https://github.com/argoproj-labs/argo-dataflow/commit/a618b38ab6d628cc87c80f365ce3f1cd7a717aab) fix: Partial revert of 76e1d95 (#360)
