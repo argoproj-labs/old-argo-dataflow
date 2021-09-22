@@ -56,12 +56,14 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 	}()
 	udsServer := &http.Server{}
 	address := "/var/run/argo-dataflow/main.sock"
+	if err := os.Remove(address); !os.IsNotExist(err) && err != nil {
+		return err
+	}
 	listener, err := net.Listen("unix", address)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = listener.Close() }()
-	defer func() { _ = os.Remove(address) }()
 	go func() {
 		defer HandleCrash()
 		if err := udsServer.Serve(listener); err != nil && err != http.ErrServerClosed {
