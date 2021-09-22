@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.114 (2021-09-22)
+
+ * [9e7332a](https://github.com/argoproj-labs/argo-dataflow/commit/9e7332a55c6d016299b1bbbb0b88497cf96bcf99) feat: Auto-detect missing/duplicate messages (#369)
+ * [504a63d](https://github.com/argoproj-labs/argo-dataflow/commit/504a63dcbcd72d4218c339400565c9256249275c) fix: delete Unix domain socket
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.113 (2021-09-21)
 
  * [57a1634](https://github.com/argoproj-labs/argo-dataflow/commit/57a1634b42b8712f25c0e6a66d9037222cdcc06a) fix: not upating status even replicas changed (#366)
