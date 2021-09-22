@@ -1,0 +1,4 @@
+resources:
+  - redis-cm.yaml
+  - redis-sts.yaml
+  - redis-svc.yaml

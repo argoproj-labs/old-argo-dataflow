@@ -4,12 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
+
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/opentracing/opentracing-go"
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
+
+var mntr = monitor.New()
 
 type handler struct {
 	sourceName string
@@ -44,6 +48,9 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 		if err := h.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
+			if err := mntr.Accept(ctx, h.sourceName, h.sourceURN, msg.Partition, msg.Offset); err != nil {
+				logger.Error(err, "failed to accept message")
+			}
 			sess.MarkMessage(msg, "")
 			h.i++
 			if h.i%dfv1.CommitN == 0 {
