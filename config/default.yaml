@@ -14031,6 +14031,26 @@ subjects:
   namespace: argo-dataflow-system
 ---
 apiVersion: v1
+data:
+  master.conf: |
+    bind 0.0.0.0
+    protected-mode yes
+    port 6379
+    tcp-backlog 511
+    timeout 0
+    tcp-keepalive 300
+    daemonize no
+    supervised no
+    pidfile /var/run/redis_6379.pid
+    loglevel notice
+    logfile ""
+  slave.conf: slaveof redis-0.redis 6379
+kind: ConfigMap
+metadata:
+  name: redis
+  namespace: argo-dataflow-system
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: ssh
@@ -14052,6 +14072,24 @@ spec:
     targetPort: https
   selector:
     control-plane: controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: redis
+  name: redis
+  namespace: argo-dataflow-system
+spec:
+  clusterIP: None
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: redis
+  selector:
+    app: redis
+    role: master
+  type: ClusterIP
 ---
 apiVersion: scheduling.k8s.io/v1
 description: This priority class is used to ensure that lead replicas are prioritized
@@ -14114,3 +14152,74 @@ spec:
             memory: 20Mi
       serviceAccountName: manager
       terminationGracePeriodSeconds: 10
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: redis
+  name: redis
+  namespace: argo-dataflow-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+  serviceName: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+    spec:
+      containers:
+      - args:
+        - /etc/redis.conf
+        command:
+        - redis-server
+        env:
+        - name: ALLOW_EMPTY_PASSWORD
+          value: "yes"
+        image: redis:6
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - mountPath: /data
+          name: redis-data
+        - mountPath: /etc/
+          name: conf
+          subPath: redis.conf
+      initContainers:
+      - command:
+        - bash
+        - -c
+        - |
+          set -ex
+          # Generate mysql server-id from pod ordinal index.
+          [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
+          ordinal=${BASH_REMATCH[1]}
+          # Copy appropriate conf.d files from config-map to emptyDir.
+          if [[ $ordinal -eq 0 ]]; then
+            cp /mnt/config-map/master.conf /etc/redis.conf
+          else
+            cp /mnt/config-map/slave.conf /etc/redis.conf
+          fi
+        image: redis:6
+        name: init-redis
+        volumeMounts:
+        - mountPath: /etc
+          name: conf
+          subPath: redis.conf
+        - mountPath: /mnt/config-map
+          name: config-map
+      volumes:
+      - emptyDir: {}
+        name: redis-data
+      - emptyDir: {}
+        name: conf
+      - configMap:
+          name: redis
+        name: config-map
