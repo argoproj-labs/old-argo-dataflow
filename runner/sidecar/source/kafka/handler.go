@@ -13,17 +13,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
-var mntr = monitor.New()
-
 type handler struct {
+	mntr       monitor.Interface
 	sourceName string
 	sourceURN  string
 	process    source.Process
 	i          int
 }
 
-func newHandler(sourceName, sourceURN string, process source.Process) sarama.ConsumerGroupHandler {
+func newHandler(mntr monitor.Interface, sourceName, sourceURN string, process source.Process) sarama.ConsumerGroupHandler {
 	return &handler{
+		mntr:       mntr,
 		sourceName: sourceName,
 		sourceURN:  sourceURN,
 		process:    process,
@@ -45,12 +45,15 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 	logger.Info("starting consuming claim", "partition", claim.Partition())
 	defer sess.Commit()
 	for msg := range claim.Messages() {
+		if ok, err := h.mntr.Accept(ctx, h.sourceName, h.sourceURN, msg.Partition, msg.Offset); err != nil {
+			logger.Error(err, "failed to determine if we should accept the message")
+		} else if !ok {
+			continue
+		}
 		if err := h.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
-			if err := mntr.Accept(ctx, h.sourceName, h.sourceURN, msg.Partition, msg.Offset); err != nil {
-				logger.Error(err, "failed to accept message")
-			}
+
 			sess.MarkMessage(msg, "")
 			h.i++
 			if h.i%dfv1.CommitN == 0 {

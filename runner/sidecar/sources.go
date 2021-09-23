@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
+
 	corev1 "k8s.io/api/core/v1"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -62,6 +64,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		return err
 	}
 
+	mntr := monitor.New(ctx, pipelineName, stepName)
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
 		sourceName := s.Name
@@ -127,7 +130,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		} else if x := s.Kafka; x != nil {
 			groupID := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
-			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, sourceURN, *x, processWithRetry); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, mntr, groupID, sourceName, sourceURN, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
