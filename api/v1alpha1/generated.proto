@@ -468,6 +468,15 @@ message Map {
   optional string expression = 2;
 }
 
+message Meta {
+  optional string source = 1;
+
+  optional string id = 2;
+
+  // UnixTime
+  optional int64 time = 3;
+}
+
 message Metadata {
   map<string, string> annotations = 1;
 

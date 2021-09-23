@@ -20,16 +20,16 @@ var io = map[string]interface{}{
 }
 
 func ExprEnv(ctx context.Context, msg []byte) (map[string]interface{}, error) {
-	source, id, t, err := dfv1.MetaFromContext(ctx)
+	m, err := dfv1.MetaFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return map[string]interface{}{
 		// values
-		"ctx": map[string]string{
-			"source": source,
-			"id":     id,
-			"time":   t.Format(time.RFC3339),
+		"ctx": map[string]interface{}{
+			"source": m.Source,
+			"id":     m.ID,
+			"time":   time.Unix(m.Time, 0).Format(time.RFC3339),
 		},
 		"msg": msg,
 		// funcs

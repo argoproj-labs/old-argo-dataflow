@@ -78,23 +78,23 @@ func New(ctx context.Context, sinkName string, secretInterface v1.SecretInterfac
 func (h s3Sink) Sink(ctx context.Context, msg []byte) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-sink-%s", h.sinkName))
 	defer span.Finish()
-	m := &message{}
-	if err := json.Unmarshal(msg, m); err != nil {
+	message := &message{}
+	if err := json.Unmarshal(msg, message); err != nil {
 		return err
 	}
-	f, err := os.Open(m.Path)
+	f, err := os.Open(message.Path)
 	if err != nil {
-		return fmt.Errorf("failed to open %q: %w", m.Path, err)
+		return fmt.Errorf("failed to open %q: %w", message.Path, err)
 	}
-	source, id, _, err := dfv1.MetaFromContext(ctx)
+	m, err := dfv1.MetaFromContext(ctx)
 	if err != nil {
 		return err
 	}
 	_, err = h.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:  &h.bucket,
-		Key:     &m.Key,
+		Key:     &message.Key,
 		Body:    f,
-		Tagging: pointer.StringPtr(fmt.Sprintf("%s=%s,%s=%s", dfv1.MetaSource, source, dfv1.MetaID, id)),
+		Tagging: pointer.StringPtr(fmt.Sprintf("%s=%s,%s=%s", dfv1.MetaSource, m.Source, dfv1.MetaID, m.ID)),
 	}, s3.WithAPIOptions(
 		// https://aws.github.io/aws-sdk-go-v2/docs/sdk-utilities/s3/#unseekable-streaming-input
 		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,

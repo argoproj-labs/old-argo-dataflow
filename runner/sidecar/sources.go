@@ -91,14 +91,14 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 					}
 					// we need to copy anything except the timeout from the parent context
-					source, id, t, err := dfv1.MetaFromContext(ctx)
+					m, err := dfv1.MetaFromContext(ctx)
 					if err != nil {
 						return err
 					}
 					ctx, cancel := context.WithTimeout(
 						dfv1.ContextWithMeta(
 							opentracing.ContextWithSpan(context.Background(), span),
-							source, id, t,
+							m,
 						),
 						15*time.Second,
 					)
