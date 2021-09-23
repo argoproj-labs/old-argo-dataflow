@@ -29,7 +29,7 @@ func ExprEnv(ctx context.Context, msg []byte) (map[string]interface{}, error) {
 		"ctx": map[string]interface{}{
 			"source": m.Source,
 			"id":     m.ID,
-			"time":   time.Unix(m.Time, 0).Format(time.RFC3339),
+			"time":   time.Unix(m.Time, 0).UTC().Format(time.RFC3339),
 		},
 		"msg": msg,
 		// funcs
