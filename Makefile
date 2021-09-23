@@ -75,11 +75,13 @@ pprof:
 
 pre-commit: codegen proto test install runner testapi lint start
 
-codegen: generate manifests examples tests
+codegen: generate manifests examples tests $(GOBIN)/mockery
 	go generate ./...
 
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
+$(GOBIN)/mockery:
+	go install github.com/vektra/mockery/v2@v2.9.4
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: deploy build runner $(GOBIN)/goreman wait

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
+
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/Shopify/sarama"
@@ -26,7 +28,7 @@ type kafkaSource struct {
 	topic         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGroupID, sourceName, sourceURN string, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	config, err := kafka.GetConfig(ctx, secretInterface, x.Kafka.KafkaConfig)
 	if err != nil {
 		return nil, err
@@ -51,7 +53,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
-	h := newHandler(sourceName, sourceURN, process)
+	h := newHandler(mntr, sourceName, sourceURN, process)
 	go wait.JitterUntil(func() {
 		defer runtime.HandleCrash()
 		ctx := context.Background()
