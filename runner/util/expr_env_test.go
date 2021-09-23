@@ -23,7 +23,7 @@ func Test_ExprEnv(t *testing.T) {
 	assert.Len(t, c, 3)
 	assert.Equal(t, c["source"], "my-source")
 	assert.Equal(t, c["id"], "my-id")
-	assert.Equal(t, c["time"], "1969-12-31T16:00:01-08:00")
+	assert.Equal(t, c["time"], "1970-01-01T00:00:01Z")
 }
 
 func Test__int(t *testing.T) {
