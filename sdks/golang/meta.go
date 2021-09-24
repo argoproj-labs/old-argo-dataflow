@@ -12,9 +12,7 @@ var (
 	// MetaID is a unique ID for the message.
 	// Required.
 	// https://github.com/cloudevents/spec/blob/master/spec.md#id
-	MetaID        = "dataflow-id"
-	MetaPartition = "dataflow-partition"
-	MetaSequence  = "dataflow-sequence"
+	MetaID = "dataflow-id"
 	// MetaSource is the source of the messages as a Unique Resource Identifier (URI).
 	// Required.
 	// https://github.com/cloudevents/spec/blob/master/spec.md#source-1
