@@ -9,14 +9,12 @@ import (
 	"strings"
 	"time"
 
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
-	"github.com/opentracing/opentracing-go"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 type message struct {
@@ -41,7 +39,14 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			return process(
-				dfv1.ContextWithMeta(ctx, sourceURN, key, time.Now()),
+				dfv1.ContextWithMeta(
+					ctx,
+					dfv1.Meta{
+						Source: sourceURN,
+						ID:     key,
+						Time:   time.Now().Unix(),
+					},
+				),
 				[]byte(sharedutil.MustJSON(message{Path: path})),
 			)
 		},

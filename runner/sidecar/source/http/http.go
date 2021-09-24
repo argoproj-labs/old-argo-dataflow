@@ -56,7 +56,14 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			return
 		}
 		if err := process(
-			dfv1.ContextWithMeta(ctx, sourceURN, uuid.New().String(), time.Now()),
+			dfv1.ContextWithMeta(
+				ctx,
+				dfv1.Meta{
+					Source: sourceURN,
+					ID:     uuid.New().String(),
+					Time:   time.Now().Unix(),
+				},
+			),
 			msg,
 		); err != nil {
 			w.WriteHeader(500)

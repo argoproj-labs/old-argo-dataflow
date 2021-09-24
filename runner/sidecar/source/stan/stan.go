@@ -58,7 +58,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("stan-source-%s", sourceName))
 			defer span.Finish()
 			if err := process(
-				dfv1.ContextWithMeta(ctx, sourceURN, fmt.Sprint(msg.Sequence), time.Unix(0, msg.Timestamp)),
+				dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: sourceURN, ID: fmt.Sprint(msg.Sequence), Time: msg.Timestamp}),
 				msg.Data,
 			); err != nil {
 				logger.Error(err, "failed to process message")
