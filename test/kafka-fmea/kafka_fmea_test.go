@@ -19,8 +19,10 @@ import (
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
-	sinkTopic := CreateKafkaTopic()
+	topic := SourceTopic
+	sinkTopic := SinkTopic
+
+	start := GetKafkaCount(sinkTopic)
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
@@ -44,7 +46,7 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
 	WaitForPod("kafka-main-0")
 
-	ExpectKafkaTopicCount(sinkTopic, n, n, 2*time.Minute)
+	ExpectKafkaTopicCount(sinkTopic, start, n, 2*time.Minute)
 	defer StartPortForward("kafka-main-0")()
 	WaitForNoErrors()
 }
@@ -54,8 +56,11 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
-	sinkTopic := CreateKafkaTopic()
+	topic := SourceTopic
+	sinkTopic := SinkTopic
+
+	start := GetKafkaCount(sinkTopic)
+
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
@@ -78,7 +83,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	RestartStatefulSet("kafka-broker")
 	WaitForPod("kafka-broker-0")
 
-	ExpectKafkaTopicCount(sinkTopic, n, n, 2*time.Minute)
+	ExpectKafkaTopicCount(sinkTopic, start, n, 2*time.Minute)
 	defer StartPortForward("kafka-main-0")()
 	WaitForNoErrors()
 	ExpectLogLine("main", "Failed to connect to broker kafka-broker:9092")
@@ -87,8 +92,10 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
-	sinkTopic := CreateKafkaTopic()
+	topic := SourceTopic
+	sinkTopic := SinkTopic
+
+	start := GetKafkaCount(sinkTopic)
 
 	pl := Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
@@ -117,5 +124,5 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	WaitForPodsToBeDeleted()
 	CreatePipeline(pl)
 
-	ExpectKafkaTopicCount(sinkTopic, n, n, time.Minute)
+	ExpectKafkaTopicCount(sinkTopic, start, n, time.Minute)
 }

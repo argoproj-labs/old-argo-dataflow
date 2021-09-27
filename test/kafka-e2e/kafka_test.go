@@ -18,8 +18,8 @@ import (
 func TestKafka(t *testing.T) {
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
-	sinkTopic := CreateKafkaTopic()
+	topic := SourceTopic
+	sinkTopic := SinkTopic
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
@@ -50,8 +50,8 @@ func TestKafka(t *testing.T) {
 func TestKafkaAsync(t *testing.T) {
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
-	sinkTopic := CreateKafkaTopic()
+	topic := SourceTopic
+	sinkTopic := SinkTopic
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},

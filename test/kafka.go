@@ -6,17 +6,14 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"strconv"
 	"time"
 )
 
-func CreateKafkaTopic() string {
-	topic := fmt.Sprintf("test-topic-%d", rand.Int31())
-	log.Printf("create Kafka topic %q\n", topic)
-	InvokeTestAPI("/kafka/create-topic?topic=%s", topic)
-	return topic
-}
+const (
+	SourceTopic = "test-source-topic"
+	SinkTopic   = "test-sink-topic"
+)
 
 func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 	var sleep time.Duration
@@ -38,27 +35,32 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d&prefix=%s&size=%d", topic, sleep, n, prefix, size)
 }
 
-func ExpectKafkaTopicCount(topic string, min, max int, timeout time.Duration) {
-	log.Printf("expecting count of Kafka topic %q to be %d to %d\n", topic, min, max)
+func ExpectKafkaTopicCount(topic string, start, n int, timeout time.Duration) {
+	log.Printf("expecting %d+%d=%d messages to be sunk to topic %s\n", start, n, start+n, topic)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	for {
 		select {
 		case <-ctx.Done():
-			panic(fmt.Errorf("timeout waiting for %d to %d messages in topic %q", min, max, topic))
+			panic(fmt.Errorf("timeout waiting for %d messages in topic %q", n, topic))
 		default:
-			count, err := strconv.Atoi(InvokeTestAPI("/kafka/count-topic?topic=%s", topic))
-			if err != nil {
-				panic(fmt.Errorf("failed to count topic %q: %w", topic, err))
-			}
+			count := GetKafkaCount(topic)
 			log.Printf("count of Kafka topic %q is %d\n", topic, count)
-			if min <= count && count <= max {
+			if count == start+n {
 				return
 			}
-			if count > max {
-				panic(fmt.Errorf("too many messages %d > %d", count, max))
+			if count > start+n {
+				panic(fmt.Errorf("too many messages %d > %d", count, n))
 			}
 			time.Sleep(time.Second)
 		}
 	}
+}
+
+func GetKafkaCount(topic string) int {
+	count, err := strconv.Atoi(InvokeTestAPI("/kafka/count-topic?topic=%s", topic))
+	if err != nil {
+		panic(fmt.Errorf("failed to count topic %q: %w", topic, err))
+	}
+	return count
 }

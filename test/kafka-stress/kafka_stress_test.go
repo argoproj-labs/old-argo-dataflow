@@ -21,7 +21,7 @@ import (
 func TestKafkaSourceStress(t *testing.T) {
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
+	topic := SourceTopic
 	msgSize := int32(Params.MessageSize)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
@@ -61,8 +61,8 @@ func TestKafkaSourceStress(t *testing.T) {
 func TestKafkaSinkStress(t *testing.T) {
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
-	sinkTopic := CreateKafkaTopic()
+	topic := SourceTopic
+	sinkTopic := SinkTopic
 	msgSize := int32(Params.MessageSize)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
