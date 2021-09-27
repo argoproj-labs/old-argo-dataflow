@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.115 (2021-09-23)
+
+ * [1b91c71](https://github.com/argoproj-labs/argo-dataflow/commit/1b91c71e798e676addc29b23eb7c68c925be33b1) feat: ignored duplicate Kafka messages (#373)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.114 (2021-09-22)
 
  * [9e7332a](https://github.com/argoproj-labs/argo-dataflow/commit/9e7332a55c6d016299b1bbbb0b88497cf96bcf99) feat: Auto-detect missing/duplicate messages (#369)
