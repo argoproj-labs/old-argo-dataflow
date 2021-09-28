@@ -55,7 +55,7 @@ func Test_impl_Accept(t *testing.T) {
 	})
 	thirtyDays := time.Hour * 24 * 30
 	rdb.On("Set", ctx, "my-pl/my-step/my-urn/1/offset", int64(1), thirtyDays).Return(nil)
-	rdb.On("Set", ctx, "my-pl/my-step/my-urn/2/offset", int64(2), thirtyDays).Return(nil)
+	rdb.On("Set", ctx, "my-pl/my-step/my-urn/2/offset", int64(4), thirtyDays).Return(nil)
 	t.Run("CommitOffsets", func(t *testing.T) {
 		i.commitOffsets(ctx)
 	})

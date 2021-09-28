@@ -85,9 +85,8 @@ func (i *impl) Accept(ctx context.Context, sourceName, sourceURN string, partiti
 	}
 	if offset > expectedOffset {
 		missingCounter.WithLabelValues(sourceName).Inc()
-	} else {
-		i.db[key] = offset
 	}
+	i.db[key] = offset
 	return true, nil
 }
 
