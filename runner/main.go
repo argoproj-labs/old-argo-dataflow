@@ -11,8 +11,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	_init "github.com/argoproj-labs/argo-dataflow/runner/init"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar"
@@ -26,7 +24,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/shared/builtin/group"
 	_map "github.com/argoproj-labs/argo-dataflow/shared/builtin/map"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 

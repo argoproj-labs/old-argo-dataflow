@@ -3,10 +3,9 @@ package controllers
 import (
 	"testing"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 func Test_inferPhase(t *testing.T) {

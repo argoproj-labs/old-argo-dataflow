@@ -5,10 +5,9 @@ package e2e
 import (
 	"testing"
 
-	corev1 "k8s.io/api/core/v1"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

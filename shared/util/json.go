@@ -12,7 +12,7 @@ func MustJSON(in interface{}) string {
 
 // MustUnJSON unmarshalls JSON or panics.
 // v - must be []byte or string
-// in - must be a pointer
+// in - must be a pointer.
 func MustUnJSON(v interface{}, in interface{}) {
 	switch data := v.(type) {
 	case []byte:

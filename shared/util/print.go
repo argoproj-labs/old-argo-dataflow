@@ -14,7 +14,7 @@ func IsPrint(x string) bool {
 	return true
 }
 
-// return a printable string
+// return a printable string.
 func Printable(x string) string {
 	if IsPrint(x) {
 		return x

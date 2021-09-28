@@ -9,24 +9,23 @@ import (
 	"path/filepath"
 	"syscall"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	ctrl "sigs.k8s.io/controller-runtime"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"k8s.io/utils/strings"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var logger = sharedutil.NewLogger()
 
 // due to main container crashing, the init container may be started many times, so each operation we perform should be
-// idempontent, i.e. if we copy a file to shared volume, and it already exists, we should ignore that error
+// idempontent, i.e. if we copy a file to shared volume, and it already exists, we should ignore that error.
 func Exec(ctx context.Context) error {
 	for _, name := range []string{dfv1.PathKill, dfv1.PathPreStop} {
 		logger.Info("copying binary", "name", name)

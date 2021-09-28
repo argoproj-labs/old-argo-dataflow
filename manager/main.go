@@ -21,15 +21,13 @@ import (
 	"fmt"
 	"os"
 
-	"k8s.io/client-go/dynamic"
-
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers"
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"

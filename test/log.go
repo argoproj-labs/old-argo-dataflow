@@ -11,10 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

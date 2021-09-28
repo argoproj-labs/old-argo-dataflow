@@ -8,9 +8,8 @@ import (
 	"strconv"
 	time "time"
 
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-
 	"github.com/Masterminds/sprig"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var _sprig = sprig.GenericFuncMap()

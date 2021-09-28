@@ -22,6 +22,9 @@ import (
 	"strings"
 	"time"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -32,13 +35,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
-// PipelineReconciler reconciles a Pipeline object
+// PipelineReconciler reconciles a Pipeline object.
 type PipelineReconciler struct {
 	client.Client
 	Log             logr.Logger
