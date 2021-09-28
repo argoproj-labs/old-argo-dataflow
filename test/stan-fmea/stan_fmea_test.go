@@ -91,7 +91,7 @@ func TestStanFMEA_STANServiceDisruption(t *testing.T) {
 	WaitForNoErrors()
 }
 
-// when deleted and re-created, the pipeline should start at the same place in the queue
+// when deleted and re-created, the pipeline should start at the same place in the queue.
 func TestStanFMEA_PipelineDeletionDisruption(t *testing.T) {
 	defer Setup(t)()
 

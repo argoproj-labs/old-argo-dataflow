@@ -22,32 +22,28 @@ import (
 	"strconv"
 	"time"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
-
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/dynamic"
-
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-
+	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
 )
 
 const stepFinalizer = "step-controller"
 
-// StepReconciler reconciles a Step object
+// StepReconciler reconciles a Step object.
 type StepReconciler struct {
 	client.Client
 	Log                 logr.Logger

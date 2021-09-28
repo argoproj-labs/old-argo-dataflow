@@ -5,20 +5,17 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-
-	volumesink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/volume"
-
-	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
-
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	dbsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/db"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/http"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/kafka"
 	logsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
+	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/stan"
+	volumesink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/volume"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 func connectSinks(ctx context.Context) (func(context.Context, []byte) error, error) {

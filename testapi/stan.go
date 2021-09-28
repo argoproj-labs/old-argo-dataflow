@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/nats-io/nats-streaming-server/server"
-
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 )

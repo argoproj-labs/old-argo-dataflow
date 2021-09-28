@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
-
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/opentracing/opentracing-go"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -53,7 +52,6 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 		if err := h.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
-
 			sess.MarkMessage(msg, "")
 			h.i++
 			if h.i%dfv1.CommitN == 0 {

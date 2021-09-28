@@ -6,16 +6,30 @@ run:
     - test
 linters:
   enable:
+    # TODO
+    # - bodyclose
     - deadcode
     - errcheck
+    # only minor issues
+    # - errorlint
+    - exportloopref
+    - gci
+    - godot
+    # too many false-positives
+    # - gosec
     - gosimple
     - govet
+    - ineffassign
     - misspell
+    # TODO
+    # - rowserrcheck
+    - sqlclosecheck
     - staticcheck
     - structcheck
     - typecheck
     - unparam
     - unused
+    - whitespace
     - varcheck
 issues:
   exclude-rules:

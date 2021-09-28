@@ -8,12 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nats-io/nats-streaming-server/server"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedstan "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/stan"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/nats-io/nats-streaming-server/server"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
 	"github.com/opentracing/opentracing-go"

@@ -7,9 +7,8 @@ import (
 	"os"
 	"time"
 
-	"k8s.io/apimachinery/pkg/api/resource"
-
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 var Params = struct {

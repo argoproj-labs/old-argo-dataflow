@@ -11,9 +11,8 @@ import (
 	"testing"
 	"time"
 
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-
 	. "github.com/argoproj-labs/argo-dataflow/test"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger func()) {
