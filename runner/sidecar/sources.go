@@ -3,6 +3,9 @@ package sidecar
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
@@ -19,12 +22,67 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/stan"
 	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/go-redis/redis/v8"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
+
+var (
+	totalCounters      = new(sync.Map)
+	totalBytesCounters = new(sync.Map)
+
+	rdc = redis.NewClient(&redis.Options{
+		Addr: "redis:6379",
+	})
+)
+
+func reportTotalMetrics(ctx context.Context) {
+	store := func() {
+		totalCounters.Range(func(k, v interface{}) bool {
+			if strings.HasPrefix(fmt.Sprint(k), "last_total_") {
+				return true
+			}
+			lastTotalKey := fmt.Sprintf("last_total_%v", k)
+			lastTotalObj, _ := totalCounters.LoadOrStore(lastTotalKey, int64(0))
+			lastTotal := lastTotalObj.(int64)
+			total := v.(int64)
+			delta := total - lastTotal
+			key := fmt.Sprintf("total_messages_%v", k)
+			_ = rdc.IncrBy(ctx, key, delta)
+			totalCounters.Store(lastTotalKey, total)
+			return true
+		})
+
+		totalBytesCounters.Range(func(k, v interface{}) bool {
+			if strings.HasPrefix(fmt.Sprint(k), "last_total_bytes_") {
+				return true
+			}
+			lastTotalBytesKey := fmt.Sprintf("last_total_bytes_%v", k)
+			lastTotalBytesObj, _ := totalBytesCounters.LoadOrStore(lastTotalBytesKey, int64(0))
+			lastTotalBytes := lastTotalBytesObj.(int64)
+			total := v.(int64)
+			delta := total - lastTotalBytes
+			key := fmt.Sprintf("total_messages_bytes_%v", k)
+			_ = rdc.IncrBy(ctx, key, delta)
+			totalBytesCounters.Store(lastTotalBytesKey, total)
+			return true
+		})
+	}
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			store()
+			return
+		case <-ticker.C:
+			store()
+		}
+	}
+}
 
 func connectSources(ctx context.Context, process func(context.Context, []byte) error) error {
 	var pendingGauge *prometheus.GaugeVec
@@ -36,12 +94,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		}, []string{"sourceName"})
 	}
 
-	totalCounter := promauto.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "sources",
-		Name:      "total",
-		Help:      "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total",
-	}, []string{"sourceName", "replica"})
-
 	errorsCounter := promauto.NewCounterVec(prometheus.CounterOpts{
 		Subsystem: "sources",
 		Name:      "errors",
@@ -52,12 +104,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		Subsystem: "sources",
 		Name:      "retries",
 		Help:      "Number of retries, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
-	}, []string{"sourceName", "replica"})
-
-	totalBytesCounter := promauto.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "sources",
-		Name:      "totalBytes",
-		Help:      "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
 	}, []string{"sourceName", "replica"})
 
 	if err := createSecret(ctx); err != nil {
@@ -74,11 +120,21 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 
+		totalKey := fmt.Sprintf("%s-%s-%s", sourceURN, pipelineName, stepName)
+		totalBytesKey := fmt.Sprintf("%s-%s-%s", sourceURN, pipelineName, stepName)
+
 		processWithRetry := func(ctx context.Context, msg []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
 			defer span.Finish()
-			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
+			if v, existing := totalCounters.LoadOrStore(totalKey, int64(1)); existing {
+				vv := v.(int64)
+				totalCounters.Store(totalKey, vv+1)
+			}
+			msgSize := int64(len(msg))
+			if v, existing := totalBytesCounters.LoadOrStore(totalBytesKey, msgSize); existing {
+				vv := v.(int64)
+				totalBytesCounters.Store(totalBytesKey, vv+msgSize)
+			}
 			backoff := newBackoff(s.Retry)
 			for {
 				select {
@@ -178,7 +234,52 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				}
 			}, updateInterval, 1.2, true)
 		}
+
+		if leadReplica() {
+			promauto.NewCounterFunc(prometheus.CounterOpts{
+				Subsystem:   "sources",
+				Name:        "total",
+				Help:        "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_total",
+				ConstLabels: map[string]string{"sourceName": sourceName},
+			}, func() float64 {
+				if t, err := rdc.Get(ctx, fmt.Sprintf("total_messages_%s", totalKey)).Result(); err != nil {
+					if err != redis.Nil {
+						logger.Error(err, "failed to get total messages from redis", "source", sourceName)
+					}
+					return float64(0)
+				} else {
+					if ft, err := strconv.ParseFloat(t, 32); err != nil {
+						return float64(0)
+					} else {
+						return ft
+					}
+				}
+			})
+
+			promauto.NewCounterFunc(prometheus.CounterOpts{
+				Subsystem:   "sources",
+				Name:        "totalBytes",
+				Help:        "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
+				ConstLabels: map[string]string{"sourceName": sourceName},
+			}, func() float64 {
+				if t, err := rdc.Get(ctx, fmt.Sprintf("total_messages_bytes_%s", totalBytesKey)).Result(); err != nil {
+					if err != redis.Nil {
+						logger.Error(err, "failed to get total message bytes from redis", "source", sourceName)
+					}
+					return float64(0)
+				} else {
+					if ft, err := strconv.ParseFloat(t, 32); err != nil {
+						return float64(0)
+					} else {
+						return ft
+					}
+				}
+			})
+		}
 	}
+
+	go reportTotalMetrics(ctx)
+
 	return nil
 }
 
