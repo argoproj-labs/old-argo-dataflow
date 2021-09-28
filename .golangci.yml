@@ -6,8 +6,7 @@ run:
     - test
 linters:
   enable:
-    # TODO
-    # - bodyclose
+    - bodyclose
     - deadcode
     - errcheck
     # only minor issues

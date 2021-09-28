@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -135,9 +136,13 @@ func waitReady(ctx context.Context) error {
 				}
 			}
 			logger.Info("waiting for HTTP in interface to be ready")
-			if resp, err := httpClient.Get("http://127.0.0.1:8080/ready"); err == nil && resp.StatusCode < 300 {
-				logger.Info("HTTP in interface ready")
-				return nil
+			if resp, err := httpClient.Get("http://127.0.0.1:8080/ready"); err == nil {
+				_, _ = io.Copy(io.Discard, resp.Body)
+				_ = resp.Body.Close()
+				if resp.StatusCode < 300 {
+					logger.Info("HTTP in interface ready")
+					return nil
+				}
 			}
 			time.Sleep(1 * time.Second)
 		}
@@ -151,9 +156,16 @@ func waitUnready(ctx context.Context) error {
 			return fmt.Errorf("failed to wait for un-ready: %w", ctx.Err())
 		default:
 			logger.Info("waiting for HTTP in interface to be unready")
-			if resp, err := httpClient.Get("http://127.0.0.1:8080/ready"); err != nil || resp.StatusCode >= 300 {
+			if resp, err := httpClient.Get("http://127.0.0.1:8080/ready"); err != nil {
 				logger.Info("HTTP in interface unready")
 				return nil
+			} else {
+				_, _ = io.Copy(io.Discard, resp.Body)
+				_ = resp.Body.Close()
+				if resp.StatusCode >= 300 {
+					logger.Info("HTTP in interface unready")
+					return nil
+				}
 			}
 			time.Sleep(1 * time.Second)
 		}

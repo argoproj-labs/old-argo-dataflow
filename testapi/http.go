@@ -103,9 +103,11 @@ func init() {
 		url := r.URL.Query().Get("url")
 		w.WriteHeader(200)
 		for {
-			if _, err := httpClient.Get(url); err != nil {
+			if resp, err := httpClient.Get(url); err != nil {
 				_, _ = fmt.Fprintf(w, "%q is not ready: %v\n", url, err)
 			} else {
+				_, _ = io.Copy(io.Discard, resp.Body)
+				_ = resp.Body.Close()
 				return
 			}
 			time.Sleep(1 * time.Second)

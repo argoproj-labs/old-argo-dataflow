@@ -23,6 +23,7 @@ func SendMessageViaHTTP(msg string) {
 		panic(err)
 	} else {
 		body, _ := ioutil.ReadAll(resp.Body)
+		_ = resp.Body.Close()
 		if resp.StatusCode != 204 {
 			panic(fmt.Errorf("%s: %q", resp.Status, body))
 		}
