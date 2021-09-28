@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.116 (2021-09-28)
+
+ * [ebf38e6](https://github.com/argoproj-labs/argo-dataflow/commit/ebf38e61fc0597516ddbda1132156b2149d7e69d) fix: correct mis-reporting of `missing`
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.115 (2021-09-23)
 
  * [1b91c71](https://github.com/argoproj-labs/argo-dataflow/commit/1b91c71e798e676addc29b23eb7c68c925be33b1) feat: ignored duplicate Kafka messages (#373)
