@@ -110,8 +110,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) 
 					endpoint := "https://" + r.PipelineName + "-" + r.StepName + "/ready"
 					logger.Info("waiting for HTTP service to be ready", "endpoint", endpoint)
 					resp, err := httpClient.Get(endpoint)
-					if err == nil && resp.StatusCode < 300 {
-						break OUTER
+					if err == nil {
+						_ = resp.Body.Close()
+						if resp.StatusCode < 300 {
+							break OUTER
+						}
 					}
 					time.Sleep(3 * time.Second)
 				}
