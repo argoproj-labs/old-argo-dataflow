@@ -21,8 +21,7 @@ linters:
     - govet
     - ineffassign
     - misspell
-    # TODO
-    # - rowserrcheck
+    - rowserrcheck
     - sqlclosecheck
     - staticcheck
     - structcheck

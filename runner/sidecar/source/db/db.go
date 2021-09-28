@@ -175,6 +175,9 @@ func queryData(ctx context.Context, db *sql.DB, sourceURN, query, offsetColumn, 
 		return fmt.Errorf("failed to execute sql query: %w", err)
 	}
 	defer func() { _ = rows.Close() }()
+	if rows.Err() != nil {
+		return fmt.Errorf("failed to execute sql query: %w", rows.Err())
+	}
 
 	columns, err := rows.Columns()
 	if err != nil {
