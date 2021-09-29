@@ -2,37 +2,46 @@ package kafka
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
+	"strings"
 
-	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-func GetConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (*sarama.Config, error) {
-	x := sarama.NewConfig()
-	x.ClientID = dfv1.CtrSidecar
-	if k.Version != "" {
-		v, err := sarama.ParseKafkaVersion(k.Version)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse kafka version %q: %w", k.Version, err)
+func RedactConfigMap(m kafka.ConfigMap) kafka.ConfigMap {
+	redacted := kafka.ConfigMap{}
+	for k, v := range m {
+		if strings.HasPrefix(k, "ssl.") || strings.HasPrefix(k, "sasl.") {
+			redacted[k] = "******"
+		} else {
+			redacted[k] = v
 		}
-		x.Version = v
+	}
+	return redacted
+}
+
+func GetConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (kafka.ConfigMap, error) {
+	// https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
+	cm := kafka.ConfigMap{
+		"bootstrap.servers": strings.Join(k.Brokers, ","),
+		// TODO add some config to enable debug
+		//"debug":             "consumer,cgrp,topic,fetch",
+	}
+	if k.MaxMessageBytes > 0 {
+		cm["message.max.bytes"] = int(k.MaxMessageBytes)
 	}
 	if k.NET != nil {
+		cm["security.protocol"] = k.NET.GetSecurityProtocol()
 		if k.NET.TLS != nil {
-			tlsConfig, err := getTLSConfig(ctx, secretInterface, k)
+			err := getTLSConfig(ctx, secretInterface, k, cm)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load tls config, %w", err)
 			}
-			x.Net.TLS.Config = tlsConfig
-			x.Net.TLS.Enable = true
 		}
-		if k.NET.SASL != nil {
-			sasl := k.NET.SASL
+		if sasl := k.NET.SASL; sasl != nil {
 			if sasl.UserSecret == nil || sasl.PasswordSecret == nil {
 				return nil, fmt.Errorf("invalid sasl config, user secret or password secret not configured")
 			}
@@ -42,7 +51,7 @@ func GetConfig(ctx context.Context, secretInterface corev1.SecretInterface, k df
 				if d, ok := userSecret.Data[sasl.UserSecret.Key]; !ok {
 					return nil, fmt.Errorf("key %q not found in user secret", sasl.UserSecret.Key)
 				} else {
-					x.Net.SASL.User = string(d)
+					cm["sasl.username"] = string(d)
 				}
 			}
 			if passwordSecret, err := secretInterface.Get(ctx, sasl.PasswordSecret.Name, metav1.GetOptions{}); err != nil {
@@ -51,61 +60,50 @@ func GetConfig(ctx context.Context, secretInterface corev1.SecretInterface, k df
 				if d, ok := passwordSecret.Data[sasl.PasswordSecret.Key]; !ok {
 					return nil, fmt.Errorf("key %q not found in password secret", sasl.PasswordSecret.Key)
 				} else {
-					x.Net.SASL.Password = string(d)
+					cm["sasl.password"] = string(d)
 				}
 			}
-			x.Net.SASL.Mechanism = sarama.SASLMechanism(sasl.GetMechanism())
-			x.Net.SASL.Enable = true
+			cm["sasl.mechanism"] = string(sasl.GetMechanism())
 		}
 	}
-	return x, nil
+	return cm, nil
 }
 
-func getTLSConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig) (*tls.Config, error) {
+func getTLSConfig(ctx context.Context, secretInterface corev1.SecretInterface, k dfv1.KafkaConfig, c kafka.ConfigMap) error {
 	t := k.NET.TLS
 	if t == nil {
-		return nil, fmt.Errorf("tls config not found")
+		return fmt.Errorf("tls config not found")
 	}
-
-	c := &tls.Config{}
-	if t.CACertSecret != nil {
-		if caCertSecret, err := secretInterface.Get(ctx, t.CACertSecret.Name, metav1.GetOptions{}); err != nil {
-			return nil, fmt.Errorf("failed to get ca cert secret, %w", err)
+	if cas := t.CACertSecret; cas != nil {
+		if caCertSecret, err := secretInterface.Get(ctx, cas.Name, metav1.GetOptions{}); err != nil {
+			return fmt.Errorf("failed to get ca cert secret, %w", err)
 		} else {
-			if d, ok := caCertSecret.Data[t.CACertSecret.Key]; !ok {
-				return nil, fmt.Errorf("key %q not found in ca cert secret", t.CACertSecret.Key)
+			if d, ok := caCertSecret.Data[cas.Key]; !ok {
+				return fmt.Errorf("key %q not found in ca cert secret", cas.Key)
 			} else {
-				pool := x509.NewCertPool()
-				pool.AppendCertsFromPEM(d)
-				c.RootCAs = pool
+				c["ssl.ca.pem"] = string(d)
 			}
 		}
 	}
-	if t.CertSecret != nil && t.KeySecret != nil {
-		var certBytes, keyBytes []byte
-		if certSecret, err := secretInterface.Get(ctx, t.CertSecret.Name, metav1.GetOptions{}); err != nil {
-			return nil, fmt.Errorf("failed to get cert secret, %w", err)
+	if cs, ks := t.CertSecret, t.KeySecret; cs != nil && ks != nil {
+		if certSecret, err := secretInterface.Get(ctx, cs.Name, metav1.GetOptions{}); err != nil {
+			return fmt.Errorf("failed to get cert secret, %w", err)
 		} else {
-			if d, ok := certSecret.Data[t.CertSecret.Key]; !ok {
-				return nil, fmt.Errorf("key %q not found in cert secret", t.CertSecret.Key)
+			if d, ok := certSecret.Data[cs.Key]; !ok {
+				return fmt.Errorf("key %q not found in cert secret", cs.Key)
 			} else {
-				certBytes = d
+				c["ssl.certificate.pem"] = string(d)
 			}
 		}
-		if keySecret, err := secretInterface.Get(ctx, t.KeySecret.Name, metav1.GetOptions{}); err != nil {
-			return nil, fmt.Errorf("failed to get key secret, %w", err)
+		if keySecret, err := secretInterface.Get(ctx, ks.Name, metav1.GetOptions{}); err != nil {
+			return fmt.Errorf("failed to get key secret, %w", err)
 		} else {
-			if d, ok := keySecret.Data[t.KeySecret.Key]; !ok {
-				return nil, fmt.Errorf("key %q not found in key secret", t.KeySecret.Key)
+			if d, ok := keySecret.Data[ks.Key]; !ok {
+				return fmt.Errorf("key %q not found in key secret", ks.Key)
 			} else {
-				keyBytes = d
+				c["ssl.key.pem"] = string(d)
 			}
-		}
-		if certificate, err := tls.X509KeyPair(certBytes, keyBytes); err != nil {
-			return nil, fmt.Errorf("failed to get certificate, %w", err)
-		} else {
-			c.Certificates = []tls.Certificate{certificate}
 		}
 	}
-	return c, nil
+	return nil
 }

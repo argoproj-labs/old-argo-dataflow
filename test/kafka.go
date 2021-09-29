@@ -36,21 +36,22 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 }
 
 func ExpectKafkaTopicCount(topic string, start, n int, timeout time.Duration) {
-	log.Printf("expecting %d+%d=%d messages to be sunk to topic %s\n", start, n, start+n, topic)
+	total := start + n
+	log.Printf("expecting %d+%d=%d messages to be sunk to topic %s\n", start, n, total, topic)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	for {
 		select {
 		case <-ctx.Done():
-			panic(fmt.Errorf("timeout waiting for %d messages in topic %q", n, topic))
+			panic(fmt.Errorf("timeout waiting for %d+%d=%d messages in topic %q", start, n, total, topic))
 		default:
 			count := GetKafkaCount(topic)
 			log.Printf("count of Kafka topic %q is %d\n", topic, count)
-			if count == start+n {
+			if count == total {
 				return
 			}
-			if count > start+n {
-				panic(fmt.Errorf("too many messages %d > %d", count, n))
+			if count > total {
+				panic(fmt.Errorf("too many messages %d > %d", count, total))
 			}
 			time.Sleep(time.Second)
 		}

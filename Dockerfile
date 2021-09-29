@@ -36,10 +36,11 @@ COPY api/ api/
 COPY shared/ shared/
 COPY sdks/golang sdks/golang
 COPY runner/ runner/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.version=${VERSION}'" -o bin/runner ./runner
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=1 go build -ldflags="-s -w -X 'github.com/argoproj-labs/argo-dataflow/shared/util.version=${VERSION}'" -o bin/runner ./runner
 
-FROM gcr.io/distroless/static:nonroot AS runner
+FROM gcr.io/distroless/base:nonroot AS runner
 WORKDIR /
+COPY --from=runner-builder /lib/x86_64-linux-gnu/libm.so.6 /lib/x86_64-linux-gnu/libm.so.6
 COPY runtimes runtimes
 COPY --from=runner-builder /workspace/bin/kill /bin/kill
 COPY --from=runner-builder /workspace/bin/prestop /bin/prestop
@@ -49,10 +50,11 @@ ENTRYPOINT ["/runner"]
 
 FROM builder AS testapi-builder
 COPY testapi/ testapi/
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/testapi ./testapi
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=1 go build -ldflags="-s -w" -o bin/testapi ./testapi
 
-FROM gcr.io/distroless/static:nonroot AS testapi
+FROM gcr.io/distroless/base:nonroot AS testapi
 WORKDIR /
+COPY --from=testapi-builder /lib/x86_64-linux-gnu/libm.so.6 /lib/x86_64-linux-gnu/libm.so.6
 COPY --from=testapi-builder /workspace/bin/testapi .
 USER 9653:9653
 ENTRYPOINT ["/testapi"]

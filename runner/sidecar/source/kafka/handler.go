@@ -3,48 +3,64 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
-	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/opentracing/opentracing-go"
-	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 type handler struct {
-	mntr       monitor.Interface
-	sourceName string
-	sourceURN  string
-	process    source.Process
-	i          int
+	ctx           context.Context
+	mntr          monitor.Interface
+	sourceName    string
+	sourceURN     string
+	mu            sync.Mutex // lock for channels
+	channels      map[int32]chan *kafka.Message
+	process       source.Process
+	commitMessage func(*kafka.Message)
 }
 
-func newHandler(mntr monitor.Interface, sourceName, sourceURN string, process source.Process) sarama.ConsumerGroupHandler {
+func newHandler(ctx context.Context, mntr monitor.Interface, sourceName, sourceURN string, process source.Process, commitMessage func(*kafka.Message)) *handler {
 	return &handler{
-		mntr:       mntr,
-		sourceName: sourceName,
-		sourceURN:  sourceURN,
-		process:    process,
+		ctx:           ctx,
+		sourceName:    sourceName,
+		sourceURN:     sourceURN,
+		mntr:          mntr,
+		mu:            sync.Mutex{},
+		channels:      map[int32]chan *kafka.Message{},
+		process:       process,
+		commitMessage: commitMessage,
 	}
 }
 
-func (h *handler) Setup(sess sarama.ConsumerGroupSession) error {
-	logger.Info("Kafka handler set-up")
-	return nil
+func (h *handler) addMessage(msg *kafka.Message) {
+	partition := msg.TopicPartition.Partition
+	h.ensurePartitionConsumer(partition)
+	h.channels[partition] <- msg
 }
 
-func (h *handler) Cleanup(sess sarama.ConsumerGroupSession) error {
-	logger.Info("Kafka handler clean-up")
-	return nil
+func (h *handler) ensurePartitionConsumer(partition int32) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if _, ok := h.channels[partition]; !ok {
+		logger.Info("creating partition channel", "partition", partition)
+		ch := make(chan *kafka.Message, 32)
+		h.channels[partition] = ch
+		go wait.JitterUntilWithContext(h.ctx, func(ctx context.Context) {
+			h.consumePartition(ctx, partition)
+		}, 3*time.Second, 1.2, true)
+	}
 }
 
-func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	ctx := sess.Context()
-	logger.Info("starting consuming claim", "partition", claim.Partition())
-	defer sess.Commit()
-	for msg := range claim.Messages() {
-		if ok, err := h.mntr.Accept(ctx, h.sourceName, h.sourceURN, msg.Partition, msg.Offset); err != nil {
+func (h *handler) consumePartition(ctx context.Context, partition int32) {
+	logger.Info("consuming partition", "partition", partition)
+	for msg := range h.channels[partition] {
+		if ok, err := h.mntr.Accept(ctx, h.sourceName, h.sourceURN, partition, int64(msg.TopicPartition.Offset)); err != nil {
 			logger.Error(err, "failed to determine if we should accept the message")
 		} else if !ok {
 			continue
@@ -52,18 +68,21 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 		if err := h.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
-			sess.MarkMessage(msg, "")
-			h.i++
-			if h.i%dfv1.CommitN == 0 {
-				sess.Commit()
-			}
+			h.commitMessage(msg)
 		}
 	}
-	return nil
 }
 
-func (h *handler) processMessage(ctx context.Context, msg *sarama.ConsumerMessage) error {
-	defer runtime.HandleCrash()
+func (h *handler) close() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for partition, ch := range h.channels {
+		logger.Info("closing partition channel", "partition", partition)
+		close(ch)
+	}
+}
+
+func (h *handler) processMessage(ctx context.Context, msg *kafka.Message) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-source-%s", h.sourceName))
 	defer span.Finish()
 	return h.process(
@@ -71,7 +90,7 @@ func (h *handler) processMessage(ctx context.Context, msg *sarama.ConsumerMessag
 			ctx,
 			dfv1.Meta{
 				Source: h.sourceURN,
-				ID:     fmt.Sprintf("%d-%d", msg.Partition, msg.Offset),
+				ID:     fmt.Sprintf("%d-%d", msg.TopicPartition.Partition, msg.TopicPartition.Offset),
 				Time:   msg.Timestamp.Unix(),
 			},
 		),

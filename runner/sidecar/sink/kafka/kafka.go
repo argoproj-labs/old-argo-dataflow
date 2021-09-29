@@ -3,128 +3,113 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"io"
+	"time"
 
-	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
+	sharedkafka "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 var logger = sharedutil.NewLogger()
 
-type producer interface {
-	SendMessage(ctx context.Context, msg *sarama.ProducerMessage) error
-	io.Closer
-}
-
-type asyncProducer struct{ sarama.AsyncProducer }
-
-func (s asyncProducer) SendMessage(ctx context.Context, msg *sarama.ProducerMessage) error {
-	s.AsyncProducer.Input() <- msg
-	return nil
-}
-
-type syncProducer struct{ sarama.SyncProducer }
-
-func (s syncProducer) SendMessage(ctx context.Context, msg *sarama.ProducerMessage) error {
-	_, _, err := s.SyncProducer.SendMessage(msg)
-	return err
-}
-
 type kafkaSink struct {
 	sinkName string
-	producer producer
+	producer *kafka.Producer
 	topic    string
+	async    bool
 }
 
 func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
-	config, err := kafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
+	logger := logger.WithValues("sink", sinkName)
+	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
 		return nil, err
 	}
-
 	if x.MaxMessageBytes > 0 {
-		config.Producer.MaxMessageBytes = int(x.MaxMessageBytes)
+		config["message.max.bytes"] = x.Kafka.MaxMessageBytes
 	}
-	logger.Info("Kafka config Producer.MaxMessageBytes", "value", config.Consumer.Fetch.Max)
-
-	producer, err := sarama.NewAsyncProducer(x.Brokers, config)
+	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/producer_example/producer_example.go
+	producer, err := kafka.NewProducer(&config)
 	if err != nil {
 		return nil, err
 	}
-
+	logger.Info("kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 	if x.Async {
-		config.Producer.Return.Successes = true
-		config.Producer.Return.Errors = true
-
 		// track async success and errors
 		kafkaMessagesProducedSuccess := promauto.NewCounterVec(prometheus.CounterOpts{
 			Subsystem: "sinks",
 			Name:      "kafka_produced_successes",
 			Help:      "Number of messages successfully produced to Kafka",
-		}, []string{"topic"})
+		}, []string{"sinkName"})
 		kafkaMessagesProducedErr := promauto.NewCounterVec(prometheus.CounterOpts{
 			Subsystem: "sinks",
 			Name:      "kafka_produce_errors",
 			Help:      "Number of errors while producing messages to Kafka",
-		}, []string{"topic"})
+		}, []string{"sinkName"})
 
 		// read from Success Channel
-		go func() {
-			defer runtime.HandleCrash()
-			// for loop will exit once the producer.Errors() is closed
-			for err := range producer.Errors() {
-				logger.Error(err, "Async to Kafka failed", "topic", err.Msg.Topic)
-				kafkaMessagesProducedErr.With(prometheus.Labels{"topic": err.Msg.Topic}).Inc()
+		go wait.JitterUntilWithContext(ctx, func(context.Context) {
+			logger.Info("starting producer event consuming loop")
+			for e := range producer.Events() {
+				switch ev := e.(type) {
+				case *kafka.Message:
+					if ev.TopicPartition.Error != nil {
+						logger.Error(err, "Async to Kafka failed", "topic", x.Topic)
+						kafkaMessagesProducedErr.WithLabelValues(sinkName).Inc()
+					} else {
+						kafkaMessagesProducedSuccess.WithLabelValues(sinkName).Inc()
+					}
+				}
 			}
-		}()
-		// read from Error channel
-		go func() {
-			defer runtime.HandleCrash()
-			// for loop will exit once the producer.Successes() is closed
-			for success := range producer.Successes() {
-				kafkaMessagesProducedSuccess.With(prometheus.Labels{"topic": success.Topic}).Inc()
-			}
-		}()
-
-		return kafkaSink{sinkName, asyncProducer{producer}, x.Topic}, nil
-	} else {
-		config.Producer.Return.Successes = true
-		producer, err := sarama.NewSyncProducer(x.Brokers, config)
-		if err != nil {
-			return nil, err
-		}
-		return kafkaSink{sinkName, syncProducer{producer}, x.Topic}, nil
+		}, time.Second, 1.2, true)
 	}
+	return &kafkaSink{sinkName, producer, x.Topic, x.Async}, nil
 }
 
-func (h kafkaSink) Sink(ctx context.Context, msg []byte) error {
+func (h *kafkaSink) Sink(ctx context.Context, msg []byte) error {
 	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", h.sinkName))
 	defer span.Finish()
 	m, err := dfv1.MetaFromContext(ctx)
 	if err != nil {
 		return err
 	}
-	return h.producer.SendMessage(
-		ctx,
-		&sarama.ProducerMessage{
-			Headers: []sarama.RecordHeader{
-				{Key: []byte("source"), Value: []byte(m.Source)},
-				{Key: []byte("id"), Value: []byte(m.ID)},
-			},
-			Value: sarama.ByteEncoder(msg),
-			Topic: h.topic,
+	message := kafka.Message{
+		TopicPartition: kafka.TopicPartition{Topic: &h.topic, Partition: kafka.PartitionAny},
+		Headers: []kafka.Header{
+			{Key: "source", Value: []byte(m.Source)},
+			{Key: "id", Value: []byte(m.ID)},
 		},
-	)
+		Value: msg,
+	}
+	if h.async {
+		return h.producer.Produce(&message, nil)
+	} else {
+		deliveryChan := make(chan kafka.Event, 1)
+		if err := h.producer.Produce(&message, deliveryChan); err != nil {
+			return err
+		}
+		e := <-deliveryChan
+		switch ev := e.(type) {
+		case *kafka.Message:
+			return ev.TopicPartition.Error
+		default:
+			return fmt.Errorf("failed to read delivery report: %s", e.String())
+		}
+	}
 }
 
-func (h kafkaSink) Close() error {
-	return h.producer.Close()
+func (h *kafkaSink) Close() error {
+	logger.Info("flushing producer")
+	_ = h.producer.Flush(15 * 1000)
+	logger.Info("closing producer")
+	h.producer.Close()
+	logger.Info("producer closed")
+	return nil
 }

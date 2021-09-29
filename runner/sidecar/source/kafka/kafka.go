@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
-	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
+	sharedkafka "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"k8s.io/apimachinery/pkg/util/runtime"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"k8s.io/apimachinery/pkg/util/wait"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -19,94 +18,109 @@ import (
 var logger = sharedutil.NewLogger()
 
 type kafkaSource struct {
-	client        sarama.Client
-	consumerGroup sarama.ConsumerGroup
-	adminClient   sarama.ClusterAdmin
-	groupID       string
-	topic         string
+	consumer *kafka.Consumer
+	handler  *handler
+	buffer   chan<- *kafka.Message
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
-	config, err := kafka.GetConfig(ctx, secretInterface, x.Kafka.KafkaConfig)
+	logger := logger.WithValues("source", sourceName)
+	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
 		return nil, err
 	}
-	config.Consumer.MaxProcessingTime = 10 * time.Second
-	config.Consumer.Fetch.Max = 16 * config.Consumer.Fetch.Default
-	if x.Kafka.MaxMessageBytes > 0 {
-		config.Consumer.Fetch.Max = x.Kafka.MaxMessageBytes
-	}
-	config.Consumer.Offsets.AutoCommit.Enable = false
+	config["group.id"] = consumerGroupID
+	config["enable.auto.commit"] = false
+	config["enable.auto.offset.store"] = false
 	if x.StartOffset == "First" {
-		config.Consumer.Offsets.Initial = sarama.OffsetOldest
+		config["auto.offset.reset"] = "earliest"
+	} else {
+		config["auto.offset.reset"] = "latest"
 	}
-	logger.Info("Kafka config",
-		"consumerGroupID", consumerGroupID,
-		"maxProcessingTime", config.Consumer.MaxProcessingTime.String(),
-		"fetchMax", config.Consumer.Fetch.Max,
-		"autoCommitEnable", config.Consumer.Offsets.AutoCommit.Enable,
-		"offsetsInitial", config.Consumer.Offsets.Initial,
-	)
-	consumerGroup, err := sarama.NewConsumerGroup(x.Brokers, consumerGroupID, config)
+	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
+	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/consumer_example/consumer_example.go
+	consumer, err := kafka.NewConsumer(&config)
 	if err != nil {
 		return nil, err
 	}
-	h := newHandler(mntr, sourceName, sourceURN, process)
-	go wait.JitterUntil(func() {
-		defer runtime.HandleCrash()
-		ctx := context.Background()
+	if err = consumer.Subscribe(x.Topic, func(consumer *kafka.Consumer, event kafka.Event) error {
+		logger.Info("rebalance", "event", event.String())
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	buffer := make(chan *kafka.Message, 32)
+	go wait.JitterUntilWithContext(ctx, func(context.Context) {
+		logger.Info("starting poll loop")
 		for {
-			logger.Info("starting Kafka consumption", "source", sourceName)
-			if err := consumerGroup.Consume(ctx, []string{x.Topic}, h); err != nil {
-				if err == sarama.ErrClosedConsumerGroup {
-					logger.Info("failed to consume kafka topic", "error", err)
-					return
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				ev := consumer.Poll(15 * 1000)
+				switch e := ev.(type) {
+				case *kafka.Message:
+					buffer <- e
+				case kafka.Error:
+					logger.Error(fmt.Errorf("%v", e), "poll error")
+				case nil:
+					// noop
+				default:
+					logger.Info("ignored event", "event", ev)
 				}
-				logger.Error(err, "failed to consume kafka topic", "source", sourceName)
 			}
 		}
-	}, 3*time.Second, 1.2, true, ctx.Done())
-	client, err := sarama.NewClient(x.Brokers, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Kafka client: %w", err)
-	}
-	adminClient, err := sarama.NewClusterAdmin(x.Brokers, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Kafka admin client: %w", err)
-	}
-	return kafkaSource{client, consumerGroup, adminClient, consumerGroupID, x.Topic}, nil
+	}, 3*time.Second, 1.2, true)
+	h := newHandler(ctx, mntr, sourceName, sourceURN, process, func(message *kafka.Message) {
+		if _, err := consumer.CommitMessage(message); err != nil {
+			logger.Error(err, "failed to commit message")
+		}
+	})
+	go wait.JitterUntilWithContext(ctx, func(context.Context) {
+		logger.Info("starting processing loop")
+		for m := range buffer {
+			h.addMessage(m)
+		}
+	}, 3*time.Second, 1.2, true)
+	return &kafkaSource{handler: h, consumer: consumer, buffer: buffer}, nil
 }
 
-func (s kafkaSource) Close() error {
-	if err := s.consumerGroup.Close(); err != nil {
+func (s *kafkaSource) Close() error {
+	logger.Info("closing consumer")
+	if err := s.consumer.Close(); err != nil {
 		return err
 	}
-	if err := s.adminClient.Close(); err != nil {
-		return err
-	}
-	return s.client.Close()
+	logger.Info("closing buffer")
+	close(s.buffer)
+	logger.Info("closing handler")
+	s.handler.close()
+	logger.Info("handler closed")
+	return nil
 }
 
-func (s kafkaSource) GetPending(context.Context) (uint64, error) {
-	partitions, err := s.client.Partitions(s.topic)
+func (s *kafkaSource) GetPending(context.Context) (uint64, error) {
+	toppars, err := s.consumer.Assignment()
 	if err != nil {
-		return 0, fmt.Errorf("failed to get partitions: %w", err)
+		return 0, err
 	}
-	totalLags := int64(0)
-	rep, err := s.adminClient.ListConsumerGroupOffsets(s.groupID, map[string][]int32{s.topic: partitions})
+	toppars, err = s.consumer.Committed(toppars, 3*1000)
 	if err != nil {
-		return 0, fmt.Errorf("failed to list consumer group offsets: %w", err)
+		return 0, err
 	}
-	for _, partition := range partitions {
-		partitionOffset, err := s.client.GetOffset(s.topic, partition, sarama.OffsetNewest)
+	var low, high int64
+	var pending int64
+	for _, t := range toppars {
+		low, high, err = s.consumer.QueryWatermarkOffsets(*t.Topic, t.Partition, 3*1000)
 		if err != nil {
-			return 0, fmt.Errorf("failed to get topic/partition offsets partition %q: %w", partition, err)
+			return 0, err
 		}
-		block := rep.GetBlock(s.topic, partition)
-		x := partitionOffset - block.Offset - 1
-		if x > 0 {
-			totalLags += x
+		offset := int64(t.Offset)
+		if t.Offset == kafka.OffsetInvalid {
+			offset = low
+		}
+		if d := high - offset; d > 0 {
+			pending += d
 		}
 	}
-	return uint64(totalLags), nil
+	return uint64(pending), nil
 }
