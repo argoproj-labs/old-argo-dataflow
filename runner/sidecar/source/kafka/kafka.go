@@ -21,7 +21,6 @@ type kafkaSource struct {
 	consumer *kafka.Consumer
 	handler  *handler
 	buffer   chan<- *kafka.Message
-	mntr     monitor.Interface
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
@@ -87,7 +86,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 		handler:  h,
 		consumer: consumer,
 		buffer:   buffer,
-		mntr:     mntr,
 	}, nil
 }
 
@@ -100,9 +98,7 @@ func (s *kafkaSource) Close() error {
 	close(s.buffer)
 	logger.Info("closing handler")
 	s.handler.close()
-	logger.Info("closing monitor")
-	s.mntr.Close(context.TODO())
-	logger.Info("monitor closed")
+	logger.Info("handler closed")
 	return nil
 }
 
