@@ -96,7 +96,7 @@ func (i *impl) commitOffsets(ctx context.Context) {
 	defer i.mu.Unlock()
 	for key, offset := range i.db {
 		if err := i.storage.Set(ctx, key, offset, time.Hour*24*30); err != nil {
-			logger.Error(err, "failed to set bit", "key", key, "offset", offset)
+			logger.Error(err, "failed to commit offset to Redis", "key", key, "offset", offset)
 		}
 	}
 }
