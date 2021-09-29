@@ -68,10 +68,10 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 			inFlight.Inc()
 			defer inFlight.Dec()
 			if _, err := fifo.Write(data); err != nil {
-				return fmt.Errorf("failed to send to main: %w", err)
+				return fmt.Errorf("failed to write to fifo: %w", err)
 			}
 			if _, err := fifo.Write([]byte("\n")); err != nil {
-				return fmt.Errorf("failed to send to main: %w", err)
+				return fmt.Errorf("failed to write to fifo: %w", err)
 			}
 			return nil
 		}, nil
@@ -103,12 +103,12 @@ func connectIn(ctx context.Context, sink func(context.Context, []byte) error) (f
 				return err
 			}
 			if resp, err := httpClient.Do(req); err != nil {
-				return fmt.Errorf("failed to send to main: %w", err)
+				return fmt.Errorf("failed to execute HTTP request: %w", err)
 			} else {
 				body, _ := ioutil.ReadAll(resp.Body)
 				_ = resp.Body.Close()
 				if resp.StatusCode >= 300 {
-					return fmt.Errorf("failed to send to main: %q %q", resp.Status, body)
+					return fmt.Errorf("HTTP request failed: %q %q", resp.Status, body)
 				}
 				if resp.StatusCode == 201 {
 					return sink(ctx, body)

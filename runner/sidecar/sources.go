@@ -105,8 +105,9 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					if err == nil {
 						return nil
 					}
-					logger.Error(err, "⚠ →", "source", sourceName, "backoffSteps", backoff.Steps)
-					if backoff.Steps <= 0 {
+					giveUp := backoff.Steps <= 0
+					logger.Error(err, "failed to send process message", "source", sourceName, "backoffSteps", backoff.Steps, "giveUp", giveUp)
+					if giveUp {
 						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						return err
 					}
