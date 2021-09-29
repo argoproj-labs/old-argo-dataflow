@@ -47,15 +47,15 @@ func Test_impl_Accept(t *testing.T) {
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("SkippedOffset", func(t *testing.T) {
-		accept, err := i.Accept(ctx, "my-source", "my-urn", 2, 4)
+		accept, err := i.Accept(ctx, "my-source", "my-urn", 2, 5)
 		assert.NoError(t, err)
 		assert.True(t, accept)
 		assert.Equal(t, 1, duplicate(t))
-		assert.Equal(t, 1, missing(t))
+		assert.Equal(t, 2, missing(t))
 	})
 	thirtyDays := time.Hour * 24 * 30
 	rdb.On("Set", ctx, "my-pl/my-step/my-urn/1/offset", int64(1), thirtyDays).Return(nil)
-	rdb.On("Set", ctx, "my-pl/my-step/my-urn/2/offset", int64(4), thirtyDays).Return(nil)
+	rdb.On("Set", ctx, "my-pl/my-step/my-urn/2/offset", int64(5), thirtyDays).Return(nil)
 	t.Run("CommitOffsets", func(t *testing.T) {
 		i.commitOffsets(ctx)
 	})

@@ -79,12 +79,13 @@ func (i *impl) Accept(ctx context.Context, sourceName, sourceURN string, partiti
 	}
 	lastOffset := i.db[key]
 	expectedOffset := lastOffset + 1
-	if offset < expectedOffset {
+	offsetDelta := offset - expectedOffset
+	if offsetDelta < 0 {
 		duplicateCounter.WithLabelValues(sourceName).Inc()
 		return false, nil
 	}
-	if offset > expectedOffset {
-		missingCounter.WithLabelValues(sourceName).Inc()
+	if offsetDelta > 0 {
+		missingCounter.WithLabelValues(sourceName).Add(float64(offsetDelta))
 	}
 	i.db[key] = offset
 	return true, nil
@@ -98,6 +99,10 @@ func (i *impl) commitOffsets(ctx context.Context) {
 			logger.Error(err, "failed to set bit", "key", key, "offset", offset)
 		}
 	}
+}
+
+func (i *impl) Close(ctx context.Context) {
+	i.commitOffsets(ctx)
 }
 
 func New(ctx context.Context, pipelineName, stepName string) Interface {
