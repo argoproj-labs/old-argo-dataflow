@@ -60,12 +60,13 @@ func (h *handler) ensurePartitionConsumer(partition int32) {
 func (h *handler) consumePartition(ctx context.Context, partition int32) {
 	logger.Info("consuming partition", "partition", partition)
 	for msg := range h.channels[partition] {
-		if ok, err := h.mntr.Accept(ctx, h.sourceName, h.sourceURN, partition, int64(msg.TopicPartition.Offset)); err != nil {
+		if accept, err := h.mntr.Accept(ctx, h.sourceName, h.sourceURN, partition, int64(msg.TopicPartition.Offset)); err != nil {
 			logger.Error(err, "failed to determine if we should accept the message")
-		} else if !ok {
-			continue
-		}
-		if err := h.processMessage(ctx, msg); err != nil {
+		} else if !accept {
+			// we don't accept it, so it has been processed already, but we must commit it
+			// in case the last commit went wrong
+			h.commitMessage(msg)
+		} else if err := h.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
 			h.commitMessage(msg)

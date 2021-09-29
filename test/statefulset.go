@@ -14,7 +14,7 @@ import (
 )
 
 func RestartStatefulSet(name string) {
-	log.Printf("restarting stateful set %q\n", name)
+	log.Printf("restarting statefulset %q\n", name)
 	data := sharedutil.MustJSON(map[string]interface{}{
 		"spec": map[string]interface{}{
 			"template": map[string]interface{}{
