@@ -53,7 +53,8 @@ func Exec(ctx context.Context) error {
 
 	sharedutil.MustUnJSON(os.Getenv(dfv1.EnvStep), &step)
 
-	logger.Info("step", "cluster", cluster, "step", sharedutil.MustJSON(step))
+	logger.Info("resource", "cluster", cluster, "step", stepName, "pipeline", pipelineName)
+	logger.Info("manifest", "step", sharedutil.MustJSON(step))
 
 	if cluster == "" {
 		// this must be configured in the controller
