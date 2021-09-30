@@ -61,10 +61,17 @@ type impl struct {
 	storage      storage
 }
 
+func (i *impl) Commit(ctx context.Context, sourceName, sourceURN string, partition int32, offset int64) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	key := i.key(sourceURN, partition)
+	i.db[key] = offset
+}
+
 func (i *impl) Accept(ctx context.Context, sourceName, sourceURN string, partition int32, offset int64) bool {
 	i.mu.Lock()
 	defer i.mu.Unlock()
-	key := fmt.Sprintf("%s/%s/%s/%d/offset", i.pipelineName, i.stepName, sourceURN, partition)
+	key := i.key(sourceURN, partition)
 	if _, ok := i.db[key]; !ok {
 		text, _ := i.storage.Get(ctx, key)
 		lastOffset, err := strconv.ParseInt(text, 10, 64)
@@ -84,8 +91,11 @@ func (i *impl) Accept(ctx context.Context, sourceName, sourceURN string, partiti
 	if offsetDelta > 0 {
 		missingCounter.WithLabelValues(sourceName).Add(float64(offsetDelta))
 	}
-	i.db[key] = offset
 	return true
+}
+
+func (i *impl) key(sourceURN string, partition int32) string {
+	return fmt.Sprintf("%s/%s/%s/%d/offset", i.pipelineName, i.stepName, sourceURN, partition)
 }
 
 func (i *impl) commitOffsets(ctx context.Context) {

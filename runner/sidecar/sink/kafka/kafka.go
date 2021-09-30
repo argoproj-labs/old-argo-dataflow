@@ -95,12 +95,16 @@ func (h *kafkaSink) Sink(ctx context.Context, msg []byte) error {
 		if err := h.producer.Produce(&message, deliveryChan); err != nil {
 			return err
 		}
-		e := <-deliveryChan
-		switch ev := e.(type) {
-		case *kafka.Message:
-			return ev.TopicPartition.Error
-		default:
-			return fmt.Errorf("failed to read delivery report: %s", e.String())
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("failed to get delivery: %w", ctx.Err())
+		case e := <-deliveryChan:
+			switch ev := e.(type) {
+			case *kafka.Message:
+				return ev.TopicPartition.Error
+			default:
+				return fmt.Errorf("failed to read delivery report: %s", e.String())
+			}
 		}
 	}
 }

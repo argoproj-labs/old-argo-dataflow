@@ -24,8 +24,8 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 
 	start := GetKafkaCount(sinkTopic)
 
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -43,11 +43,11 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
-	DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
-	WaitForPod("kafka-main-0")
+	DeletePod(name + "-main-0") // delete the pod to see that we recover and continue to process messages
+	WaitForPod(name + "-main-0")
 
 	ExpectKafkaTopicCount(sinkTopic, start, n, 2*time.Minute)
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward(name + "-main-0")()
 	WaitForNoErrors()
 }
 
@@ -62,7 +62,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	start := GetKafkaCount(sinkTopic)
 
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+		ObjectMeta: metav1.ObjectMeta{Name: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -96,9 +96,8 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	sinkTopic := SinkTopic
 
 	start := GetKafkaCount(sinkTopic)
-
-	pl := Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -107,8 +106,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
 			}},
 		},
-	}
-	CreatePipeline(pl)
+	})
 
 	WaitForPipeline()
 
@@ -117,12 +115,22 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward(name + "-main-0")()
 	WaitForSunkMessages()
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
-	CreatePipeline(pl)
+	CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{{
+				Name:    "main",
+				Cat:     &Cat{},
+				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
+				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
+			}},
+		},
+	})
 
 	ExpectKafkaTopicCount(sinkTopic, start, n, time.Minute)
 }

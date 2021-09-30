@@ -50,9 +50,11 @@ func runHooks(hooks []hook) {
 		f := hooks[i]
 		n := sharedutil.GetFuncName(f)
 		logger.Info("running hook", "func", n)
+		start := time.Now()
 		if err := f(ctx); err != nil {
 			logger.Error(err, "failed to run hook", "func", n)
 		}
+		logger.Info("running hook took", "func", n, "duration", time.Since(start).String())
 	}
 	logger.Info("running hooks took", "duration", time.Since(start).String())
 }
