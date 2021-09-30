@@ -61,19 +61,16 @@ type impl struct {
 	storage      storage
 }
 
-func (i *impl) Accept(ctx context.Context, sourceName, sourceURN string, partition int32, offset int64) (bool, error) {
+func (i *impl) Accept(ctx context.Context, sourceName, sourceURN string, partition int32, offset int64) bool {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 	key := fmt.Sprintf("%s/%s/%s/%d/offset", i.pipelineName, i.stepName, sourceURN, partition)
 	if _, ok := i.db[key]; !ok {
 		text, _ := i.storage.Get(ctx, key)
-		if text == "" { // assume that this is the first time, and we are continuous
+		lastOffset, err := strconv.ParseInt(text, 10, 64)
+		if err != nil {
 			i.db[key] = offset - 1
 		} else {
-			lastOffset, err := strconv.ParseInt(text, 10, 64)
-			if err != nil {
-				return false, err
-			}
 			i.db[key] = lastOffset
 		}
 	}
@@ -82,13 +79,13 @@ func (i *impl) Accept(ctx context.Context, sourceName, sourceURN string, partiti
 	offsetDelta := offset - expectedOffset
 	if offsetDelta < 0 {
 		duplicateCounter.WithLabelValues(sourceName).Inc()
-		return false, nil
+		return false
 	}
 	if offsetDelta > 0 {
 		missingCounter.WithLabelValues(sourceName).Add(float64(offsetDelta))
 	}
 	i.db[key] = offset
-	return true, nil
+	return true
 }
 
 func (i *impl) commitOffsets(ctx context.Context) {

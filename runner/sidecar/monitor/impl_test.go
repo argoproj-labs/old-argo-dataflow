@@ -26,29 +26,25 @@ func Test_impl_Accept(t *testing.T) {
 		storage:      rdb,
 	}
 	t.Run("EmptyStorage", func(t *testing.T) {
-		accept, err := i.Accept(ctx, "my-source", "my-urn", 1, 1)
-		assert.NoError(t, err)
+		accept := i.Accept(ctx, "my-source", "my-urn", 1, 1)
 		assert.True(t, accept)
 		assert.Equal(t, 0, duplicate(t))
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("ExistingStorage", func(t *testing.T) {
-		accept, err := i.Accept(ctx, "my-source", "my-urn", 2, 2)
-		assert.NoError(t, err)
+		accept := i.Accept(ctx, "my-source", "my-urn", 2, 2)
 		assert.True(t, accept)
 		assert.Equal(t, 0, duplicate(t))
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("RepeatedOffset", func(t *testing.T) {
-		accept, err := i.Accept(ctx, "my-source", "my-urn", 2, 2)
-		assert.NoError(t, err)
+		accept := i.Accept(ctx, "my-source", "my-urn", 2, 2)
 		assert.False(t, accept)
 		assert.Equal(t, 1, duplicate(t))
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("SkippedOffset", func(t *testing.T) {
-		accept, err := i.Accept(ctx, "my-source", "my-urn", 2, 5)
-		assert.NoError(t, err)
+		accept := i.Accept(ctx, "my-source", "my-urn", 2, 5)
 		assert.True(t, accept)
 		assert.Equal(t, 1, duplicate(t))
 		assert.Equal(t, 2, missing(t))

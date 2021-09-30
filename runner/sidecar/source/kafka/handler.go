@@ -44,9 +44,7 @@ func (h *handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 	logger.Info("starting consuming claim", "partition", claim.Partition())
 	defer sess.Commit()
 	for msg := range claim.Messages() {
-		if ok, err := h.mntr.Accept(ctx, h.sourceName, h.sourceURN, msg.Partition, msg.Offset); err != nil {
-			logger.Error(err, "failed to determine if we should accept the message")
-		} else if !ok {
+		if !h.mntr.Accept(ctx, h.sourceName, h.sourceURN, msg.Partition, msg.Offset) {
 			continue
 		}
 		if err := h.processMessage(ctx, msg); err != nil {
