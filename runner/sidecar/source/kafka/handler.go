@@ -25,7 +25,7 @@ func (handler) Cleanup(_ sarama.ConsumerGroupSession) error {
 func (h handler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	logger.Info("starting consuming claim", "partition", claim.Partition())
 	for msg := range claim.Messages() {
-		if err := h.process(sess.Context(), msg.Value); err != nil {
+		if err := h.process(sess.Context(), msg.Value, msg.Timestamp.UTC()); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
 			sess.MarkMessage(msg, "")

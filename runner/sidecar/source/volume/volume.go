@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
@@ -28,9 +29,9 @@ func New(ctx context.Context, pipelineName, stepName, sourceName string, x dfv1.
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
-		Process: func(ctx context.Context, msg []byte) error {
+		Process: func(ctx context.Context, msg []byte, ts time.Time) error {
 			path := filepath.Join(dir, string(msg))
-			return process(ctx, []byte(sharedutil.MustJSON(message{Path: path})))
+			return process(ctx, []byte(sharedutil.MustJSON(message{Path: path})), time.Now().UTC())
 		},
 		ListItems: func() ([]interface{}, error) {
 			var keys []interface{}

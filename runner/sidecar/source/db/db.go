@@ -74,7 +74,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)
 					}
-					if err := process(ctx, jsonData); err != nil {
+					if err := process(ctx, jsonData, time.Now().UTC()); err != nil {
 						return fmt.Errorf("failed to process data: %w", err)
 					}
 					offset = fmt.Sprintf("%v", d[x.OffsetColumn])

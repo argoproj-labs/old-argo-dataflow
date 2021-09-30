@@ -3,6 +3,7 @@ package http
 import (
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 )
@@ -23,13 +24,14 @@ func New(sourceName, authorization string, process source.Process) source.Interf
 			_, _ = w.Write([]byte("not ready"))
 			return
 		}
+		receviedTime := time.Now()
 		msg, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		if err := process(r.Context(), msg); err != nil {
+		if err := process(r.Context(), msg, receviedTime.UTC()); err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 		} else {

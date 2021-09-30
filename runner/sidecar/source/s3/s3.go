@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 
@@ -88,7 +89,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
-		Process: func(ctx context.Context, msg []byte) error {
+		Process: func(ctx context.Context, msg []byte, ts time.Time) error {
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &x.Bucket, Key: &key})
@@ -112,7 +113,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
 			}()
-			return process(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})))
+			return process(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})), output.LastModified.UTC())
 		},
 		ListItems: func() ([]interface{}, error) {
 			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: aws.String(x.Bucket)})

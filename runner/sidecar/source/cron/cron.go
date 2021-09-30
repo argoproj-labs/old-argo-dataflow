@@ -32,7 +32,7 @@ func New(ctx context.Context, x dfv1.Cron, process source.Process) (source.Inter
 
 	_, err := crn.AddFunc(x.Schedule, func() {
 		msg := []byte(time.Now().Format(x.Layout))
-		if err := process(ctx, msg); err != nil {
+		if err := process(ctx, msg, time.Now().UTC()); err != nil {
 			logger.Error(err, "failed to process message")
 		}
 	})

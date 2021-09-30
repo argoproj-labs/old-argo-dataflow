@@ -53,6 +53,12 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		Name:      "totalBytes",
 		Help:      "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
 	}, []string{"sourceName", "replica"})
+	processLatencyHistoGram := promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Subsystem: "sources",
+		Name:      "processLatencySeconds",
+		Help:      "Latency Seconds between Source to pipeline , see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md### source_processLatencySeconds",
+		Buckets:   []float64{0.0, 1.0, 3.0, 5.0, 10.0, 15.0, 30.0, 45.0, 60.0, 75.0, 90.0, 105.0, 120.0},
+	}, []string{"sourceName", "replica"})
 
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
@@ -63,9 +69,10 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		}
 
 		rateCounter := ratecounter.NewRateCounter(updateInterval)
-		processWithRetry := func(ctx context.Context, msg []byte) error {
+		processWithRetry := func(ctx context.Context, msg []byte, ts time.Time) error {
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
+			processLatencyHistoGram.WithLabelValues(sourceName, fmt.Sprint(replica)).Observe(time.Now().UTC().Sub(ts).Seconds())
 			rateCounter.Incr(1)
 			withLock(func() {
 				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter), uint64(len(msg)))

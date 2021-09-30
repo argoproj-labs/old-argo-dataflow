@@ -53,7 +53,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, clusterNam
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-			if err := process(ctx, msg.Data); err != nil {
+			unixTimeUTC := time.Unix(msg.Timestamp, 0)
+			if err := process(ctx, msg.Data, unixTimeUTC); err != nil {
 				logger.Error(err, "failed to process message")
 			} else if err := msg.Ack(); err != nil {
 				logger.Error(err, "failed to ack message", "source", sourceName)
