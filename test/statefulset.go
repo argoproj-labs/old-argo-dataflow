@@ -31,4 +31,5 @@ func RestartStatefulSet(name string) {
 	if err != nil {
 		panic(fmt.Errorf("failed to restart %q: %w", name, err))
 	}
+	WaitForPod(fmt.Sprintf("%s-0", name))
 }

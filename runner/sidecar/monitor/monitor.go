@@ -5,6 +5,7 @@ import (
 )
 
 type Interface interface {
-	Accept(ctx context.Context, sourceName, sourceURN string, partition int32, offset int64) (bool, error)
+	// Accept determine if the message should be processed. It is not a duplicate.
+	Accept(ctx context.Context, sourceName, sourceURN string, partition int32, offset int64) bool
 	Close(context.Context)
 }

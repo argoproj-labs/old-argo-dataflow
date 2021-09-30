@@ -60,9 +60,9 @@ func (h *handler) ensurePartitionConsumer(partition int32) {
 func (h *handler) consumePartition(ctx context.Context, partition int32) {
 	logger.Info("consuming partition", "partition", partition)
 	for msg := range h.channels[partition] {
-		if accept, err := h.mntr.Accept(ctx, h.sourceName, h.sourceURN, partition, int64(msg.TopicPartition.Offset)); err != nil {
-			logger.Error(err, "failed to determine if we should accept the message")
-		} else if !accept {
+		offset := int64(msg.TopicPartition.Offset)
+		if !h.mntr.Accept(ctx, h.sourceName, h.sourceURN, partition, offset) {
+			logger.Info("skipping duplicate message", "partition", partition, "offset", offset)
 			// we don't accept it, so it has been processed already, but we must commit it
 			// in case the last commit went wrong
 			h.commitMessage(msg)
