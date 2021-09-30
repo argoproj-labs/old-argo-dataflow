@@ -61,11 +61,12 @@ FROM golang:1.16-alpine AS golang1-16
 COPY --from=builder /tmp/dumb-init /dumb-init
 RUN chmod +x /dumb-init
 RUN mkdir /.cache
+ENV GO111MODULE=off
+ADD sdks/golang /go/src/github.com/argoproj-labs/argo-dataflow/sdks/golang
 ADD runtimes/golang1-16 /workspace
 RUN chown -R 9653 /.cache /workspace
 WORKDIR /workspace
 USER 9653:9653
-RUN go get -u github.com/argoproj-labs/argo-dataflow
 RUN go build ./...
 ENTRYPOINT ["/dumb-init", "--"]
 CMD ["/workspace/entrypoint.sh"]

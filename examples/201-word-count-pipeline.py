@@ -11,10 +11,12 @@ if __name__ == '__main__':
      .step(
         (kafka('input-topic')
          .container('read-text',
-                    args=['sh', '-c', """cat /in/text | tee -a /var/run/argo-dataflow/out"""],
+                    args=[
+                        'sh', '-c', """cat /in/text | tee -a /var/run/argo-dataflow/out"""],
                     image='ubuntu:latest',
                     volumeMounts=[{'name': 'in', 'mountPath': '/in'}],
-                    volumes=[{'name': 'in', 'configMap': {'name': 'word-count-input'}}]
+                    volumes=[{'name': 'in', 'configMap': {
+                        'name': 'word-count-input'}}]
                     )
          .stan('lines')
          ))

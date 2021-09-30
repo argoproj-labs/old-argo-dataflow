@@ -6,20 +6,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestStep_GetPodSpec(t *testing.T) {
 	for replica, priorityClassName := range map[int]string{0: "lead-replica", 1: ""} {
 		t.Run(fmt.Sprintf("Replica%d", replica), func(t *testing.T) {
 			env := []corev1.EnvVar{
-				{Name: "ARGO_DATAFLOW_CLUSTER_NAME", Value: "my-cluster"},
-				{Name: "ARGO_DATAFLOW_DEBUG", Value: "false"},
-				{Name: "ARGO_DATAFLOW_NAMESPACE", Value: "my-ns"},
+				{Name: "ARGO_DATAFLOW_CLUSTER", Value: "my-cluster"},
+				{Name: "ARGO_DATAFLOW_NAMESPACE", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.namespace"}}},
+				{Name: "ARGO_DATAFLOW_POD", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
 				{Name: "ARGO_DATAFLOW_PIPELINE_NAME", Value: "my-pl"},
 				{Name: "ARGO_DATAFLOW_REPLICA", Value: fmt.Sprintf("%d", replica)},
 				{Name: "ARGO_DATAFLOW_STEP", Value: `{"metadata":{"creationTimestamp":null},"spec":{"name":"main","cat":{"resources":{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"64Mi"}}},"scale":{},"sidecar":{"resources":{}}},"status":{"phase":"","replicas":0,"lastScaledAt":null}}`},
@@ -48,9 +47,8 @@ func TestStep_GetPodSpec(t *testing.T) {
 						},
 					},
 					GetPodSpecReq{
-						ClusterName:    "my-cluster",
+						Cluster:        "my-cluster",
 						ImageFormat:    "image-%s",
-						Namespace:      "my-ns",
 						PipelineName:   "my-pl",
 						Replica:        int32(replica),
 						RunnerImage:    "my-runner",
@@ -122,7 +120,9 @@ func TestStep_GetPodSpec(t *testing.T) {
 							{
 								Name: "var-run-argo-dataflow",
 								VolumeSource: corev1.VolumeSource{
-									EmptyDir: &corev1.EmptyDirVolumeSource{},
+									EmptyDir: &corev1.EmptyDirVolumeSource{
+										Medium: corev1.StorageMediumMemory,
+									},
 								},
 							}, {
 								Name: "ssh",
@@ -146,4 +146,25 @@ func TestStep_GetPodSpec(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStep_GetServiceObj(t *testing.T) {
+	step := Step{
+		Spec: StepSpec{
+			Name: "main",
+			Cat:  &Cat{AbstractStep{Resources: standardResources}},
+		},
+	}
+	t.Run("headless", func(t *testing.T) {
+		obj := step.GetServiceObj("serviceName", "plName", true)
+		assert.Equal(t, obj.Spec.ClusterIP, "None")
+		assert.Equal(t, len(obj.Spec.Ports), 1)
+		assert.Equal(t, int32(3570), obj.Spec.Ports[0].Port)
+	})
+	t.Run("clusterIP", func(t *testing.T) {
+		obj := step.GetServiceObj("serviceName", "plName", false)
+		assert.Equal(t, obj.Spec.ClusterIP, "")
+		assert.Equal(t, len(obj.Spec.Ports), 1)
+		assert.Equal(t, int32(443), obj.Spec.Ports[0].Port)
+	})
 }

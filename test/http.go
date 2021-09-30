@@ -17,12 +17,13 @@ func SendMessageViaHTTP(msg string) {
 	if err != nil {
 		panic(err)
 	}
-	req.Header.Set("Authorization", "Bearer my-bearer-token")
+	req.Header.Set("Authorization", GetAuthorization())
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		panic(err)
 	} else {
 		body, _ := ioutil.ReadAll(resp.Body)
+		_ = resp.Body.Close()
 		if resp.StatusCode != 204 {
 			panic(fmt.Errorf("%s: %q", resp.Status, body))
 		}
@@ -31,8 +32,11 @@ func SendMessageViaHTTP(msg string) {
 
 func PumpHTTP(_url, prefix string, n int, opts ...interface{}) {
 	size := 0
+	workers := uint32(2)
 	for _, opt := range opts {
 		switch v := opt.(type) {
+		case uint32:
+			workers = v
 		case int:
 			size = v
 		default:
@@ -40,7 +44,7 @@ func PumpHTTP(_url, prefix string, n int, opts ...interface{}) {
 		}
 	}
 	log.Printf("sending %d messages sized %d prefixed %q via HTTP to %q\n", n, size, prefix, _url)
-	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=0&size=%d", url.QueryEscape(_url), prefix, n, size)
+	InvokeTestAPI("/http/pump?url=%s&prefix=%s&n=%d&sleep=0&size=%d&workers=%d&authorization=%s", url.QueryEscape(_url), prefix, n, size, workers, url.QueryEscape(GetAuthorization()))
 }
 
 func PumpHTTPTolerantly(n int) {

@@ -12,7 +12,7 @@ They have a single variable, `msg`, which is a byte array.
 [Learn about expressions](../docs/EXPRESSIONS.md)""")
      .step(
         kafka('input-topic')
-            .filter('main', 'string(msg) contains "-"')
-            .kafka('output-topic')
+        .filter(expression='string(msg) contains "-"')
+        .kafka('output-topic')
     )
-     .save())
+        .save())

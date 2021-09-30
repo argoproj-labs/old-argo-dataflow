@@ -75,7 +75,7 @@ func generate() ([]byte, crypto.PrivateKey, error) {
 	return certBytes, privateKey, nil
 }
 
-// generatePEM generates a new certificate and key and returns it as PEM encoded bytes
+// generatePEM generates a new certificate and key and returns it as PEM encoded bytes.
 func generatePEM() ([]byte, []byte, error) {
 	certBytes, privateKey, err := generate()
 	if err != nil {
@@ -86,7 +86,7 @@ func generatePEM() ([]byte, []byte, error) {
 	return certpem, keypem, nil
 }
 
-// GenerateX509KeyPair generates a X509 key pair
+// GenerateX509KeyPair generates a X509 key pair.
 func GenerateX509KeyPair() (*tls.Certificate, error) {
 	certpem, keypem, err := generatePEM()
 	if err != nil {

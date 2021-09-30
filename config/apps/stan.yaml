@@ -231,6 +231,10 @@ spec:
           name: monitor
         - containerPort: 7777
           name: metrics
+        readinessProbe:
+          httpGet:
+            path: /streaming/channelsz
+            port: 8222
         volumeMounts:
         - mountPath: /etc/stan-config
           name: config-volume

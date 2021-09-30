@@ -9,18 +9,16 @@ import (
 	"syscall"
 	"time"
 
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-
-	"k8s.io/apimachinery/pkg/util/runtime"
-
+	"github.com/opentracing/opentracing-go"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -29,7 +27,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName string, x dfv1.S3Source, process source.Process, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.S3Source, process source.Process, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", x.Name, "bucket", x.Bucket)
 	var accessKeyID string
 	{
@@ -81,15 +79,19 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 
 	client := s3.New(options)
 
-	return loadbalanced.New(ctx, loadbalanced.NewReq{
+	return loadbalanced.New(ctx, secretInterface, loadbalanced.NewReq{
 		Logger:       logger,
 		PipelineName: pipelineName,
 		StepName:     stepName,
 		SourceName:   sourceName,
+		SourceURN:    sourceURN,
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
+
 		Process: func(ctx context.Context, msg []byte, ts time.Time) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-source-%s", sourceName))
+			defer span.Finish()
 			key := string(msg)
 			path := filepath.Join(dir, key)
 			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &x.Bucket, Key: &key})
@@ -113,7 +115,18 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
 			}()
-			return process(ctx, []byte(sharedutil.MustJSON(message{Key: key, Path: path})), output.LastModified.UTC())
+			return process(
+				dfv1.ContextWithMeta(
+					ctx,
+					dfv1.Meta{
+						Source: sourceURN,
+						ID:     key,
+						Time:   output.LastModified.Unix(),
+					},
+				),
+				[]byte(sharedutil.MustJSON(message{Key: key, Path: path})),
+				output.LastModified.UTC(),
+			)
 		},
 		ListItems: func() ([]interface{}, error) {
 			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: aws.String(x.Bucket)})

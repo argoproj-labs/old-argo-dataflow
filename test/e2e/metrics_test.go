@@ -41,21 +41,22 @@ func TestMetrics(t *testing.T) {
 
 	sendHTTPMsag("my-msg")
 
-	WaitForStep(NothingPending)
-	WaitForStep(TotalSourceMessages(1))
-	WaitForStep(func(s Step) bool { return s.Status.SinkStatues.GetPending() == 0 })
+	WaitForSunkMessages()
+	WaitForTotalSourceMessages(1)
 
-	ExpectMetric("input_inflight", 0)
-	ExpectMetric("version_major", 0)
-	ExpectMetric("version_minor", 0)
-	ExpectMetric("version_patch", 0)
-	ExpectMetric("replicas", 1)
-	ExpectMetric("sources_errors", 1)
-	ExpectMetric("sources_total", 1)
-	ExpectMetric("sources_retries", 2)
-	ExpectMetric("sources_totalBytes", 6)
+	ExpectMetric("input_inflight", Eq(0))
+	ExpectMetric("version_major", Eq(0))
+	ExpectMetric("version_minor", Eq(0))
+	ExpectMetric("version_patch", Eq(0))
+	ExpectMetric("replicas", Eq(1))
+	ExpectMetric("sources_errors", Eq(1))
+	ExpectMetric("sources_total", Eq(1))
+	ExpectMetric("sources_retries", Eq(2))
+	ExpectMetric("sources_totalBytes", Eq(6))
+	ExpectMetric("sinks_total", Eq(3))
+	ExpectMetric("sinks_errors", Eq(3))
 	sendHTTPMsag("my-msg")
-	ExpectMetric("sources_totalBytes", 12)
+	ExpectMetric("sources_totalBytes", Eq(12))
 }
 
 func sendHTTPMsag(msg string) {

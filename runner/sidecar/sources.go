@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
 	dbsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/db"
@@ -14,10 +16,12 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/stan"
 	volumeSource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/volume"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/paulbellamy/ratecounter"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func connectSources(ctx context.Context, process func(context.Context, []byte) error) error {
@@ -60,23 +64,32 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		Buckets:   []float64{0.0, 1.0, 3.0, 5.0, 10.0, 15.0, 30.0, 45.0, 60.0, 75.0, 90.0, 105.0, 120.0},
 	}, []string{"sourceName", "replica"})
 
+	if err := createSecret(ctx); err != nil {
+		return err
+	}
+
+	mntr := monitor.New(ctx, pipelineName, stepName)
+	addStopHook(func(ctx context.Context) error {
+		logger.Info("closing monitor")
+		mntr.Close(ctx)
+		logger.Info("monitor closed")
+		return nil
+	})
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
-		logger.Info("connecting source", "source", sharedutil.MustJSON(s))
 		sourceName := s.Name
+		sourceURN := s.GenURN(cluster, namespace)
+		logger.Info("connecting source", "source", sharedutil.MustJSON(s), "urn", sourceURN)
 		if _, exists := sources[sourceName]; exists {
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 
-		rateCounter := ratecounter.NewRateCounter(updateInterval)
 		processWithRetry := func(ctx context.Context, msg []byte, ts time.Time) error {
+			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
+			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
 			processLatencyHistoGram.WithLabelValues(sourceName, fmt.Sprint(replica)).Observe(time.Now().UTC().Sub(ts).Seconds())
-			rateCounter.Incr(1)
-			withLock(func() {
-				step.Status.SourceStatuses.IncrTotal(sourceName, replica, rateToResourceQuantity(rateCounter), uint64(len(msg)))
-			})
 			backoff := newBackoff(s.Retry)
 			for {
 				select {
@@ -87,18 +100,28 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					if uint64(backoff.Steps) < s.Retry.Steps { // this is a retry
 						logger.Info("retry", "source", sourceName, "backoff", backoff)
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-						withLock(func() { step.Status.SourceStatuses.IncrRetries(sourceName, replica) })
 					}
-					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-					err := process(ctx, msg)
+					// we need to copy anything except the timeout from the parent context
+					m, err := dfv1.MetaFromContext(ctx)
+					if err != nil {
+						return err
+					}
+					ctx, cancel := context.WithTimeout(
+						dfv1.ContextWithMeta(
+							opentracing.ContextWithSpan(context.Background(), span),
+							m,
+						),
+						15*time.Second,
+					)
+					err = process(ctx, msg)
 					cancel()
 					if err == nil {
 						return nil
 					}
-					logger.Error(err, "⚠ →", "source", sourceName, "backoffSteps", backoff.Steps)
-					if backoff.Steps <= 0 {
+					giveUp := backoff.Steps <= 0
+					logger.Error(err, "failed to send process message", "source", sourceName, "backoffSteps", backoff.Steps, "giveUp", giveUp)
+					if giveUp {
 						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-						withLock(func() { step.Status.SourceStatuses.IncrErrors(sourceName, replica) })
 						return err
 					}
 					time.Sleep(backoff.Step())
@@ -106,45 +129,44 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		}
 		if x := s.Cron; x != nil {
-			if y, err := cron.New(ctx, *x, processWithRetry); err != nil {
+			if y, err := cron.New(ctx, sourceName, sourceURN, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, replica, sourceName, *x, processWithRetry); err != nil {
+			if y, err := stan.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			groupID := sharedutil.GetSourceUID(clusterName, namespace, pipelineName, stepName, sourceName)
-			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, *x, processWithRetry); err != nil {
+			groupID := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
+			if y, err := kafkasource.New(ctx, secretInterface, mntr, groupID, sourceName, sourceURN, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.HTTP; x != nil {
-			// we don't want to share this secret
-			secret, err := secretInterface.Get(ctx, step.Name, metav1.GetOptions{})
-			if err != nil {
-				return fmt.Errorf("failed to get secret %q: %w", step.Name, err)
+			if _, y, err := httpsource.New(ctx, secretInterface, pipelineName, stepName, sourceURN, sourceName, processWithRetry); err != nil {
+				return err
+			} else {
+				sources[sourceName] = y
 			}
-			sources[sourceName] = httpsource.New(sourceName, string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)]), processWithRetry)
 		} else if x := s.S3; x != nil {
-			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, *x, processWithRetry, leadReplica()); err != nil {
+			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.DB; x != nil {
-			if y, err := dbsource.New(ctx, secretInterface, clusterName, namespace, pipelineName, stepName, sourceName, *x, processWithRetry); err != nil {
+			if y, err := dbsource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Volume; x != nil {
-			if y, err := volumeSource.New(ctx, pipelineName, stepName, sourceName, *x, processWithRetry, leadReplica()); err != nil {
+			if y, err := volumeSource.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
@@ -157,19 +179,35 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			return sources[sourceName].Close()
 		})
 		if x, ok := sources[sourceName].(source.HasPending); ok && leadReplica() {
-			logger.Info("adding pre-patch hook", "source", sourceName)
-			prePatchHooks = append(prePatchHooks, func(ctx context.Context) error {
+			logger.Info("starting pending loop", "source", sourceName, "updateInterval", updateInterval.String())
+			go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 				logger.Info("getting pending", "source", sourceName)
 				if pending, err := x.GetPending(ctx); err != nil {
-					return err
+					logger.Error(err, "failed to get pending", "source", sourceName)
 				} else {
 					logger.Info("got pending", "source", sourceName, "pending", pending)
 					pendingGauge.WithLabelValues(sourceName).Set(float64(pending))
-					withLock(func() { step.Status.SourceStatuses.SetPending(sourceName, pending) })
 				}
-				return nil
-			})
+			}, updateInterval, 1.2, true)
 		}
+	}
+	return nil
+}
+
+func createSecret(ctx context.Context) error {
+	data := map[string]string{}
+	for _, s := range step.Spec.Sources {
+		data[fmt.Sprintf("sources.%s.http.authorization", s.Name)] = fmt.Sprintf("Bearer %s", sharedutil.RandString())
+	}
+	_, err := secretInterface.Create(ctx, &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            step.Name,
+			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)},
+		},
+		StringData: data,
+	}, metav1.CreateOptions{})
+	if sharedutil.IgnoreAlreadyExists(err) != nil {
+		return fmt.Errorf("failed to create secret %q: %w", step.Name, err)
 	}
 	return nil
 }

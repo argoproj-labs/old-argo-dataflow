@@ -1,5 +1,9 @@
 package v1alpha1
 
+import (
+	"fmt"
+)
+
 type KafkaNET struct {
 	TLS  *TLS  `json:"tls,omitempty" protobuf:"bytes,1,opt,name=tls"`
 	SASL *SASL `json:"sasl,omitempty" protobuf:"bytes,2,opt,name=sasl"`
@@ -17,4 +21,8 @@ type Kafka struct {
 	Name        string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	KafkaConfig `json:",inline" protobuf:"bytes,4,opt,name=kafkaConfig"`
 	Topic       string `json:"topic" protobuf:"bytes,3,opt,name=topic"`
+}
+
+func (in Kafka) GenURN(cluster, namespace string) string {
+	return fmt.Sprintf("urn:dataflow:kafka:%s:%s", in.Brokers[0], in.Topic)
 }

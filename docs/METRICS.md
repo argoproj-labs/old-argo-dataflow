@@ -26,11 +26,19 @@ Only exposed by replica 0.
 
 Golden metric type: traffic.
 
-### sources_errors
+### sinks_errors
 
 Use this to track errors.
 
-Only exposed by replica 0.
+Golden metric type: error.
+
+### sinks_total
+
+Use this to track throughput. Includes retries and errors.
+
+### sources_errors
+
+Use this to track errors.
 
 Golden metric type: error.
 
@@ -47,8 +55,6 @@ Use this metric to determine the latency seconds between source timestamp to pip
 ### sources_total
 
 Use this to track throughput.
-
-Only exposed by replica 0.
 
 Golden metric type: traffic.
 

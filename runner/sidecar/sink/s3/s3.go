@@ -6,20 +6,22 @@ import (
 	"fmt"
 	"os"
 
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/opentracing/opentracing-go"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/utils/pointer"
 )
 
 type s3Sink struct {
-	client *s3.Client
-	bucket string
+	sinkName string
+	client   *s3.Client
+	bucket   string
 }
 
 type message struct {
@@ -27,7 +29,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface v1.SecretInterface, x dfv1.S3Sink) (sink.Interface, error) {
+func New(ctx context.Context, sinkName string, secretInterface v1.SecretInterface, x dfv1.S3Sink) (sink.Interface, error) {
 	var accessKeyID string
 	{
 		secretName := x.Credentials.AccessKeyID.Name
@@ -70,22 +72,29 @@ func New(ctx context.Context, secretInterface v1.SecretInterface, x dfv1.S3Sink)
 			return aws.Endpoint{URL: e.URL, SigningRegion: region, HostnameImmutable: true}, nil
 		})
 	}
-	return s3Sink{client: s3.New(options), bucket: x.Bucket}, nil
+	return s3Sink{sinkName, s3.New(options), x.Bucket}, nil
 }
 
 func (h s3Sink) Sink(ctx context.Context, msg []byte) error {
-	m := &message{}
-	if err := json.Unmarshal(msg, m); err != nil {
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-sink-%s", h.sinkName))
+	defer span.Finish()
+	message := &message{}
+	if err := json.Unmarshal(msg, message); err != nil {
 		return err
 	}
-	f, err := os.Open(m.Path)
+	f, err := os.Open(message.Path)
 	if err != nil {
-		return fmt.Errorf("failed to open %q: %w", m.Path, err)
+		return fmt.Errorf("failed to open %q: %w", message.Path, err)
+	}
+	m, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return err
 	}
 	_, err = h.client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: &h.bucket,
-		Key:    &m.Key,
-		Body:   f,
+		Bucket:  &h.bucket,
+		Key:     &message.Key,
+		Body:    f,
+		Tagging: pointer.StringPtr(fmt.Sprintf("%s=%s,%s=%s", dfv1.MetaSource, m.Source, dfv1.MetaID, m.ID)),
 	}, s3.WithAPIOptions(
 		// https://aws.github.io/aws-sdk-go-v2/docs/sdk-utilities/s3/#unseekable-streaming-input
 		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,

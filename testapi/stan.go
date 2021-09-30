@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/nats-io/nats-streaming-server/server"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/stan.go"
 )
@@ -80,5 +82,27 @@ func init() {
 			}
 		}
 		_, _ = fmt.Fprintf(w, "sent %d messages of size %d at %.0f TPS to %q\n", n, mf.size, float64(n)/time.Since(start).Seconds(), subject)
+	})
+	http.HandleFunc("/stan/count-subject", func(w http.ResponseWriter, r *http.Request) {
+		subject := r.URL.Query().Get("subject")
+		resp, err := http.Get("http://stan:8222/streaming/channelsz?channel=" + subject)
+		if err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(fmt.Sprintf("failed to request STAN channelz: %v", err)))
+			return
+		}
+		if resp.StatusCode != 200 {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(fmt.Sprintf("failed to request STAN channelz: %s", resp.Status)))
+			return
+		}
+		defer func() { _ = resp.Body.Close() }()
+		o := server.Channelz{}
+		if err := json.NewDecoder(resp.Body).Decode(&o); err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		_, _ = fmt.Fprintf(w, "%d", o.LastSeq-o.FirstSeq)
 	})
 }

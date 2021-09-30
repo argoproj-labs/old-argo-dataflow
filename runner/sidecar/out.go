@@ -7,9 +7,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-
+	"github.com/google/uuid"
+	"github.com/opentracing/opentracing-go"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
@@ -26,18 +28,31 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 	}
 	authorization := string(v)
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
+		span, ctx := opentracing.StartSpanFromContext(r.Context(), "/messages")
+		defer span.Finish()
 		if r.Header.Get("Authorization") != authorization {
 			w.WriteHeader(403)
 			return
 		}
 		data, err := ioutil.ReadAll(r.Body)
+		_ = r.Body.Close()
 		if err != nil {
 			logger.Error(err, "failed to read message body from main via HTTP")
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		if err := sink(r.Context(), data); err != nil {
+		if err := sink(
+			dfv1.ContextWithMeta(
+				ctx,
+				dfv1.Meta{
+					Source: fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:messages", pod, namespace, cluster),
+					ID:     uuid.New().String(),
+					Time:   time.Now().Unix(),
+				},
+			),
+			data,
+		); err != nil {
 			logger.Error(err, "failed to send message from main to sink")
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
@@ -63,7 +78,17 @@ func connectOutFIFO(ctx context.Context, sink func(context.Context, []byte) erro
 			logger.Info("opened output FIFO")
 			scanner := bufio.NewScanner(fifo)
 			for scanner.Scan() {
-				if err := sink(ctx, scanner.Bytes()); err != nil {
+				if err := sink(
+					dfv1.ContextWithMeta(
+						ctx,
+						dfv1.Meta{
+							Source: fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:fifo", pod, namespace, cluster),
+							ID:     uuid.New().String(),
+							Time:   time.Now().Unix(),
+						},
+					),
+					scanner.Bytes(),
+				); err != nil {
 					return fmt.Errorf("failed to send message from main to sink: %w", err)
 				}
 			}

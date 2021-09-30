@@ -22,6 +22,9 @@ import (
 	"strings"
 	"time"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -31,13 +34,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// PipelineReconciler reconciles a Pipeline object
+// PipelineReconciler reconciles a Pipeline object.
 type PipelineReconciler struct {
 	client.Client
 	Log             logr.Logger
@@ -92,6 +92,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			},
 			Spec: step,
 		}
+		controllerutil.AddFinalizer(obj, stepFinalizer)
 		if err := r.Client.Create(ctx, obj); err != nil {
 			if apierr.IsAlreadyExists(err) {
 				old := &dfv1.Step{}
@@ -121,7 +122,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	pending, running, succeeded, failed := 0, 0, 0, 0
 	newStatus := *pipeline.Status.DeepCopy()
 	newStatus.Phase = dfv1.PipelineUnknown
-	terminate, sunkMessages := false, false
+	terminate := false
 	for _, step := range steps.Items {
 		stepName := step.Spec.Name
 		if !pipeline.Spec.HasStep(stepName) { // this happens when a pipeline changes and a step is removed
@@ -148,7 +149,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			panic("should never happen")
 		}
 		terminate = terminate || step.Status.Phase.Completed() && step.Spec.Terminator
-		sunkMessages = sunkMessages || step.Status.SinkStatues.AnySunk()
 	}
 
 	if newStatus.Phase.Completed() {
@@ -173,10 +173,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	newStatus.Message = strings.Join(ss, ", ")
 
 	for c, ok := range map[string]bool{
-		dfv1.ConditionRunning:      newStatus.Phase == dfv1.PipelineRunning,
-		dfv1.ConditionCompleted:    newStatus.Phase.Completed(),
-		dfv1.ConditionSunkMessages: sunkMessages,
-		dfv1.ConditionTerminating:  terminate,
+		dfv1.ConditionRunning:     newStatus.Phase == dfv1.PipelineRunning,
+		dfv1.ConditionCompleted:   newStatus.Phase.Completed(),
+		dfv1.ConditionTerminating: terminate,
 	} {
 		if ok {
 			meta.SetStatusCondition(&newStatus.Conditions, metav1.Condition{Type: c, Status: metav1.ConditionTrue, Reason: c})

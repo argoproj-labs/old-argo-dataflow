@@ -4,14 +4,9 @@ metadata:
   name: pipeline
 rules:
 - apiGroups:
-  - dataflow.argoproj.io
-  resources:
-  - steps/status
-  verbs:
-  - patch
-- apiGroups:
     - ""
   resources:
     - secrets
   verbs:
+    - create
     - get

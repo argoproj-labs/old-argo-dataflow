@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/runtime"
-
 	"github.com/Shopify/sarama"
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -26,7 +26,7 @@ type kafkaSource struct {
 	topic         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGroupID, sourceName string, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	config, err := kafka.GetConfig(ctx, secretInterface, x.Kafka.KafkaConfig)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if x.Kafka.MaxMessageBytes > 0 {
 		config.Consumer.Fetch.Max = x.Kafka.MaxMessageBytes
 	}
-	config.Consumer.Offsets.AutoCommit.Enable = x.AutoCommit.Enable
+	config.Consumer.Offsets.AutoCommit.Enable = false
 	if x.StartOffset == "First" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
 	}
@@ -51,7 +51,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
-	h := handler{process, 0, !x.AutoCommit.Enable}
+	h := newHandler(mntr, sourceName, sourceURN, process)
 	go wait.JitterUntil(func() {
 		defer runtime.HandleCrash()
 		ctx := context.Background()
@@ -74,13 +74,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kafka admin client: %w", err)
 	}
-	return kafkaSource{
-		client,
-		consumerGroup,
-		adminClient,
-		consumerGroupID,
-		x.Topic,
-	}, nil
+	return kafkaSource{client, consumerGroup, adminClient, consumerGroupID, x.Topic}, nil
 }
 
 func (s kafkaSource) Close() error {

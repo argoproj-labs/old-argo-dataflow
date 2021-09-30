@@ -5,7 +5,7 @@ if __name__ == '__main__':
      .namespace('argo-dataflow-system')
      .step(
         (cron('*/3 * * * * *')
-         .cat('main')
+         .cat()
          .log())
     )
-     .run())
+        .run())

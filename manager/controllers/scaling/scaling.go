@@ -37,13 +37,24 @@ func GetDesiredReplicas(step dfv1.Step) (int, error) {
 		return 0, fmt.Errorf("failed to evaluate %q: %w", scale.PeekDelay, err)
 	}
 	desiredReplicas := currentReplicas
-	pending := int(step.Status.SourceStatuses.GetPending())
-	pendingDelta := pending - int(step.Status.SourceStatuses.GetLastPending())
+	pending, ok := GetPending(step)
+	if !ok { // Haven't got pending data
+		if currentReplicas > 0 {
+			return currentReplicas, nil
+		} else {
+			return 1, nil
+		}
+	}
+	lastPending, ok := GetLastPending(step)
+	if !ok { // Haven't got last-pending data
+		return currentReplicas, nil
+	}
+	pendingDelta := pending - lastPending
 	if scale.DesiredReplicas != "" {
 		r, err := expr.Eval(scale.DesiredReplicas, map[string]interface{}{
 			"currentReplicas": currentReplicas,
-			"pending":         pending,
-			"pendingDelta":    pendingDelta,
+			"pending":         int(pending),
+			"pendingDelta":    int(pendingDelta),
 			"minmax":          minmax,
 			"limit":           limit(currentReplicas),
 		})
@@ -79,16 +90,16 @@ func evalAsDuration(input string, env map[string]interface{}) (time.Duration, er
 	}
 }
 
-func RequeueAfter(step dfv1.Step, currentReplicas, desiredReplicas int) (time.Duration, error) {
-	if currentReplicas <= 0 && desiredReplicas == 0 {
-		scale := step.Spec.Scale
-		if scalingDelay, err := evalAsDuration(scale.ScalingDelay, map[string]interface{}{
-			"defaultScalingDelay": defaultScalingDelay,
-		}); err != nil {
-			return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
-		} else {
-			return scalingDelay, nil
-		}
+func RequeueAfter(step dfv1.Step) (time.Duration, error) {
+	scale := step.Spec.Scale
+	if scale.DesiredReplicas == "" {
+		return 0, nil
 	}
-	return 0, nil
+	if scalingDelay, err := evalAsDuration(scale.ScalingDelay, map[string]interface{}{
+		"defaultScalingDelay": defaultScalingDelay,
+	}); err != nil {
+		return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
+	} else {
+		return scalingDelay, nil
+	}
 }

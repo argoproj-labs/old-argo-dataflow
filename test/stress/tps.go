@@ -11,64 +11,50 @@ import (
 	"testing"
 	"time"
 
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
-
 	. "github.com/argoproj-labs/argo-dataflow/test"
+	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger func()) {
-	var start, end *time.Time
+	var start, end time.Time
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
 		defer runtimeutil.HandleCrash()
-		ExpectLogLine(step, prefix+"-0", ctx)
-		t := time.Now()
-		start = &t
+		ExpectLogLine(step, func(bytes []byte) bool {
+			text := string(bytes)
+			t, err := time.Parse(time.RFC3339, text[0:30])
+			if err != nil {
+				panic(err)
+			}
+			if start.IsZero() && strings.Contains(text, prefix+"-0") {
+				start = t
+			} else if !start.IsZero() && end.IsZero() && strings.Contains(text, fmt.Sprintf("%s-%v", prefix, n-1)) {
+				end = t
+				return true
+			}
+			return false
+		}, ctx, Params.Timeout)
 	}()
 
 	go func() {
 		defer runtimeutil.HandleCrash()
-		ExpectLogLine(step, fmt.Sprintf("%s-%v", prefix, n-1), ctx, Params.Timeout)
-		t := time.Now()
-		end = &t
-	}()
-
-	value := func() int {
-		if start == nil {
-			return 0
-		}
-		var seconds float64
-		if end != nil {
-			seconds = end.Sub(*start).Seconds()
-		} else {
-			seconds = time.Since(*start).Seconds()
-		}
-		if seconds <= 0 {
-			return 0
-		}
-		return int(float64(n) / seconds)
-	}
-
-	go func() {
-		defer runtimeutil.HandleCrash()
-		tkr := time.NewTicker(15 * time.Second)
+		tkr := time.NewTicker(10 * time.Second)
 		defer tkr.Stop()
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-tkr.C:
-				log.Printf("%d TPS\n", value())
+				if s := time.Since(start).Seconds(); s > 0 {
+					log.Printf("%.1f TPS\n", float64(n)/s)
+				}
 			}
 		}
 	}()
 
 	return func() {
 		cancel()
-		if start == nil || end == nil {
-			panic("failed to calculate start time or end time")
-		}
 		var params []string
 		if currentContext != "docker-desktop" {
 			params = append(params, "currentContext="+currentContext)
@@ -85,10 +71,11 @@ func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger f
 		if Params.MessageSize > 0 {
 			params = append(params, fmt.Sprintf("messageSize=%d", Params.MessageSize))
 		}
-		setTestResult(fmt.Sprintf("%s/%s", t.Name(), strings.Join(params, ",")), "tps", roundToNearest50(value()))
+
+		setTestResult(fmt.Sprintf("%s/%s", t.Name(), strings.Join(params, ",")), "tps", roundToNearest50(float64(n)/end.Sub(start).Seconds()))
 	}
 }
 
-func roundToNearest50(v int) int {
-	return int(math.Round(float64(v)/50.0)) * 50
+func roundToNearest50(v float64) int {
+	return int(math.Round(v/50.0)) * 50
 }

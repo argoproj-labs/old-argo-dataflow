@@ -1,5 +1,167 @@
 # Changelog
 
+## v0.0.116 (2021-09-28)
+
+ * [ebf38e6](https://github.com/argoproj-labs/argo-dataflow/commit/ebf38e61fc0597516ddbda1132156b2149d7e69d) fix: correct mis-reporting of `missing`
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.115 (2021-09-23)
+
+ * [1b91c71](https://github.com/argoproj-labs/argo-dataflow/commit/1b91c71e798e676addc29b23eb7c68c925be33b1) feat: ignored duplicate Kafka messages (#373)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.114 (2021-09-22)
+
+ * [9e7332a](https://github.com/argoproj-labs/argo-dataflow/commit/9e7332a55c6d016299b1bbbb0b88497cf96bcf99) feat: Auto-detect missing/duplicate messages (#369)
+ * [504a63d](https://github.com/argoproj-labs/argo-dataflow/commit/504a63dcbcd72d4218c339400565c9256249275c) fix: delete Unix domain socket
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.113 (2021-09-21)
+
+ * [57a1634](https://github.com/argoproj-labs/argo-dataflow/commit/57a1634b42b8712f25c0e6a66d9037222cdcc06a) fix: not upating status even replicas changed (#366)
+ * [50742ca](https://github.com/argoproj-labs/argo-dataflow/commit/50742ca82409c84e75b05d0fdc89fd25f68b24ae) feat: update Python DSL to support multiple sources and sinks (#365)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
+## v0.0.112 (2021-09-20)
+
+ * [40eac37](https://github.com/argoproj-labs/argo-dataflow/commit/40eac37cbcbc3a9e92c34b45b8146714a9ecd11c) fix: Kafka commit session end of consume claim
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.111 (2021-09-20)
+
+ * [a618b38](https://github.com/argoproj-labs/argo-dataflow/commit/a618b38ab6d628cc87c80f365ce3f1cd7a717aab) fix: Partial revert of 76e1d95 (#360)
+ * [2176e72](https://github.com/argoproj-labs/argo-dataflow/commit/2176e72210a724f2f52c90324c4c0f2c553b2606) fix: more reasonable desired replicas calculation (#359)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
+## v0.0.110 (2021-09-20)
+
+ * [6cd0639](https://github.com/argoproj-labs/argo-dataflow/commit/6cd06390f2bf0c82b123aa7e982a0d31f0958641) fix: requeue interval change (#357)
+ * [124d6cb](https://github.com/argoproj-labs/argo-dataflow/commit/124d6cb13f722994ad3c0466c3ddac2d11224446) fix: Auto create HTTP auth secret. Fixes #319 (#353)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
+## v0.0.109 (2021-09-20)
+
+ * [32f3e63](https://github.com/argoproj-labs/argo-dataflow/commit/32f3e631a501c5906aefe93305b6fdf264940aab) fix: Correct typo that meant ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET was ignored.
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.108 (2021-09-19)
+
+ * [c09d10a](https://github.com/argoproj-labs/argo-dataflow/commit/c09d10a65545e2d639f3eb79907ab6735b8c88b0) fix: correct Unix Domain Socket env var name
+ * [ad85dff](https://github.com/argoproj-labs/argo-dataflow/commit/ad85dff00f69d8025c82c9bc3b1a5ca74bf19b51) fix: update NATS dep to fix Snyk failure (#349)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.107 (2021-09-17)
+
+ * [657062a](https://github.com/argoproj-labs/argo-dataflow/commit/657062ae24e5b578c8c1846becd7523756050b35) fix: short-term fix for pending metric not being updated (#346)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.106 (2021-09-17)
+
+ * [06bdf8d](https://github.com/argoproj-labs/argo-dataflow/commit/06bdf8d5ba00e8ed02ff060ea0f70372f8c8f29c) fix: run only one Kafka offset committer per step (#343)
+ * [0733e32](https://github.com/argoproj-labs/argo-dataflow/commit/0733e3224d31a6f294a8f88381383e5dbfea9f1a) feat: update `dedupe` to use `NewCounter` rather than `NewCounterFunc` (#342)
+ * [0764aa1](https://github.com/argoproj-labs/argo-dataflow/commit/0764aa134a60365f0cb4c13d3b16736631c8e117) feat: scale based on metrics (#337)
+ * [489ded6](https://github.com/argoproj-labs/argo-dataflow/commit/489ded6fcca010368594c44f192d9963b2079d1b) feat: Add dedupe to Python DSL (#341)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
+## v0.0.105 (2021-09-17)
+
+ * [cc7706d](https://github.com/argoproj-labs/argo-dataflow/commit/cc7706d99ca28933f51bd8ba44b9efad12f4e6f3) fix: fix logging an signal handling (#339)
+ * [ae8ad3f](https://github.com/argoproj-labs/argo-dataflow/commit/ae8ad3ff68ce33ed0077034aad403c77832c42a8) feat: make meta just plain string
+ * [d2bf012](https://github.com/argoproj-labs/argo-dataflow/commit/d2bf01250d9638077d320a6644b1d0c43eecf120) feat: Run Kafka offset commit loop every 1s, 2x faster, more robust.
+ * [13d5b50](https://github.com/argoproj-labs/argo-dataflow/commit/13d5b500280edbc5e8712cce76a013ef062f6010) fix: golang1-16 runtimes
+ * [84bf124](https://github.com/argoproj-labs/argo-dataflow/commit/84bf1240fdf9096531785606ab9255caa3386207) feat: add ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET config (#335)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.104 (2021-09-16)
+
+ * [f50e8a7](https://github.com/argoproj-labs/argo-dataflow/commit/f50e8a730b63f529e9cb833195ce0bf9109c0bba) feat: add ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET config
+ * [4cb372e](https://github.com/argoproj-labs/argo-dataflow/commit/4cb372e893ffcffd022c3e3d06f2879ff7efb5ab) feat!: Remove `step..metrics` (#334)
+ * [884ae0d](https://github.com/argoproj-labs/argo-dataflow/commit/884ae0d4e6fd098deae5d4b35da09d436714547d) Revert "fix: Remove Golang SDK dependencies"
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.103 (2021-09-16)
+
+ * [0fe072e](https://github.com/argoproj-labs/argo-dataflow/commit/0fe072e335ffe3a5d805b3f9b33cbd301c5fda9e) fix: Remove Golang SDK dependencies
+ * [76e1d95](https://github.com/argoproj-labs/argo-dataflow/commit/76e1d95354f60938514679fb625e665ed4c7da80) fix!: Remove Kafka auto-commit. Fixes #327
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.102 (2021-09-16)
+
+ * [69e608a](https://github.com/argoproj-labs/argo-dataflow/commit/69e608a53a4f326eda0c00063d20950b441879b0) feat!: Remove `SunkMessages` condition. Add `sinks_total` metric. (#328)
+ * [4168dd0](https://github.com/argoproj-labs/argo-dataflow/commit/4168dd0eb796ffffcc70095779bf1928aa94dec6) feat!: Remove `metrics.rate` field.
+ * [2192cd5](https://github.com/argoproj-labs/argo-dataflow/commit/2192cd55233377fdeb66cef9cf23d62c0e497b13) feat!: Remove `metrics.rate` field.
+ * [b2dd247](https://github.com/argoproj-labs/argo-dataflow/commit/b2dd247170cb2997028e9b32b0b244f1c160a809) feat!: Remove `metrics.rate` field.
+ * [ae75900](https://github.com/argoproj-labs/argo-dataflow/commit/ae75900d38370c3284195458b7e11dacc8e00718) feat!: Remove `metrics.rate` field.
+ * [91a9d39](https://github.com/argoproj-labs/argo-dataflow/commit/91a9d3964831f1f1d596a7d5827a0ac7ed18c937) feat!: Remove `metrics.rate` field.
+ * [7c80fea](https://github.com/argoproj-labs/argo-dataflow/commit/7c80feafef64dddb1e5f798c1dddbb0586f0bf69) feat: switch `/var/run/...` to be `tmpfs`
+ * [3665bdb](https://github.com/argoproj-labs/argo-dataflow/commit/3665bdb3917cbd3fe8864890c9dc20ae94f7cae2) feat: use unix domain socket
+ * [7db2d38](https://github.com/argoproj-labs/argo-dataflow/commit/7db2d38f1ea7042332c42c94306c2d6c2ae2a733) Revert "feat: use unix domain socket"
+ * [44b321e](https://github.com/argoproj-labs/argo-dataflow/commit/44b321eba08a17858e6eacc34e55ce64beff523a) feat: use unix domain socket
+ * [9574072](https://github.com/argoproj-labs/argo-dataflow/commit/9574072c95241cdca0f2d00ea9b7b9c755a34f92) fix: use 32 connections
+ * [c0c3aac](https://github.com/argoproj-labs/argo-dataflow/commit/c0c3aac9416bb0a595210e8a02f091ed32b7e3ae) fix: close http source request body
+ * [259cf36](https://github.com/argoproj-labs/argo-dataflow/commit/259cf362d75c225c1c33a83b73b11dfab7e7bc6e) fix: close HTTP request body
+ * [3a6e5f0](https://github.com/argoproj-labs/argo-dataflow/commit/3a6e5f010025b400f5d84f161d7c942d931c328a) feat: Meta-data. Fixes #161  (#314)
+ * [0ac1ec2](https://github.com/argoproj-labs/argo-dataflow/commit/0ac1ec24eacdf60fc82d6a6c8ae6f432a2d7fb3b) feat: Add OpenTracing. Fixes #295 (#322)
+ * [8a16a02](https://github.com/argoproj-labs/argo-dataflow/commit/8a16a0245c4b6639cd700b8eea25824700699e3a) feat: expose replicas metric with a new approach (#315)
+ * [dfefd4e](https://github.com/argoproj-labs/argo-dataflow/commit/dfefd4e0fe6156e10e8ade4e8c887eb10c222978) refactor: make volumes consistent (#317)
+ * [1a73899](https://github.com/argoproj-labs/argo-dataflow/commit/1a73899e86458ad283425ef8d25519012b1d23d7) Revert "fix: uses signal.NotifyContext"
+ * [5c7ed77](https://github.com/argoproj-labs/argo-dataflow/commit/5c7ed772a2f597f15af0b0e5c5634d7f3a3a8ce0) fix: uses signal.NotifyContext
+ * [8e992cc](https://github.com/argoproj-labs/argo-dataflow/commit/8e992cc5f6b35f3671b2edc99cb6bd96d714abc4) chore!: change clusterName to cluster. Fixes #313
+ * [935cf15](https://github.com/argoproj-labs/argo-dataflow/commit/935cf15cbdb3968bdd24ad4cd26d13c31bbed420) fix: quick-start add create argo-server step and set default ARGO_DATAFLOW_CLUSTER_NAME env (#233)
+ * [fe7c683](https://github.com/argoproj-labs/argo-dataflow/commit/fe7c683f0a58ed3419ed7e502e27fa3869c3c594) feat: export prometheus metrics from memory (#311)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+ * meijin
+
 ## v0.0.101 (2021-09-08)
 
  * [9a0d7cf](https://github.com/argoproj-labs/argo-dataflow/commit/9a0d7cf8cc7a787a45df554d8730e024d27d462b) fix: fix-up context handling (#305)

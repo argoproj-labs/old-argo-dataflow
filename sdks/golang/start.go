@@ -4,11 +4,18 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
+//go:generate sh gen.sh
+
 func Start(handler func(ctx context.Context, msg []byte) ([]byte, error)) {
-	ctx := SetupSignalsHandler(context.Background())
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	defer stop()
 	if err := StartWithContext(ctx, handler); err != nil {
 		panic(err)
 	}
@@ -19,12 +26,14 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 		w.WriteHeader(204)
 	})
 	http.HandleFunc("/messages", func(w http.ResponseWriter, r *http.Request) {
-		defer func() { _ = r.Body.Close() }()
+		ctx := MetaExtract(r.Context(), r.Header)
 		out, err := func() ([]byte, error) {
-			if in, err := ioutil.ReadAll(r.Body); err != nil {
+			in, err := ioutil.ReadAll(r.Body)
+			_ = r.Body.Close()
+			if err != nil {
 				return nil, err
 			} else {
-				return handler(r.Context(), in)
+				return handler(ctx, in)
 			}
 		}()
 		if err != nil {
@@ -38,21 +47,37 @@ func StartWithContext(ctx context.Context, handler func(ctx context.Context, msg
 		}
 	})
 	// https://medium.com/honestbee-tw-engineer/gracefully-shutdown-in-go-http-server-5f5e6b83da5a
-	server := &http.Server{Addr: ":8080"}
-
+	httpServer := &http.Server{Addr: ":8080"}
 	go func() {
-		defer func() {
-			r := recover()
-			if r != nil {
-				println(r)
-			}
-		}()
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		defer HandleCrash()
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+	udsServer := &http.Server{}
+	address := "/var/run/argo-dataflow/main.sock"
+	if err := os.Remove(address); !os.IsNotExist(err) && err != nil {
+		return err
+	}
+	listener, err := net.Listen("unix", address)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = listener.Close() }()
+	go func() {
+		defer HandleCrash()
+		if err := udsServer.Serve(listener); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
 	}()
 	log.Println("ready")
 	defer log.Println("done")
 	<-ctx.Done()
-	return server.Shutdown(context.Background())
+	if err := httpServer.Shutdown(context.Background()); err != nil {
+		return err
+	}
+	if err := udsServer.Shutdown(context.Background()); err != nil {
+		return err
+	}
+	return nil
 }

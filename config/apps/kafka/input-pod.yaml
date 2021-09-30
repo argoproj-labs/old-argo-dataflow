@@ -18,6 +18,20 @@ spec:
       args:
         - -fvN
         - http://testapi/kafka/create-topic?topic=output-topic
+    - name: create-test-source-topic
+      image: golang:1.16
+      command:
+        - curl
+      args:
+        - -fvN
+        - http://testapi/kafka/create-topic?topic=test-source-topic
+    - name: create-test-sink-topic
+      image: golang:1.16
+      command:
+        - curl
+      args:
+        - -fvN
+        - http://testapi/kafka/create-topic?topic=test-sink-topic
   containers:
     - name: pump-topic
       image: golang:1.16

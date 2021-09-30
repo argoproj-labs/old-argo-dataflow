@@ -43,7 +43,7 @@ if __name__ == '__main__':
      .namespace('argo-dataflow-system')
      .step(
         (cron('*/3 * * * * *')
-         .cat('main')
+         .cat()
          .log())
     )
      .run())
@@ -69,6 +69,7 @@ Intermediate:
 * [Scaling](docs/SCALING.md)
 * [Command line](docs/CLI.md)
 * [Expression syntax](docs/EXPRESSIONS.md)
+* [Meta-data](docs/META.md)
 * [Workflow interop](docs/WORKFLOW_INTEROP.md)
 * [Events interop](docs/EVENTS_INTEROP.md)
 * [Kubectl](docs/KUBECTL.md)

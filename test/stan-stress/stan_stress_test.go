@@ -5,16 +5,16 @@ package stan_stress
 import (
 	"testing"
 
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-
-	. "github.com/argoproj-labs/argo-dataflow/test/stress"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
+	. "github.com/argoproj-labs/argo-dataflow/test/stress"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/stan.yaml
 
 func TestStanSourceStress(t *testing.T) {
@@ -33,7 +33,7 @@ func TestStanSourceStress(t *testing.T) {
 				Sinks:    []Sink{DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceMemory: resource.MustParse("1Gi"),
+						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}},
 			}},
@@ -52,7 +52,8 @@ func TestStanSourceStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpSTANSubject(longSubject, n, prefix, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n), Params.Timeout)
+	WaitForPending()
+	WaitForTotalSunkMessages(n, Params.Timeout)
 }
 
 func TestStanSinkStress(t *testing.T) {
@@ -72,7 +73,7 @@ func TestStanSinkStress(t *testing.T) {
 				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}, DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
-						v1.ResourceMemory: resource.MustParse("1Gi"),
+						v1.ResourceMemory: Params.ResourceMemory,
 					},
 				}},
 			}},
@@ -90,5 +91,6 @@ func TestStanSinkStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpSTANSubject(longSubject, n, prefix, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n*2), Params.Timeout) // 2 sinks
+	WaitForPending()
+	WaitForTotalSunkMessages(n, Params.Timeout)
 }

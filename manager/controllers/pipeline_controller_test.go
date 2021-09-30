@@ -3,14 +3,13 @@ package controllers
 import (
 	"context"
 
+	// +kubebuilder:scaffold:imports
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	// +kubebuilder:scaffold:imports
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 var _ = Describe("Pipeline controller", func() {

@@ -25,7 +25,9 @@ func TestCronSource(t *testing.T) {
 		},
 	})
 	WaitForPipeline()
-	WaitForPipeline(UntilSunkMessages)
+	WaitForPod()
+	defer StartPortForward("cron-main-0")()
+	WaitForSunkMessages()
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

@@ -12,6 +12,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/kafka.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/mysql.yaml
 
 func TestDBSource(t *testing.T) {
@@ -95,6 +98,7 @@ func TestDBSource(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
 	WaitForPod()
 
 	defer StartPortForward("db-source-insert-0")()
@@ -102,8 +106,8 @@ func TestDBSource(t *testing.T) {
 	SendMessageViaHTTP(`{"message": "msg2", "number": 102}`)
 	SendMessageViaHTTP(`{"message": "msg3", "number": 103}`)
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(3))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(3)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
@@ -158,8 +162,8 @@ func cleanupDB() {
 	defer StartPortForward("cleanup-db-main-0")()
 	SendMessageViaHTTP(`hello`)
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

@@ -3,7 +3,6 @@ package loadbalanced
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,10 +10,9 @@ import (
 
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	httpsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/http"
-	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/go-logr/logr"
-
 	"k8s.io/apimachinery/pkg/util/runtime"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/util/workqueue"
 )
 
@@ -35,6 +33,7 @@ type NewReq struct {
 	PipelineName string
 	StepName     string
 	SourceName   string
+	SourceURN    string
 	LeadReplica  bool
 	Concurrency  int
 	PollPeriod   time.Duration
@@ -43,20 +42,22 @@ type NewReq struct {
 	ListItems    func() ([]interface{}, error)
 }
 
-func New(ctx context.Context, r NewReq) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) (source.HasPending, error) {
 	logger := r.Logger.WithValues("sourceName", r.SourceName)
 	// (a) in the future we could use a named queue to expose metrics
 	// (b) it would be good to limit the size of this work queue and have the `Add
 	jobs := workqueue.New()
-	authorization := sharedutil.RandString()
-	httpSource := httpsource.New(r.SourceName, authorization, r.Process)
+	authorization, httpSource, err := httpsource.New(ctx, secretInterface, r.PipelineName, r.StepName, r.SourceURN, r.SourceName, r.Process)
+	if err != nil {
+		return nil, err
+	}
 	if r.LeadReplica {
 		endpoint := "https://" + r.PipelineName + "-" + r.StepName + "/sources/" + r.SourceName
 		t := http.DefaultTransport.(*http.Transport).Clone()
-		t.MaxIdleConns = 100
-		t.MaxConnsPerHost = 100
-		t.MaxIdleConnsPerHost = 100
-		t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		t.MaxIdleConns = 32
+		t.MaxConnsPerHost = 32
+		t.MaxIdleConnsPerHost = 32
+		t.TLSClientConfig.InsecureSkipVerify = true
 		httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 
 		logger.Info("starting lead replica's workers", "source", r.SourceName, "endpoint", endpoint)
@@ -71,7 +72,7 @@ func New(ctx context.Context, r NewReq) (source.HasPending, error) {
 					func() {
 						defer jobs.Done(item)
 						itemS := item.(string)
-						req, err := http.NewRequest("POST", endpoint, bytes.NewBufferString(itemS))
+						req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBufferString(itemS))
 						if err != nil {
 							logger.Error(err, "failed to create request", "item", item)
 						} else {
@@ -109,8 +110,11 @@ func New(ctx context.Context, r NewReq) (source.HasPending, error) {
 					endpoint := "https://" + r.PipelineName + "-" + r.StepName + "/ready"
 					logger.Info("waiting for HTTP service to be ready", "endpoint", endpoint)
 					resp, err := httpClient.Get(endpoint)
-					if err == nil && resp.StatusCode < 300 {
-						break OUTER
+					if err == nil {
+						_ = resp.Body.Close()
+						if resp.StatusCode < 300 {
+							break OUTER
+						}
 					}
 					time.Sleep(3 * time.Second)
 				}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"syscall"
@@ -21,7 +22,7 @@ func mainE(pid int) error {
 	if err != nil {
 		return err
 	}
-	println("signaling pid with SIGTERM", "pid", pid)
+	log.Printf("signaling pid %d with SIGTERM\n", pid)
 	if err := p.Signal(syscall.SIGTERM); err != nil {
 		return err
 	}

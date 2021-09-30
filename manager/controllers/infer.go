@@ -1,9 +1,8 @@
 package controllers
 
 import (
-	corev1 "k8s.io/api/core/v1"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 var ErrorReasons = map[string]bool{

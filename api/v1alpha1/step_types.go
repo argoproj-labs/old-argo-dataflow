@@ -22,11 +22,11 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"k8s.io/apimachinery/pkg/util/intstr"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 )
 
@@ -53,8 +53,10 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	)
 	volumes := []corev1.Volume{
 		{
-			Name:         varVolumeName,
-			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}},
+			Name: varVolumeName,
+			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{
+				Medium: corev1.StorageMediumMemory,
+			}},
 		},
 		{
 			Name: sshVolumeName,
@@ -72,7 +74,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			name := fmt.Sprintf("source-%s", source.Name)
 			volumes = append(volumes, corev1.Volume{
 				Name:         name,
-				VolumeSource: x.VolumeSource,
+				VolumeSource: corev1.VolumeSource(x.AbstractVolumeSource),
 			})
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
@@ -86,7 +88,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			name := fmt.Sprintf("sink-%s", source.Name)
 			volumes = append(volumes, corev1.Volume{
 				Name:         name,
-				VolumeSource: corev1.VolumeSource(*x),
+				VolumeSource: corev1.VolumeSource(x.AbstractVolumeSource),
 			})
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      name,
@@ -96,15 +98,30 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 	}
 	step, _ := json.Marshal(in.withoutManagedFields())
 	envVars := []corev1.EnvVar{
-		{Name: EnvClusterName, Value: req.ClusterName},
-		{Name: EnvDebug, Value: strconv.FormatBool(req.Debug)},
-		{Name: EnvNamespace, Value: req.Namespace},
+		{Name: EnvCluster, Value: req.Cluster},
+		{Name: EnvNamespace, ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.namespace"}}},
+		{Name: EnvPod, ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
 		{Name: EnvPipelineName, Value: req.PipelineName},
 		{Name: EnvReplica, Value: strconv.Itoa(int(req.Replica))},
 		{Name: EnvStep, Value: string(step)},
 		{Name: EnvUpdateInterval, Value: req.UpdateInterval.String()},
 		{Name: "GODEBUG", Value: os.Getenv("GODEBUG")},
 	}
+
+	for _, n := range []string{EnvDebug, EnvUnixDomainSocket} {
+		if value, ok := os.LookupEnv(n); ok {
+			envVars = append(envVars, corev1.EnvVar{Name: n, Value: value})
+		}
+	}
+
+	// add all Jaeger envvar
+	for _, kv := range os.Environ() {
+		if strings.HasPrefix(kv, "JAEGER_") {
+			parts := strings.SplitN(kv, "=", 2)
+			envVars = append(envVars, corev1.EnvVar{Name: parts[0], Value: parts[1]})
+		}
+	}
+
 	dropAll := &corev1.SecurityContext{
 		Capabilities: &corev1.Capabilities{
 			Drop: []corev1.Capability{"all"},
@@ -116,6 +133,8 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		priorityClassName = "lead-replica"
 	}
 	return corev1.PodSpec{
+		Hostname:           req.Hostname,
+		Subdomain:          req.Subdomain,
 		Volumes:            append(in.Spec.Volumes, volumes...),
 		RestartPolicy:      in.Spec.RestartPolicy,
 		NodeSelector:       in.Spec.NodeSelector,
@@ -188,6 +207,39 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 			}),
 		},
 	}
+}
+
+func (in Step) GetHeadlessServiceName() string {
+	return "step-" + in.Name
+}
+
+func (in Step) GetServiceObj(serviceName, pipelineName string, isHeadless bool) *corev1.Service {
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:       in.Namespace,
+			Name:            serviceName,
+			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(in.GetObjectMeta(), StepGroupVersionKind)},
+			// useful for auto-detecting the service as exporting Prometheus
+			Labels: map[string]string{
+				KeyStepName:     in.Spec.Name,
+				KeyPipelineName: pipelineName,
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{Port: 443, TargetPort: intstr.FromInt(3570)},
+			},
+			Selector: map[string]string{
+				KeyPipelineName: pipelineName,
+				KeyStepName:     in.Spec.Name,
+			},
+		},
+	}
+	if isHeadless {
+		svc.Spec.ClusterIP = "None"
+		svc.Spec.Ports[0].Port = 3570
+	}
+	return svc
 }
 
 func (in Step) withoutManagedFields() Step {

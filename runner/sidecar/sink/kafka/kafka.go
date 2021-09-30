@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/Shopify/sarama"
@@ -9,9 +10,9 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/kafka"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-
 	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -38,11 +39,12 @@ func (s syncProducer) SendMessage(ctx context.Context, msg *sarama.ProducerMessa
 }
 
 type kafkaSink struct {
+	sinkName string
 	producer producer
 	topic    string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
+func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
 	config, err := kafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
 		return nil, err
@@ -92,19 +94,35 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.Kaf
 			}
 		}()
 
-		return kafkaSink{asyncProducer{producer}, x.Topic}, nil
+		return kafkaSink{sinkName, asyncProducer{producer}, x.Topic}, nil
 	} else {
 		config.Producer.Return.Successes = true
 		producer, err := sarama.NewSyncProducer(x.Brokers, config)
 		if err != nil {
 			return nil, err
 		}
-		return kafkaSink{syncProducer{producer}, x.Topic}, nil
+		return kafkaSink{sinkName, syncProducer{producer}, x.Topic}, nil
 	}
 }
 
 func (h kafkaSink) Sink(ctx context.Context, msg []byte) error {
-	return h.producer.SendMessage(ctx, &sarama.ProducerMessage{Value: sarama.ByteEncoder(msg), Topic: h.topic})
+	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-sink-%s", h.sinkName))
+	defer span.Finish()
+	m, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return err
+	}
+	return h.producer.SendMessage(
+		ctx,
+		&sarama.ProducerMessage{
+			Headers: []sarama.RecordHeader{
+				{Key: []byte("source"), Value: []byte(m.Source)},
+				{Key: []byte("id"), Value: []byte(m.ID)},
+			},
+			Value: sarama.ByteEncoder(msg),
+			Topic: h.topic,
+		},
+	)
 }
 
 func (h kafkaSink) Close() error {

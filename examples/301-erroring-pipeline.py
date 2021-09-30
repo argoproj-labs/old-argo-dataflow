@@ -18,7 +18,7 @@ if __name__ == '__main__':
          .code('always', source=handler)
          .log())
     )
-     .step(
+        .step(
         (cron('*/3 * * * * *', retry={'steps': 0})
          .code('never', source=handler)
          .log())

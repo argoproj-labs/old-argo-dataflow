@@ -18,12 +18,12 @@ import (
 var podInterface = kubernetesInterface.CoreV1().Pods(namespace)
 
 func PodRunningAndReady(p *corev1.Pod) bool {
-	return p.Status.Phase == corev1.PodRunning && PodReady(p)
+	return p.GetDeletionTimestamp() == nil && p.Status.Phase == corev1.PodRunning && PodReady(p)
 }
 
 func PodReady(p *corev1.Pod) bool {
 	for _, c := range p.Status.Conditions {
-		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
+		if p.GetDeletionTimestamp() == nil && c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue {
 			return true
 		}
 	}

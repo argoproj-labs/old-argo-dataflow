@@ -8,8 +8,6 @@ import (
 	"log"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -20,9 +18,8 @@ import (
 
 var pipelineInterface = dynamicInterface.Resource(PipelineGroupVersionResource).Namespace(namespace)
 
-func UntilRunning(pl Pipeline) bool      { return untilHasCondition(ConditionRunning)(pl) }
-func UntilCompleted(pl Pipeline) bool    { return untilHasCondition(ConditionCompleted)(pl) }
-func UntilSunkMessages(pl Pipeline) bool { return untilHasCondition(ConditionSunkMessages)(pl) }
+func UntilRunning(pl Pipeline) bool   { return untilHasCondition(ConditionRunning)(pl) }
+func UntilCompleted(pl Pipeline) bool { return untilHasCondition(ConditionCompleted)(pl) }
 
 func untilHasCondition(condition string) func(pl Pipeline) bool {
 	return func(pl Pipeline) bool {
@@ -46,11 +43,10 @@ func CreatePipeline(pl Pipeline) {
 	ctx := context.Background()
 	log.Printf("creating pipeline %q\n", pl.Name)
 	un := ToUnstructured(pl)
-	created, err := pipelineInterface.Create(ctx, un, metav1.CreateOptions{})
+	_, err := pipelineInterface.Create(ctx, un, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
 	}
-	createSecretsForHTTPSources(pl, FromUnstructured(created), ctx)
 }
 
 func CreatePipelineFromFile(filename string) {
@@ -61,21 +57,19 @@ func CreatePipelineFromFile(filename string) {
 	CreatePipeline(FromUnstructured(&un.Items[0]))
 }
 
-func createSecretsForHTTPSources(pl Pipeline, x Pipeline, ctx context.Context) {
-	for _, step := range x.Spec.Steps {
-		for _, source := range step.Sources {
-			if source.HTTP != nil {
-				secretName := fmt.Sprintf("%s-%s", pl.Name, step.Name)
-				log.Printf("creating secret %q\n", secretName)
-				_, err := kubernetesInterface.CoreV1().Secrets(namespace).Create(ctx, &corev1.Secret{
-					ObjectMeta: metav1.ObjectMeta{Name: secretName},
-					StringData: map[string]string{fmt.Sprintf("sources.%s.http.authorization", source.Name): "Bearer my-bearer-token"},
-				}, metav1.CreateOptions{})
-				if sharedutil.IgnoreAlreadyExists(err) != nil {
-					panic(err)
-				}
-			}
-		}
+func GetPipeline() Pipeline {
+	ctx := context.Background()
+	list, err := pipelineInterface.List(ctx, metav1.ListOptions{})
+	if err != nil {
+		panic(fmt.Errorf("failed to list pipelines: %w", err))
+	}
+	switch len(list.Items) {
+	case 0:
+		panic(fmt.Errorf("no pipelines found"))
+	case 1:
+		return FromUnstructured(&list.Items[0])
+	default:
+		panic(fmt.Errorf("more than one pipeline found"))
 	}
 }
 

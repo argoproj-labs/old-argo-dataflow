@@ -11,9 +11,9 @@ While they read from Kafka, they are connected by a NATS Streaming subject.""")
          .cat('a')
          .stan('a-b'))
     )
-     .step(
+        .step(
         (stan('a-b')
          .cat('b')
          .kafka('output-topic'))
     )
-     .save())
+        .save())

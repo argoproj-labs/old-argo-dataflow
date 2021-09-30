@@ -21,14 +21,13 @@ import (
 	"fmt"
 	"os"
 
-	"k8s.io/client-go/dynamic"
-
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
-
-	dataflowv1alpha1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers"
+	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
 	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -43,7 +42,7 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
-	_ = dataflowv1alpha1.AddToScheme(scheme)
+	_ = dfv1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -65,7 +64,7 @@ func main() {
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "1c03be80.my.domain",
-		Namespace:          os.Getenv(dataflowv1alpha1.EnvNamespace),
+		Namespace:          os.Getenv(dfv1.EnvNamespace),
 	})
 	if err != nil {
 		panic(fmt.Errorf("unable to start manager: %w", err))
@@ -83,20 +82,27 @@ func main() {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
 
+	metricsCacheHandler := scaling.NewMetricsCacheHandler(mgr.GetClient(), 5)
+
 	if err = (&controllers.StepReconciler{
-		Client:           mgr.GetClient(),
-		Log:              ctrl.Log.WithName("controllers").WithName("Step"),
-		Scheme:           mgr.GetScheme(),
-		Recorder:         mgr.GetEventRecorderFor("step-reconciler"),
-		ContainerKiller:  containerKiller,
-		DynamicInterface: dynamicInterface,
+		Client:              mgr.GetClient(),
+		Log:                 ctrl.Log.WithName("controllers").WithName("Step"),
+		Scheme:              mgr.GetScheme(),
+		Recorder:            mgr.GetEventRecorderFor("step-reconciler"),
+		ContainerKiller:     containerKiller,
+		DynamicInterface:    dynamicInterface,
+		MetricsCacheHandler: metricsCacheHandler,
+		Cluster:             os.Getenv(dfv1.EnvCluster),
 	}).SetupWithManager(mgr); err != nil {
 		panic(fmt.Errorf("unable to create controller manager: %w", err))
 	}
 	// +kubebuilder:scaffold:builder
 
+	ctx := ctrl.SetupSignalHandler()
+	go metricsCacheHandler.Start(ctx)
+
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		panic(fmt.Errorf("problem running manager: %w", err))
 	}
 }

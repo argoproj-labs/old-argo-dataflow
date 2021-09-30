@@ -15,3 +15,9 @@ spec:
           args:
             - -fvN
             - nats:8222
+      containers:
+        - name: stan
+          readinessProbe:
+            httpGet:
+              port: 8222
+              path: /streaming/channelsz

@@ -17,13 +17,14 @@ type req struct {
 
 func init() {
 	t := http.DefaultTransport.(*http.Transport).Clone()
-	t.MaxIdleConns = 100
-	t.MaxConnsPerHost = 100
-	t.MaxIdleConnsPerHost = 100
+	t.MaxIdleConns = 32
+	t.MaxConnsPerHost = 32
+	t.MaxIdleConnsPerHost = 32
 	t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	httpClient := &http.Client{Timeout: 10 * time.Second, Transport: t}
 	http.HandleFunc("/http/pump", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
+		authorization := r.URL.Query().Get("authorization")
 		duration, err := time.ParseDuration(r.URL.Query().Get("sleep"))
 		if err != nil {
 			w.WriteHeader(400)
@@ -47,7 +48,7 @@ func init() {
 				if err != nil {
 					results <- err
 				} else {
-					req.Header.Set("Authorization", "Bearer my-bearer-token")
+					req.Header.Set("Authorization", authorization)
 					if resp, err := httpClient.Do(req); err != nil {
 						results <- err
 					} else {
@@ -64,7 +65,18 @@ func init() {
 		}
 		jobs := make(chan req, n)
 		results := make(chan interface{}, n)
-		for w := 1; w <= 3; w++ {
+		workers, err := strconv.Atoi(r.URL.Query().Get("workers"))
+		if err != nil {
+			w.WriteHeader(400)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		// default workers 2
+		if workers == 0 {
+			workers = 2
+		}
+
+		for w := 1; w <= workers; w++ {
 			go worker(jobs, results)
 		}
 		_, _ = fmt.Fprintf(w, "sending %d messages of size %d to %q\n", n, mf.size, url)
@@ -73,6 +85,7 @@ func init() {
 			time.Sleep(duration)
 		}
 		close(jobs)
+
 		for a := 1; a <= n; a++ {
 			res := <-results
 			switch v := res.(type) {
@@ -90,9 +103,11 @@ func init() {
 		url := r.URL.Query().Get("url")
 		w.WriteHeader(200)
 		for {
-			if _, err := httpClient.Get(url); err != nil {
+			if resp, err := httpClient.Get(url); err != nil {
 				_, _ = fmt.Fprintf(w, "%q is not ready: %v\n", url, err)
 			} else {
+				_, _ = io.Copy(io.Discard, resp.Body)
+				_ = resp.Body.Close()
 				return
 			}
 			time.Sleep(1 * time.Second)

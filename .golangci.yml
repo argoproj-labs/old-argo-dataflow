@@ -6,14 +6,32 @@ run:
     - test
 linters:
   enable:
+    - bodyclose
     - deadcode
     - errcheck
+    # only minor issues
+    # - errorlint
+    - exportloopref
+    - gci
+    - godot
+    # too many false-positives
+    # - gosec
     - gosimple
     - govet
+    - ineffassign
     - misspell
+    - rowserrcheck
+    - sqlclosecheck
     - staticcheck
     - structcheck
     - typecheck
     - unparam
     - unused
+    - whitespace
     - varcheck
+issues:
+  exclude-rules:
+    - linters:
+        - staticcheck
+      # SA1029: should not use built-in type string as key for value; define your own type to avoid collisions
+      text: "SA1029:"

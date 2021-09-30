@@ -5,23 +5,23 @@ package kafka_stress
 import (
 	"testing"
 
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-
-	. "github.com/argoproj-labs/argo-dataflow/test/stress"
-
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
+	. "github.com/argoproj-labs/argo-dataflow/test/stress"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/moto.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/mysql.yaml
+//go:generate kubectl -n argo-dataflow-system delete --ignore-not-found -f ../../config/apps/stan.yaml
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
 
 func TestKafkaSourceStress(t *testing.T) {
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
-	msgSize := int32(50000000)
+	topic := SourceTopic
+	msgSize := int32(Params.MessageSize)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
@@ -30,12 +30,13 @@ func TestKafkaSourceStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceMemory: resource.MustParse("1Gi"),
+							v1.ResourceCPU:    Params.ResourceCPU,
+							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
 				},
 				Replicas: Params.Replicas,
-				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
+				Sources:  []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
@@ -51,17 +52,17 @@ func TestKafkaSourceStress(t *testing.T) {
 	prefix := "kafka-source-stress"
 
 	defer StartTPSReporter(t, "main", prefix, n)()
-
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n), Params.Timeout)
+	WaitForPending()
+	WaitForTotalSunkMessages(n, Params.Timeout)
 }
 
 func TestKafkaSinkStress(t *testing.T) {
 	defer Setup(t)()
 
-	topic := CreateKafkaTopic()
-	sinkTopic := CreateKafkaTopic()
-	msgSize := int32(50000000)
+	topic := SourceTopic
+	sinkTopic := SinkTopic
+	msgSize := int32(Params.MessageSize)
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
 		Spec: PipelineSpec{
@@ -70,7 +71,8 @@ func TestKafkaSinkStress(t *testing.T) {
 				Cat: &Cat{
 					AbstractStep: AbstractStep{Resources: v1.ResourceRequirements{
 						Requests: v1.ResourceList{
-							v1.ResourceMemory: resource.MustParse("1Gi"),
+							v1.ResourceCPU:    Params.ResourceCPU,
+							v1.ResourceMemory: Params.ResourceMemory,
 						},
 					}},
 				},
@@ -96,5 +98,6 @@ func TestKafkaSinkStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
-	WaitForStep(TotalSunkMessages(n*2), Params.Timeout) // 2 sinks
+	WaitForPending()
+	WaitForTotalSunkMessages(n, Params.Timeout)
 }

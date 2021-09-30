@@ -1,0 +1,18 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: This is an example of built-in de-duplication
+      step.
+    dataflow.argoproj.io/owner: argoproj-labs
+  name: 102-dedupe
+spec:
+  steps:
+  - dedupe: {}
+    name: main
+    sinks:
+    - kafka:
+        topic: output-topic
+    sources:
+    - kafka:
+        topic: input-topic

@@ -34,10 +34,12 @@ func TestS3Source(t *testing.T) {
 		},
 	})
 
+	WaitForPipeline()
 	WaitForPod()
 
-	WaitForPipeline(UntilSunkMessages)
-	WaitForStep(TotalSunkMessages(1))
+	defer StartPortForward("s3-main-0")()
+	WaitForSunkMessages()
+	WaitForTotalSunkMessages(1)
 
 	ExpectLogLine("main", "my-content")
 

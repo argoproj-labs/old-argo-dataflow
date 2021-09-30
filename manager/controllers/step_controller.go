@@ -19,55 +19,45 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/manager/controllers/scaling"
-
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/dynamic"
-
-	apierr "k8s.io/apimachinery/pkg/api/errors"
-
-	"k8s.io/apimachinery/pkg/util/intstr"
-
+	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/shared/containerkiller"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// StepReconciler reconciles a Step object
+const stepFinalizer = "step-controller"
+
+// StepReconciler reconciles a Step object.
 type StepReconciler struct {
 	client.Client
-	Log              logr.Logger
-	Scheme           *runtime.Scheme
-	Recorder         record.EventRecorder
-	ContainerKiller  containerkiller.Interface
-	DynamicInterface dynamic.Interface
+	Log                 logr.Logger
+	Scheme              *runtime.Scheme
+	Recorder            record.EventRecorder
+	ContainerKiller     containerkiller.Interface
+	DynamicInterface    dynamic.Interface
+	MetricsCacheHandler *scaling.MetricsCacheHandler
+	Cluster             string
 }
 
 type hash struct {
 	RunnerImage string        `json:"runnerImage"`
 	StepSpec    dfv1.StepSpec `json:"stepSpec"`
-}
-
-var (
-	clusterName = os.Getenv(dfv1.EnvClusterName)
-	debug       = os.Getenv(dfv1.EnvDebug) == "true"
-)
-
-func init() {
-	logger.Info("config", "clusterName", clusterName, "debug", debug)
 }
 
 // +kubebuilder:rbac:groups=dataflow.argoproj.io,resources=steps,verbs=get;list;watch;create;update;patch;delete
@@ -77,13 +67,21 @@ func init() {
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("step", req.NamespacedName.String())
-
 	step := &dfv1.Step{}
 	if err := r.Get(ctx, req.NamespacedName, step); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	if step.GetDeletionTimestamp() != nil {
+		if controllerutil.ContainsFinalizer(step, stepFinalizer) {
+			if err := r.stopMetricsCacheLoop(step); err != nil {
+				return ctrl.Result{}, err
+			}
+			controllerutil.RemoveFinalizer(step, stepFinalizer)
+			if err := r.Client.Update(ctx, step); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		return ctrl.Result{}, nil
 	}
 
@@ -94,6 +92,9 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	currentReplicas := int(step.Status.Replicas)
 	if step.Spec.Scale.DesiredReplicas != "" {
+		if err := r.startMetricsCacheLoop(step); err != nil {
+			return ctrl.Result{}, fmt.Errorf("failed to start metrics cache loop: %w", err)
+		}
 		desiredReplicas, err := scaling.GetDesiredReplicas(*step)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -124,6 +125,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	desiredReplicas := int(step.Spec.Replicas)
 
+	oldStatus := step.Status.DeepCopy()
 	if currentReplicas != desiredReplicas || step.Status.Selector == "" {
 		log.Info("replicas changed", "currentReplicas", currentReplicas, "desiredReplicas", desiredReplicas)
 		step.Status.Replicas = uint32(desiredReplicas)
@@ -133,11 +135,11 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	selector, _ := labels.Parse(dfv1.KeyPipelineName + "=" + pipelineName + "," + dfv1.KeyStepName + "=" + stepName)
 	hash := util.MustHash(hash{runnerImage, step.Spec.WithOutReplicas()}) // we must remove data (e.g. replicas) which does not change the pod, otherwise it would cause the pod to be re-created all the time
-	oldStatus := step.Status.DeepCopy()
 	step.Status.Phase, step.Status.Reason, step.Status.Message = dfv1.StepUnknown, "", ""
 	step.Status.Selector = selector.String()
 
 	ownerReferences := []metav1.OwnerReference{*metav1.NewControllerRef(step.GetObjectMeta(), dfv1.StepGroupVersionKind)}
+	headlessSvcName := step.GetHeadlessServiceName()
 
 	for replica := 0; replica < desiredReplicas; replica++ {
 		podName := fmt.Sprintf("%s-%d", step.Name, replica)
@@ -181,10 +183,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				},
 				Spec: step.GetPodSpec(
 					dfv1.GetPodSpecReq{
-						ClusterName:      clusterName,
-						Debug:            debug,
+						Cluster:          r.Cluster,
 						PipelineName:     pipelineName,
-						Namespace:        step.Namespace,
 						Replica:          int32(replica),
 						ImageFormat:      imageFormat,
 						RunnerImage:      runnerImage,
@@ -193,6 +193,8 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						StepStatus:       step.Status,
 						Sidecar:          step.Spec.Sidecar,
 						ImagePullSecrets: reqImagePullSecrets,
+						Hostname:         podName,
+						Subdomain:        headlessSvcName,
 					},
 				),
 			},
@@ -206,46 +208,24 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	serviceNames := map[string]bool{}
+	serviceObjMap := make(map[string]*corev1.Service)
+	serviceObjMap[headlessSvcName] = step.GetServiceObj(headlessSvcName, pipelineName, true)
 	for _, s := range step.Spec.Sources {
 		serviceName := pipelineName + "-" + stepName
 		if x := s.HTTP; x != nil {
 			if n := x.ServiceName; n != "" {
 				serviceName = n
 			}
-			serviceNames[serviceName] = true
+			serviceObjMap[serviceName] = step.GetServiceObj(serviceName, pipelineName, false)
 		} else if x := s.S3; x != nil {
-			serviceNames[serviceName] = true
+			serviceObjMap[serviceName] = step.GetServiceObj(serviceName, pipelineName, false)
 		} else if x := s.Volume; x != nil {
-			serviceNames[serviceName] = true
+			serviceObjMap[serviceName] = step.GetServiceObj(serviceName, pipelineName, false)
 		}
 	}
 
-	for serviceName := range serviceNames {
-		if err := r.Client.Create(
-			ctx,
-			&corev1.Service{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace:       step.Namespace,
-					Name:            serviceName,
-					OwnerReferences: ownerReferences,
-					// useful for auto-detecting the service as exporting Prometheus
-					Labels: map[string]string{
-						dfv1.KeyStepName:     stepName,
-						dfv1.KeyPipelineName: pipelineName,
-					},
-				},
-				Spec: corev1.ServiceSpec{
-					Ports: []corev1.ServicePort{
-						{Port: 443, TargetPort: intstr.FromInt(3570)},
-					},
-					Selector: map[string]string{
-						dfv1.KeyPipelineName: pipelineName,
-						dfv1.KeyStepName:     stepName,
-					},
-				},
-			},
-		); util.IgnoreAlreadyExists(err) != nil {
+	for _, obj := range serviceObjMap {
+		if err := r.Client.Create(ctx, obj); util.IgnoreAlreadyExists(err) != nil {
 			x := dfv1.MinStepPhaseMessage(dfv1.NewStepPhaseMessage(step.Status.Phase, step.Status.Reason, step.Status.Message), dfv1.NewStepPhaseMessage(dfv1.StepFailed, "", fmt.Sprintf("failed to create service %s: %v", step.Name, err)))
 			step.Status.Phase, step.Status.Reason, step.Status.Message = x.GetPhase(), x.GetReason(), x.GetMessage()
 		}
@@ -301,7 +281,7 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 	}
 
-	requeueAfter, err := scaling.RequeueAfter(*step, currentReplicas, desiredReplicas)
+	requeueAfter, err := scaling.RequeueAfter(*step)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -309,6 +289,28 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		log.Info("requeue", "requeueAfter", requeueAfter.String())
 	}
 	return ctrl.Result{RequeueAfter: requeueAfter}, nil
+}
+
+func (r *StepReconciler) startMetricsCacheLoop(step *dfv1.Step) error {
+	key, err := cache.MetaNamespaceKeyFunc(step)
+	if err != nil {
+		return fmt.Errorf("failed to get key for step object: %w", err)
+	}
+	if r.MetricsCacheHandler.Contains(key) {
+		return nil
+	}
+	return r.MetricsCacheHandler.StartWatchingStep(step)
+}
+
+func (r *StepReconciler) stopMetricsCacheLoop(step *dfv1.Step) error {
+	key, err := cache.MetaNamespaceKeyFunc(step)
+	if err != nil {
+		return fmt.Errorf("failed to get key for step object: %w", err)
+	}
+	if !r.MetricsCacheHandler.Contains(key) {
+		return nil
+	}
+	return r.MetricsCacheHandler.StopWatchingStep(step)
 }
 
 func eventReason(currentReplicas, desiredReplicas int) string {
@@ -320,6 +322,9 @@ func eventReason(currentReplicas, desiredReplicas int) string {
 }
 
 func (r *StepReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if r.Cluster == "" {
+		return fmt.Errorf("cluster must be set")
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&dfv1.Step{}).
 		Owns(&corev1.Pod{}).

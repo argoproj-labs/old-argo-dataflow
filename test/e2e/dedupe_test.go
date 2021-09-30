@@ -3,6 +3,7 @@
 package e2e
 
 import (
+	"log"
 	"testing"
 	"time"
 
@@ -41,16 +42,17 @@ func TestDedupe(t *testing.T) {
 	SendMessageViaHTTP("bar")
 	SendMessageViaHTTP("baz")
 
-	time.Sleep(30 * time.Second) // 15s+20% for garbage collection
+	log.Println("sleeping 30s (15s+20%) for garbage collection")
+	time.Sleep(30 * time.Second)
 
 	SendMessageViaHTTP("foo") // this will not be de-duped because it will have been garbage collected
 	SendMessageViaHTTP("baz")
 	SendMessageViaHTTP("baz")
 
-	WaitForStep(TotalSourceMessages(6))
-	WaitForStep(TotalSunkMessages(4))
+	WaitForTotalSourceMessages(6)
+	WaitForTotalSunkMessages(4)
 
-	ExpectMetric("duplicate_messages", 2, 8080)
+	ExpectMetric("duplicate_messages", Eq(2), 8080)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
