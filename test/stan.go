@@ -33,7 +33,7 @@ func PumpSTANSubject(subject string, n int, opts ...interface{}) {
 			panic(fmt.Errorf("unexpected option type %T", opt))
 		}
 	}
-	log.Printf("puming stan subject %q sleeping %v with %d messages sized %d\n", subject, sleep, n, size)
+	log.Printf("pumping stan subject %q sleeping %v with %d messages sized %d\n", subject, sleep, n, size)
 	InvokeTestAPI("/stan/pump-subject?subject=%s&sleep=%v&n=%d&prefix=%s&size=%d", subject, sleep, n, prefix, size)
 }
 

@@ -51,7 +51,8 @@ func StartPortForward(podName string, opts ...interface{}) (stopPortForward func
 	log.Printf("started port-forward to %q on %d\n", podName, port)
 	return func() {
 		stopChan <- struct{}{}
-		forwarder.Close()
+		// not needed
+		// forwarder.Close()
 		log.Printf("stopped port-forward to %q on %d\n", podName, port)
 	}
 }

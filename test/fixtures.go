@@ -32,6 +32,7 @@ func Setup(t *testing.T) (teardown func()) {
 	log.Printf("\n")
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
+	RestartStatefulSet("redis")
 
 	stopTestAPIPortForward = StartPortForward("testapi-0", 8378)
 
@@ -47,12 +48,12 @@ func Setup(t *testing.T) (teardown func()) {
 		log.Printf("\n")
 		r := recover() // tests should panic on error, we recover so we can run other tests
 		if r != nil {
-			TailLogs()
 			log.Printf("\n")
 			log.Printf("❌ FAIL: %s %v\n", t.Name(), r)
 			log.Printf("\n")
 			debug.PrintStack()
 			log.Printf("\n")
+			TailLogs()
 			t.Fail()
 		} else if t.Failed() {
 			log.Printf("❌ FAIL: %s\n", t.Name())

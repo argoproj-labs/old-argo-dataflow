@@ -14,7 +14,7 @@ import (
 )
 
 func RestartStatefulSet(name string) {
-	log.Printf("restarting stateful set %q\n", name)
+	log.Printf("restarting statefulset %q\n", name)
 	data := sharedutil.MustJSON(map[string]interface{}{
 		"spec": map[string]interface{}{
 			"template": map[string]interface{}{
@@ -31,4 +31,5 @@ func RestartStatefulSet(name string) {
 	if err != nil {
 		panic(fmt.Errorf("failed to restart %q: %w", name, err))
 	}
+	WaitForPod(fmt.Sprintf("%s-0", name))
 }
