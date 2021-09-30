@@ -120,7 +120,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
+		ObjectMeta: metav1.ObjectMeta{Name: name},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
