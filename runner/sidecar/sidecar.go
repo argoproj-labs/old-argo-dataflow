@@ -17,6 +17,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/expfmt"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	jaegerlog "github.com/uber/jaeger-client-go/log"
 	"github.com/uber/jaeger-lib/metrics"
@@ -94,6 +95,8 @@ func Exec(ctx context.Context) error {
 	defer func() { _ = closer.Close() }()
 
 	opentracing.SetGlobalTracer(tracer)
+
+	addStopHook(logMetrics)
 
 	if err := enrichSpec(ctx); err != nil {
 		return err
@@ -199,6 +202,20 @@ func Exec(ctx context.Context) error {
 	ready = true
 	logger.Info("ready")
 	<-ctx.Done()
+	return nil
+}
+
+func logMetrics(ctx context.Context) error {
+	families, err := prometheus.DefaultGatherer.Gather()
+	if err != nil {
+		return err
+	}
+	w := sharedutil.LogWriter(logger)
+	for _, f := range families {
+		if _, err := expfmt.MetricFamilyToText(w, f); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
