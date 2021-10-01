@@ -21,8 +21,8 @@ func TestKafka(t *testing.T) {
 	topic := SourceTopic
 	sinkTopic := SinkTopic
 
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -37,7 +37,7 @@ func TestKafka(t *testing.T) {
 
 	PumpKafkaTopic(topic, 17)
 
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward(name + "-main-0")()
 	WaitForSunkMessages()
 
 	WaitForTotalSourceMessages(17)
@@ -53,8 +53,8 @@ func TestKafkaAsync(t *testing.T) {
 	topic := SourceTopic
 	sinkTopic := SinkTopic
 
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -67,7 +67,7 @@ func TestKafkaAsync(t *testing.T) {
 	WaitForPipeline()
 	WaitForPod()
 
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward(name + "-main-0")()
 
 	PumpKafkaTopic(topic, 17)
 

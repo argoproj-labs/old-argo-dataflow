@@ -9,9 +9,19 @@ type KafkaNET struct {
 	SASL *SASL `json:"sasl,omitempty" protobuf:"bytes,2,opt,name=sasl"`
 }
 
+func (in *KafkaNET) GetSecurityProtocol() string {
+	if in.SASL == nil && in.TLS == nil {
+		return "plaintext"
+	} else if in.SASL == nil && in.TLS != nil {
+		return "ssl"
+	} else if in.TLS == nil {
+		return "sasl_plaintext"
+	}
+	return "sasl_ssl"
+}
+
 type KafkaConfig struct {
 	Brokers         []string  `json:"brokers,omitempty" protobuf:"bytes,1,rep,name=brokers"`
-	Version         string    `json:"version,omitempty" protobuf:"bytes,2,opt,name=version"`
 	NET             *KafkaNET `json:"net,omitempty" protobuf:"bytes,3,opt,name=net"`
 	MaxMessageBytes int32     `json:"maxMessageBytes,omitempty" protobuf:"varint,4,opt,name=maxMessageBytes"`
 }

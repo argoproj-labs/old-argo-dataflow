@@ -432,8 +432,6 @@ message Kafka {
 message KafkaConfig {
   repeated string brokers = 1;
 
-  optional string version = 2;
-
   optional KafkaNET net = 3;
 
   optional int32 maxMessageBytes = 4;

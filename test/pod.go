@@ -60,6 +60,7 @@ func WaitForPod(opts ...interface{}) {
 	var (
 		listOptions = metav1.ListOptions{LabelSelector: KeyPipelineName}
 		f           = PodRunningAndReady
+		timeout     = 30 * time.Second
 	)
 	for _, o := range opts {
 		switch v := o.(type) {
@@ -68,12 +69,14 @@ func WaitForPod(opts ...interface{}) {
 			listOptions.FieldSelector = "metadata.name=" + v
 		case func(*corev1.Pod) bool:
 			f = v
+		case time.Duration:
+			timeout = v
 		default:
 			panic(fmt.Errorf("un-supported option type: %T", o))
 		}
 	}
-	log.Printf("waiting for pod %q %q\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f))
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	log.Printf("waiting for pod %q %q in %v\n", sharedutil.MustJSON(listOptions), sharedutil.GetFuncName(f), timeout.String())
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	w, err := podInterface.Watch(ctx, listOptions)
 	if err != nil {

@@ -1728,8 +1728,6 @@ spec:
                                 type: object
                               topic:
                                 type: string
-                              version:
-                                type: string
                             required:
                             - topic
                             type: object
@@ -3675,8 +3673,6 @@ spec:
                                 - Last
                                 type: string
                               topic:
-                                type: string
-                              version:
                                 type: string
                             required:
                             - topic

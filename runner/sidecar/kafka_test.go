@@ -26,16 +26,6 @@ func Test_kafkaFromSecret(t *testing.T) {
 		assert.NoError(t, err)
 		assert.ElementsMatch(t, []string{"a", "b"}, x.Brokers)
 	})
-	t.Run("Version", func(t *testing.T) {
-		x := &dfv1.Kafka{}
-		err := kafkaFromSecret(x, &corev1.Secret{
-			Data: map[string][]byte{
-				"version": []byte("v1.2.3"),
-			},
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, "v1.2.3", x.Version)
-	})
 	t.Run("NetTLS", func(t *testing.T) {
 		x := &dfv1.Kafka{}
 		err := kafkaFromSecret(x, &corev1.Secret{

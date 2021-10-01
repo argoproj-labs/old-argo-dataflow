@@ -22,8 +22,8 @@ func TestKafkaSourceStress(t *testing.T) {
 
 	topic := SourceTopic
 	msgSize := int32(Params.MessageSize)
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name: "main",
@@ -44,12 +44,12 @@ func TestKafkaSourceStress(t *testing.T) {
 
 	WaitForPipeline()
 
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward(name + "-main-0")()
 
 	WaitForPod()
 
 	n := Params.N
-	prefix := "kafka-source-stress"
+	prefix := name + "-source-stress"
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
@@ -63,8 +63,8 @@ func TestKafkaSinkStress(t *testing.T) {
 	topic := SourceTopic
 	sinkTopic := SinkTopic
 	msgSize := int32(Params.MessageSize)
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name: "main",
@@ -88,12 +88,12 @@ func TestKafkaSinkStress(t *testing.T) {
 
 	WaitForPipeline()
 
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward(name + "-main-0")()
 
 	WaitForPod()
 
 	n := Params.N
-	prefix := "kafka-sink-stress"
+	prefix := name + "-sink-stress"
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 

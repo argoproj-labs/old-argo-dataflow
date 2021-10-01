@@ -28,11 +28,13 @@ func Test_impl_Accept(t *testing.T) {
 	t.Run("EmptyStorage", func(t *testing.T) {
 		accept := i.Accept(ctx, "my-source", "my-urn", 1, 1)
 		assert.True(t, accept)
+		i.Commit(ctx, "my-source", "my-urn", 1, 1)
 		assert.Equal(t, 0, duplicate(t))
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("ExistingStorage", func(t *testing.T) {
 		accept := i.Accept(ctx, "my-source", "my-urn", 2, 2)
+		i.Commit(ctx, "my-source", "my-urn", 2, 2)
 		assert.True(t, accept)
 		assert.Equal(t, 0, duplicate(t))
 		assert.Equal(t, 0, missing(t))
@@ -40,12 +42,14 @@ func Test_impl_Accept(t *testing.T) {
 	t.Run("RepeatedOffset", func(t *testing.T) {
 		accept := i.Accept(ctx, "my-source", "my-urn", 2, 2)
 		assert.False(t, accept)
+		i.Commit(ctx, "my-source", "my-urn", 2, 2)
 		assert.Equal(t, 1, duplicate(t))
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("SkippedOffset", func(t *testing.T) {
 		accept := i.Accept(ctx, "my-source", "my-urn", 2, 5)
 		assert.True(t, accept)
+		i.Commit(ctx, "my-source", "my-urn", 2, 5)
 		assert.Equal(t, 1, duplicate(t))
 		assert.Equal(t, 2, missing(t))
 	})

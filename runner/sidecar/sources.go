@@ -135,7 +135,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		} else if x := s.Kafka; x != nil {
 			groupID := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
-			if y, err := kafkasource.New(ctx, secretInterface, mntr, groupID, sourceName, sourceURN, *x, processWithRetry); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, mntr, groupID, sourceName, sourceURN, replica, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
