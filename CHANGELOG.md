@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.0.117 (2021-10-01)
+
+ * [2720622](https://github.com/argoproj-labs/argo-dataflow/commit/27206226fae64ec28e34e826ff0842eb732a98aa) feat: fix bugs in monitor (#391)
+ * [b82ef2f](https://github.com/argoproj-labs/argo-dataflow/commit/b82ef2ff0736aed62149c53cbaf72fb17fa4d63e) feat: migrate to confluent-kafka-go from Sarama (#387)
+ * [a070247](https://github.com/argoproj-labs/argo-dataflow/commit/a07024722aa6bb5c844b34c7dc4715ee86173b0e) feat: log metrics on runner stop
+ * [2ac7baf](https://github.com/argoproj-labs/argo-dataflow/commit/2ac7baf94bf9dfac0202c0948cc599637e9a7a12) fix: enhance missing/duplicate monitor
+ * [67f5024](https://github.com/argoproj-labs/argo-dataflow/commit/67f502408d0496917423e81474cc1159d58b4235) fix: more start-up logging detail (#386)
+ * [f738044](https://github.com/argoproj-labs/argo-dataflow/commit/f7380441a79db00d5969f5f81c7fa7c7db8a9c38) fix: correct report of `missing`  when multiple messages go missing
+ * [e55b950](https://github.com/argoproj-labs/argo-dataflow/commit/e55b950f05bfc869f5ecf0c247af5a898634620b) fix: updated retry/error messages with clearer detail
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.116 (2021-09-28)
 
  * [ebf38e6](https://github.com/argoproj-labs/argo-dataflow/commit/ebf38e61fc0597516ddbda1132156b2149d7e69d) fix: correct mis-reporting of `missing`
