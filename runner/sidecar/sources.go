@@ -63,12 +63,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 	}
 
 	mntr := monitor.New(ctx, pipelineName, stepName)
-	addStopHook(func(ctx context.Context) error {
-		logger.Info("closing monitor")
-		mntr.Close(ctx)
-		logger.Info("monitor closed")
-		return nil
-	})
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
 		sourceName := s.Name

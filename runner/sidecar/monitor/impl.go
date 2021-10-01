@@ -34,54 +34,27 @@ var (
 	)
 )
 
-//go:generate mockery --exported --name=storage
-
-type storage interface {
-	Get(ctx context.Context, key string) (string, error)
-	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
-}
-
-type redisStorage struct {
-	rdb redis.Cmdable
-}
-
-func (r *redisStorage) Get(ctx context.Context, key string) (string, error) {
-	return r.rdb.Get(ctx, key).Result()
-}
-
-func (r *redisStorage) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	return r.rdb.Set(ctx, key, value, expiration).Err()
-}
-
 type impl struct {
-	mu           sync.Mutex
-	db           map[string]int64
+	mu           sync.Mutex       // for cache
+	cache        map[string]int64 // key -> offset
 	pipelineName string
 	stepName     string
 	storage      storage
 }
 
-func (i *impl) Commit(ctx context.Context, sourceName, sourceURN string, partition int32, offset int64) {
+func (i *impl) Mark(sourceURN string, partition int32, offset int64) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
-	key := i.key(sourceURN, partition)
-	i.db[key] = offset
+	i.cache[i.key(sourceURN, partition)] = offset
 }
 
-func (i *impl) Accept(ctx context.Context, sourceName, sourceURN string, partition int32, offset int64) bool {
+func (i *impl) Accept(sourceName, sourceURN string, partition int32, offset int64) bool {
 	i.mu.Lock()
-	defer i.mu.Unlock()
-	key := i.key(sourceURN, partition)
-	if _, ok := i.db[key]; !ok {
-		text, _ := i.storage.Get(ctx, key)
-		lastOffset, err := strconv.ParseInt(text, 10, 64)
-		if err != nil {
-			i.db[key] = offset - 1
-		} else {
-			i.db[key] = lastOffset
-		}
+	lastOffset, ok := i.cache[i.key(sourceURN, partition)]
+	i.mu.Unlock()
+	if !ok {
+		lastOffset = offset - 1
 	}
-	lastOffset := i.db[key]
 	expectedOffset := lastOffset + 1
 	offsetDelta := offset - expectedOffset
 	if offsetDelta < 0 {
@@ -98,27 +71,51 @@ func (i *impl) key(sourceURN string, partition int32) string {
 	return fmt.Sprintf("%s/%s/%s/%d/offset", i.pipelineName, i.stepName, sourceURN, partition)
 }
 
-func (i *impl) commitOffsets(ctx context.Context) {
+func (i *impl) AssignedPartition(ctx context.Context, sourceURN string, partition int32) {
+	key := i.key(sourceURN, partition)
 	i.mu.Lock()
-	defer i.mu.Unlock()
-	for key, offset := range i.db {
-		if err := i.storage.Set(ctx, key, offset, time.Hour*24*30); err != nil {
-			logger.Error(err, "failed to commit offset to Redis", "key", key, "offset", offset)
-		}
+	_, ok := i.cache[key]
+	i.mu.Unlock()
+	if ok {
+		return
+	}
+	text, _ := i.storage.Get(ctx, key)
+	lastOffset, err := strconv.ParseInt(text, 10, 64)
+	if err == nil {
+		i.mu.Lock()
+		defer i.mu.Unlock()
+		i.cache[key] = lastOffset
 	}
 }
 
-func (i *impl) Close(ctx context.Context) {
-	i.commitOffsets(ctx)
+func (i *impl) RevokedPartition(ctx context.Context, sourceURN string, partition int32) {
+	key := i.key(sourceURN, partition)
+	i.mu.Lock()
+	offset := i.cache[key]
+	delete(i.cache, key)
+	i.mu.Unlock()
+	i.commitOffset(ctx, key, offset)
+}
+
+func (i *impl) commitOffset(ctx context.Context, key string, offset int64) {
+	if err := i.storage.Set(ctx, key, offset, time.Hour*24*30); err != nil {
+		logger.Error(err, "failed to commit offset to Redis", "key", key, "offset", offset)
+	}
+}
+
+func (i *impl) commitOffsets(ctx context.Context) {
+	for key, offset := range i.cache {
+		i.commitOffset(ctx, key, offset)
+	}
 }
 
 func New(ctx context.Context, pipelineName, stepName string) Interface {
 	i := &impl{
-		sync.Mutex{},
-		map[string]int64{},
-		pipelineName,
-		stepName,
-		&redisStorage{redis.NewClient(&redis.Options{
+		mu:           sync.Mutex{},
+		cache:        map[string]int64{},
+		pipelineName: pipelineName,
+		stepName:     stepName,
+		storage: &redisStorage{redis.NewClient(&redis.Options{
 			Addr: "redis:6379",
 		})},
 	}
