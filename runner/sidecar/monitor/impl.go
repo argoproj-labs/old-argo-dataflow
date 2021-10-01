@@ -111,6 +111,9 @@ func (i *impl) commitOffsets(ctx context.Context) {
 
 func (i *impl) Close(ctx context.Context) {
 	i.commitOffsets(ctx)
+	i.mu.Lock()
+	i.cache = map[string]int64{}
+	i.mu.Unlock()
 }
 
 func New(ctx context.Context, pipelineName, stepName string) Interface {

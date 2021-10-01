@@ -39,7 +39,6 @@ test-stress-2-replicas:
 test-stress-large-messages:
 	env MESSAGE_SIZE=1000000 $(MAKE) test-stress
 
-
 test-db-e2e:
 test-e2e:
 test-examples:
