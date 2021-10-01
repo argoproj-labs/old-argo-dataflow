@@ -36,7 +36,7 @@ func TestKafkaSourceStress(t *testing.T) {
 					}},
 				},
 				Replicas: Params.Replicas,
-				Sources:  []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
+				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
