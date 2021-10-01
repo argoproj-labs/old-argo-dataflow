@@ -3,7 +3,6 @@ package monitor
 import (
 	"context"
 	"errors"
-	"sync"
 	"testing"
 	"time"
 
@@ -19,37 +18,40 @@ func Test_impl_Accept(t *testing.T) {
 	rdb.On("Get", ctx, "my-pl/my-step/my-urn/1/offset").Return("", errors.New(""))
 	rdb.On("Get", ctx, "my-pl/my-step/my-urn/2/offset").Return("1", nil)
 	i := &impl{
-		mu:           sync.Mutex{},
-		db:           map[string]int64{},
+		cache:        map[string]int64{},
 		pipelineName: "my-pl",
 		stepName:     "my-step",
 		storage:      rdb,
 	}
+	t.Run("AssignPartitions", func(t *testing.T) {
+		i.AssignedPartition(ctx, "my-urn", 1)
+		i.AssignedPartition(ctx, "my-urn", 2)
+	})
 	t.Run("EmptyStorage", func(t *testing.T) {
-		accept := i.Accept(ctx, "my-source", "my-urn", 1, 1)
+		accept := i.Accept("my-source", "my-urn", 1, 1)
 		assert.True(t, accept)
-		i.Commit(ctx, "my-source", "my-urn", 1, 1)
+		i.Mark("my-urn", 1, 1)
 		assert.Equal(t, 0, duplicate(t))
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("ExistingStorage", func(t *testing.T) {
-		accept := i.Accept(ctx, "my-source", "my-urn", 2, 2)
-		i.Commit(ctx, "my-source", "my-urn", 2, 2)
+		accept := i.Accept("my-source", "my-urn", 2, 2)
+		i.Mark("my-urn", 2, 2)
 		assert.True(t, accept)
 		assert.Equal(t, 0, duplicate(t))
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("RepeatedOffset", func(t *testing.T) {
-		accept := i.Accept(ctx, "my-source", "my-urn", 2, 2)
+		accept := i.Accept("my-source", "my-urn", 2, 2)
 		assert.False(t, accept)
-		i.Commit(ctx, "my-source", "my-urn", 2, 2)
+		i.Mark("my-urn", 2, 2)
 		assert.Equal(t, 1, duplicate(t))
 		assert.Equal(t, 0, missing(t))
 	})
 	t.Run("SkippedOffset", func(t *testing.T) {
-		accept := i.Accept(ctx, "my-source", "my-urn", 2, 5)
+		accept := i.Accept("my-source", "my-urn", 2, 5)
 		assert.True(t, accept)
-		i.Commit(ctx, "my-source", "my-urn", 2, 5)
+		i.Mark("my-urn", 2, 5)
 		assert.Equal(t, 1, duplicate(t))
 		assert.Equal(t, 2, missing(t))
 	})
@@ -58,6 +60,10 @@ func Test_impl_Accept(t *testing.T) {
 	rdb.On("Set", ctx, "my-pl/my-step/my-urn/2/offset", int64(5), thirtyDays).Return(nil)
 	t.Run("CommitOffsets", func(t *testing.T) {
 		i.commitOffsets(ctx)
+	})
+	t.Run("RevokePartition", func(t *testing.T) {
+		i.RevokedPartition(ctx, "my-urn", 1)
+		i.RevokedPartition(ctx, "my-urn", 2)
 	})
 }
 

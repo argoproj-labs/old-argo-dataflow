@@ -23,7 +23,7 @@ func WaitForTotalSourceMessages(v int) {
 }
 
 func WaitForNoErrors() {
-	ExpectMetric("sources_errors", Eq(missing))
+	ExpectMetric("sources_errors", Missing())
 }
 
 func WaitForSunkMessages(opts ...interface{}) {
