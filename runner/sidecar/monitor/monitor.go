@@ -10,4 +10,5 @@ type Interface interface {
 	Mark(sourceURN string, partition int32, offset int64)
 	AssignedPartition(ctx context.Context, sourceURN string, partition int32)
 	RevokedPartition(ctx context.Context, sourceURN string, partition int32)
+	Close(context.Context)
 }

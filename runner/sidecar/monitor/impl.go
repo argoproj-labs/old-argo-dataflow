@@ -109,6 +109,10 @@ func (i *impl) commitOffsets(ctx context.Context) {
 	}
 }
 
+func (i *impl) Close(ctx context.Context) {
+	i.commitOffsets(ctx)
+}
+
 func New(ctx context.Context, pipelineName, stepName string) Interface {
 	i := &impl{
 		mu:           sync.Mutex{},
