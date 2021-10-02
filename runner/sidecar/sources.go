@@ -174,7 +174,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		if x, ok := sources[sourceName].(source.HasPending); ok && leadReplica() {
 			logger.Info("starting pending loop", "source", sourceName, "updateInterval", updateInterval.String())
 			go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
-				logger.Info("getting pending", "source", sourceName)
 				if pending, err := x.GetPending(ctx); err != nil {
 					logger.Error(err, "failed to get pending", "source", sourceName)
 				} else {

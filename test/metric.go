@@ -18,6 +18,10 @@ func WaitForPending() {
 	ExpectMetric("sources_pending", Gt(0))
 }
 
+func WaitForNothingPending() {
+	ExpectMetric("sources_pending", Eq(0))
+}
+
 func WaitForTotalSourceMessages(v int) {
 	ExpectMetric("sources_total", Eq(float64(v)))
 }

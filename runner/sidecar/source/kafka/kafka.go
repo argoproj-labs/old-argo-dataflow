@@ -31,8 +31,6 @@ type kafkaSource struct {
 	totalLag   int64
 }
 
-const seconds = 1000
-
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
@@ -41,9 +39,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	}
 	config["group.id"] = consumerGroupID
 	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
-	config["session.timeout.ms"] = 45 * seconds
-	config["heartbeat.interval.ms"] = 3 * seconds
-	config["socket.keepalive.enable"] = true
 	config["enable.auto.commit"] = false
 	config["enable.auto.offset.store"] = false
 	if x.StartOffset == "First" {
@@ -51,9 +46,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	} else {
 		config["auto.offset.reset"] = "latest"
 	}
-	config["statistics.interval.ms"] = 5 * seconds
-	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
-	config["fetch.min.bytes"] = 100000
+	config["statistics.interval.ms"] = 5 * 1000
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/consumer_example/consumer_example.go
 	consumer, err := kafka.NewConsumer(&config)
@@ -215,24 +208,19 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
-	commitMessage := func(msg *kafka.Message) {
-		if _, err := s.consumer.CommitMessage(msg); err != nil {
-			logger.Error(err, "failed to commit message")
-		}
-	}
-	var msg *kafka.Message
 	defer func() {
 		logger.Info("done consuming partition")
-		commitMessage(msg)
 		s.wg.Done()
 	}()
-	for msg = range s.channels[partition] {
+	for msg := range s.channels[partition] {
 		offset := int64(msg.TopicPartition.Offset)
 		logger := logger.WithValues("offset", offset)
 		if err := s.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
-		} else if offset%dfv1.CommitN == 0 {
-			commitMessage(msg)
+		} else {
+			if _, err := s.consumer.CommitMessage(msg); err != nil {
+				logger.Error(err, "failed to commit message")
+			}
 		}
 	}
 }

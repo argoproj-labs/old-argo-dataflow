@@ -148,17 +148,3 @@ spec:
     - curl
     image: golang:1.16
     name: create-output-topic
-  - args:
-    - -fvN
-    - http://testapi/kafka/create-topic?topic=test-source-topic
-    command:
-    - curl
-    image: golang:1.16
-    name: create-test-source-topic
-  - args:
-    - -fvN
-    - http://testapi/kafka/create-topic?topic=test-sink-topic
-    command:
-    - curl
-    image: golang:1.16
-    name: create-test-sink-topic

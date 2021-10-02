@@ -20,7 +20,7 @@ import (
 func TestKafkaSourceStress(t *testing.T) {
 	defer Setup(t)()
 
-	topic := SourceTopic
+	topic := CreateKafkaTopic()
 	msgSize := int32(Params.MessageSize)
 	name := CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
@@ -53,6 +53,8 @@ func TestKafkaSourceStress(t *testing.T) {
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
+	WaitForPending()
+	WaitForNothingPending()
 	WaitForTotalSunkMessages(n, Params.Timeout)
 }
 
@@ -67,8 +69,8 @@ func TestKafkaAsyncSinkStress(t *testing.T) {
 func testKafkaSinkStress(t *testing.T, async bool) {
 	defer Setup(t)()
 
-	topic := SourceTopic
-	sinkTopic := SinkTopic
+	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 	msgSize := int32(Params.MessageSize)
 	name := CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
