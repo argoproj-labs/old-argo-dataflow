@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -210,6 +211,9 @@ func logMetrics(ctx context.Context) error {
 		return err
 	}
 	for _, f := range families {
+		if strings.HasPrefix(f.GetName(), "go_") || strings.HasPrefix(f.GetName(), "process_") || strings.HasPrefix(f.GetName(), "prom") || strings.HasPrefix(f.GetName(), "version_") {
+			continue
+		}
 		for _, m := range f.Metric {
 			var v *float64
 			if c := m.Counter; c != nil && c.Value != nil {
@@ -217,7 +221,7 @@ func logMetrics(ctx context.Context) error {
 			} else if g := m.Gauge; g != nil && g.Value != nil {
 				v = g.Value
 			}
-			logger.WithValues("metric", "name", f.Name, "value", v)
+			logger.Info("metric", "name", f.GetName(), "value", v)
 		}
 	}
 	return nil
