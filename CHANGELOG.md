@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.118 (2021-10-01)
+
+ * [647d0a6](https://github.com/argoproj-labs/argo-dataflow/commit/647d0a6cba13cfa21063661c33be12f18c50c8f5) fix: change Kafka to use stats for pending
+ * [dc03e6c](https://github.com/argoproj-labs/argo-dataflow/commit/dc03e6ce3aef0e395346afd2bb64932179abd7e8) fix: change Kafka to use stats for pending
+ * [63ea3fa](https://github.com/argoproj-labs/argo-dataflow/commit/63ea3fa7800f3f05070d4306d7900e575020ecfa) feat: change update interval from 1m to 15s
+ * [f1e7b43](https://github.com/argoproj-labs/argo-dataflow/commit/f1e7b43a28925ef241fe3041155fd13dcb8f8204) fix: race in monitor
+ * [cb439be](https://github.com/argoproj-labs/argo-dataflow/commit/cb439be606b7adf681ed4e91b2bd21168489260a) fix: logging metrics
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.117 (2021-10-01)
 
  * [2720622](https://github.com/argoproj-labs/argo-dataflow/commit/27206226fae64ec28e34e826ff0842eb732a98aa) feat: fix bugs in monitor (#391)
