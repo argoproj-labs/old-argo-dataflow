@@ -52,7 +52,6 @@ func TestStanSourceStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpSTANSubject(longSubject, n, prefix, Params.MessageSize)
-	WaitForPending()
 	WaitForTotalSunkMessages(n, Params.Timeout)
 }
 
