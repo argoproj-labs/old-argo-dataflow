@@ -23,7 +23,6 @@ type kafkaSource struct {
 	logger     logr.Logger
 	sourceName string
 	sourceURN  string
-	mntr       monitor.Interface
 	consumer   *kafka.Consumer
 	topic      string
 	wg         *sync.WaitGroup
@@ -57,7 +56,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 
 	s := &kafkaSource{
 		logger:     logger,
-		mntr:       mntr,
 		sourceName: sourceName,
 		sourceURN:  sourceURN,
 		consumer:   consumer,
@@ -98,7 +96,6 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	if _, ok := s.channels[partition]; !ok {
 		logger.Info("assigned partition")
-		s.mntr.AssignedPartition(ctx, s.sourceURN, partition)
 		s.channels[partition] = make(chan *kafka.Message, 256)
 		go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 			s.consumePartition(ctx, partition)
@@ -106,13 +103,12 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
 	}
 }
 
-func (s *kafkaSource) revokedPartition(ctx context.Context, partition int32) {
+func (s *kafkaSource) revokedPartition(partition int32) {
 	if _, ok := s.channels[partition]; ok {
 		s.logger.Info("revoked partition", "partition", partition)
 		close(s.channels[partition])
 		delete(s.channels, partition)
 	}
-	s.mntr.RevokedPartition(ctx, s.sourceURN, partition)
 }
 
 type Stats struct {
@@ -202,7 +198,7 @@ func (s *kafkaSource) rebalanced(ctx context.Context, event kafka.Event) error {
 		}
 	case kafka.RevokedPartitions:
 		for _, p := range e.Partitions {
-			s.revokedPartition(ctx, p.Partition)
+			s.revokedPartition(p.Partition)
 		}
 	}
 	return nil

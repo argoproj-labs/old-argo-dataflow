@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"strconv"
 	"time"
 )
@@ -34,7 +33,7 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 			panic(fmt.Errorf("unexpected option type %T", opt))
 		}
 	}
-	log.Printf("puming Kafka topic %q sleeping %v with %d messages sized %d\n", topic, sleep, n, size)
+	log.Printf("pumping Kafka topic %q sleeping %v with %d messages sized %d\n", topic, sleep, n, size)
 	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d&prefix=%s&size=%d", topic, sleep, n, prefix, size)
 }
 
