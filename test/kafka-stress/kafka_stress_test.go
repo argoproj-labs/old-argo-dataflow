@@ -57,14 +57,6 @@ func TestKafkaSourceStress(t *testing.T) {
 }
 
 func TestKafkaSinkStress(t *testing.T) {
-	testKafkaSinkStress(t, false)
-}
-
-func TestKafkaAsyncSinkStress(t *testing.T) {
-	testKafkaSinkStress(t, true)
-}
-
-func testKafkaSinkStress(t *testing.T, async bool) {
 	defer Setup(t)()
 
 	topic := SourceTopic
@@ -86,7 +78,7 @@ func testKafkaSinkStress(t *testing.T, async bool) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks: []Sink{
-					{Kafka: &KafkaSink{Async: async, Kafka: Kafka{Topic: sinkTopic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}},
+					{Kafka: &KafkaSink{Async: Params.Async, Kafka: Kafka{Topic: sinkTopic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}},
 					DefaultLogSink,
 				},
 			}},

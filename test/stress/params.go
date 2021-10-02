@@ -15,6 +15,7 @@ var Params = struct {
 	N              int
 	Replicas       uint32
 	Timeout        time.Duration
+	Async          bool
 	MessageSize    int
 	Workers        uint32
 	ResourceMemory resource.Quantity
@@ -23,6 +24,7 @@ var Params = struct {
 	N:              sharedutil.GetEnvInt("N", 10000),
 	Replicas:       uint32(sharedutil.GetEnvInt("REPLICAS", 1)),
 	Timeout:        sharedutil.GetEnvDuration("TIMEOUT", 3*time.Minute),
+	Async:          os.Getenv("ASYNC") == "true",
 	MessageSize:    sharedutil.GetEnvInt("MESSAGE_SIZE", 0),
 	Workers:        uint32(sharedutil.GetEnvInt("WORKERS", 2)),
 	ResourceMemory: resource.MustParse(getEnvString("REQUEST_MEM", "256Mi")),
@@ -37,10 +39,11 @@ func getEnvString(key, def string) string {
 }
 
 func init() {
-	log.Printf("n=%d,replicas=%d,timeout=%s,workers=%d,messageSize=%d,resourceMemory=%s,resourceCPU=%s\n",
+	log.Printf("n=%d,replicas=%d,timeout=%s,async=%v,workers=%d,messageSize=%d,resourceMemory=%s,resourceCPU=%s\n",
 		Params.N,
 		Params.Replicas,
 		Params.Timeout.String(),
+		Params.Async,
 		Params.MessageSize,
 		Params.Workers,
 		Params.ResourceMemory.String(),

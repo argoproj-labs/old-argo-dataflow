@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -106,39 +105,30 @@ func init() {
 
 		start := time.Now()
 		_, _ = fmt.Fprintf(w, "sending %d messages of size %d to %q\n", n, mf.size, topic)
-		deliveryChan := make(chan kafka.Event, 256)
-		wg := sync.WaitGroup{}
-		go func() {
-			for e := range deliveryChan {
-				switch ev := e.(type) {
-				case *kafka.Message:
-					wg.Done()
-					if ev.TopicPartition.Error != nil {
-						_, _ = fmt.Fprintf(w, "ERROR: %v\n", ev.TopicPartition.Error)
-					}
-				default:
-					_, _ = fmt.Fprintf(w, "ERROR: %v\n", ev)
-				}
-			}
-		}()
 		for i := 0; i < n || n < 0; i++ {
 			select {
 			case <-r.Context().Done():
 				return
 			default:
-				wg.Add(1)
 				x := mf.newMessage(i)
+				deliveryChan := make(chan kafka.Event, 1)
 				if err := producer.Produce(&kafka.Message{
 					TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 					Value:          []byte(x),
 				}, deliveryChan); err != nil {
 					_, _ = fmt.Fprintf(w, "ERROR: %v\n", err)
+				} else {
+					e := <-deliveryChan
+					switch ev := e.(type) {
+					case *kafka.Message:
+						if ev.TopicPartition.Error != nil {
+							_, _ = fmt.Fprintf(w, "ERROR: %v\n", ev.TopicPartition.Error)
+						}
+					}
 				}
 				time.Sleep(duration)
 			}
 		}
-		wg.Wait()
-		close(deliveryChan)
 		_, _ = fmt.Fprintf(w, "sent %d messages of size %d at %.0f TPS to %q\n", n, mf.size, float64(n)/time.Since(start).Seconds(), topic)
 	})
 }
