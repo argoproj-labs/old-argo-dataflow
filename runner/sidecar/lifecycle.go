@@ -54,7 +54,7 @@ func runHooks(hooks []hook) {
 		if err := f(ctx); err != nil {
 			logger.Error(err, "failed to run hook", "func", n)
 		}
-		logger.Info("running hook took", "func", n, "duration", time.Since(start).String())
+		logger.Info("hook took", "func", n, "duration", time.Since(start).Truncate(time.Second).String())
 	}
-	logger.Info("running hooks took", "duration", time.Since(start).String())
+	logger.Info("running hooks took", "duration", time.Since(start).Truncate(time.Second).String())
 }
