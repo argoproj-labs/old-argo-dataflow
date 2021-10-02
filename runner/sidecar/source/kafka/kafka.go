@@ -219,12 +219,9 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	for msg := range s.channels[partition] {
 		offset := int64(msg.TopicPartition.Offset)
 		logger := logger.WithValues("offset", offset)
-		if !s.mntr.Accept(s.sourceName, s.sourceURN, partition, offset) {
-			logger.Info("not accepting message")
-		} else if err := s.processMessage(ctx, msg); err != nil {
+		if err := s.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
 		} else {
-			s.mntr.Mark(s.sourceURN, partition, offset)
 			if _, err := s.consumer.CommitMessage(msg); err != nil {
 				logger.Error(err, "failed to commit message")
 			}

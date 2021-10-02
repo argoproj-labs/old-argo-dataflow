@@ -6,14 +6,17 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
 	"time"
 )
 
-const (
-	SourceTopic = "test-source-topic"
-	SinkTopic   = "test-sink-topic"
-)
+func CreateKafkaTopic() string {
+	topic := fmt.Sprintf("test-topic-%d", rand.Int31())
+	log.Printf("create Kafka topic %q\n", topic)
+	InvokeTestAPI("/kafka/create-topic?topic=%s", topic)
+	return topic
+}
 
 func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 	var sleep time.Duration
@@ -31,22 +34,21 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 			panic(fmt.Errorf("unexpected option type %T", opt))
 		}
 	}
-	log.Printf("pumping Kafka topic %q sleeping %v with %d messages sized %d\n", topic, sleep, n, size)
+	log.Printf("puming Kafka topic %q sleeping %v with %d messages sized %d\n", topic, sleep, n, size)
 	InvokeTestAPI("/kafka/pump-topic?topic=%s&sleep=%v&n=%d&prefix=%s&size=%d", topic, sleep, n, prefix, size)
 }
 
-func ExpectKafkaTopicCount(topic string, start, n int, timeout time.Duration) {
-	total := start + n
-	log.Printf("expecting %d+%d=%d messages to be sunk to topic %s\n", start, n, total, topic)
+func ExpectKafkaTopicCount(topic string, total int, timeout time.Duration) {
+	log.Printf("expecting %d messages to be sunk to topic %s\n", total, topic)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	for {
 		select {
 		case <-ctx.Done():
-			panic(fmt.Errorf("timeout waiting for %d+%d=%d messages in topic %q", start, n, total, topic))
+			panic(fmt.Errorf("timeout waiting for %d messages in topic %q", total, topic))
 		default:
 			count := GetKafkaCount(topic)
-			log.Printf("count of Kafka topic %q is %d\n", topic, count)
+			log.Printf("count of Kafka topic %q is %d, %d remaining\n", topic, count, total-count)
 			if count == total {
 				return
 			}
