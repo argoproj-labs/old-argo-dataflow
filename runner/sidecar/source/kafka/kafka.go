@@ -23,7 +23,6 @@ type kafkaSource struct {
 	logger     logr.Logger
 	sourceName string
 	sourceURN  string
-	mntr       monitor.Interface
 	consumer   *kafka.Consumer
 	topic      string
 	wg         *sync.WaitGroup
@@ -31,6 +30,8 @@ type kafkaSource struct {
 	process    source.Process
 	totalLag   int64
 }
+
+const seconds = 1000
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
@@ -40,6 +41,9 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	}
 	config["group.id"] = consumerGroupID
 	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
+	config["session.timeout.ms"] = 45 * seconds
+	config["heartbeat.interval.ms"] = 3 * seconds
+	config["socket.keepalive.enable"] = true
 	config["enable.auto.commit"] = false
 	config["enable.auto.offset.store"] = false
 	if x.StartOffset == "First" {
@@ -47,7 +51,9 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	} else {
 		config["auto.offset.reset"] = "latest"
 	}
-	config["statistics.interval.ms"] = 5 * 1000
+	config["statistics.interval.ms"] = 5 * seconds
+	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
+	config["fetch.min.bytes"] = 100000
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/consumer_example/consumer_example.go
 	consumer, err := kafka.NewConsumer(&config)
@@ -57,7 +63,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 
 	s := &kafkaSource{
 		logger:     logger,
-		mntr:       mntr,
 		sourceName: sourceName,
 		sourceURN:  sourceURN,
 		consumer:   consumer,
@@ -98,7 +103,6 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	if _, ok := s.channels[partition]; !ok {
 		logger.Info("assigned partition")
-		s.mntr.AssignedPartition(ctx, s.sourceURN, partition)
 		s.channels[partition] = make(chan *kafka.Message, 256)
 		go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 			s.consumePartition(ctx, partition)
@@ -106,13 +110,12 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
 	}
 }
 
-func (s *kafkaSource) revokedPartition(ctx context.Context, partition int32) {
+func (s *kafkaSource) revokedPartition(partition int32) {
 	if _, ok := s.channels[partition]; ok {
 		s.logger.Info("revoked partition", "partition", partition)
 		close(s.channels[partition])
 		delete(s.channels, partition)
 	}
-	s.mntr.RevokedPartition(ctx, s.sourceURN, partition)
 }
 
 type Stats struct {
@@ -202,7 +205,7 @@ func (s *kafkaSource) rebalanced(ctx context.Context, event kafka.Event) error {
 		}
 	case kafka.RevokedPartitions:
 		for _, p := range e.Partitions {
-			s.revokedPartition(ctx, p.Partition)
+			s.revokedPartition(p.Partition)
 		}
 	}
 	return nil
@@ -212,22 +215,24 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
+	commitMessage := func(msg *kafka.Message) {
+		if _, err := s.consumer.CommitMessage(msg); err != nil {
+			logger.Error(err, "failed to commit message")
+		}
+	}
+	var msg *kafka.Message
 	defer func() {
 		logger.Info("done consuming partition")
+		commitMessage(msg)
 		s.wg.Done()
 	}()
-	for msg := range s.channels[partition] {
+	for msg = range s.channels[partition] {
 		offset := int64(msg.TopicPartition.Offset)
 		logger := logger.WithValues("offset", offset)
-		if !s.mntr.Accept(s.sourceName, s.sourceURN, partition, offset) {
-			logger.Info("not accepting message")
-		} else if err := s.processMessage(ctx, msg); err != nil {
+		if err := s.processMessage(ctx, msg); err != nil {
 			logger.Error(err, "failed to process message")
-		} else {
-			s.mntr.Mark(s.sourceURN, partition, offset)
-			if _, err := s.consumer.CommitMessage(msg); err != nil {
-				logger.Error(err, "failed to commit message")
-			}
+		} else if offset%dfv1.CommitN == 0 {
+			commitMessage(msg)
 		}
 	}
 }
