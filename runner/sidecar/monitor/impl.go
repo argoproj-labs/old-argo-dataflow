@@ -104,9 +104,11 @@ func (i *impl) commitOffset(ctx context.Context, key string, offset int64) {
 }
 
 func (i *impl) commitOffsets(ctx context.Context) {
+	i.mu.Lock()
 	for key, offset := range i.cache {
 		i.commitOffset(ctx, key, offset)
 	}
+	i.mu.Unlock()
 }
 
 func (i *impl) Close(ctx context.Context) {
