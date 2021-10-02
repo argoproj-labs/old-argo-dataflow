@@ -29,7 +29,7 @@ const (
 	EnvPeekDelay        = "ARGO_DATAFLOW_PEEK_DELAY"         // how long between peeking (default 4m)
 	EnvPullPolicy       = "ARGO_DATAFLOW_PULL_POLICY"        // default ""
 	EnvScalingDelay     = "ARGO_DATAFLOW_SCALING_DELAY"      // how long to wait between any scaling events (including peeking) default "4m"
-	EnvUpdateInterval   = "ARGO_DATAFLOW_UPDATE_INTERVAL"    // default "1m"
+	EnvUpdateInterval   = "ARGO_DATAFLOW_UPDATE_INTERVAL"    // default "15s"
 	EnvImagePullSecrets = "ARGO_DATAFLOW_IMAGE_PULL_SECRETS" // allows providing a list of imagePullSecrets as a comma delimited string (eg. "secret1,secret2")
 	// label/annotation keys.
 	KeyDefaultContainer = "kubectl.kubernetes.io/default-container"
