@@ -97,7 +97,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 			Steps: []StepSpec{{
 				Name:    "main",
 				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &KafkaSource{StartOffset: "First", oKafka: Kafka{Topic: topic}}}},
+				Sources: []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic}}}},
 				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
 			}},
 		},
