@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
 	"time"
 )
@@ -38,7 +39,7 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 }
 
 func ExpectKafkaTopicCount(topic string, total int, timeout time.Duration) {
-	log.Printf("expecting %d messages to be sunk to topic %s\n", total, topic)
+	log.Printf("expecting %d messages to be sunk to topic %s within %v\n", total, topic, timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	for {

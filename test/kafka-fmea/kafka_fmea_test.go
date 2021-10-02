@@ -127,5 +127,5 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 
 	WaitForPipeline()
 	WaitForPod()
-	ExpectKafkaTopicCount(sinkTopic, n, time.Minute)
+	ExpectKafkaTopicCount(sinkTopic, n, 2*time.Minute)
 }
