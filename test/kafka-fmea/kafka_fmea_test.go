@@ -22,6 +22,8 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()
 
+	time.Sleep(20*time.Second)
+
 	name := CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
@@ -35,7 +37,6 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	})
 
 	WaitForPipeline()
-
 	WaitForPod()
 
 	n := 500 * 15
