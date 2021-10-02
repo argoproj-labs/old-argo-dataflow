@@ -14,7 +14,7 @@
   "TestStanSinkStress/replicas=3.tps": 300,
   "TestStanSinkStress/replicas=4.tps": 300,
   "TestStanSinkStress/replicas=5.tps": 350,
-  "TestStanSourceStress/.tps": 1150,
+  "TestStanSourceStress/.tps": 1650,
   "TestStanSourceStress/N=10,messageSize=100.tps": 850,
   "TestStanSourceStress/N=10,messageSize=1000.tps": 400,
   "TestStanSourceStress/currentContext=gke_jesse-sb_us-central1-c_dataflow-test,N=10,messageSize=5000000.tps": 40300,
