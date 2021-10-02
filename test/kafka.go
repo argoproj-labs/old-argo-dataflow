@@ -46,7 +46,7 @@ func ExpectKafkaTopicCount(topic string, start, n int, timeout time.Duration) {
 			panic(fmt.Errorf("timeout waiting for %d+%d=%d messages in topic %q", start, n, total, topic))
 		default:
 			count := GetKafkaCount(topic)
-			log.Printf("count of Kafka topic %q is %d\n", topic, count)
+			log.Printf("count of Kafka topic %q is %d, waiting for %d more\n", topic, count, total-count)
 			if count == total {
 				return
 			}
