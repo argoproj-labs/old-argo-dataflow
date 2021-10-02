@@ -15,7 +15,11 @@ import (
 )
 
 func WaitForPending() {
-	ExpectMetric("pending", Gt(0))
+	ExpectMetric("sources_pending", Gt(0))
+}
+
+func WaitForNothingPending() {
+	ExpectMetric("sources_pending", Eq(0))
 }
 
 func WaitForTotalSourceMessages(v int) {
