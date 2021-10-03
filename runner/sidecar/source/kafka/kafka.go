@@ -38,6 +38,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 		return nil, err
 	}
 	config["group.id"] = consumerGroupID
+	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
 	config["enable.auto.commit"] = false
 	config["enable.auto.offset.store"] = false
 	if x.StartOffset == "First" {
