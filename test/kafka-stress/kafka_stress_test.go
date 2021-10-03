@@ -55,6 +55,7 @@ func TestKafkaSourceStress(t *testing.T) {
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
 	WaitForPending()
 	WaitForNothingPending()
+	WaitForTotalSourceMessages(n, Params.Timeout)
 	WaitForTotalSunkMessages(n, Params.Timeout)
 }
 
@@ -108,5 +109,6 @@ func testKafkaSinkStress(t *testing.T, async bool) {
 
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
 	WaitForPending()
+	WaitForTotalSourceMessages(n, Params.Timeout)
 	WaitForTotalSunkMessages(n, Params.Timeout)
 }

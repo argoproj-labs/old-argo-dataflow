@@ -26,6 +26,8 @@ type kafkaSink struct {
 	async    bool
 }
 
+const seconds = 1000
+
 func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
 	logger := logger.WithValues("sink", sinkName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
@@ -35,6 +37,15 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	if x.MaxMessageBytes > 0 {
 		config["message.max.bytes"] = x.Kafka.MaxMessageBytes
 	}
+	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
+	config["batch.size"] = 100000
+	if x.Async {
+		config["linger.ms"] = 50 // Alias for queue.buffering.max.ms
+	} else {
+		config["linger.ms"] = 0
+	}
+	config["compression.type"] = "lz4"
+	config["request.required.acks"] = "all"
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/producer_example/producer_example.go
 	producer, err := kafka.NewProducer(&config)
 	if err != nil {
