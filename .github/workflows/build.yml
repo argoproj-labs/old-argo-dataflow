@@ -118,12 +118,8 @@ jobs:
         if: ${{matrix.suite == 'e2e' || matrix.suite == 'examples'}}
       - run: docker pull golang:1.16
       - run: make wait
-      - run: make logs > /tmp/logs &
       - run: make test-${{matrix.suite}}
       - run: git diff
-      - name: cat logs
-        if: ${{ failure() }}
-        run: cat /tmp/logs
       - name: controller logs
         if: ${{ failure() }}
         run: kubectl -n argo-dataflow-system logs deploy/controller-manager -c manager
