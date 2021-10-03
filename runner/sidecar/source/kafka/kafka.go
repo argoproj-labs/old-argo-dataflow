@@ -114,22 +114,6 @@ func (s *kafkaSource) revokedPartition(partition int32) {
 	}
 }
 
-type Stats struct {
-	Topics map[string]struct {
-		Partitions map[string]struct {
-			ConsumerLag int64 `json:"consumer_lag"`
-		} `json:"partitions"`
-	} `json:"topics"`
-}
-
-func (s Stats) totalLag(topic string) int64 {
-	var totalLag int64
-	for _, p := range s.Topics[topic].Partitions {
-		totalLag += p.ConsumerLag
-	}
-	return totalLag
-}
-
 func (s *kafkaSource) startPollLoop(ctx context.Context) {
 	s.logger.Info("starting poll loop")
 	for {
@@ -211,7 +195,7 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
-	var lastCommittedOffset int64
+	var lastCommittedOffset int64 = -1
 	defer func() {
 		logger.Info("done consuming partition", "lastCommittedOffset", lastCommittedOffset)
 		s.wg.Done()
@@ -225,7 +209,7 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 			if _, err := s.consumer.CommitMessage(msg); err != nil {
 				logger.Error(err, "failed to commit message")
 			} else {
-				if lastCommittedOffset == 0 {
+				if lastCommittedOffset == -1 {
 					logger.Info("offset", "firstCommittedOffset", offset)
 				}
 				lastCommittedOffset = offset
