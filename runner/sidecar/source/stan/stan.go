@@ -54,13 +54,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-			unixTimeUTC := time.Unix(msg.Timestamp, 0)
 			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("stan-source-%s", sourceName))
 			defer span.Finish()
 			if err := process(
 				dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: sourceURN, ID: fmt.Sprint(msg.Sequence), Time: msg.Timestamp}),
 				msg.Data,
-				unixTimeUTC,
 			); err != nil {
 				logger.Error(err, "failed to process message")
 			} else if err := msg.Ack(); err != nil {

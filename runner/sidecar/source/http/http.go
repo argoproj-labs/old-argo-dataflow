@@ -48,7 +48,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			_, _ = w.Write([]byte("not ready"))
 			return
 		}
-		receviedTime := time.Now()
 		msg, err := ioutil.ReadAll(r.Body)
 		_ = r.Body.Close()
 		if err != nil {
@@ -67,7 +66,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 				},
 			),
 			msg,
-			receviedTime.UTC(),
 		); err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))

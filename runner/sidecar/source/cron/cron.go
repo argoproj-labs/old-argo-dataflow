@@ -45,7 +45,6 @@ func New(ctx context.Context, sourceName, sourceURN string, x dfv1.Cron, process
 				},
 			),
 			msg,
-			time.Now().UTC(),
 		); err != nil {
 			logger.Error(err, "failed to process message")
 		}

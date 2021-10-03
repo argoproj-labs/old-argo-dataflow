@@ -3,12 +3,6 @@ package s3
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"syscall"
-	"time"
-
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
@@ -16,10 +10,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/opentracing/opentracing-go"
+	"io"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"os"
+	"path/filepath"
+	"syscall"
 )
 
 type message struct {
@@ -89,7 +87,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
 
-		Process: func(ctx context.Context, msg []byte, ts time.Time) error {
+		Process: func(ctx context.Context, msg []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-source-%s", sourceName))
 			defer span.Finish()
 			key := string(msg)
@@ -125,7 +123,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 					},
 				),
 				[]byte(sharedutil.MustJSON(message{Key: key, Path: path})),
-				output.LastModified.UTC(),
 			)
 		},
 		ListItems: func() ([]interface{}, error) {

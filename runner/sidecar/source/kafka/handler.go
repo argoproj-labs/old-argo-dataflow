@@ -74,6 +74,5 @@ func (h *handler) processMessage(ctx context.Context, msg *sarama.ConsumerMessag
 			},
 		),
 		msg.Value,
-		msg.Timestamp.UTC(),
 	)
 }

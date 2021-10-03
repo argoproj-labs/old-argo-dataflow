@@ -59,7 +59,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 	}, []string{"sourceName", "replica"})
 	processLatencyHistoGram := promauto.NewHistogramVec(prometheus.HistogramOpts{
 		Subsystem: "sources",
-		Name:      "processLatencySeconds",
+		Name:      "process_latency_seconds",
 		Help:      "Latency Seconds between Source to pipeline , see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md### source_processLatencySeconds",
 		Buckets:   []float64{0.0, 1.0, 3.0, 5.0, 10.0, 15.0, 30.0, 45.0, 60.0, 75.0, 90.0, 105.0, 120.0},
 	}, []string{"sourceName", "replica"})
@@ -84,12 +84,17 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 
-		processWithRetry := func(ctx context.Context, msg []byte, ts time.Time) error {
+		processWithRetry := func(ctx context.Context, msg []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
 			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
-			processLatencyHistoGram.WithLabelValues(sourceName, fmt.Sprint(replica)).Observe(time.Now().UTC().Sub(ts).Seconds())
+			t, ok := ctx.Value(dfv1.MetaTime).(int64)
+			sourceMsgTime := time.Now().UTC()
+			if ok {
+				sourceMsgTime = time.Unix(t,0).UTC()
+			}
+			processLatencyHistoGram.WithLabelValues(sourceName, fmt.Sprint(replica)).Observe(time.Now().UTC().Sub(sourceMsgTime).Seconds())
 			backoff := newBackoff(s.Retry)
 			for {
 				select {

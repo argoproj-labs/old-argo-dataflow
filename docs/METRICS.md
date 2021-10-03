@@ -48,7 +48,7 @@ Use this metric to determine how many retries performed for message processing.
 
 Golden metric type: error.
 
-### source_processLatencySeconds
+### source_process_latency_seconds
 
 Use this metric to determine the latency seconds between source timestamp to pipeline consume timestamp
 

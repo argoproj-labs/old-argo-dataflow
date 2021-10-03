@@ -76,6 +76,8 @@ func TestKafkaAsync(t *testing.T) {
 	WaitForTotalSourceMessages(17)
 	WaitForTotalSunkMessages(17)
 
+	WaitForProcessLatencySeconds(0)
+
 	ExpectMetric("sinks_kafka_produced_successes", Eq(17))
 
 	DeletePipelines()

@@ -33,7 +33,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
-		Process: func(ctx context.Context, msg []byte, ts time.Time) error {
+		Process: func(ctx context.Context, msg []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("volume-source-%s", sourceName))
 			defer span.Finish()
 			key := string(msg)
@@ -48,7 +48,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 					},
 				),
 				[]byte(sharedutil.MustJSON(message{Path: path})),
-				time.Now().UTC(),
 			)
 		},
 		ListItems: func() ([]interface{}, error) {
