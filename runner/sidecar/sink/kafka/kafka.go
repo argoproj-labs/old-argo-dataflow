@@ -26,14 +26,13 @@ type kafkaSink struct {
 	async    bool
 }
 
-const seconds = 1000
-
 func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
 	logger := logger.WithValues("sink", sinkName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
 		return nil, err
 	}
+	// https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
 	if x.MaxMessageBytes > 0 {
 		config["message.max.bytes"] = x.Kafka.MaxMessageBytes
 	}

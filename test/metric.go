@@ -22,7 +22,7 @@ func WaitForNothingPending() {
 	ExpectMetric("sources_pending", Eq(0))
 }
 
-func WaitForTotalSourceMessages(v int, opts ...interface{})  {
+func WaitForTotalSourceMessages(v int, opts ...interface{}) {
 	ExpectMetric("sources_total", Eq(float64(v)), opts...)
 }
 

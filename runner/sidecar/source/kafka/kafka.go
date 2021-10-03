@@ -31,22 +31,25 @@ type kafkaSource struct {
 	totalLag   int64
 }
 
+const second = 1000
+
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
 		return nil, err
 	}
+	// https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
 	config["group.id"] = consumerGroupID
 	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
 	config["enable.auto.commit"] = false
 	config["enable.auto.offset.store"] = false
 	if x.StartOffset == "First" {
-		config["auto.offset.reset"] = "none"
+		config["auto.offset.reset"] = "earliest"
 	} else {
 		config["auto.offset.reset"] = "latest"
 	}
-	config["statistics.interval.ms"] = 5 * 1000
+	config["statistics.interval.ms"] = 5 * second
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/consumer_example/consumer_example.go
 	consumer, err := kafka.NewConsumer(&config)
