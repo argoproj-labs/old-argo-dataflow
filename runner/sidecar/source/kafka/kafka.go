@@ -92,8 +92,8 @@ func (s *kafkaSource) processMessage(ctx context.Context, msg *kafka.Message) er
 	)
 }
 
-func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32, offset int64) {
-	logger := s.logger.WithValues("partition", partition, "offset", offset)
+func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
+	logger := s.logger.WithValues("partition", partition)
 	if _, ok := s.channels[partition]; !ok {
 		logger.Info("assigned partition")
 		s.channels[partition] = make(chan *kafka.Message, 256)
@@ -103,9 +103,9 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32, of
 	}
 }
 
-func (s *kafkaSource) revokedPartition(partition int32, offset int64) {
+func (s *kafkaSource) revokedPartition(partition int32) {
 	if _, ok := s.channels[partition]; ok {
-		s.logger.Info("revoked partition", "partition", partition, "offset", offset)
+		s.logger.Info("revoked partition", "partition", partition)
 		close(s.channels[partition])
 		delete(s.channels, partition)
 	}
@@ -194,11 +194,11 @@ func (s *kafkaSource) rebalanced(ctx context.Context, event kafka.Event) error {
 	switch e := event.(type) {
 	case kafka.AssignedPartitions:
 		for _, p := range e.Partitions {
-			s.assignedPartition(ctx, p.Partition, int64(p.Offset))
+			s.assignedPartition(ctx, p.Partition)
 		}
 	case kafka.RevokedPartitions:
 		for _, p := range e.Partitions {
-			s.revokedPartition(p.Partition, int64(p.Offset))
+			s.revokedPartition(p.Partition)
 		}
 	}
 	return nil
