@@ -194,10 +194,12 @@ func (s *kafkaSource) rebalanced(ctx context.Context, event kafka.Event) error {
 	switch e := event.(type) {
 	case kafka.AssignedPartitions:
 		for _, p := range e.Partitions {
+			s.logger.Info("assignedPartitions", "partition", p.Partition, "offset", p.Offset)
 			s.assignedPartition(ctx, p.Partition)
 		}
 	case kafka.RevokedPartitions:
 		for _, p := range e.Partitions {
+			s.logger.Info("revokedPartitions", "partition", p.Partition, "offset", p.Offset)
 			s.revokedPartition(p.Partition)
 		}
 	}
