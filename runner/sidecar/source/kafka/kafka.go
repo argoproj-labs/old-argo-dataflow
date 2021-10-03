@@ -42,9 +42,9 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	config["enable.auto.commit"] = false
 	config["enable.auto.offset.store"] = false
 	if x.StartOffset == "First" {
-		config["auto.offset.reset"] = "earliest"
+		config["auto.offset.reset"] = "none"
 	} else {
-		config["auto.offset.reset"] = "latest"
+		config["auto.offset.reset"] = "none"
 	}
 	config["statistics.interval.ms"] = 5 * 1000
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
