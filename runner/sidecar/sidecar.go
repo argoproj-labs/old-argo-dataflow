@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -17,7 +18,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/expfmt"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	jaegerlog "github.com/uber/jaeger-client-go/log"
 	"github.com/uber/jaeger-lib/metrics"
@@ -210,10 +210,18 @@ func logMetrics(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	w := sharedutil.LogWriter(logger)
 	for _, f := range families {
-		if _, err := expfmt.MetricFamilyToText(w, f); err != nil {
-			return err
+		if strings.HasPrefix(f.GetName(), "go_") || strings.HasPrefix(f.GetName(), "process_") || strings.HasPrefix(f.GetName(), "prom") || strings.HasPrefix(f.GetName(), "version_") {
+			continue
+		}
+		for _, m := range f.Metric {
+			var v *float64
+			if c := m.Counter; c != nil && c.Value != nil {
+				v = c.Value
+			} else if g := m.Gauge; g != nil && g.Value != nil {
+				v = g.Value
+			}
+			logger.Info("metric", "name", f.GetName(), "value", v)
 		}
 	}
 	return nil

@@ -39,14 +39,15 @@ func DeletePipelines() {
 	}
 }
 
-func CreatePipeline(pl Pipeline) {
+func CreatePipeline(pl Pipeline) string {
 	ctx := context.Background()
-	log.Printf("creating pipeline %q\n", pl.Name)
+	log.Printf("creating pipeline %q\n", pl.Name+pl.GenerateName)
 	un := ToUnstructured(pl)
-	_, err := pipelineInterface.Create(ctx, un, metav1.CreateOptions{})
+	created, err := pipelineInterface.Create(ctx, un, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
 	}
+	return created.GetName()
 }
 
 func CreatePipelineFromFile(filename string) {

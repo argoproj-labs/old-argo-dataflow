@@ -15,7 +15,7 @@ var (
 	imageFormat      = ""
 	runnerImage      = ""
 	pullPolicy       = corev1.PullPolicy(os.Getenv(dfv1.EnvPullPolicy))
-	updateInterval   = util.GetEnvDuration(dfv1.EnvUpdateInterval, 1*time.Minute)
+	updateInterval   = util.GetEnvDuration(dfv1.EnvUpdateInterval, 15*time.Second)
 	logger           = util.NewLogger()
 	imagePullSecrets = util.GetEnvStringArr(dfv1.EnvImagePullSecrets, []string{})
 )

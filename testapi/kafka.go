@@ -2,40 +2,38 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
+	"sync"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 func init() {
-	sarama.Logger = log.New(os.Stdout, "", log.LstdFlags)
-	config := sarama.NewConfig()
-	config.Producer.MaxMessageBytes = 50000000
-	config.ClientID = "dataflow-testapi"
-	addrs := []string{"kafka-broker:9092"}
+	config := &kafka.ConfigMap{
+		"bootstrap.servers": "kafka-broker:9092",
+		"group.id":          "testapi",
+	}
 
 	http.HandleFunc("/kafka/create-topic", func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		topic := r.URL.Query().Get("topic")
-		admin, err := sarama.NewClusterAdmin(addrs, config)
+		admin, err := kafka.NewAdminClient(config)
 		if err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		defer func() { _ = admin.Close() }()
-
-		if err := admin.CreateTopic(topic, &sarama.TopicDetail{NumPartitions: 2, ReplicationFactor: 1}, false); err != nil {
-			if terr, ok := err.(*sarama.TopicError); ok && terr.Err == sarama.ErrTopicAlreadyExists {
-				// noop
-			} else {
-				w.WriteHeader(500)
-				_, _ = w.Write([]byte(err.Error()))
-				return
-			}
+		defer admin.Close()
+		if _, err = admin.CreateTopics(ctx, []kafka.TopicSpecification{{
+			Topic:             topic,
+			NumPartitions:     2,
+			ReplicationFactor: 1,
+		}}); err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
 		}
 		w.WriteHeader(201)
 	})
@@ -46,31 +44,31 @@ func init() {
 			return
 		}
 		topic := topics[0]
-		client, err := sarama.NewClient(addrs, config)
+		consumer, err := kafka.NewConsumer(config)
 		if err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-
-		partitions, err := client.Partitions(topic)
+		defer consumer.Close()
+		md, err := consumer.GetMetadata(&topic, false, 3000)
 		if err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-
 		count := 0
-		for _, p := range partitions {
-			offset, err := client.GetOffset(topic, p, sarama.OffsetNewest)
-			if err != nil {
-				w.WriteHeader(500)
-				_, _ = w.Write([]byte(err.Error()))
-				return
+		for _, t := range md.Topics {
+			for _, p := range t.Partitions {
+				_, h, err := consumer.QueryWatermarkOffsets(topic, p.ID, 3000)
+				if err != nil {
+					w.WriteHeader(500)
+					_, _ = w.Write([]byte(err.Error()))
+					return
+				}
+				count += int(h)
 			}
-			count += int(offset)
 		}
-
 		w.WriteHeader(200)
 		_, _ = w.Write([]byte(strconv.Itoa(count)))
 	})
@@ -98,29 +96,49 @@ func init() {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.WriteHeader(200)
 
-		producer, err := sarama.NewAsyncProducer(addrs, config)
+		producer, err := kafka.NewProducer(config)
 		if err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		defer func() { _ = producer.Close() }()
+		defer producer.Close()
 
 		start := time.Now()
 		_, _ = fmt.Fprintf(w, "sending %d messages of size %d to %q\n", n, mf.size, topic)
+		deliveryChan := make(chan kafka.Event, 256)
+		wg := sync.WaitGroup{}
+		go func() {
+			for e := range deliveryChan {
+				switch ev := e.(type) {
+				case *kafka.Message:
+					wg.Done()
+					if ev.TopicPartition.Error != nil {
+						_, _ = fmt.Fprintf(w, "ERROR: %v\n", ev.TopicPartition.Error)
+					}
+				default:
+					_, _ = fmt.Fprintf(w, "ERROR: %v\n", ev)
+				}
+			}
+		}()
 		for i := 0; i < n || n < 0; i++ {
 			select {
 			case <-r.Context().Done():
 				return
 			default:
+				wg.Add(1)
 				x := mf.newMessage(i)
-				producer.Input() <- &sarama.ProducerMessage{
-					Topic: topic,
-					Value: sarama.StringEncoder(x),
+				if err := producer.Produce(&kafka.Message{
+					TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+					Value:          []byte(x),
+				}, deliveryChan); err != nil {
+					_, _ = fmt.Fprintf(w, "ERROR: %v\n", err)
 				}
 				time.Sleep(duration)
 			}
 		}
+		wg.Wait()
+		close(deliveryChan)
 		_, _ = fmt.Fprintf(w, "sent %d messages of size %d at %.0f TPS to %q\n", n, mf.size, float64(n)/time.Since(start).Seconds(), topic)
 	})
 }

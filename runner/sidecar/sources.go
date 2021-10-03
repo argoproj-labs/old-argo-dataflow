@@ -147,7 +147,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		} else if x := s.Kafka; x != nil {
 			groupID := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
-			if y, err := kafkasource.New(ctx, secretInterface, mntr, groupID, sourceName, sourceURN, *x, processWithRetry); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, mntr, groupID, sourceName, sourceURN, replica, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
@@ -186,7 +186,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		if x, ok := sources[sourceName].(source.HasPending); ok && leadReplica() {
 			logger.Info("starting pending loop", "source", sourceName, "updateInterval", updateInterval.String())
 			go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
-				logger.Info("getting pending", "source", sourceName)
 				if pending, err := x.GetPending(ctx); err != nil {
 					logger.Error(err, "failed to get pending", "source", sourceName)
 				} else {

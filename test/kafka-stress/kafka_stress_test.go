@@ -20,10 +20,10 @@ import (
 func TestKafkaSourceStress(t *testing.T) {
 	defer Setup(t)()
 
-	topic := SourceTopic
+	topic := CreateKafkaTopic()
 	msgSize := int32(Params.MessageSize)
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name: "main",
@@ -36,7 +36,7 @@ func TestKafkaSourceStress(t *testing.T) {
 					}},
 				},
 				Replicas: Params.Replicas,
-				Sources:  []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
+				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks:    []Sink{DefaultLogSink},
 			}},
 		},
@@ -44,27 +44,36 @@ func TestKafkaSourceStress(t *testing.T) {
 
 	WaitForPipeline()
 
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward(name + "-main-0")()
 
 	WaitForPod()
 
 	n := Params.N
-	prefix := "kafka-source-stress"
+	prefix := name + "-source-stress"
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 	go PumpKafkaTopic(topic, n, prefix, Params.MessageSize)
 	WaitForPending()
+	WaitForNothingPending()
 	WaitForTotalSunkMessages(n, Params.Timeout)
 }
 
 func TestKafkaSinkStress(t *testing.T) {
+	testKafkaSinkStress(t, false)
+}
+
+func TestKafkaAsyncSinkStress(t *testing.T) {
+	testKafkaSinkStress(t, true)
+}
+
+func testKafkaSinkStress(t *testing.T, async bool) {
 	defer Setup(t)()
 
-	topic := SourceTopic
-	sinkTopic := SinkTopic
+	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 	msgSize := int32(Params.MessageSize)
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name: "main",
@@ -79,7 +88,7 @@ func TestKafkaSinkStress(t *testing.T) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}}},
 				Sinks: []Sink{
-					{Kafka: &KafkaSink{Async: Params.Async, Kafka: Kafka{Topic: sinkTopic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}},
+					{Kafka: &KafkaSink{Async: async, Kafka: Kafka{Topic: sinkTopic, KafkaConfig: KafkaConfig{MaxMessageBytes: msgSize}}}},
 					DefaultLogSink,
 				},
 			}},
@@ -88,12 +97,12 @@ func TestKafkaSinkStress(t *testing.T) {
 
 	WaitForPipeline()
 
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward(name + "-main-0")()
 
 	WaitForPod()
 
 	n := Params.N
-	prefix := "kafka-sink-stress"
+	prefix := name + "-sink-stress"
 
 	defer StartTPSReporter(t, "main", prefix, n)()
 

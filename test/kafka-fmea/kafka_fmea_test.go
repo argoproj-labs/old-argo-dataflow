@@ -19,35 +19,34 @@ import (
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	defer Setup(t)()
 
-	topic := SourceTopic
-	sinkTopic := SinkTopic
+	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 
-	start := GetKafkaCount(sinkTopic)
+	time.Sleep(10*time.Second)
 
-	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
 				Cat:     &Cat{},
-				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
+				Sources: []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic}}}},
 				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
 			}},
 		},
 	})
 
 	WaitForPipeline()
-
 	WaitForPod()
 
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
-	DeletePod("kafka-main-0") // delete the pod to see that we recover and continue to process messages
-	WaitForPod("kafka-main-0")
+	DeletePod(name + "-main-0") // delete the pod to see that we recover and continue to process messages
+	WaitForPod(name + "-main-0")
 
-	ExpectKafkaTopicCount(sinkTopic, start, n, 2*time.Minute)
-	defer StartPortForward("kafka-main-0")()
+	ExpectKafkaTopicCount(sinkTopic, n, 2*time.Minute)
+	defer StartPortForward(name + "-main-0")()
 	WaitForNoErrors()
 }
 
@@ -56,13 +55,10 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 
 	defer Setup(t)()
 
-	topic := SourceTopic
-	sinkTopic := SinkTopic
-
-	start := GetKafkaCount(sinkTopic)
-
+	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+		ObjectMeta: metav1.ObjectMeta{Name: "kafka-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -83,7 +79,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	RestartStatefulSet("kafka-broker")
 	WaitForPod("kafka-broker-0")
 
-	ExpectKafkaTopicCount(sinkTopic, start, n, 2*time.Minute)
+	ExpectKafkaTopicCount(sinkTopic, n, 2*time.Minute)
 	defer StartPortForward("kafka-main-0")()
 	WaitForNoErrors()
 	ExpectLogLine("main", "Failed to connect to broker kafka-broker:9092")
@@ -92,13 +88,36 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	defer Setup(t)()
 
-	topic := SourceTopic
-	sinkTopic := SinkTopic
+	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
 
-	start := GetKafkaCount(sinkTopic)
+	time.Sleep(10*time.Second)
 
-	pl := Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka"},
+	name := CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{{
+				Name:    "main",
+				Cat:     &Cat{},
+				Sources: []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic}}}},
+				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
+			}},
+		},
+	})
+
+	WaitForPipeline()
+	WaitForPod()
+
+	n := 500 * 15
+	go PumpKafkaTopic(topic, n)
+
+	defer StartPortForward(name + "-main-0")()
+	WaitForSunkMessages()
+
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
+	CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: name},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -107,22 +126,9 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
 			}},
 		},
-	}
-	CreatePipeline(pl)
+	})
 
 	WaitForPipeline()
-
 	WaitForPod()
-
-	n := 500 * 15
-	go PumpKafkaTopic(topic, n)
-
-	defer StartPortForward("kafka-main-0")()
-	WaitForSunkMessages()
-
-	DeletePipelines()
-	WaitForPodsToBeDeleted()
-	CreatePipeline(pl)
-
-	ExpectKafkaTopicCount(sinkTopic, start, n, time.Minute)
+	ExpectKafkaTopicCount(sinkTopic, n, 2*time.Minute)
 }

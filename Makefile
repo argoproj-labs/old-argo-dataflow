@@ -55,6 +55,7 @@ test-hpa:
 	kubectl -n argo-dataflow-system autoscale step 101-hello-main --min 2 --max 2
 	sleep 20s
 	if [ `kubectl -n argo-dataflow-system get step 101-hello-main -o=jsonpath='{.status.replicas}'` != 2 ]; then exit 1; fi
+test-kafka: test-kafka-e2e test-kafka-fmea test-kafka-stress
 test-kafka-e2e:
 test-kafka-fmea:
 test-kafka-stress:

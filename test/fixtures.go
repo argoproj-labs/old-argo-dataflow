@@ -4,7 +4,7 @@ package test
 
 import (
 	"log"
-	"runtime/debug"
+	"runtime"
 	"testing"
 
 	"k8s.io/client-go/dynamic"
@@ -25,7 +25,7 @@ var (
 )
 
 func init() {
-	log.Default().SetFlags(0) // no log prefix
+	log.Default().SetFlags(log.Ltime)
 }
 
 func Setup(t *testing.T) (teardown func()) {
@@ -46,18 +46,20 @@ func Setup(t *testing.T) (teardown func()) {
 		log.Printf("\n")
 		stopTestAPIPortForward()
 		log.Printf("\n")
-		r := recover() // tests should panic on error, we recover so we can run other tests
+		r := recover()                       // tests should panic on error, we recover so we can run other tests
+		tailLogs := runtime.GOOS != "darwin" // we're probably running on CI
 		if r != nil {
-			log.Printf("\n")
 			log.Printf("❌ FAIL: %s %v\n", t.Name(), r)
 			log.Printf("\n")
-			debug.PrintStack()
-			log.Printf("\n")
-			TailLogs()
+			if tailLogs {
+				TailLogs()
+			}
 			t.Fail()
 		} else if t.Failed() {
 			log.Printf("❌ FAIL: %s\n", t.Name())
-			log.Printf("\n")
+			if tailLogs {
+				log.Printf("\n")
+			}
 			TailLogs()
 		} else {
 			log.Printf("✅ PASS: %s\n", t.Name())
