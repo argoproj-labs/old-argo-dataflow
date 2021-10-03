@@ -31,6 +31,8 @@ type kafkaSource struct {
 	totalLag   int64
 }
 
+const second = 1000
+
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
@@ -46,7 +48,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	} else {
 		config["auto.offset.reset"] = "latest"
 	}
-	config["statistics.interval.ms"] = 5 * 1000
+	config["statistics.interval.ms"] = 5 * second
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/consumer_example/consumer_example.go
 	consumer, err := kafka.NewConsumer(&config)
@@ -109,22 +111,6 @@ func (s *kafkaSource) revokedPartition(partition int32) {
 		close(s.channels[partition])
 		delete(s.channels, partition)
 	}
-}
-
-type Stats struct {
-	Topics map[string]struct {
-		Partitions map[string]struct {
-			ConsumerLag int64 `json:"consumer_lag"`
-		} `json:"partitions"`
-	} `json:"topics"`
-}
-
-func (s Stats) totalLag(topic string) int64 {
-	var totalLag int64
-	for _, p := range s.Topics[topic].Partitions {
-		totalLag += p.ConsumerLag
-	}
-	return totalLag
 }
 
 func (s *kafkaSource) startPollLoop(ctx context.Context) {
@@ -208,8 +194,9 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
+	var lastCommittedOffset int64 = -1
 	defer func() {
-		logger.Info("done consuming partition")
+		logger.Info("done consuming partition", "lastCommittedOffset", lastCommittedOffset)
 		s.wg.Done()
 	}()
 	for msg := range s.channels[partition] {
@@ -220,6 +207,11 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 		} else {
 			if _, err := s.consumer.CommitMessage(msg); err != nil {
 				logger.Error(err, "failed to commit message")
+			} else {
+				if lastCommittedOffset == -1 {
+					logger.Info("offset", "firstCommittedOffset", offset)
+				}
+				lastCommittedOffset = offset
 			}
 		}
 	}
