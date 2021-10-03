@@ -222,6 +222,9 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 			if _, err := s.consumer.CommitMessage(msg); err != nil {
 				logger.Error(err, "failed to commit message")
 			} else {
+				if lastCommittedOffset == 0 {
+					logger.Info("offset", "firstCommittedOffset", offset)
+				}
 				lastCommittedOffset = offset
 			}
 		}
