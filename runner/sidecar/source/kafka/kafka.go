@@ -42,7 +42,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	config["enable.auto.commit"] = false
 	config["enable.auto.offset.store"] = false
 	if x.StartOffset == "First" {
-		config["auto.offset.reset"] = "earliest"
+		config["auto.offset.reset"] = "none"
 	} else {
 		config["auto.offset.reset"] = "latest"
 	}
@@ -208,9 +208,9 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
-	var firstCommittedOffset, lastCommittedOffset int64
+	var lastCommittedOffset int64
 	defer func() {
-		logger.Info("done consuming partition", "firstCommittedOffset", "firstCommittedOffset", "lastCommittedOffset", lastCommittedOffset)
+		logger.Info("done consuming partition", "lastCommittedOffset", lastCommittedOffset)
 		s.wg.Done()
 	}()
 	for msg := range s.channels[partition] {
@@ -222,8 +222,8 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 			if _, err := s.consumer.CommitMessage(msg); err != nil {
 				logger.Error(err, "failed to commit message")
 			} else {
-				if firstCommittedOffset == 0 {
-					firstCommittedOffset = offset
+				if lastCommittedOffset == 0 {
+					logger.Info("offset", "firstCommittedOffset", offset)
 				}
 				lastCommittedOffset = offset
 			}
