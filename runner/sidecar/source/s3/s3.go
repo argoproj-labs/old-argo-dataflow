@@ -3,6 +3,11 @@ package s3
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"syscall"
+
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
@@ -10,14 +15,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/opentracing/opentracing-go"
-	"io"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"os"
-	"path/filepath"
-	"syscall"
 )
 
 type message struct {

@@ -92,7 +92,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			t, ok := ctx.Value(dfv1.MetaTime).(int64)
 			sourceMsgTime := time.Now().UTC()
 			if ok {
-				sourceMsgTime = time.Unix(t,0).UTC()
+				sourceMsgTime = time.Unix(t, 0).UTC()
 			}
 			processLatencyHistoGram.WithLabelValues(sourceName, fmt.Sprint(replica)).Observe(time.Now().UTC().Sub(sourceMsgTime).Seconds())
 			backoff := newBackoff(s.Retry)
