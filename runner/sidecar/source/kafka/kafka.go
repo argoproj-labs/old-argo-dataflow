@@ -92,8 +92,8 @@ func (s *kafkaSource) processMessage(ctx context.Context, msg *kafka.Message) er
 	)
 }
 
-func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
-	logger := s.logger.WithValues("partition", partition)
+func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32, offset int64) {
+	logger := s.logger.WithValues("partition", partition, "offset", offset)
 	if _, ok := s.channels[partition]; !ok {
 		logger.Info("assigned partition")
 		s.channels[partition] = make(chan *kafka.Message, 256)
@@ -103,9 +103,9 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
 	}
 }
 
-func (s *kafkaSource) revokedPartition(partition int32) {
+func (s *kafkaSource) revokedPartition(partition int32, offset int64) {
 	if _, ok := s.channels[partition]; ok {
-		s.logger.Info("revoked partition", "partition", partition)
+		s.logger.Info("revoked partition", "partition", partition, "offset", offset)
 		close(s.channels[partition])
 		delete(s.channels, partition)
 	}
@@ -194,13 +194,11 @@ func (s *kafkaSource) rebalanced(ctx context.Context, event kafka.Event) error {
 	switch e := event.(type) {
 	case kafka.AssignedPartitions:
 		for _, p := range e.Partitions {
-			s.logger.Info("assignedPartitions", "partition", p.Partition, "offset", p.Offset)
-			s.assignedPartition(ctx, p.Partition)
+			s.assignedPartition(ctx, p.Partition, int64(p.Offset))
 		}
 	case kafka.RevokedPartitions:
 		for _, p := range e.Partitions {
-			s.logger.Info("revokedPartitions", "partition", p.Partition, "offset", p.Offset)
-			s.revokedPartition(p.Partition)
+			s.revokedPartition(p.Partition, int64(p.Offset))
 		}
 	}
 	return nil
@@ -210,8 +208,9 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
+	var lastCommittedOffset int64
 	defer func() {
-		logger.Info("done consuming partition")
+		logger.Info("done consuming partition", "lastCommittedOffset", lastCommittedOffset)
 		s.wg.Done()
 	}()
 	for msg := range s.channels[partition] {
@@ -222,6 +221,8 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 		} else {
 			if _, err := s.consumer.CommitMessage(msg); err != nil {
 				logger.Error(err, "failed to commit message")
+			} else {
+				lastCommittedOffset = offset
 			}
 		}
 	}

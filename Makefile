@@ -95,6 +95,7 @@ wait:
 	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
 $(GOBIN)/stern:
 	curl -Lo $(GOBIN)/stern https://github.com/wercker/stern/releases/download/1.11.0/stern_`uname -s|tr '[:upper:]' '[:lower:]'`_amd64
+	chmod +x $(GOBIN)/stern
 logs: $(GOBIN)/stern
 	stern -n argo-dataflow-system --tail=3 -l dataflow.argoproj.io/step-name .
 
