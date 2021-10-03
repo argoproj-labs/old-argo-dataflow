@@ -93,6 +93,8 @@ wait:
 	kubectl -n argo-dataflow-system wait deploy --all --for=condition=available --timeout=2m
 	# kubectl wait does not work for statesfulsets, as statefulsets do not have conditions
 	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready
+$(GOBIN)/stern:
+	curl -Lo $(GOBIN)/stern https://github.com/wercker/stern/releases/download/1.11.0/stern_`uname -s|tr '[:upper:]' '[:lower:]'`_amd64
 logs: $(GOBIN)/stern
 	stern -n argo-dataflow-system --tail=3 -l dataflow.argoproj.io/step-name .
 
