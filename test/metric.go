@@ -68,6 +68,7 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 					found = true
 					for _, m := range family.Metric {
 						v := getValue(m)
+						fmt.Println(v)
 						if matcher.match(v) {
 							return
 						} else {
