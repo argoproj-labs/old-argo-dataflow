@@ -1,6 +1,6 @@
 {
   "TestKafkaAsyncSinkStress/.tps": 400,
-  "TestKafkaSinkStress/.tps": 300,
+  "TestKafkaSinkStress/.tps": 250,
   "TestKafkaSinkStress/N=10,messageSize=100.tps": 200,
   "TestKafkaSinkStress/N=10,messageSize=1000.tps": 150,
   "TestKafkaSinkStress/N=50000.tps": 750,
