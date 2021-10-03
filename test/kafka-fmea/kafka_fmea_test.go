@@ -22,7 +22,7 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()
 
-	time.Sleep(10*time.Second)
+	time.Sleep(10 * time.Second)
 
 	name := CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
@@ -91,7 +91,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()
 
-	time.Sleep(10*time.Second)
+	time.Sleep(10 * time.Second)
 
 	name := CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
