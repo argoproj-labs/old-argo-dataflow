@@ -58,7 +58,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	config["statistics.interval.ms"] = 5 * seconds
 	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
 	config["fetch.min.bytes"] = 100000
-	config["fetch.max.wait.ms"] = seconds / 2
+	config["fetch.wait.max.ms"] = seconds / 2
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/consumer_example/consumer_example.go
 	consumer, err := kafka.NewConsumer(&config)
