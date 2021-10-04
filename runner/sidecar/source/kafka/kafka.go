@@ -41,7 +41,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	}
 	config["group.id"] = consumerGroupID
 	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
-	config["session.timeout.ms"] = 45 * seconds
 	config["heartbeat.interval.ms"] = 3 * seconds
 	config["socket.keepalive.enable"] = true
 	config["enable.auto.commit"] = false
