@@ -60,7 +60,7 @@ func ExpectKafkaTopicCount(topic string, total int, timeout time.Duration) {
 			if count == lastCount {
 				stalls++
 			}
-			if stalls >= 3 {
+			if stalls >= 10 {
 				panic(fmt.Errorf("stalled waiting for %d messages in topic %q", total, topic))
 			}
 			lastCount = count
