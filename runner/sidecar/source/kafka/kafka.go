@@ -3,7 +3,9 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -31,6 +33,11 @@ type kafkaSource struct {
 	totalLag   int64
 }
 
+const (
+	seconds            = 1000
+	pendingUnavailable = math.MinInt32
+)
+
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
@@ -39,6 +46,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	}
 	config["group.id"] = consumerGroupID
 	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
+	config["heartbeat.interval.ms"] = 3 * seconds
+	config["socket.keepalive.enable"] = true
 	config["enable.auto.commit"] = false
 	config["enable.auto.offset.store"] = false
 	if x.StartOffset == "First" {
@@ -46,7 +55,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	} else {
 		config["auto.offset.reset"] = "latest"
 	}
-	config["statistics.interval.ms"] = 5 * 1000
+	config["statistics.interval.ms"] = 5 * seconds
+	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
+	// config["fetch.min.bytes"] = 100000
+	// config["fetch.max.wait.ms"] = seconds / 2
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/consumer_example/consumer_example.go
 	consumer, err := kafka.NewConsumer(&config)
@@ -63,6 +75,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 		channels:   map[int32]chan *kafka.Message{}, // partition -> messages
 		wg:         &sync.WaitGroup{},
 		process:    process,
+		totalLag:   pendingUnavailable,
 	}
 
 	if err = consumer.Subscribe(x.Topic, func(consumer *kafka.Consumer, event kafka.Event) error {
@@ -109,22 +122,6 @@ func (s *kafkaSource) revokedPartition(partition int32) {
 		close(s.channels[partition])
 		delete(s.channels, partition)
 	}
-}
-
-type Stats struct {
-	Topics map[string]struct {
-		Partitions map[string]struct {
-			ConsumerLag int64 `json:"consumer_lag"`
-		} `json:"partitions"`
-	} `json:"topics"`
-}
-
-func (s Stats) totalLag(topic string) int64 {
-	var totalLag int64
-	for _, p := range s.Topics[topic].Partitions {
-		totalLag += p.ConsumerLag
-	}
-	return totalLag
 }
 
 func (s *kafkaSource) startPollLoop(ctx context.Context) {
@@ -182,7 +179,9 @@ func (s *kafkaSource) Close() error {
 }
 
 func (s *kafkaSource) GetPending(context.Context) (uint64, error) {
-	if s.totalLag >= 0 {
+	if s.totalLag == pendingUnavailable {
+		return 0, source.ErrPendingUnavailable
+	} else if s.totalLag >= 0 {
 		return uint64(s.totalLag), nil
 	} else {
 		return 0, nil
@@ -208,18 +207,29 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
+	var firstCommittedOffset, lastCommittedOffset int64 = -1, -1
 	defer func() {
-		logger.Info("done consuming partition")
+		logger.Info("done consuming partition", "firstCommittedOffset", firstCommittedOffset, "lastCommittedOffset", lastCommittedOffset)
 		s.wg.Done()
 	}()
 	for msg := range s.channels[partition] {
 		offset := int64(msg.TopicPartition.Offset)
 		logger := logger.WithValues("offset", offset)
 		if err := s.processMessage(ctx, msg); err != nil {
-			logger.Error(err, "failed to process message")
+			if errors.Is(err, context.Canceled) {
+				logger.Info("failed to process message", "err", err.Error())
+			} else {
+				logger.Error(err, "failed to process message")
+			}
 		} else {
 			if _, err := s.consumer.CommitMessage(msg); err != nil {
 				logger.Error(err, "failed to commit message")
+			} else {
+				if firstCommittedOffset == -1 {
+					firstCommittedOffset = offset
+					logger.Info("offset", "firstCommittedOffset", firstCommittedOffset)
+				}
+				lastCommittedOffset = offset
 			}
 		}
 	}

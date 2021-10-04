@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -11,15 +12,13 @@ import (
 )
 
 func init() {
-	config := &kafka.ConfigMap{
-		"bootstrap.servers": "kafka-broker:9092",
-		"group.id":          "testapi",
-	}
-
+	const bootstrapServers = "kafka-broker:9092"
 	http.HandleFunc("/kafka/create-topic", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		topic := r.URL.Query().Get("topic")
-		admin, err := kafka.NewAdminClient(config)
+		admin, err := kafka.NewAdminClient(&kafka.ConfigMap{
+			"bootstrap.servers": bootstrapServers,
+		})
 		if err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
@@ -38,39 +37,56 @@ func init() {
 		w.WriteHeader(201)
 	})
 	http.HandleFunc("/kafka/count-topic", func(w http.ResponseWriter, r *http.Request) {
-		topics := r.URL.Query()["topic"]
-		if len(topics) < 1 {
-			w.WriteHeader(400)
-			return
-		}
-		topic := topics[0]
-		consumer, err := kafka.NewConsumer(config)
+		topic := r.URL.Query().Get("topic")
+		consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
+			"bootstrap.servers":        bootstrapServers,
+			"group.id":                 "testapi",
+			"auto.offset.reset":        "earliest",
+			"enable.auto.commit":       false,
+			"enable.auto.offset.store": false,
+			"statistics.interval.ms":   500,
+		})
 		if err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		defer consumer.Close()
-		md, err := consumer.GetMetadata(&topic, false, 3000)
+		err = consumer.Subscribe(topic, nil)
 		if err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		count := 0
-		for _, t := range md.Topics {
-			for _, p := range t.Partitions {
-				_, h, err := consumer.QueryWatermarkOffsets(topic, p.ID, 3000)
-				if err != nil {
+		for {
+			ev := consumer.Poll(5 * 1000)
+			select {
+			case <-r.Context().Done():
+				return
+			default:
+				switch e := ev.(type) {
+				case *kafka.Message:
+				case *kafka.Stats:
+					// https://github.com/edenhill/librdkafka/wiki/Consumer-lag-monitoring
+					// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/stats_example/stats_example.go
+					println(ev.String())
+					stats := &KafkaStats{}
+					if err := json.Unmarshal([]byte(e.String()), stats); err != nil {
+						w.WriteHeader(500)
+						_, _ = fmt.Fprintf(w, "failed to unmarshall stats: %v\n", err)
+					} else {
+						w.WriteHeader(200)
+						_, _ = w.Write([]byte(fmt.Sprint(stats.count(topic))))
+					}
+					return
+				case nil:
+				default:
 					w.WriteHeader(500)
-					_, _ = w.Write([]byte(err.Error()))
+					_, _ = w.Write([]byte(fmt.Sprint(e)))
 					return
 				}
-				count += int(h)
 			}
 		}
-		w.WriteHeader(200)
-		_, _ = w.Write([]byte(strconv.Itoa(count)))
 	})
 	http.HandleFunc("/kafka/pump-topic", func(w http.ResponseWriter, r *http.Request) {
 		topic := r.URL.Query().Get("topic")
@@ -96,7 +112,9 @@ func init() {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.WriteHeader(200)
 
-		producer, err := kafka.NewProducer(config)
+		producer, err := kafka.NewProducer(&kafka.ConfigMap{
+			"bootstrap.servers": bootstrapServers,
+		})
 		if err != nil {
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte(err.Error()))

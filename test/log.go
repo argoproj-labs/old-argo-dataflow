@@ -8,10 +8,8 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"sync"
 	"time"
 
-	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -119,38 +117,5 @@ func podLogContains(ctx context.Context, podName, containerName string, match fu
 				return true, nil
 			}
 		}
-	}
-}
-
-func TailLogs() {
-	ctx := context.Background()
-	list, err := podsInterface.List(ctx, metav1.ListOptions{LabelSelector: KeyPipelineName})
-	if err != nil {
-		panic(err)
-	}
-	wg := sync.WaitGroup{}
-	for _, item := range list.Items {
-		wg.Add(1)
-		go func(podName string) {
-			defer wg.Done()
-			tailLogs(podName, "init")
-			tailLogs(podName, "sidecar")
-			tailLogs(podName, "main")
-		}(item.Name)
-	}
-	wg.Wait()
-}
-
-func tailLogs(podName, containerName string) {
-	ctx := context.Background()
-	log.Printf("📄 tailing logs for %q/%q\n", podName, containerName)
-	stream, err := podsInterface.GetLogs(podName, &corev1.PodLogOptions{Container: containerName}).Stream(ctx)
-	if err != nil {
-		log.Printf("ERROR: %v\n", err)
-		return
-	}
-	defer func() { _ = stream.Close() }()
-	for s := bufio.NewScanner(stream); s.Scan(); {
-		log.Println("> " + s.Text())
 	}
 }
