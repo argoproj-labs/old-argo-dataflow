@@ -108,6 +108,7 @@ func TestDBSource(t *testing.T) {
 
 	WaitForSunkMessages()
 	WaitForTotalSunkMessages(3)
+	WaitForProcessLatencySeconds(0)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

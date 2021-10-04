@@ -55,6 +55,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+
 		if err := process(
 			dfv1.ContextWithMeta(
 				ctx,

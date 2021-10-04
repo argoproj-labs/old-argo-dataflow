@@ -87,6 +87,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
+
 		Process: func(ctx context.Context, msg []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-source-%s", sourceName))
 			defer span.Finish()

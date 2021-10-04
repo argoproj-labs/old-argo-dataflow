@@ -48,6 +48,10 @@ Use this metric to determine how many retries performed for message processing.
 
 Golden metric type: error.
 
+### source_process_latency_seconds
+
+Use this metric to determine the latency seconds between source timestamp to pipeline consume timestamp
+
 ### sources_total
 
 Use this to track throughput.
@@ -71,4 +75,5 @@ You may expose Prometheus endpoint on the main container if you want. There is n
 Use this to track duplicate messages filtered by a dedupe step.
 
 This is exposed by the main container on port 8080, not by the sidecar or 3569.
+
 

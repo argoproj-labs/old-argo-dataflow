@@ -38,6 +38,10 @@ func WaitForTotalSunkMessages(v int, opts ...interface{}) {
 	ExpectMetric("sinks_total", Eq(float64(v)), opts...)
 }
 
+func WaitForProcessLatencySeconds(v int, opts ...interface{}) {
+	ExpectMetric("process_latency_seconds", Eq(float64(v)), opts...)
+}
+
 var missing = rand.Float64()
 
 func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
@@ -68,6 +72,7 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 					found = true
 					for _, m := range family.Metric {
 						v := getValue(m)
+						fmt.Println(v)
 						if matcher.match(v) {
 							return
 						} else {
