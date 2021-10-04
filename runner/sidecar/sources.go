@@ -89,11 +89,14 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
-			t, ok := ctx.Value(dfv1.MetaTime).(int64)
-			sourceMsgTime := time.Now().UTC()
-			if ok {
-				sourceMsgTime = time.Unix(t, 0).UTC()
+
+			meta, err := dfv1.MetaFromContext(ctx)
+
+			if err != nil {
+				return fmt.Errorf("could not send message: %w", err)
 			}
+
+			sourceMsgTime := time.Unix(meta.Time, 0).UTC()
 			processLatencyHistoGram.WithLabelValues(sourceName, fmt.Sprint(replica)).Observe(time.Now().UTC().Sub(sourceMsgTime).Seconds())
 			backoff := newBackoff(s.Retry)
 			for {
