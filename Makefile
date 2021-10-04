@@ -66,7 +66,7 @@ test-stan-stress:
 test-%:
 	go generate $(shell find ./test/$* -name '*.go')
 	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m
-	go test -count 1 -v --tags test ./test/$*
+	go test -failfast -count 1 -v --tags test ./test/$*
 
 pprof:
 	go tool pprof -web http://127.0.0.1:3569/debug/pprof/allocs

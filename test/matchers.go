@@ -6,43 +6,43 @@ import "fmt"
 
 type matcher struct {
 	string
-	match func(w float64) bool
+	stall *stall
+	test  func(w int) bool
 }
 
-func (m matcher) String() string { return m.string }
+func (m *matcher) String() string { return m.string }
 
-func Eq(v float64) matcher {
-	return matcher{
+func (m *matcher) match(v int) bool {
+	m.stall.accept(v)
+	return m.test(v)
+}
+
+func Eq(v int) *matcher {
+	return &matcher{
 		fmt.Sprintf("eq %v", v),
-		func(w float64) bool {
+		&stall{},
+		func(w int) bool {
 			return w == v
 		},
 	}
 }
 
-func Missing() matcher {
-	return matcher{
+func Missing() *matcher {
+	return &matcher{
 		"missing",
-		func(w float64) bool {
+		&stall{},
+		func(w int) bool {
 			return w == missing
 		},
 	}
 }
 
-func Gt(v float64) matcher {
-	return matcher{
+func Gt(v int) *matcher {
+	return &matcher{
 		fmt.Sprintf("gt %v", v),
-		func(w float64) bool {
+		&stall{},
+		func(w int) bool {
 			return w > v
-		},
-	}
-}
-
-func Between(min, max float64) matcher {
-	return matcher{
-		fmt.Sprintf("between %v and <=%v", min, max),
-		func(w float64) bool {
-			return min <= w && w <= max
 		},
 	}
 }

@@ -23,7 +23,7 @@ func WaitForNothingPending(opts ...interface{}) {
 }
 
 func WaitForTotalSourceMessages(v int, opts ...interface{}) {
-	ExpectMetric("sources_total", Eq(float64(v)), opts...)
+	ExpectMetric("sources_total", Eq(v), opts...)
 }
 
 func WaitForNoErrors() {
@@ -34,21 +34,21 @@ func WaitForSunkMessages(opts ...interface{}) {
 	WaitForNSunkMessages(0, opts...)
 }
 
-func WaitForNSunkMessages(v float64, opts ...interface{}) {
+func WaitForNSunkMessages(v int, opts ...interface{}) {
 	ExpectMetric("sinks_total", Gt(v), opts...)
 }
 
 func WaitForTotalSunkMessages(v int, opts ...interface{}) {
-	ExpectMetric("sinks_total", Eq(float64(v)), opts...)
+	ExpectMetric("sinks_total", Eq(v), opts...)
 }
 
 func WaitForProcessLatencySeconds(v int, opts ...interface{}) {
-	ExpectMetric("process_latency_seconds", Eq(float64(v)), opts...)
+	ExpectMetric("process_latency_seconds", Eq(v), opts...)
 }
 
-var missing = rand.Float64()
+var missing = rand.Int()
 
-func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
+func ExpectMetric(name string, matcher *matcher, opts ...interface{}) {
 	ctx := context.Background()
 	port := 3569
 	timeout := 30 * time.Second
@@ -76,7 +76,6 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 					found = true
 					for _, m := range family.Metric {
 						v := getValue(m)
-						fmt.Println(v)
 						if matcher.match(v) {
 							return
 						} else {
@@ -93,11 +92,11 @@ func ExpectMetric(name string, matcher matcher, opts ...interface{}) {
 	}
 }
 
-func getValue(m *io_prometheus_client.Metric) float64 {
+func getValue(m *io_prometheus_client.Metric) int {
 	if x := m.Counter; x != nil {
-		return x.GetValue()
+		return int(x.GetValue())
 	} else if x := m.Gauge; x != nil {
-		return x.GetValue()
+		return int(x.GetValue())
 	} else {
 		panic(fmt.Errorf("metric not-supported (not a counter/gauge)"))
 	}

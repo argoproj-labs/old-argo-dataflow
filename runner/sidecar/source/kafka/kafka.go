@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -33,6 +34,7 @@ type kafkaSource struct {
 }
 
 const seconds = 1000
+const pendingUnavailable = math.MinInt32
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
@@ -71,7 +73,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 		channels:   map[int32]chan *kafka.Message{}, // partition -> messages
 		wg:         &sync.WaitGroup{},
 		process:    process,
-		totalLag:   -1,
+		totalLag:   pendingUnavailable,
 	}
 
 	if err = consumer.Subscribe(x.Topic, func(consumer *kafka.Consumer, event kafka.Event) error {
@@ -175,10 +177,12 @@ func (s *kafkaSource) Close() error {
 }
 
 func (s *kafkaSource) GetPending(context.Context) (uint64, error) {
-	if s.totalLag >= 0 {
+	if s.totalLag == pendingUnavailable {
+		return 0, source.ErrPendingUnavailable
+	} else if s.totalLag >= 0 {
 		return uint64(s.totalLag), nil
 	} else {
-		return 0, source.ErrPendingNotAvailable
+		return 0, nil
 	}
 }
 
@@ -211,7 +215,7 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 		logger := logger.WithValues("offset", offset)
 		if err := s.processMessage(ctx, msg); err != nil {
 			if errors.Is(err, context.Canceled) {
-				logger.Info("failed to process message", "err", err)
+				logger.Info("failed to process message", "err", err.Error())
 			} else {
 				logger.Error(err, "failed to process message")
 			}

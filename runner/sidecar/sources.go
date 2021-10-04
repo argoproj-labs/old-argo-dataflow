@@ -191,8 +191,8 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			logger.Info("starting pending loop", "source", sourceName, "updateInterval", updateInterval.String())
 			go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 				if pending, err := x.GetPending(ctx); err != nil {
-					if errors.Is(err, source.ErrPendingNotAvailable) {
-						logger.Info("failed to get pending", "source", sourceName, "err", err)
+					if errors.Is(err, source.ErrPendingUnavailable) {
+						logger.Info("failed to get pending", "source", sourceName, "err", err.Error())
 					} else {
 						logger.Error(err, "failed to get pending", "source", sourceName)
 					}
