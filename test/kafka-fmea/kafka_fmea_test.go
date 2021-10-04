@@ -17,6 +17,14 @@ import (
 //go:generate kubectl -n argo-dataflow-system apply -f ../../config/apps/kafka.yaml
 
 func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
+	testKafkaFMEA_PodDeletedDisruption(t, false)
+}
+
+func TestKafkaAsyncFMEA_PodDeletedDisruption(t *testing.T) {
+	testKafkaFMEA_PodDeletedDisruption(t, true)
+}
+
+func testKafkaFMEA_PodDeletedDisruption(t *testing.T, async bool) {
 	defer Setup(t)()
 
 	topic := CreateKafkaTopic()
@@ -29,7 +37,7 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 				Name:    "main",
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &KafkaSource{StartOffset: "First", Kafka: Kafka{Topic: topic}}}},
-				Sinks:   []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}}}},
+				Sinks:   []Sink{{Kafka: &KafkaSink{Async: async, Kafka: Kafka{Topic: sinkTopic}}}},
 			}},
 		},
 	})
