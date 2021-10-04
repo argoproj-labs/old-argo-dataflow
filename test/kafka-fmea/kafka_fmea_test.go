@@ -40,11 +40,15 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
+	stopPortForward := StartPortForward()
+	WaitForNSunkMessages(1000)
+	stopPortForward()
+
 	DeletePod(name + "-main-0") // delete the pod to see that we recover and continue to process messages
-	WaitForPod(name + "-main-0")
+	WaitForPod()
 
 	ExpectKafkaTopicCount(sinkTopic, n, 2*time.Minute)
-	defer StartPortForward(name + "-main-0")()
+	defer StartPortForward()()
 	WaitForNoErrors()
 }
 
@@ -56,7 +60,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka-service-disruption-"},
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-service-disruption-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -68,17 +72,20 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	})
 
 	WaitForPipeline()
-
 	WaitForPod()
 
 	n := 500 * 30
 	go PumpKafkaTopic(topic, n)
 
+	stopPortForward := StartPortForward()
+	WaitForNSunkMessages(1000)
+	stopPortForward()
+
 	RestartStatefulSet("kafka-broker")
 	WaitForPod("kafka-broker-0")
 
 	ExpectKafkaTopicCount(sinkTopic, n, 2*time.Minute)
-	defer StartPortForward("kafka-main-0")()
+	defer StartPortForward()()
 	WaitForNoErrors()
 	ExpectLogLine("main", "Failed to connect to broker kafka-broker:9092")
 }
@@ -107,8 +114,9 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	n := 500 * 15
 	go PumpKafkaTopic(topic, n)
 
-	defer StartPortForward(name + "-main-0")()
-	WaitForSunkMessages()
+	stopPortForward := StartPortForward()
+	WaitForNSunkMessages(1000)
+	stopPortForward()
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

@@ -14,17 +14,23 @@ import (
 	"k8s.io/client-go/transport/spdy"
 )
 
-func StartPortForward(podName string, opts ...interface{}) (stopPortForward func()) {
-	WaitForPod(podName)
-
+func StartPortForward(opts ...interface{}) (stopPortForward func()) {
 	port := 3569
+	podName := ""
 	for _, opt := range opts {
 		switch v := opt.(type) {
 		case int:
 			port = v
+		case string:
+			podName = v
 		default:
 			panic("unknown option")
 		}
+	}
+	if podName != "" {
+		WaitForPod(podName)
+	} else {
+		podName = WaitForPod()
 	}
 	log.Printf("starting port-forward to pod %q on %d\n", podName, port)
 	transport, upgrader, err := spdy.RoundTripperFor(restConfig)

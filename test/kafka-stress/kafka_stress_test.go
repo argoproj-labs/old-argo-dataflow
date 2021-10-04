@@ -44,7 +44,7 @@ func TestKafkaSourceStress(t *testing.T) {
 
 	WaitForPipeline()
 
-	defer StartPortForward(name + "-main-0")()
+	defer StartPortForward()()
 
 	WaitForPod()
 
@@ -98,7 +98,7 @@ func testKafkaSinkStress(t *testing.T, async bool) {
 
 	WaitForPipeline()
 
-	defer StartPortForward(name + "-main-0")()
+	defer StartPortForward()()
 
 	WaitForPod()
 

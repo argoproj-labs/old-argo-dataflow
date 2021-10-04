@@ -31,7 +31,11 @@ func WaitForNoErrors() {
 }
 
 func WaitForSunkMessages(opts ...interface{}) {
-	ExpectMetric("sinks_total", Gt(0), opts...)
+	WaitForNSunkMessages(0)
+}
+
+func WaitForNSunkMessages(v float64, opts ...interface{}) {
+	ExpectMetric("sinks_total", Gt(v), opts...)
 }
 
 func WaitForTotalSunkMessages(v int, opts ...interface{}) {
