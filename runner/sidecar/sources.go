@@ -58,6 +58,12 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		Name:      "totalBytes",
 		Help:      "Total number of bytes processed, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sources_retries",
 	}, []string{"sourceName", "replica"})
+	processLatencyHistoGram := promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Subsystem: "sources",
+		Name:      "process_latency_seconds",
+		Help:      "Latency Seconds between Source to pipeline , see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md### source_processLatencySeconds",
+		Buckets:   []float64{0.0, 1.0, 3.0, 5.0, 10.0, 15.0, 30.0, 45.0, 60.0, 75.0, 90.0, 105.0, 120.0},
+	}, []string{"sourceName", "replica"})
 
 	if err := createSecret(ctx); err != nil {
 		return err
@@ -84,6 +90,15 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
+
+			meta, err := dfv1.MetaFromContext(ctx)
+
+			if err != nil {
+				return fmt.Errorf("could not send message: %w", err)
+			}
+
+			sourceMsgTime := time.Unix(meta.Time, 0).UTC()
+			processLatencyHistoGram.WithLabelValues(sourceName, fmt.Sprint(replica)).Observe(time.Now().UTC().Sub(sourceMsgTime).Seconds())
 			backoff := newBackoff(s.Retry)
 			for {
 				select {
