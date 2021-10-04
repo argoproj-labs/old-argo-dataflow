@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.121 (2021-10-04)
+
+ * [a46256f](https://github.com/argoproj-labs/argo-dataflow/commit/a46256f7eb4734168d06788244edd8adbb1092a3) fix: remove lock, and fix loop. Fixes #404 (#407)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.120 (2021-10-04)
 
  * [0b05359](https://github.com/argoproj-labs/argo-dataflow/commit/0b05359a0325cfe8b5745aec21b92da7e752cd5a) fix: lock assign/revoke partition code to prevent multiple consumers starting for same partition. Fixes #404 (#405)
