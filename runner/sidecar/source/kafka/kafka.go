@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -67,6 +68,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 		channels:   map[int32]chan *kafka.Message{}, // partition -> messages
 		wg:         &sync.WaitGroup{},
 		process:    process,
+		totalLag:   -1,
 	}
 
 	if err = consumer.Subscribe(x.Topic, func(consumer *kafka.Consumer, event kafka.Event) error {
@@ -173,7 +175,7 @@ func (s *kafkaSource) GetPending(context.Context) (uint64, error) {
 	if s.totalLag >= 0 {
 		return uint64(s.totalLag), nil
 	} else {
-		return 0, nil
+		return 0, source.ErrPendingNotAvailable
 	}
 }
 
@@ -196,22 +198,27 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
-	var lastCommittedOffset int64 = -1
+	var firstCommittedOffset, lastCommittedOffset int64 = -1, -1
 	defer func() {
-		logger.Info("done consuming partition", "lastCommittedOffset", lastCommittedOffset)
+		logger.Info("done consuming partition", "firstCommittedOffset", firstCommittedOffset, "lastCommittedOffset", lastCommittedOffset)
 		s.wg.Done()
 	}()
 	for msg := range s.channels[partition] {
 		offset := int64(msg.TopicPartition.Offset)
 		logger := logger.WithValues("offset", offset)
 		if err := s.processMessage(ctx, msg); err != nil {
-			logger.Error(err, "failed to process message")
+			if errors.Is(err, context.Canceled) {
+				logger.Info("failed to process message", "err", err)
+			} else {
+				logger.Error(err, "failed to process message")
+			}
 		} else {
 			if _, err := s.consumer.CommitMessage(msg); err != nil {
 				logger.Error(err, "failed to commit message")
 			} else {
-				if lastCommittedOffset == -1 {
-					logger.Info("offset", "firstCommittedOffset", offset)
+				if firstCommittedOffset == -1 {
+					firstCommittedOffset = offset
+					logger.Info("offset", "firstCommittedOffset", firstCommittedOffset)
 				}
 				lastCommittedOffset = offset
 			}

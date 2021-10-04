@@ -23,7 +23,7 @@ func TestKafkaFMEA_PodDeletedDisruption(t *testing.T) {
 	sinkTopic := CreateKafkaTopic()
 
 	name := CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-pod-deleted-disruption-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -56,7 +56,7 @@ func TestKafkaFMEA_KafkaServiceDisruption(t *testing.T) {
 	topic := CreateKafkaTopic()
 	sinkTopic := CreateKafkaTopic()
 	CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{Name: "kafka-"},
+		ObjectMeta: metav1.ObjectMeta{Name: "kafka-service-disruption-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
@@ -90,7 +90,7 @@ func TestKafkaFMEA_PipelineDeletedDisruption(t *testing.T) {
 	sinkTopic := CreateKafkaTopic()
 
 	name := CreatePipeline(Pipeline{
-		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-pipeline-deleted-disruption-"},
 		Spec: PipelineSpec{
 			Steps: []StepSpec{{
 				Name:    "main",
