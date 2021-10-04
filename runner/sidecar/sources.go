@@ -92,7 +92,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
 
 			meta, err := dfv1.MetaFromContext(ctx)
-
 			if err != nil {
 				return fmt.Errorf("could not send message: %w", err)
 			}

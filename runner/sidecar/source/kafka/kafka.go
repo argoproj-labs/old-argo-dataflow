@@ -33,8 +33,10 @@ type kafkaSource struct {
 	totalLag   int64
 }
 
-const seconds = 1000
-const pendingUnavailable = math.MinInt32
+const (
+	seconds            = 1000
+	pendingUnavailable = math.MinInt32
+)
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monitor.Interface, consumerGroupID, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
