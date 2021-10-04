@@ -31,10 +31,10 @@ Upto 1M TPS tested on http/kafka/stan sources on v0.0.106.
 Run ` env MESSAGE_SIZE=100 N=1000000 TIMEOUT=30m WORKERS=299  make test-http-stress`
 
 ### Kafka:
-Run ` env MESSAGE_SIZE=100 N=1000000 TIMEOUT=30m WORKERS=199  make test-kafka-stress`    
+Run ` env MESSAGE_SIZE=100 N=1000000 TIMEOUT=30m make test-kafka-stress`    
 
 ### Stan:
-Run ` env MESSAGE_SIZE=100 N=1000000 TIMEOUT=30m WORKERS=199  make test-stan-stress`    
+Run ` env MESSAGE_SIZE=100 N=1000000 TIMEOUT=30m make test-stan-stress`    
 
 Results:
 
