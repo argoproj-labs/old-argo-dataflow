@@ -11,6 +11,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
 	dbsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/db"
 	httpsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/http"
+	jssource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/jetstream"
 	kafkasource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/kafka"
 	s3source "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/s3"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/stan"
@@ -175,6 +176,12 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		} else if x := s.Volume; x != nil {
 			if y, err := volumeSource.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
+				return err
+			} else {
+				sources[sourceName] = y
+			}
+		} else if x := s.JetStream; x != nil {
+			if y, err := jssource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

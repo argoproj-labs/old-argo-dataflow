@@ -69,7 +69,7 @@ func ConnectSTAN(ctx context.Context, secretInterface corev1.SecretInterface, x 
 		}),
 	}
 	switch x.AuthStrategy() {
-	case dfv1.STANAuthToken:
+	case dfv1.NATSAuthToken:
 		token, err := getSTANAuthToken(ctx, secretInterface, x)
 		if err != nil {
 			return nil, err
@@ -105,7 +105,7 @@ func ConnectSTAN(ctx context.Context, secretInterface corev1.SecretInterface, x 
 }
 
 func getSTANAuthToken(ctx context.Context, secretInterface corev1.SecretInterface, x dfv1.STAN) (string, error) {
-	if x.AuthStrategy() != dfv1.STANAuthToken {
+	if x.AuthStrategy() != dfv1.NATSAuthToken {
 		return "", fmt.Errorf("auth strategy is not token but %s", x.AuthStrategy())
 	}
 	if x.Auth == nil || x.Auth.Token == nil {

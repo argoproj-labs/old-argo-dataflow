@@ -9,7 +9,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.1
+    controller-gen.kubebuilder.io/version: v0.6.0
   creationTimestamp: null
   name: pipelines.dataflow.argoproj.io
 spec:
@@ -3534,6 +3534,54 @@ spec:
                             properties:
                               serviceName:
                                 type: string
+                            type: object
+                          jetstream:
+                            properties:
+                              auth:
+                                properties:
+                                  token:
+                                    description: SecretKeySelector selects a key of
+                                      a Secret.
+                                    properties:
+                                      key:
+                                        description: The key of the secret to select
+                                          from.  Must be a valid secret key.
+                                        type: string
+                                      name:
+                                        description: 'Name of the referent. More info:
+                                          https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                          TODO: Add other useful fields. apiVersion,
+                                          kind, uid?'
+                                        type: string
+                                      optional:
+                                        description: Specify whether the Secret or
+                                          its key must be defined
+                                        type: boolean
+                                    required:
+                                    - key
+                                    type: object
+                                type: object
+                              durableName:
+                                type: string
+                              maxInflight:
+                                default: 20
+                                description: Max inflight messages when subscribing
+                                  to the stan server, which means how many messages
+                                  between commits, therefore potential duplicates
+                                  during disruption
+                                format: int32
+                                type: integer
+                              name:
+                                default: default
+                                type: string
+                              natsMonitoringUrl:
+                                type: string
+                              natsUrl:
+                                type: string
+                              subject:
+                                type: string
+                            required:
+                            - subject
                             type: object
                           kafka:
                             properties:
@@ -7120,7 +7168,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.1
+    controller-gen.kubebuilder.io/version: v0.6.0
   creationTimestamp: null
   name: steps.dataflow.argoproj.io
 spec:
@@ -10476,6 +10524,51 @@ spec:
                       properties:
                         serviceName:
                           type: string
+                      type: object
+                    jetstream:
+                      properties:
+                        auth:
+                          properties:
+                            token:
+                              description: SecretKeySelector selects a key of a Secret.
+                              properties:
+                                key:
+                                  description: The key of the secret to select from.  Must
+                                    be a valid secret key.
+                                  type: string
+                                name:
+                                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                    TODO: Add other useful fields. apiVersion, kind,
+                                    uid?'
+                                  type: string
+                                optional:
+                                  description: Specify whether the Secret or its key
+                                    must be defined
+                                  type: boolean
+                              required:
+                              - key
+                              type: object
+                          type: object
+                        durableName:
+                          type: string
+                        maxInflight:
+                          default: 20
+                          description: Max inflight messages when subscribing to the
+                            stan server, which means how many messages between commits,
+                            therefore potential duplicates during disruption
+                          format: int32
+                          type: integer
+                        name:
+                          default: default
+                          type: string
+                        natsMonitoringUrl:
+                          type: string
+                        natsUrl:
+                          type: string
+                        subject:
+                          type: string
+                      required:
+                      - subject
                       type: object
                     kafka:
                       properties:

@@ -1,0 +1,149 @@
+apiVersion: v1
+data:
+  nats.conf: |
+    pid_file: "/var/run/nats/nats.pid"
+    http: 8222
+    authorization {
+      token: "testingtokentestingtoken"
+    }
+
+    jetstream {
+      store_dir: "/data/jetstream/store"
+      max_file_store: 1G
+    }
+kind: ConfigMap
+metadata:
+  name: nats-js-config
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: |
+      This is an example of providing a namespace named NATS Streaming configuration.
+
+      The secret must be named `dataflow-jetstream-${name}`.
+
+      [Learn about configuration](../docs/CONFIGURATION.md)
+  name: dataflow-jetstream-default
+stringData:
+  authToken: testingtokentestingtoken
+  maxInflight: "15"
+  natsMonitoringUrl: http://nats-js:8222
+  natsUrl: nats-js
+  subjectPrefix: NamespacedPipelineName
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nats-js
+  name: nats-js
+spec:
+  clusterIP: None
+  ports:
+  - name: client
+    port: 4222
+  - name: cluster
+    port: 6222
+  - name: monitor
+    port: 8222
+  - name: metrics
+    port: 7777
+  - name: leafnodes
+    port: 7422
+  - name: gateways
+    port: 7522
+  selector:
+    app: nats-js
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: nats-js
+  name: nats-js
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats-js
+  serviceName: nats-js
+  template:
+    metadata:
+      labels:
+        app: nats-js
+    spec:
+      containers:
+      - command:
+        - /nats-server
+        - --config
+        - /etc/nats-config/nats.conf
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CLUSTER_ADVERTISE
+          value: $(POD_NAME).nats-js.$(POD_NAMESPACE).svc
+        image: nats:2.6.1
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - /nats-server -sl=ldm=/var/run/nats/nats.pid && /bin/sleep 60
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8222
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        name: nats
+        ports:
+        - containerPort: 4222
+          name: client
+        - containerPort: 7422
+          name: leafnodes
+        - containerPort: 6222
+          name: cluster
+        - containerPort: 8222
+          name: monitor
+        - containerPort: 7777
+          name: metrics
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8222
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - mountPath: /etc/nats-config
+          name: config-volume
+        - mountPath: /var/run/nats
+          name: pid
+        - mountPath: /data/jetstream
+          name: nats-js-sts-vol
+      shareProcessNamespace: true
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - configMap:
+          name: nats-js-config
+        name: config-volume
+      - emptyDir: {}
+        name: pid
+  volumeClaimTemplates:
+  - metadata:
+      name: nats-js-sts-vol
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      volumeMode: Filesystem

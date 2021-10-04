@@ -256,6 +256,11 @@ func enrichSources(ctx context.Context) error {
 				return err
 			}
 			source.S3 = x
+		} else if x := source.JetStream; x != nil {
+			if err := enrichJetStream(ctx, x); err != nil {
+				return err
+			}
+			source.JetStream = x
 		}
 		step.Spec.Sources[i] = source
 	}

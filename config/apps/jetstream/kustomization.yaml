@@ -1,0 +1,4 @@
+resources:
+  - nats-js.yml
+  - ../../../examples/dataflow-jetstream-default-secret.yaml
+patchesStrategicMerge:
