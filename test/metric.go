@@ -14,12 +14,12 @@ import (
 	"github.com/prometheus/common/expfmt"
 )
 
-func WaitForPending() {
-	ExpectMetric("sources_pending", Gt(0))
+func WaitForPending(opts ...interface{}) {
+	ExpectMetric("sources_pending", Gt(0), opts...)
 }
 
-func WaitForNothingPending() {
-	ExpectMetric("sources_pending", Eq(0))
+func WaitForNothingPending(opts ...interface{}) {
+	ExpectMetric("sources_pending", Eq(0), opts...)
 }
 
 func WaitForTotalSourceMessages(v int, opts ...interface{}) {
@@ -31,7 +31,7 @@ func WaitForNoErrors() {
 }
 
 func WaitForSunkMessages(opts ...interface{}) {
-	WaitForNSunkMessages(0)
+	WaitForNSunkMessages(0, opts...)
 }
 
 func WaitForNSunkMessages(v float64, opts ...interface{}) {
