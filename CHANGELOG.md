@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.120 (2021-10-04)
+
+ * [0b05359](https://github.com/argoproj-labs/argo-dataflow/commit/0b05359a0325cfe8b5745aec21b92da7e752cd5a) fix: lock assign/revoke partition code to prevent multiple consumers starting for same partition. Fixes #404 (#405)
+ * [d515a7e](https://github.com/argoproj-labs/argo-dataflow/commit/d515a7e43749e5a2eea5525860d90777b8afca49) feat: Kafka thoughput (#402)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.119 (2021-10-04)
 
  * [7376f50](https://github.com/argoproj-labs/argo-dataflow/commit/7376f5063b1f3d37103536d304cefc3ef1afa12e) fix: fix Kafka failure mode (#395)
