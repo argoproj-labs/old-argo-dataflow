@@ -61,32 +61,6 @@ func init() {
 		_, _ = fmt.Fprintf(w, "new subjects of stream %q: %v\n", stream, streamInfo.Config.Subjects)
 	})
 
-	http.HandleFunc("/jetstream/create-consumer", func(w http.ResponseWriter, r *http.Request) {
-		consumer := r.URL.Query().Get("consumer")
-		stream := r.URL.Query().Get("stream")
-		opts := []nats.Option{nats.Token(testingToken)}
-		nc, err := nats.Connect(url, opts...)
-		if err != nil {
-			w.WriteHeader(500)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-		defer nc.Close()
-		js, _ := nc.JetStream()
-
-		_, err = js.AddConsumer(stream, &nats.ConsumerConfig{
-			Durable: consumer,
-			// AckPolicy: nats.AckExplicitPolicy,
-		})
-		if err != nil {
-			w.WriteHeader(500)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-		w.WriteHeader(201)
-		_, _ = fmt.Fprintf(w, "added consumer %q for stream %q\n", consumer, stream)
-	})
-
 	http.HandleFunc("/jetstream/pump-subject", func(w http.ResponseWriter, r *http.Request) {
 		subject := r.URL.Query().Get("subject")
 		mf := newMessageFactory(r.URL.Query())

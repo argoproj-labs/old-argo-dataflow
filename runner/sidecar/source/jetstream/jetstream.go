@@ -7,7 +7,6 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharednats "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/nats"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/nats.go"
 	"github.com/opentracing/opentracing-go"
@@ -17,12 +16,8 @@ import (
 var logger = sharedutil.NewLogger()
 
 type jsSource struct {
-	conn              *nats.Conn
-	sub               *nats.Subscription
-	subject           string
-	natsMonitoringURL string
-	queueName         string
-	durableName       string
+	conn *nats.Conn
+	sub  *nats.Subscription
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.JetStreamSource, process source.Process) (source.Interface, error) {
@@ -34,9 +29,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	if err != nil {
 		return nil, err
 	}
-
 	queueName := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
-	durableName := fmt.Sprintf("%s-%s", queueName, util.MustHash(x.Subject))
+	durableName := fmt.Sprintf("%s-%s", queueName, sharedutil.MustHash(x.Subject))
 	sub, err := js.QueueSubscribe(x.Subject, queueName, func(msg *nats.Msg) {
 		span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("jetstream-source-%s", sourceName))
 		defer span.Finish()
@@ -58,19 +52,27 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	}
 
 	return &jsSource{
-		conn:              conn,
-		sub:               sub,
-		subject:           x.Subject,
-		natsMonitoringURL: x.NATSMonitoringURL,
-		queueName:         queueName,
-		durableName:       durableName,
+		conn: conn,
+		sub:  sub,
 	}, nil
 }
 
 func (j jsSource) Close() error {
+	logger.Info("draining subscription")
+	if err := j.sub.Drain(); err != nil {
+		return err
+	}
 	logger.Info("closing jetstream source connection")
 	if j.conn.IsClosed() {
 		j.conn.Close()
 	}
 	return nil
+}
+
+func (j jsSource) GetPending(ctx context.Context) (uint64, error) {
+	if consumerInfo, err := j.sub.ConsumerInfo(); err != nil {
+		return 0, fmt.Errorf("failed to get consumer info: %w", err)
+	} else {
+		return consumerInfo.NumPending, nil
+	}
 }

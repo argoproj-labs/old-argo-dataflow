@@ -13,7 +13,6 @@ import (
 
 func jetStreamFromSecret(s *dfv1.JetStreamSource, secret *corev1.Secret) error {
 	s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
-	s.NATSMonitoringURL = dfv1.StringOr(s.NATSMonitoringURL, string(secret.Data["natsMonitoringUrl"]))
 	if b, ok := secret.Data["maxInflight"]; ok {
 		if i, err := strconv.ParseUint(string(b), 10, 32); err != nil {
 			return fmt.Errorf("failed to parse maxInflight: %w", err)

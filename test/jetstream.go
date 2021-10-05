@@ -20,10 +20,6 @@ func CreateJetStreamSubject(stream, subject string) {
 	InvokeTestAPI("/jetstream/create-subject?subject=%s&stream=%s", subject, stream)
 }
 
-func CreateJetStreamConsumer(stream, consumer string) {
-	InvokeTestAPI("/jetstream/create-consumer?consumer=%s&stream=%s", consumer, stream)
-}
-
 func PumpJetStreamSubject(subject string, n int, opts ...interface{}) {
 	var sleep time.Duration
 	var prefix string

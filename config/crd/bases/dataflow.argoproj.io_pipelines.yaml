@@ -3567,8 +3567,6 @@ spec:
                               name:
                                 default: default
                                 type: string
-                              natsMonitoringUrl:
-                                type: string
                               natsUrl:
                                 type: string
                               subject:
