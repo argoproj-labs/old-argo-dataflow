@@ -19,9 +19,21 @@ type KafkaSink struct {
 	Acks *intstr.IntOrString `json:"acks,omitempty" protobuf:"bytes,6,opt,name=acks"`
 }
 
+func (m *KafkaSink) GetBatchSize() int {
+	return int(m.BatchSize.Value())
+}
+
+func (m *KafkaSink) GetLingerMs() int {
+	return int(m.Linger.Milliseconds())
+}
+
 func (m *KafkaSink) GetAcks() interface{} {
 	if m.Acks.Type == intstr.String {
 		return m.Acks.String()
 	}
 	return m.Acks.IntValue()
+}
+
+func (m *KafkaSink) GetMessageMaxBytes() int {
+	return int(m.Kafka.MaxMessageBytes)
 }

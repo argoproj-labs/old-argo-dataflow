@@ -33,11 +33,11 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 		return nil, err
 	}
 	if x.MaxMessageBytes > 0 {
-		config["message.max.bytes"] = int(x.Kafka.MaxMessageBytes)
+		config["message.max.bytes"] = x.GetMessageMaxBytes()
 	}
 	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
-	config["batch.size"] = int(x.BatchSize.Value())
-	config["linger.ms"] = int(x.Linger.Milliseconds())
+	config["batch.size"] = x.GetBatchSize()
+	config["linger.ms"] = x.GetLingerMs()
 	config["compression.type"] = x.CompressionType
 	config["acks"] = x.GetAcks()
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/producer_example/producer_example.go

@@ -5,18 +5,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// +kubebuilder:validation:Enum=First;Last
-type KafkaOffset string
-
-func (k KafkaOffset) Normalize() string {
-	switch k {
-	case "First":
-		return "earliest"
-	default:
-		return "latest"
-	}
-}
-
 type KafkaSource struct {
 	Kafka `json:",inline" protobuf:"bytes,1,opt,name=kafka"`
 	// +kubebuilder:default=Last
@@ -25,4 +13,16 @@ type KafkaSource struct {
 	FetchMin *resource.Quantity `json:"fetchMin,omitempty" protobuf:"bytes,3,opt,name=fetchMin"`
 	// +kubebuilder:default="500ms"
 	FetchWaitMax *metav1.Duration `json:"fetchWaitMax,omitempty" protobuf:"bytes,4,opt,name=fetchWaitMax"`
+}
+
+func (m *KafkaSource) GetAutoOffsetReset() string {
+	return m.StartOffset.GetAutoOffsetReset()
+}
+
+func (m *KafkaSource) GetFetchMinBytes() int {
+	return int(m.FetchMin.Value())
+}
+
+func (m *KafkaSource) GetFetchWaitMaxMs() int {
+	return int(m.FetchWaitMax.Milliseconds())
 }
