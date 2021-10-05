@@ -1596,8 +1596,11 @@ spec:
                           kafka:
                             properties:
                               acks:
+                                anyOf:
+                                - type: integer
+                                - type: string
                                 default: all
-                                type: string
+                                x-kubernetes-int-or-string: true
                               async:
                                 type: boolean
                               batchSize:
@@ -8678,8 +8681,11 @@ spec:
                     kafka:
                       properties:
                         acks:
+                          anyOf:
+                          - type: integer
+                          - type: string
                           default: all
-                          type: string
+                          x-kubernetes-int-or-string: true
                         async:
                           type: boolean
                         batchSize:

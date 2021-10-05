@@ -67,7 +67,7 @@ func StartTPSReporter(t *testing.T, step, prefix string, n int) (stopTPSLogger f
 	return func() {
 		cancel()
 		var params []string
-		if currentContext != "docker-desktop" {
+		if currentContext != "" && currentContext != "docker-desktop" {
 			params = append(params, "currentContext="+currentContext)
 		}
 		if Params.Replicas != 1 {
