@@ -110,7 +110,7 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	if _, ok := s.channels[partition]; !ok {
 		logger.Info("assigned partition")
-		s.channels[partition] = make(chan *kafka.Message, 256)
+		s.channels[partition] = make(chan *kafka.Message, 1)
 		go func() {
 			defer runtime.HandleCrash()
 			s.consumePartition(ctx, partition)
