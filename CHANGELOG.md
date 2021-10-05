@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.123 (2021-10-05)
+
+ * [5bbe50a](https://github.com/argoproj-labs/argo-dataflow/commit/5bbe50a4c2e42c8bf1ae0d6093db6b95cdeac8ea) feat: cammit Kafka offset async (#411)
+ * [e056b27](https://github.com/argoproj-labs/argo-dataflow/commit/e056b272003ac74fd94e8a17c82dcaa438b52cec) fix: do not re-balance channels (#410)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.122 (2021-10-04)
 
  * [4d2ad98](https://github.com/argoproj-labs/argo-dataflow/commit/4d2ad98f1bbbebb7ed8502aea8c30f1b0dfd545c) fix: make Kafka consumers channels size 1
