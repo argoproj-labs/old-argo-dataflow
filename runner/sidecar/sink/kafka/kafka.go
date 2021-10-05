@@ -65,7 +65,7 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 			for e := range producer.Events() {
 				switch ev := e.(type) {
 				case *kafka.Message:
-					if ev.TopicPartition.Error != nil {
+					if err := ev.TopicPartition.Error; err != nil {
 						logger.Error(err, "Async to Kafka failed", "topic", x.Topic)
 						kafkaMessagesProducedErr.WithLabelValues(sinkName).Inc()
 					} else {
