@@ -61,6 +61,26 @@ func init() {
 		_, _ = fmt.Fprintf(w, "new subjects of stream %q: %v\n", stream, streamInfo.Config.Subjects)
 	})
 
+	http.HandleFunc("/jetstream/delete-stream", func(w http.ResponseWriter, r *http.Request) {
+		stream := r.URL.Query().Get("stream")
+		opts := []nats.Option{nats.Token(testingToken)}
+		nc, err := nats.Connect(url, opts...)
+		if err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		defer nc.Close()
+		js, _ := nc.JetStream()
+		if err = js.DeleteStream(stream); err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		w.WriteHeader(201)
+		_, _ = fmt.Fprintf(w, "deleted stream %q\n", stream)
+	})
+
 	http.HandleFunc("/jetstream/pump-subject", func(w http.ResponseWriter, r *http.Request) {
 		subject := r.URL.Query().Get("subject")
 		mf := newMessageFactory(r.URL.Query())
