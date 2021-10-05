@@ -20,9 +20,7 @@ func TestJetStream(t *testing.T) {
 
 	subject := RandomJSSubject()
 	streamName := "test"
-	durableName := "test-consumer"
 	CreateJetStreamSubject(streamName, subject)
-	CreateJetStreamConsumer(streamName, durableName)
 
 	CreatePipeline(Pipeline{
 		ObjectMeta: metav1.ObjectMeta{Name: "jetstream"},
@@ -31,7 +29,7 @@ func TestJetStream(t *testing.T) {
 				{
 					Name:    "main",
 					Cat:     &Cat{},
-					Sources: []Source{{JetStream: &JetStreamSource{JetStream: JetStream{Subject: subject}, DurableName: durableName}}},
+					Sources: []Source{{JetStream: &JetStreamSource{JetStream: JetStream{Subject: subject}}}},
 					Sinks:   []Sink{DefaultLogSink},
 				},
 			},

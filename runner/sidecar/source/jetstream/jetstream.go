@@ -7,10 +7,10 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	sharednats "github.com/argoproj-labs/argo-dataflow/runner/sidecar/shared/nats"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
+	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/nats.go"
 	"github.com/opentracing/opentracing-go"
-	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -34,17 +34,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	if err != nil {
 		return nil, err
 	}
-	msgCh := make(chan *nats.Msg)
 
 	queueName := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
-	sub, err := js.ChanQueueSubscribe(x.Subject, queueName, msgCh,
-		nats.ManualAck(), nats.Durable(x.DurableName), nats.DeliverNew(),
-		nats.MaxAckPending(int(x.GetMaxInflight())))
-	if err != nil {
-		return nil, err
-	}
-
-	processMsg := func(msg *nats.Msg) {
+	durableName := fmt.Sprintf("%s-%s", queueName, util.MustHash(x.Subject))
+	sub, err := js.QueueSubscribe(x.Subject, queueName, func(msg *nats.Msg) {
 		span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("jetstream-source-%s", sourceName))
 		defer span.Finish()
 		if metadata, err := msg.Metadata(); err != nil {
@@ -59,19 +52,10 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 				logger.Error(err, "failed to ack message", "source", sourceName)
 			}
 		}
+	}, nats.ManualAck(), nats.Durable(durableName), nats.DeliverNew(), nats.MaxAckPending(int(x.GetMaxInflight())))
+	if err != nil {
+		return nil, err
 	}
-
-	go func() {
-		defer runtimeutil.HandleCrash()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case msg := <-msgCh:
-				processMsg(msg)
-			}
-		}
-	}()
 
 	return &jsSource{
 		conn:              conn,
@@ -79,7 +63,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 		subject:           x.Subject,
 		natsMonitoringURL: x.NATSMonitoringURL,
 		queueName:         queueName,
-		durableName:       x.DurableName,
+		durableName:       durableName,
 	}, nil
 }
 

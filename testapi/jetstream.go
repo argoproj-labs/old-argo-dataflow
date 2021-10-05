@@ -75,8 +75,8 @@ func init() {
 		js, _ := nc.JetStream()
 
 		_, err = js.AddConsumer(stream, &nats.ConsumerConfig{
-			Durable:   consumer,
-			AckPolicy: nats.AckExplicitPolicy,
+			Durable: consumer,
+			// AckPolicy: nats.AckExplicitPolicy,
 		})
 		if err != nil {
 			w.WriteHeader(500)

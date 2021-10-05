@@ -436,12 +436,10 @@ message JetStreamSource {
 
   optional string natsMonitoringUrl = 2;
 
-  optional string durableName = 3;
-
   // Max inflight messages when subscribing to the stan server, which means how many messages
   // between commits, therefore potential duplicates during disruption
   // +kubebuilder:default=20
-  optional uint32 maxInflight = 4;
+  optional uint32 maxInflight = 3;
 }
 
 message Kafka {
