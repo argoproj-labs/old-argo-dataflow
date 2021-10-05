@@ -401,6 +401,19 @@ This is an example of providing a bearer token for a HTTP source.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-103-http-main-source-default-secret.yaml
 ```
 
+### [dataflow-jetstream-default](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-jetstream-default-secret.yaml)
+
+This is an example of providing a namespace named NATS Streaming configuration.
+
+The secret must be named `dataflow-jetstream-${name}`.
+
+[Learn about configuration](../docs/CONFIGURATION.md)
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-jetstream-default-secret.yaml
+```
+
 ### [dataflow-kafka-default](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml)
 
 This is an example of providing a namespace named Kafka configuration.
@@ -445,7 +458,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 This is an example of providing a namespace named NATS Streaming configuration.
 
-The secret must be named `dataflow-nats-${name}`.
+The secret must be named `dataflow-stan-${name}`.
 
 [Learn about configuration](../docs/CONFIGURATION.md)
 
