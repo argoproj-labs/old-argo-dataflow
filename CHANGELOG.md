@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.122 (2021-10-04)
+
+ * [4d2ad98](https://github.com/argoproj-labs/argo-dataflow/commit/4d2ad98f1bbbebb7ed8502aea8c30f1b0dfd545c) fix: make Kafka consumers channels size 1
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.121 (2021-10-04)
 
  * [a46256f](https://github.com/argoproj-labs/argo-dataflow/commit/a46256f7eb4734168d06788244edd8adbb1092a3) fix: remove lock, and fix loop. Fixes #404 (#407)
