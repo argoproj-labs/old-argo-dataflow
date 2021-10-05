@@ -57,6 +57,7 @@ func TestMetrics(t *testing.T) {
 	ExpectMetric("sinks_errors", Eq(3))
 	sendHTTPMsag("my-msg")
 	ExpectMetric("sources_totalBytes", Eq(12))
+	ExpectMetric("log_messages", Gt(10))
 }
 
 func sendHTTPMsag(msg string) {
