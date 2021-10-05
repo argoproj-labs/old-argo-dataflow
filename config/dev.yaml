@@ -3580,14 +3580,6 @@ spec:
                                     - key
                                     type: object
                                 type: object
-                              maxInflight:
-                                default: 20
-                                description: Max inflight messages when subscribing
-                                  to the stan server, which means how many messages
-                                  between commits, therefore potential duplicates
-                                  during disruption
-                                format: int32
-                                type: integer
                               name:
                                 default: default
                                 type: string
@@ -10593,13 +10585,6 @@ spec:
                               - key
                               type: object
                           type: object
-                        maxInflight:
-                          default: 20
-                          description: Max inflight messages when subscribing to the
-                            stan server, which means how many messages between commits,
-                            therefore potential duplicates during disruption
-                          format: int32
-                          type: integer
                         name:
                           default: default
                           type: string

@@ -46,7 +46,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 				logger.Error(err, "failed to ack message", "source", sourceName)
 			}
 		}
-	}, nats.ManualAck(), nats.Durable(durableName), nats.DeliverNew(), nats.MaxAckPending(int(x.GetMaxInflight())))
+	}, nats.ManualAck(), nats.Durable(durableName), nats.DeliverNew())
 	if err != nil {
 		return nil, err
 	}

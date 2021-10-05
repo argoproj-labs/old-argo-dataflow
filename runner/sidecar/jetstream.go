@@ -2,8 +2,6 @@ package sidecar
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -13,13 +11,6 @@ import (
 
 func jetStreamFromSecret(s *dfv1.JetStreamSource, secret *corev1.Secret) error {
 	s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
-	if b, ok := secret.Data["maxInflight"]; ok {
-		if i, err := strconv.ParseUint(string(b), 10, 32); err != nil {
-			return fmt.Errorf("failed to parse maxInflight: %w", err)
-		} else {
-			s.MaxInflight = uint32(i)
-		}
-	}
 	if _, ok := secret.Data["authToken"]; ok {
 		s.Auth = &dfv1.NATSAuth{
 			Token: &corev1.SecretKeySelector{
