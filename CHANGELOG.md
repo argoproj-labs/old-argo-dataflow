@@ -1,5 +1,52 @@
 # Changelog
 
+## v0.0.122 (2021-10-04)
+
+ * [4d2ad98](https://github.com/argoproj-labs/argo-dataflow/commit/4d2ad98f1bbbebb7ed8502aea8c30f1b0dfd545c) fix: make Kafka consumers channels size 1
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.121 (2021-10-04)
+
+ * [a46256f](https://github.com/argoproj-labs/argo-dataflow/commit/a46256f7eb4734168d06788244edd8adbb1092a3) fix: remove lock, and fix loop. Fixes #404 (#407)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.120 (2021-10-04)
+
+ * [0b05359](https://github.com/argoproj-labs/argo-dataflow/commit/0b05359a0325cfe8b5745aec21b92da7e752cd5a) fix: lock assign/revoke partition code to prevent multiple consumers starting for same partition. Fixes #404 (#405)
+ * [d515a7e](https://github.com/argoproj-labs/argo-dataflow/commit/d515a7e43749e5a2eea5525860d90777b8afca49) feat: Kafka thoughput (#402)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.119 (2021-10-04)
+
+ * [7376f50](https://github.com/argoproj-labs/argo-dataflow/commit/7376f5063b1f3d37103536d304cefc3ef1afa12e) fix: fix Kafka failure mode (#395)
+ * [9c05fcc](https://github.com/argoproj-labs/argo-dataflow/commit/9c05fccc8ce824f344c6b7dad1a37c4084c0c8bc) fix: fix Kafka source (#394)
+ * [5a1d295](https://github.com/argoproj-labs/argo-dataflow/commit/5a1d29564d2d4645072d2b95a732969c7f4245f9) feat: tune Kafka producer and consumer (4x TPS)
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.118 (2021-10-01)
+
+ * [647d0a6](https://github.com/argoproj-labs/argo-dataflow/commit/647d0a6cba13cfa21063661c33be12f18c50c8f5) fix: change Kafka to use stats for pending
+ * [dc03e6c](https://github.com/argoproj-labs/argo-dataflow/commit/dc03e6ce3aef0e395346afd2bb64932179abd7e8) fix: change Kafka to use stats for pending
+ * [63ea3fa](https://github.com/argoproj-labs/argo-dataflow/commit/63ea3fa7800f3f05070d4306d7900e575020ecfa) feat: change update interval from 1m to 15s
+ * [f1e7b43](https://github.com/argoproj-labs/argo-dataflow/commit/f1e7b43a28925ef241fe3041155fd13dcb8f8204) fix: race in monitor
+ * [cb439be](https://github.com/argoproj-labs/argo-dataflow/commit/cb439be606b7adf681ed4e91b2bd21168489260a) fix: logging metrics
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.117 (2021-10-01)
 
  * [2720622](https://github.com/argoproj-labs/argo-dataflow/commit/27206226fae64ec28e34e826ff0842eb732a98aa) feat: fix bugs in monitor (#391)

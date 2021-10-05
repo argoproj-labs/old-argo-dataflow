@@ -39,7 +39,7 @@ func PumpKafkaTopic(topic string, n int, opts ...interface{}) {
 }
 
 func ExpectKafkaTopicCount(topic string, total int, timeout time.Duration) {
-	var lastCount, stalls int
+	stall := &stall{}
 	log.Printf("expecting %d messages to be sunk to topic %s within %v\n", total, topic, timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -57,13 +57,7 @@ func ExpectKafkaTopicCount(topic string, total int, timeout time.Duration) {
 			if count > total {
 				panic(fmt.Errorf("too many messages %d > %d", count, total))
 			}
-			if count == lastCount {
-				stalls++
-			}
-			if stalls >= 3 {
-				panic(fmt.Errorf("stalled waiting for %d messages in topic %q", total, topic))
-			}
-			lastCount = count
+			stall.accept(count)
 			time.Sleep(time.Second)
 		}
 	}

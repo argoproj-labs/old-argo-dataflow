@@ -1,16 +1,16 @@
 {
-  "TestKafkaAsyncSinkStress/.tps": 400,
-  "TestKafkaSinkStress/.tps": 150,
+  "TestKafkaAsyncSinkStress/.tps": 500,
+  "TestKafkaSinkStress/.tps": 450,
   "TestKafkaSinkStress/N=10,messageSize=100.tps": 200,
   "TestKafkaSinkStress/N=10,messageSize=1000.tps": 150,
   "TestKafkaSinkStress/N=50000.tps": 750,
   "TestKafkaSinkStress/async=true.tps": 400,
   "TestKafkaSinkStress/messageSize=1000.tps": 300,
   "TestKafkaSinkStress/replicas=2.tps": 400,
-  "TestKafkaSourceStress/.tps": 350,
+  "TestKafkaSourceStress/.tps": 450,
   "TestKafkaSourceStress/N=10,messageSize=100.tps": 450,
   "TestKafkaSourceStress/N=10,messageSize=1000.tps": 650,
   "TestKafkaSourceStress/N=50000.tps": 3150,
   "TestKafkaSourceStress/messageSize=1000.tps": 850,
-  "TestKafkaSourceStress/replicas=2.tps": 950
+  "TestKafkaSourceStress/replicas=2.tps": 500
 }

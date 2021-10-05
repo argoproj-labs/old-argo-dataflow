@@ -55,7 +55,7 @@ func WaitForPodsToBeDeleted() {
 	}
 }
 
-func WaitForPod(opts ...interface{}) {
+func WaitForPod(opts ...interface{}) (podName string) {
 	// by default, wait for any pod to be ready
 	var (
 		listOptions = metav1.ListOptions{LabelSelector: KeyPipelineName}
@@ -101,7 +101,7 @@ func WaitForPod(opts ...interface{}) {
 			}
 			log.Printf("pod %q is %s %q %q\n", p.Name, s.Phase, s.Message, y)
 			if f(p) {
-				return
+				return p.Name
 			}
 		}
 	}

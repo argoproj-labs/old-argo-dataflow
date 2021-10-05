@@ -2,6 +2,7 @@ package sidecar
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -92,7 +93,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
 
 			meta, err := dfv1.MetaFromContext(ctx)
-
 			if err != nil {
 				return fmt.Errorf("could not send message: %w", err)
 			}
@@ -197,7 +197,11 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			logger.Info("starting pending loop", "source", sourceName, "updateInterval", updateInterval.String())
 			go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 				if pending, err := x.GetPending(ctx); err != nil {
-					logger.Error(err, "failed to get pending", "source", sourceName)
+					if errors.Is(err, source.ErrPendingUnavailable) {
+						logger.Info("failed to get pending", "source", sourceName, "err", err.Error())
+					} else {
+						logger.Error(err, "failed to get pending", "source", sourceName)
+					}
 				} else {
 					logger.Info("got pending", "source", sourceName, "pending", pending)
 					pendingGauge.WithLabelValues(sourceName).Set(float64(pending))
