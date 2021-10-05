@@ -9,7 +9,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.0
+    controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
   name: pipelines.dataflow.argoproj.io
 spec:
@@ -3571,8 +3571,6 @@ spec:
                                 type: integer
                               name:
                                 default: default
-                                type: string
-                              natsMonitoringUrl:
                                 type: string
                               natsUrl:
                                 type: string
@@ -7166,7 +7164,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.6.0
+    controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
   name: steps.dataflow.argoproj.io
 spec:
@@ -10556,8 +10554,6 @@ spec:
                           type: integer
                         name:
                           default: default
-                          type: string
-                        natsMonitoringUrl:
                           type: string
                         natsUrl:
                           type: string
