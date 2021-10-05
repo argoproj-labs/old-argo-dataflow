@@ -50,15 +50,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	config["socket.keepalive.enable"] = true
 	config["enable.auto.commit"] = false
 	config["enable.auto.offset.store"] = false
-	if x.StartOffset == "First" {
-		config["auto.offset.reset"] = "earliest"
-	} else {
-		config["auto.offset.reset"] = "latest"
-	}
+	config["auto.offset.reset"] = x.StartOffset.Normalize()
 	config["statistics.interval.ms"] = 5 * seconds
 	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
-	config["fetch.min.bytes"] = 100000
-	config["fetch.wait.max.ms"] = seconds / 2
+	config["fetch.min.bytes"] = int(x.FetchMin.Value())
+	config["fetch.wait.max.ms"] = int(x.FetchWaitMax.Milliseconds())
 	// config["go.events.channel.enable"] = true
 	// config["max.poll.interval.ms"] = 300 * seconds
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
