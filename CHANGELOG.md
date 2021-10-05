@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.124 (2021-10-05)
+
+ * [29b4deb](https://github.com/argoproj-labs/argo-dataflow/commit/29b4debf4bc38592b97dbb5e8128bee1bfdbd1ed) feat: export Prom metrics for logs. Fixes #418
+ * [64f8f10](https://github.com/argoproj-labs/argo-dataflow/commit/64f8f105b3da231639cbc147fd76b31b7e52b14c) feat: log metrics labels on pod term
+ * [f318ebf](https://github.com/argoproj-labs/argo-dataflow/commit/f318ebf4ddc4ede41fa22b0660427430defef5ca) feat: send error logs to stderr
+ * [fa64809](https://github.com/argoproj-labs/argo-dataflow/commit/fa648092a97097f1dc91c21fbdc53d1475770e15) fix: correctly log Kafka async error
+ * [fa7373b](https://github.com/argoproj-labs/argo-dataflow/commit/fa7373b329f5dc17addb71c78da5694b466d483b) feat: expose Kafka config (#414)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.123 (2021-10-05)
 
  * [5bbe50a](https://github.com/argoproj-labs/argo-dataflow/commit/5bbe50a4c2e42c8bf1ae0d6093db6b95cdeac8ea) feat: cammit Kafka offset async (#411)
