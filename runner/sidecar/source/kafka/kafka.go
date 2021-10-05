@@ -17,7 +17,6 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/go-logr/logr"
 	"github.com/opentracing/opentracing-go"
-	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -110,19 +109,10 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	if _, ok := s.channels[partition]; !ok {
 		logger.Info("assigned partition")
-		s.channels[partition] = make(chan *kafka.Message, 1)
-		go func() {
-			defer runtime.HandleCrash()
+		s.channels[partition] = make(chan *kafka.Message, 256)
+		go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 			s.consumePartition(ctx, partition)
-		}()
-	}
-}
-
-func (s *kafkaSource) revokedPartition(partition int32) {
-	if _, ok := s.channels[partition]; ok {
-		s.logger.Info("revoked partition", "partition", partition)
-		close(s.channels[partition])
-		delete(s.channels, partition)
+		}, 3*time.Second, 1.2, true)
 	}
 }
 
@@ -196,10 +186,6 @@ func (s *kafkaSource) rebalanced(ctx context.Context, event kafka.Event) error {
 	case kafka.AssignedPartitions:
 		for _, p := range e.Partitions {
 			s.assignedPartition(ctx, p.Partition)
-		}
-	case kafka.RevokedPartitions:
-		for _, p := range e.Partitions {
-			s.revokedPartition(p.Partition)
 		}
 	}
 	return nil
