@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type KafkaSink struct {
@@ -15,5 +16,12 @@ type KafkaSink struct {
 	// +kubebuilder:default="lz4"
 	CompressionType string `json:"compressionType,omitempty" protobuf:"bytes,5,opt,name=compressionType"`
 	// +kubebuilder:default="all"
-	Acks string `json:"acks,omitempty" protobuf:"bytes,6,opt,name=acks"`
+	Acks *intstr.IntOrString `json:"acks,omitempty" protobuf:"bytes,6,opt,name=acks"`
+}
+
+func (m *KafkaSink) GetAcks() interface{} {
+	if m.Acks.Type == intstr.String {
+		return m.Acks.String()
+	}
+	return m.Acks.IntValue()
 }

@@ -39,7 +39,7 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	config["batch.size"] = int(x.BatchSize.Value())
 	config["linger.ms"] = int(x.Linger.Milliseconds())
 	config["compression.type"] = x.CompressionType
-	config["acks"] = x.Acks
+	config["acks"] = x.GetAcks()
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/producer_example/producer_example.go
 	producer, err := kafka.NewProducer(&config)
 	if err != nil {

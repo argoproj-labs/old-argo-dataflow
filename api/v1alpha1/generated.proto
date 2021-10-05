@@ -22,6 +22,7 @@ package github.com.argoproj_labs.argo_dataflow.api.v1alpha1;
 import "k8s.io/api/core/v1/generated.proto";
 import "k8s.io/apimachinery/pkg/api/resource/generated.proto";
 import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
+import "k8s.io/apimachinery/pkg/util/intstr/generated.proto";
 
 // Package-wide variables from generator "generated".
 option go_package = "v1alpha1";
@@ -458,7 +459,7 @@ message KafkaSink {
   optional string compressionType = 5;
 
   // +kubebuilder:default="all"
-  optional string acks = 6;
+  optional k8s.io.apimachinery.pkg.util.intstr.IntOrString acks = 6;
 }
 
 message KafkaSource {
