@@ -59,6 +59,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, mntr monit
 	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
 	config["fetch.min.bytes"] = 100000
 	config["fetch.wait.max.ms"] = seconds / 2
+	// config["go.events.channel.enable"] = true
+	// config["max.poll.interval.ms"] = 300 * seconds
 	logger.Info("Kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/consumer_example/consumer_example.go
 	consumer, err := kafka.NewConsumer(&config)
@@ -160,8 +162,7 @@ func (s *kafkaSource) startPollLoop(ctx context.Context) {
 
 func (s *kafkaSource) Close() error {
 	s.logger.Info("closing partition channels")
-	for key, ch := range s.channels {
-		delete(s.channels, key)
+	for _, ch := range s.channels {
 		close(ch)
 	}
 	s.logger.Info("waiting for partition consumers to finish")
@@ -195,29 +196,42 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)
-	var firstCommittedOffset, lastCommittedOffset int64 = -1, -1
+	var lastUncommitted *kafka.Message
+	commitLastUncommitted := func() {
+		if lastUncommitted != nil {
+			if _, err := s.consumer.CommitMessage(lastUncommitted); err != nil {
+				logger.Error(err, "failed to commit message", "offset", lastUncommitted.TopicPartition.Offset)
+			}
+			lastUncommitted = nil
+		}
+	}
 	defer func() {
-		logger.Info("done consuming partition", "firstCommittedOffset", firstCommittedOffset, "lastCommittedOffset", lastCommittedOffset)
+		logger.Info("committing last uncommitted message")
+		commitLastUncommitted()
+		logger.Info("done consuming partition")
 		s.wg.Done()
 	}()
-	for msg := range s.channels[partition] {
-		offset := int64(msg.TopicPartition.Offset)
-		logger := logger.WithValues("offset", offset)
-		if err := s.processMessage(ctx, msg); err != nil {
-			if errors.Is(err, context.Canceled) {
-				logger.Info("failed to process message", "err", err.Error())
-			} else {
-				logger.Error(err, "failed to process message")
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			commitLastUncommitted()
+		case msg, ok := <-s.channels[partition]:
+			if !ok {
+				return
 			}
-		} else {
-			if _, err := s.consumer.CommitMessage(msg); err != nil {
-				logger.Error(err, "failed to commit message")
-			} else {
-				if firstCommittedOffset == -1 {
-					firstCommittedOffset = offset
-					logger.Info("offset", "firstCommittedOffset", firstCommittedOffset)
+			offset := int64(msg.TopicPartition.Offset)
+			logger := logger.WithValues("offset", offset)
+			println("offset=", offset)
+			if err := s.processMessage(ctx, msg); err != nil {
+				if errors.Is(err, context.Canceled) {
+					logger.Info("failed to process message", "err", err.Error())
+				} else {
+					logger.Error(err, "failed to process message")
 				}
-				lastCommittedOffset = offset
+			} else {
+				lastUncommitted = msg
 			}
 		}
 	}
