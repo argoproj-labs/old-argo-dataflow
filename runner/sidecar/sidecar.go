@@ -221,7 +221,13 @@ func logMetrics(ctx context.Context) error {
 			} else if g := m.Gauge; g != nil && g.Value != nil {
 				v = g.Value
 			}
-			logger.Info("metric", "name", f.GetName(), "value", v)
+			logger := logger.WithValues("name", f.GetName(), "value", v)
+			for _, p := range m.Label {
+				if p != nil && p.Name != nil && p.Value != nil { // paranoid check
+					logger = logger.WithValues(*p.Name, *p.Value)
+				}
+			}
+			logger.Info("metric")
 		}
 	}
 	return nil
