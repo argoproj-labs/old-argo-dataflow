@@ -1535,12 +1535,31 @@ spec:
                       type: object
                     kafka:
                       properties:
+                        acks:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          default: all
+                          x-kubernetes-int-or-string: true
                         async:
                           type: boolean
+                        batchSize:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          default: 100Ki
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
                         brokers:
                           items:
                             type: string
                           type: array
+                        compressionType:
+                          default: lz4
+                          type: string
+                        linger:
+                          default: 0ms
+                          type: string
                         maxMessageBytes:
                           format: int32
                           type: integer
@@ -3408,6 +3427,16 @@ spec:
                           items:
                             type: string
                           type: array
+                        fetchMin:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          default: 100Ki
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        fetchWaitMax:
+                          default: 500ms
+                          type: string
                         maxMessageBytes:
                           format: int32
                           type: integer

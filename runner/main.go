@@ -100,10 +100,10 @@ func main() {
 		}
 	}()
 	if errors.Is(err, context.Canceled) {
-		println(fmt.Errorf("ignoring context cancelled error, expected"))
+		logger.Info("ignoring context cancelled error, expected")
 	} else if err != nil {
 		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 0o600); err != nil {
-			println(fmt.Sprintf("failed to write termination-log: %v", err))
+			logger.Info(fmt.Sprintf("failed to write termination-log: %v", err))
 		}
 		panic(err)
 	}

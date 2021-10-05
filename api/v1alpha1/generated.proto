@@ -22,6 +22,7 @@ package github.com.argoproj_labs.argo_dataflow.api.v1alpha1;
 import "k8s.io/api/core/v1/generated.proto";
 import "k8s.io/apimachinery/pkg/api/resource/generated.proto";
 import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
+import "k8s.io/apimachinery/pkg/util/intstr/generated.proto";
 
 // Package-wide variables from generator "generated".
 option go_package = "v1alpha1";
@@ -467,6 +468,18 @@ message KafkaSink {
   optional Kafka kafka = 1;
 
   optional bool async = 2;
+
+  // +kubebuilder:default="100Ki"
+  optional k8s.io.apimachinery.pkg.api.resource.Quantity batchSize = 3;
+
+  // +kubebuilder:default="0ms"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration linger = 4;
+
+  // +kubebuilder:default="lz4"
+  optional string compressionType = 5;
+
+  // +kubebuilder:default="all"
+  optional k8s.io.apimachinery.pkg.util.intstr.IntOrString acks = 6;
 }
 
 message KafkaSource {
@@ -474,6 +487,12 @@ message KafkaSource {
 
   // +kubebuilder:default=Last
   optional string startOffset = 2;
+
+  // +kubebuilder:default="100Ki"
+  optional k8s.io.apimachinery.pkg.api.resource.Quantity fetchMin = 3;
+
+  // +kubebuilder:default="500ms"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration fetchWaitMax = 4;
 }
 
 message Log {

@@ -159,16 +159,29 @@ class HTTPSink(Sink):
 
 
 class KafkaSink(Sink):
-    def __init__(self, subject, name=None, a_sync=False):
+    def __init__(self, subject, name=None, a_sync=False, batchSize=None, linger=None, compressionType=None, acks=None):
         super().__init__(name)
         self._subject = subject
         self._a_sync = a_sync
+        self._batchSize = batchSize
+        self._linger = linger
+        self._compressionType = compressionType
+        self._acks = acks
 
     def dump(self):
         x = super().dump()
-        x['kafka'] = {'topic': self._subject}
+        y = {'topic': self._subject}
         if self._a_sync:
-            x['kafka']['async'] = True
+            y['async'] = True
+        if self._batchSize:
+            y['batchSize'] = self._batchSize
+        if self._linger:
+            y['linger'] = self._linger
+        if self._compressionType:
+            y['compressionType'] = self._compressionType
+        if self._acks:
+            y['acks'] = self._acks
+        x['kafka'] = y
         return x
 
 
@@ -203,8 +216,9 @@ class Step:
             url, name=name, insecureSkipVerify=insecureSkipVerify, headers=headers))
         return self
 
-    def kafka(self, subject, name=None, a_sync=False):
-        self._sinks.append(KafkaSink(subject, name=name, a_sync=a_sync))
+    def kafka(self, subject, name=None, a_sync=False, batchSize=None, linger=None, compressionType=None, acks=None):
+        self._sinks.append(KafkaSink(subject, name=name, a_sync=a_sync, batchSize=batchSize, linger=linger,
+                                     compressionType=compressionType, acks=acks))
         return self
 
     def scale(self, desiredReplicas, scalingDelay=None, peekDelay=None):
@@ -566,14 +580,23 @@ class HTTPSource(Source):
 
 
 class KafkaSource(Source):
-    def __init__(self, topic, name=None, retry=None):
+    def __init__(self, topic, name=None, retry=None, startOffset=None, fetchMin=None, fetchWaitMax=None):
         super().__init__(name=name, retry=retry)
         assert topic
         self._topic = topic
+        self._startOffset = startOffset
+        self._fetchMin = fetchMin
+        self._fetchWaitMax = fetchWaitMax
 
     def dump(self):
         x = super().dump()
         y = {'topic': self._topic}
+        if self._startOffset:
+            y["startOffset"] = self._startOffset
+        if self._fetchMin:
+            y["fetchMin"] = self._fetchMin
+        if self._fetchWaitMax:
+            y["fetchWaitMax"] = self._fetchWaitMax
         x['kafka'] = y
         return x
 
@@ -599,8 +622,8 @@ def http(name=None, retry=None, serviceName=None):
     return HTTPSource(name=name, serviceName=serviceName, retry=retry)
 
 
-def kafka(topic=None, name=None, retry=None):
-    return KafkaSource(topic, name=name, retry=retry)
+def kafka(topic=None, name=None, retry=None, startOffset=None, fetchMin=None, fetchWaitMax=None):
+    return KafkaSource(topic, name=name, retry=retry, startOffset=startOffset, fetchMin=fetchMin, fetchWaitMax=fetchWaitMax)
 
 
 def stan(subject=None, name=None, retry=None):

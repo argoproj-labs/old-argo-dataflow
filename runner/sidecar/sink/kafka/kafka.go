@@ -33,17 +33,13 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 		return nil, err
 	}
 	if x.MaxMessageBytes > 0 {
-		config["message.max.bytes"] = x.Kafka.MaxMessageBytes
+		config["message.max.bytes"] = x.GetMessageMaxBytes()
 	}
 	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
-	config["batch.size"] = 100000
-	if x.Async {
-		config["linger.ms"] = 50 // Alias for queue.buffering.max.ms
-	} else {
-		config["linger.ms"] = 0
-	}
-	config["compression.type"] = "lz4"
-	config["request.required.acks"] = "all"
+	config["batch.size"] = x.GetBatchSize()
+	config["linger.ms"] = x.GetLingerMs()
+	config["compression.type"] = x.CompressionType
+	config["acks"] = x.GetAcks()
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/producer_example/producer_example.go
 	producer, err := kafka.NewProducer(&config)
 	if err != nil {
@@ -69,7 +65,7 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 			for e := range producer.Events() {
 				switch ev := e.(type) {
 				case *kafka.Message:
-					if ev.TopicPartition.Error != nil {
+					if err := ev.TopicPartition.Error; err != nil {
 						logger.Error(err, "Async to Kafka failed", "topic", x.Topic)
 						kafkaMessagesProducedErr.WithLabelValues(sinkName).Inc()
 					} else {
