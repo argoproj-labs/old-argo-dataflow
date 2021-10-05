@@ -69,7 +69,6 @@ func init() {
 				case *kafka.Stats:
 					// https://github.com/edenhill/librdkafka/wiki/Consumer-lag-monitoring
 					// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/stats_example/stats_example.go
-					println(ev.String())
 					stats := &KafkaStats{}
 					if err := json.Unmarshal([]byte(e.String()), stats); err != nil {
 						w.WriteHeader(500)

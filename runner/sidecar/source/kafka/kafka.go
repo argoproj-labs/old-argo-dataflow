@@ -223,7 +223,6 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 			}
 			offset := int64(msg.TopicPartition.Offset)
 			logger := logger.WithValues("offset", offset)
-			println("offset=", offset)
 			if err := s.processMessage(ctx, msg); err != nil {
 				if errors.Is(err, context.Canceled) {
 					logger.Info("failed to process message", "err", err.Error())

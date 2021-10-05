@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,7 +23,7 @@ func main() {
 	case "docs":
 		_, _ = fmt.Printf("### Examples\n\n")
 		for _, file := range files {
-			println(file.Name())
+			log.Println(file.Name())
 			for i, un := range file.Items {
 				if i == 0 {
 					annotations := un.GetAnnotations()
