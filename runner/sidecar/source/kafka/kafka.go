@@ -43,6 +43,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
+	config["go.logs.channel.enable"] = true
 	config["group.id"] = consumerGroupID
 	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
 	config["heartbeat.interval.ms"] = 3 * seconds
@@ -62,6 +63,13 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGr
 	if err != nil {
 		return nil, err
 	}
+
+	go wait.JitterUntilWithContext(ctx, func(context.Context) {
+		logger.Info("consuming Kafka logs")
+		for e := range consumer.Logs() {
+			logger.WithValues("name", e.Name, "tag", e.Tag).Info(e.Message)
+		}
+	}, 3*time.Second, 1.2, true)
 
 	s := &kafkaSource{
 		logger:     logger,

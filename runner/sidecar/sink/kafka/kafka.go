@@ -32,6 +32,7 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	if err != nil {
 		return nil, err
 	}
+	config["go.logs.channel.enable"] = true
 	if x.MaxMessageBytes > 0 {
 		config["message.max.bytes"] = x.GetMessageMaxBytes()
 	}
@@ -40,12 +41,22 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	config["linger.ms"] = x.GetLingerMs()
 	config["compression.type"] = x.CompressionType
 	config["acks"] = x.GetAcks()
+
+	logger.Info("kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
+
 	// https://github.com/confluentinc/confluent-kafka-go/blob/master/examples/producer_example/producer_example.go
 	producer, err := kafka.NewProducer(&config)
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
+
+	go wait.JitterUntilWithContext(ctx, func(context.Context) {
+		logger.Info("consuming Kafka logs")
+		for e := range producer.Logs() {
+			logger.WithValues("name", e.Name, "tag", e.Tag).Info(e.Message)
+		}
+	}, 3*time.Second, 1.2, true)
+
 	if x.Async {
 		// track async success and errors
 		kafkaMessagesProducedSuccess := promauto.NewCounterVec(prometheus.CounterOpts{
