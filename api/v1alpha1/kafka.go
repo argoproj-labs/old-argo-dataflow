@@ -26,6 +26,10 @@ type KafkaConfig struct {
 	MaxMessageBytes int32     `json:"maxMessageBytes,omitempty" protobuf:"varint,4,opt,name=maxMessageBytes"`
 }
 
+func (m *KafkaConfig) GetMessageMaxBytes() int {
+	return int(m.MaxMessageBytes)
+}
+
 type Kafka struct {
 	// +kubebuilder:default=default
 	Name        string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`

@@ -18,7 +18,7 @@ const (
 	CtrSidecar = "sidecar"
 	// env vars.
 	EnvCluster          = "ARGO_DATAFLOW_CLUSTER"
-	EnvDebug            = "ARGO_DATAFLOW_DEBUG"              // enable default mode, default "false"
+	EnvDebug            = "ARGO_DATAFLOW_DEBUG"              // enable debug flags, maybe "true" or CSV, e.g. "pprof,kafka.generic"
 	EnvUnixDomainSocket = "ARGO_DATAFLOW_UNIX_DOMAIN_SOCKET" // use Unix Domain Socket, default "true"
 	EnvImagePrefix      = "ARGO_DATAFLOW_IMAGE_PREFIX"       // default "quay.io/argoproj"
 	EnvNamespace        = "ARGO_DATAFLOW_NAMESPACE"

@@ -23,6 +23,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/shared/builtin/flatten"
 	"github.com/argoproj-labs/argo-dataflow/shared/builtin/group"
 	_map "github.com/argoproj-labs/argo-dataflow/shared/builtin/map"
+	"github.com/argoproj-labs/argo-dataflow/shared/debug"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -33,7 +34,7 @@ var logger = sharedutil.NewLogger()
 func init() {
 	// https://mmcloughlin.com/posts/your-pprof-is-showing
 	http.DefaultServeMux = http.NewServeMux()
-	if os.Getenv(dfv1.EnvDebug) == "true" {
+	if debug.Enabled("pprof") {
 		logger.Info("enabling pprof debug endpoints - do not do this in production")
 		http.HandleFunc("/debug/pprof/", pprof.Index)
 		http.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)

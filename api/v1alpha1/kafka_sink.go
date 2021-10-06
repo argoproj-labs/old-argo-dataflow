@@ -35,5 +35,5 @@ func (m *KafkaSink) GetAcks() interface{} {
 }
 
 func (m *KafkaSink) GetMessageMaxBytes() int {
-	return int(m.Kafka.MaxMessageBytes)
+	return m.Kafka.GetMessageMaxBytes()
 }

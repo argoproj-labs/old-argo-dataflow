@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
+	"github.com/argoproj-labs/argo-dataflow/shared/debug"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -27,11 +28,12 @@ func GetConfig(ctx context.Context, secretInterface corev1.SecretInterface, k df
 	// https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
 	cm := kafka.ConfigMap{
 		"bootstrap.servers": strings.Join(k.Brokers, ","),
-		// TODO add some config to enable debug
-		//"debug":             "consumer,cgrp,topic,fetch",
+	}
+	if flags := debug.EnabledFlags("kafka."); len(flags) > 0 {
+		cm["debug"] = strings.Join(flags, ",")
 	}
 	if k.MaxMessageBytes > 0 {
-		cm["message.max.bytes"] = int(k.MaxMessageBytes)
+		cm["message.max.bytes"] = k.GetMessageMaxBytes()
 	}
 	if k.NET != nil {
 		cm["security.protocol"] = k.NET.GetSecurityProtocol()
