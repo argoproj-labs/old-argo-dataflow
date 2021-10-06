@@ -348,6 +348,17 @@ messages between steps.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml
 ```
 
+### [301-jetstream](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-jetstream-pipeline.yaml)
+
+This example shows reading and writing to a JetStream subject.
+
+* Adding replicas will nearly linearly increase throughput.       
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-jetstream-pipeline.yaml
+```
+
 ### [301-kafka](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml)
 
 This example shows reading and writing to a Kafka topic
