@@ -47,7 +47,9 @@ func becomeUnreadyHook(context.Context) error {
 	return nil
 }
 
-func Exec(ctx context.Context) error {
+func Exec(termCtx context.Context) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	restConfig := ctrl.GetConfigOrDie()
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 	secretInterface = kubernetesInterface.CoreV1().Secrets(namespace)
@@ -166,7 +168,7 @@ func Exec(ctx context.Context) error {
 	server := &http.Server{Addr: "localhost:3569"}
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing HTTP server")
-		return server.Shutdown(context.Background())
+		return server.Shutdown(ctx)
 	})
 	go func() {
 		defer runtimeutil.HandleCrash()
@@ -179,7 +181,7 @@ func Exec(ctx context.Context) error {
 	httpServer := &http.Server{Addr: ":3570", TLSConfig: &tls.Config{Certificates: []tls.Certificate{*cer}, MinVersion: tls.VersionTLS12}}
 	addStopHook(func(ctx context.Context) error {
 		logger.Info("closing HTTPS server")
-		return httpServer.Shutdown(context.Background())
+		return httpServer.Shutdown(ctx)
 	})
 	go func() {
 		defer runtimeutil.HandleCrash()
@@ -201,7 +203,7 @@ func Exec(ctx context.Context) error {
 
 	ready = true
 	logger.Info("ready")
-	<-ctx.Done()
+	<-termCtx.Done()
 	return nil
 }
 

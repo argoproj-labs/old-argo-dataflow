@@ -116,7 +116,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					}
 					ctx, cancel := context.WithTimeout(
 						dfv1.ContextWithMeta(
-							opentracing.ContextWithSpan(context.Background(), span),
+							opentracing.ContextWithSpan(ctx, span),
 							m,
 						),
 						15*time.Second,
