@@ -22,9 +22,11 @@ func TestJetStreamSourceStress(t *testing.T) {
 	defer Setup(t)()
 
 	subject := RandomJSSubject()
+	sinkSubject := RandomJSSubject()
 	streamName := "stresstest"
 
 	CreateJetStreamSubject(streamName, subject)
+	CreateJetStreamSubject(streamName, sinkSubject)
 	defer DeleteJetStream(streamName)
 
 	CreatePipeline(Pipeline{
@@ -35,7 +37,7 @@ func TestJetStreamSourceStress(t *testing.T) {
 				Cat:      &Cat{},
 				Replicas: Params.Replicas,
 				Sources:  []Source{{JetStream: &JetStreamSource{JetStream: JetStream{Subject: subject}}}},
-				Sinks:    []Sink{DefaultLogSink},
+				Sinks:    []Sink{{JetStream: &JetStreamSink{JetStream: JetStream{Subject: sinkSubject}}}, DefaultLogSink},
 				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
 					Requests: v1.ResourceList{
 						v1.ResourceMemory: Params.ResourceMemory,

@@ -8,6 +8,7 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink"
 	dbsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/db"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/http"
+	jssink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/jetstream"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/kafka"
 	logsink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/log"
 	s3sink "github.com/argoproj-labs/argo-dataflow/runner/sidecar/sink/s3"
@@ -70,6 +71,12 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, err
 			}
 		} else if x := s.Volume; x != nil {
 			if y, err := volumesink.New(sinkName); err != nil {
+				return nil, err
+			} else {
+				sinks[sinkName] = y
+			}
+		} else if x := s.JetStream; x != nil {
+			if y, err := jssink.New(ctx, secretInterface, namespace, pipelineName, stepName, replica, sinkName, *x); err != nil {
 				return nil, err
 			} else {
 				sinks[sinkName] = y

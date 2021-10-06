@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func jetStreamFromSecret(s *dfv1.JetStreamSource, secret *corev1.Secret) error {
+func jetStreamFromSecret(s *dfv1.JetStream, secret *corev1.Secret) error {
 	s.NATSURL = dfv1.StringOr(s.NATSURL, string(secret.Data["natsUrl"]))
 	if _, ok := secret.Data["authToken"]; ok {
 		s.Auth = &dfv1.NATSAuth{
@@ -24,7 +24,7 @@ func jetStreamFromSecret(s *dfv1.JetStreamSource, secret *corev1.Secret) error {
 	return nil
 }
 
-func enrichJetStream(ctx context.Context, x *dfv1.JetStreamSource) error {
+func enrichJetStream(ctx context.Context, x *dfv1.JetStream) error {
 	secret, err := secretInterface.Get(ctx, "dataflow-jetstream-"+x.Name, metav1.GetOptions{})
 	if err != nil {
 		if !apierr.IsNotFound(err) {

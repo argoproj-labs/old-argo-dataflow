@@ -58,10 +58,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 }
 
 func (j jsSource) Close() error {
-	logger.Info("draining subscription")
-	if err := j.sub.Drain(); err != nil {
-		return err
-	}
 	logger.Info("closing jetstream source connection")
 	if j.conn.IsClosed() {
 		j.conn.Close()

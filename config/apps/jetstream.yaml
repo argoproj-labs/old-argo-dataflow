@@ -28,10 +28,7 @@ metadata:
   name: dataflow-jetstream-default
 stringData:
   authToken: testingtokentestingtoken
-  maxInflight: "15"
-  natsMonitoringUrl: http://nats-js:8222
   natsUrl: nats-js
-  subjectPrefix: NamespacedPipelineName
 ---
 apiVersion: v1
 kind: Service

@@ -432,6 +432,10 @@ message JetStream {
   optional NATSAuth auth = 4;
 }
 
+message JetStreamSink {
+  optional JetStream jetstream = 1;
+}
+
 message JetStreamSource {
   optional JetStream jetstream = 1;
 }
@@ -669,6 +673,8 @@ message Sink {
   optional DBSink db = 7;
 
   optional VolumeSink volume = 8;
+
+  optional JetStreamSink jetstream = 9;
 }
 
 message Source {

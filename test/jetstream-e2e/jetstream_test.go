@@ -22,6 +22,10 @@ func TestJetStream(t *testing.T) {
 	subject := RandomJSSubject()
 	streamName := "test"
 	CreateJetStreamSubject(streamName, subject)
+
+	sinkSubject := RandomJSSubject()
+	CreateJetStreamSubject(streamName, sinkSubject)
+
 	defer DeleteJetStream(streamName)
 
 	CreatePipeline(Pipeline{
@@ -32,7 +36,7 @@ func TestJetStream(t *testing.T) {
 					Name:    "main",
 					Cat:     &Cat{},
 					Sources: []Source{{JetStream: &JetStreamSource{JetStream: JetStream{Subject: subject}}}},
-					Sinks:   []Sink{DefaultLogSink},
+					Sinks:   []Sink{{JetStream: &JetStreamSink{JetStream: JetStream{Subject: sinkSubject}}}},
 				},
 			},
 		},

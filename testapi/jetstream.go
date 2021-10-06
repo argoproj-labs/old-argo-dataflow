@@ -134,4 +134,39 @@ func init() {
 		}
 		_, _ = fmt.Fprintf(w, "sent %d messages of size %d at %.0f TPS to %q\n", n, mf.size, float64(n)/time.Since(start).Seconds(), subject)
 	})
+
+	http.HandleFunc("/jetstream/count-subject", func(w http.ResponseWriter, r *http.Request) {
+		subject := r.URL.Query().Get("subject")
+		stream := r.URL.Query().Get("stream")
+		opts := []nats.Option{nats.Token(testingToken)}
+		nc, err := nats.Connect(url, opts...)
+		if err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		defer nc.Close()
+		js, _ := nc.JetStream()
+		durable := "count-subject"
+		cInfo, _ := js.ConsumerInfo(stream, durable)
+		if cInfo != nil {
+			if err = js.DeleteConsumer(stream, durable); err != nil {
+				w.WriteHeader(500)
+				_, _ = w.Write([]byte(fmt.Sprintf("failed to clean up the existing consumer: %v", err)))
+				return
+			}
+		}
+		info, err := js.AddConsumer(stream, &nats.ConsumerConfig{
+			DeliverPolicy: nats.DeliverAllPolicy,
+			Durable:       durable,
+			FilterSubject: subject,
+			AckPolicy:     nats.AckExplicitPolicy,
+		})
+		if err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(fmt.Sprintf("failed to create a JetStream consumer info: %v", err)))
+			return
+		}
+		_, _ = fmt.Fprintf(w, "%d", info.NumPending)
+	})
 }
