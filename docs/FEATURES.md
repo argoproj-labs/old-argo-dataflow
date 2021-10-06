@@ -34,6 +34,7 @@ alpha/beta/stable.
 | HTTP source | v0.0.59 | | |
 | Kafka sink | v0.0.59 | | |
 | Kafka source | v0.0.59 | | |
+| [Jaeger](JAEGER.md)| | v0.0.102 | |
 | Log sink | |  v0.0.59 |  |
 | Map step | v0.0.59 | v0.0.70 | |
 | Meta-data | v0.0.102 | | |

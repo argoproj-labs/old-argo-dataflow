@@ -81,6 +81,7 @@ Advanced
 * [Limitations](docs/LIMITATIONS.md)
 * [Metrics](docs/METRICS.md)
 * [Image contract](docs/IMAGE_CONTRACT.md)
+* [Jaeger tracing](docs/JAEGER.md)
 * [Reading material](docs/READING.md)
 * [Security](docs/SECURITY.md)
 * [Dataflow vs X](docs/DATAFLOW_VS_X.md)
