@@ -41,8 +41,8 @@ func init() {
 		Params.N,
 		Params.Replicas,
 		Params.Timeout.String(),
-		Params.MessageSize,
 		Params.Workers,
+		Params.MessageSize,
 		Params.ResourceMemory.String(),
 		Params.ResourceCPU.String(),
 	)

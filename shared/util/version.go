@@ -10,7 +10,6 @@ var (
 	// * "v0.0.0-X-Y" for unreleased versions, e.g.
 	//   - "v0.0.0-latest-0" ("latest" version, i.e. latest build on the "main" branch or local dev build)
 	version = "v0.0.0-latest-0"
-	logger  = NewLogger()
 	Version semver.Version
 )
 

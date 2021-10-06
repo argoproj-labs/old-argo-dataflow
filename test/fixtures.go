@@ -31,7 +31,6 @@ func Setup(t *testing.T) (teardown func()) {
 	log.Printf("\n")
 	DeletePipelines()
 	WaitForPodsToBeDeleted()
-	RestartStatefulSet("redis")
 
 	stopTestAPIPortForward = StartPortForward("testapi-0", 8378)
 
