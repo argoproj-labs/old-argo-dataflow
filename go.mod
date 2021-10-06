@@ -19,7 +19,6 @@ require (
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/go-git/go-git/v5 v5.3.0
 	github.com/go-logr/logr v0.4.0
-	github.com/go-redis/redis/v8 v8.11.3
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.1.2

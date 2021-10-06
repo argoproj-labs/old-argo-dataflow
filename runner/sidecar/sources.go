@@ -7,7 +7,6 @@ import (
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
-	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/monitor"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/cron"
 	dbsource "github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/db"
@@ -69,13 +68,6 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		return err
 	}
 
-	mntr := monitor.New(ctx, pipelineName, stepName)
-	addStopHook(func(ctx context.Context) error {
-		logger.Info("closing monitor")
-		mntr.Close(ctx)
-		logger.Info("monitor closed")
-		return nil
-	})
 	sources := make(map[string]source.Interface)
 	for _, s := range step.Spec.Sources {
 		sourceName := s.Name
@@ -150,7 +142,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			}
 		} else if x := s.Kafka; x != nil {
 			groupID := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
-			if y, err := kafkasource.New(ctx, secretInterface, mntr, groupID, sourceName, sourceURN, replica, *x, processWithRetry); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, groupID, sourceName, sourceURN, replica, *x, processWithRetry); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
