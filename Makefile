@@ -63,6 +63,9 @@ test-s3-e2e:
 test-stan-e2e:
 test-stan-fmea:
 test-stan-stress:
+test-jetstream-e2e:
+test-jetstream-stress:
+test-jetstream-fmea:
 test-%:
 	go generate $(shell find ./test/$* -name '*.go')
 	kubectl -n argo-dataflow-system wait pod -l statefulset.kubernetes.io/pod-name --for condition=ready --timeout=2m

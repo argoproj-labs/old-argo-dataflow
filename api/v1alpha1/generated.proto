@@ -421,6 +421,25 @@ message Interface {
   optional HTTP http = 2;
 }
 
+message JetStream {
+  // +kubebuilder:default=default
+  optional string name = 1;
+
+  optional string natsUrl = 2;
+
+  optional string subject = 3;
+
+  optional NATSAuth auth = 4;
+}
+
+message JetStreamSink {
+  optional JetStream jetstream = 1;
+}
+
+message JetStreamSource {
+  optional JetStream jetstream = 1;
+}
+
 message Kafka {
   // +kubebuilder:default=default
   optional string name = 1;
@@ -498,6 +517,10 @@ message Metadata {
   map<string, string> annotations = 1;
 
   map<string, string> labels = 2;
+}
+
+message NATSAuth {
+  optional k8s.io.api.core.v1.SecretKeySelector token = 1;
 }
 
 // +kubebuilder:object:root=true
@@ -607,16 +630,12 @@ message STAN {
 
   optional string subjectPrefix = 6;
 
-  optional STANAuth auth = 7;
+  optional NATSAuth auth = 7;
 
   // Max inflight messages when subscribing to the stan server, which means how many messages
   // between commits, therefore potential duplicates during disruption
   // +kubebuilder:default=20
   optional uint32 maxInflight = 9;
-}
-
-message STANAuth {
-  optional k8s.io.api.core.v1.SecretKeySelector token = 1;
 }
 
 message Scale {
@@ -654,6 +673,8 @@ message Sink {
   optional DBSink db = 7;
 
   optional VolumeSink volume = 8;
+
+  optional JetStreamSink jetstream = 9;
 }
 
 message Source {
@@ -673,6 +694,8 @@ message Source {
   optional DBSource db = 6;
 
   optional VolumeSource volume = 9;
+
+  optional JetStreamSource jetstream = 10;
 
   // +kubebuilder:default={duration: "100ms", steps: 20, factorPercentage: 200, jitterPercentage: 10}
   optional Backoff retry = 7;

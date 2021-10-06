@@ -38,6 +38,8 @@ alpha/beta/stable.
 | Log sink | |  v0.0.59 |  |
 | Map step | v0.0.59 | v0.0.70 | |
 | Meta-data | v0.0.102 | | |
+| NATS JetStream sink | v0.0.125 | | |
+| NATS JetStream source | v0.0.125 | | |
 | NATS Streaming sink | v0.0.59 | | |
 | NATS Streaming source | v0.0.59 | | |
 | NodeJS SDK | v0.0.78 | | |

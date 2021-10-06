@@ -6,11 +6,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-type STANAuthStrategy string
+type NATSAuthStrategy string
 
 var (
-	STANAuthNone  STANAuthStrategy = "None"
-	STANAuthToken STANAuthStrategy = "Token"
+	NATSAuthNone  NATSAuthStrategy = "None"
+	NATSAuthToken NATSAuthStrategy = "Token"
 )
 
 type STAN struct {
@@ -21,7 +21,7 @@ type STAN struct {
 	ClusterID         string        `json:"clusterId,omitempty" protobuf:"bytes,5,opt,name=clusterId"`
 	Subject           string        `json:"subject" protobuf:"bytes,3,opt,name=subject"`
 	SubjectPrefix     SubjectPrefix `json:"subjectPrefix,omitempty" protobuf:"bytes,6,opt,name=subjectPrefix,casttype=SubjectPrefix"`
-	Auth              *STANAuth     `json:"auth,omitempty" protobuf:"bytes,7,opt,name=auth"`
+	Auth              *NATSAuth     `json:"auth,omitempty" protobuf:"bytes,7,opt,name=auth"`
 	// Max inflight messages when subscribing to the stan server, which means how many messages
 	// between commits, therefore potential duplicates during disruption
 	// +kubebuilder:default=20
@@ -32,17 +32,17 @@ func (s STAN) GenURN(cluster, namespace string) string {
 	return fmt.Sprintf("urn:dataflow:stan:%s:%s", s.NATSURL, s.Subject)
 }
 
-type STANAuth struct {
+type NATSAuth struct {
 	Token *corev1.SecretKeySelector `json:"token,omitempty" protobuf:"bytes,1,opt,name=token"`
 }
 
-func (s *STAN) AuthStrategy() STANAuthStrategy {
+func (s *STAN) AuthStrategy() NATSAuthStrategy {
 	if s.Auth != nil {
 		if s.Auth.Token != nil {
-			return STANAuthToken
+			return NATSAuthToken
 		}
 	}
-	return STANAuthNone
+	return NATSAuthNone
 }
 
 func (s *STAN) GetMaxInflight() int {

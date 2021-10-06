@@ -33,7 +33,7 @@ func stanFromSecret(s *dfv1.STAN, secret *corev1.Secret) error {
 		}
 	}
 	if _, ok := secret.Data["authToken"]; ok {
-		s.Auth = &dfv1.STANAuth{
+		s.Auth = &dfv1.NATSAuth{
 			Token: &corev1.SecretKeySelector{
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: secret.Name,

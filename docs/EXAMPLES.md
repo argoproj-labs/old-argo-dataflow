@@ -348,6 +348,17 @@ messages between steps.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-http-pipeline.yaml
 ```
 
+### [301-jetstream](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-jetstream-pipeline.yaml)
+
+This example shows reading and writing to a JetStream subject.
+
+* Adding replicas will nearly linearly increase throughput.       
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-jetstream-pipeline.yaml
+```
+
 ### [301-kafka](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/301-kafka-pipeline.yaml)
 
 This example shows reading and writing to a Kafka topic
@@ -401,6 +412,19 @@ This is an example of providing a bearer token for a HTTP source.
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-103-http-main-source-default-secret.yaml
 ```
 
+### [dataflow-jetstream-default](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-jetstream-default-secret.yaml)
+
+This is an example of providing a namespace named NATS Streaming configuration.
+
+The secret must be named `dataflow-jetstream-${name}`.
+
+[Learn about configuration](../docs/CONFIGURATION.md)
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-jetstream-default-secret.yaml
+```
+
 ### [dataflow-kafka-default](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml)
 
 This is an example of providing a namespace named Kafka configuration.
@@ -445,7 +469,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 This is an example of providing a namespace named NATS Streaming configuration.
 
-The secret must be named `dataflow-nats-${name}`.
+The secret must be named `dataflow-stan-${name}`.
 
 [Learn about configuration](../docs/CONFIGURATION.md)
 

@@ -1,0 +1,20 @@
+apiVersion: dataflow.argoproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  annotations:
+    dataflow.argoproj.io/description: "This example shows reading and writing to a\
+      \ JetStream subject.\n\n* Adding replicas will nearly linearly increase throughput.\
+      \       \n"
+    dataflow.argoproj.io/owner: argoproj-labs
+    dataflow.argoproj.io/test: 'false'
+  name: 301-jetstream
+spec:
+  steps:
+  - cat: {}
+    name: main
+    sinks:
+    - jetstream:
+        subject: output-subject
+    sources:
+    - jetstream:
+        subject: input-subject

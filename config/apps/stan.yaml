@@ -40,7 +40,7 @@ metadata:
     dataflow.argoproj.io/description: |
       This is an example of providing a namespace named NATS Streaming configuration.
 
-      The secret must be named `dataflow-nats-${name}`.
+      The secret must be named `dataflow-stan-${name}`.
 
       [Learn about configuration](../docs/CONFIGURATION.md)
   name: dataflow-stan-default

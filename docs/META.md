@@ -17,6 +17,7 @@ Source:
 * Kafka: `urn:dataflow:kafka:${broker[0]}:${topic}`
 * S3: `urn:dataflow:s3:${bucket}`
 * STAN: `urn:dataflow:stan:${natsURL}:${subject}`
+* NATS JetStream `urn:dataflow:jetstream:${natsURL}:${subject}`
 * Volume:
     * `urn:dataflow:volume:configmap:${configmap}.configmap.${namespace}.${cluster}`
     * `urn:dataflow:volume:secret:${secret}.secret.${namespace}.${cluster}`
@@ -29,4 +30,5 @@ IDs:
 * Kafka: `${partition}-${offset}`
 * S3: `${key}`
 * STAN: `${sequence}`
+* NATS JetStream: `${consumer.sequence}-${stream.sequence}`
 * Volume: `${filename}`
