@@ -83,6 +83,7 @@ jobs:
           - stan-stress
           - jetstream-e2e
           - jetstream-stress
+          - jetstream-fmea
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
