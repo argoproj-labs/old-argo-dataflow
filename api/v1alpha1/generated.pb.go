@@ -37,10 +37,12 @@ import (
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = proto.Marshal
-var _ = fmt.Errorf
-var _ = math.Inf
-var _ = time.Kitchen
+var (
+	_ = proto.Marshal
+	_ = fmt.Errorf
+	_ = math.Inf
+	_ = time.Kitchen
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -53,9 +55,11 @@ func (*AWSCredentials) ProtoMessage() {}
 func (*AWSCredentials) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{0}
 }
+
 func (m *AWSCredentials) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *AWSCredentials) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -64,12 +68,15 @@ func (m *AWSCredentials) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 	}
 	return b[:n], nil
 }
+
 func (m *AWSCredentials) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_AWSCredentials.Merge(m, src)
 }
+
 func (m *AWSCredentials) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *AWSCredentials) XXX_DiscardUnknown() {
 	xxx_messageInfo_AWSCredentials.DiscardUnknown(m)
 }
@@ -81,9 +88,11 @@ func (*AWSEndpoint) ProtoMessage() {}
 func (*AWSEndpoint) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{1}
 }
+
 func (m *AWSEndpoint) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *AWSEndpoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -92,12 +101,15 @@ func (m *AWSEndpoint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 	}
 	return b[:n], nil
 }
+
 func (m *AWSEndpoint) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_AWSEndpoint.Merge(m, src)
 }
+
 func (m *AWSEndpoint) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *AWSEndpoint) XXX_DiscardUnknown() {
 	xxx_messageInfo_AWSEndpoint.DiscardUnknown(m)
 }
@@ -109,9 +121,11 @@ func (*AbstractStep) ProtoMessage() {}
 func (*AbstractStep) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{2}
 }
+
 func (m *AbstractStep) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *AbstractStep) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -120,12 +134,15 @@ func (m *AbstractStep) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 	}
 	return b[:n], nil
 }
+
 func (m *AbstractStep) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_AbstractStep.Merge(m, src)
 }
+
 func (m *AbstractStep) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *AbstractStep) XXX_DiscardUnknown() {
 	xxx_messageInfo_AbstractStep.DiscardUnknown(m)
 }
@@ -137,9 +154,11 @@ func (*AbstractVolumeSource) ProtoMessage() {}
 func (*AbstractVolumeSource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{3}
 }
+
 func (m *AbstractVolumeSource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *AbstractVolumeSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -148,12 +167,15 @@ func (m *AbstractVolumeSource) XXX_Marshal(b []byte, deterministic bool) ([]byte
 	}
 	return b[:n], nil
 }
+
 func (m *AbstractVolumeSource) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_AbstractVolumeSource.Merge(m, src)
 }
+
 func (m *AbstractVolumeSource) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *AbstractVolumeSource) XXX_DiscardUnknown() {
 	xxx_messageInfo_AbstractVolumeSource.DiscardUnknown(m)
 }
@@ -165,9 +187,11 @@ func (*Backoff) ProtoMessage() {}
 func (*Backoff) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{4}
 }
+
 func (m *Backoff) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Backoff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -176,12 +200,15 @@ func (m *Backoff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Backoff) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Backoff.Merge(m, src)
 }
+
 func (m *Backoff) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Backoff) XXX_DiscardUnknown() {
 	xxx_messageInfo_Backoff.DiscardUnknown(m)
 }
@@ -193,9 +220,11 @@ func (*Cat) ProtoMessage() {}
 func (*Cat) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{5}
 }
+
 func (m *Cat) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Cat) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -204,12 +233,15 @@ func (m *Cat) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Cat) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Cat.Merge(m, src)
 }
+
 func (m *Cat) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Cat) XXX_DiscardUnknown() {
 	xxx_messageInfo_Cat.DiscardUnknown(m)
 }
@@ -221,9 +253,11 @@ func (*Code) ProtoMessage() {}
 func (*Code) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{6}
 }
+
 func (m *Code) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Code) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -232,12 +266,15 @@ func (m *Code) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Code) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Code.Merge(m, src)
 }
+
 func (m *Code) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Code) XXX_DiscardUnknown() {
 	xxx_messageInfo_Code.DiscardUnknown(m)
 }
@@ -249,9 +286,11 @@ func (*Container) ProtoMessage() {}
 func (*Container) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{7}
 }
+
 func (m *Container) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Container) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -260,12 +299,15 @@ func (m *Container) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Container) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Container.Merge(m, src)
 }
+
 func (m *Container) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Container) XXX_DiscardUnknown() {
 	xxx_messageInfo_Container.DiscardUnknown(m)
 }
@@ -277,9 +319,11 @@ func (*Cron) ProtoMessage() {}
 func (*Cron) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{8}
 }
+
 func (m *Cron) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Cron) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -288,12 +332,15 @@ func (m *Cron) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Cron) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Cron.Merge(m, src)
 }
+
 func (m *Cron) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Cron) XXX_DiscardUnknown() {
 	xxx_messageInfo_Cron.DiscardUnknown(m)
 }
@@ -305,9 +352,11 @@ func (*DBDataSource) ProtoMessage() {}
 func (*DBDataSource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{9}
 }
+
 func (m *DBDataSource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *DBDataSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -316,12 +365,15 @@ func (m *DBDataSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 	}
 	return b[:n], nil
 }
+
 func (m *DBDataSource) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_DBDataSource.Merge(m, src)
 }
+
 func (m *DBDataSource) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *DBDataSource) XXX_DiscardUnknown() {
 	xxx_messageInfo_DBDataSource.DiscardUnknown(m)
 }
@@ -333,9 +385,11 @@ func (*DBDataSourceFrom) ProtoMessage() {}
 func (*DBDataSourceFrom) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{10}
 }
+
 func (m *DBDataSourceFrom) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *DBDataSourceFrom) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -344,12 +398,15 @@ func (m *DBDataSourceFrom) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 	}
 	return b[:n], nil
 }
+
 func (m *DBDataSourceFrom) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_DBDataSourceFrom.Merge(m, src)
 }
+
 func (m *DBDataSourceFrom) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *DBDataSourceFrom) XXX_DiscardUnknown() {
 	xxx_messageInfo_DBDataSourceFrom.DiscardUnknown(m)
 }
@@ -361,9 +418,11 @@ func (*DBSink) ProtoMessage() {}
 func (*DBSink) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{11}
 }
+
 func (m *DBSink) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *DBSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -372,12 +431,15 @@ func (m *DBSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *DBSink) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_DBSink.Merge(m, src)
 }
+
 func (m *DBSink) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *DBSink) XXX_DiscardUnknown() {
 	xxx_messageInfo_DBSink.DiscardUnknown(m)
 }
@@ -389,9 +451,11 @@ func (*DBSource) ProtoMessage() {}
 func (*DBSource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{12}
 }
+
 func (m *DBSource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *DBSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -400,12 +464,15 @@ func (m *DBSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *DBSource) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_DBSource.Merge(m, src)
 }
+
 func (m *DBSource) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *DBSource) XXX_DiscardUnknown() {
 	xxx_messageInfo_DBSource.DiscardUnknown(m)
 }
@@ -417,9 +484,11 @@ func (*Database) ProtoMessage() {}
 func (*Database) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{13}
 }
+
 func (m *Database) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Database) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -428,12 +497,15 @@ func (m *Database) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Database) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Database.Merge(m, src)
 }
+
 func (m *Database) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Database) XXX_DiscardUnknown() {
 	xxx_messageInfo_Database.DiscardUnknown(m)
 }
@@ -445,9 +517,11 @@ func (*Dedupe) ProtoMessage() {}
 func (*Dedupe) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{14}
 }
+
 func (m *Dedupe) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Dedupe) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -456,12 +530,15 @@ func (m *Dedupe) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Dedupe) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Dedupe.Merge(m, src)
 }
+
 func (m *Dedupe) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Dedupe) XXX_DiscardUnknown() {
 	xxx_messageInfo_Dedupe.DiscardUnknown(m)
 }
@@ -473,9 +550,11 @@ func (*Expand) ProtoMessage() {}
 func (*Expand) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{15}
 }
+
 func (m *Expand) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Expand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -484,12 +563,15 @@ func (m *Expand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Expand) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Expand.Merge(m, src)
 }
+
 func (m *Expand) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Expand) XXX_DiscardUnknown() {
 	xxx_messageInfo_Expand.DiscardUnknown(m)
 }
@@ -501,9 +583,11 @@ func (*Filter) ProtoMessage() {}
 func (*Filter) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{16}
 }
+
 func (m *Filter) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Filter) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -512,12 +596,15 @@ func (m *Filter) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Filter) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Filter.Merge(m, src)
 }
+
 func (m *Filter) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Filter) XXX_DiscardUnknown() {
 	xxx_messageInfo_Filter.DiscardUnknown(m)
 }
@@ -529,9 +616,11 @@ func (*Flatten) ProtoMessage() {}
 func (*Flatten) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{17}
 }
+
 func (m *Flatten) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Flatten) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -540,12 +629,15 @@ func (m *Flatten) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Flatten) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Flatten.Merge(m, src)
 }
+
 func (m *Flatten) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Flatten) XXX_DiscardUnknown() {
 	xxx_messageInfo_Flatten.DiscardUnknown(m)
 }
@@ -557,9 +649,11 @@ func (*GetPodSpecReq) ProtoMessage() {}
 func (*GetPodSpecReq) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{18}
 }
+
 func (m *GetPodSpecReq) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *GetPodSpecReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -568,12 +662,15 @@ func (m *GetPodSpecReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 	}
 	return b[:n], nil
 }
+
 func (m *GetPodSpecReq) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_GetPodSpecReq.Merge(m, src)
 }
+
 func (m *GetPodSpecReq) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *GetPodSpecReq) XXX_DiscardUnknown() {
 	xxx_messageInfo_GetPodSpecReq.DiscardUnknown(m)
 }
@@ -585,9 +682,11 @@ func (*Git) ProtoMessage() {}
 func (*Git) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{19}
 }
+
 func (m *Git) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Git) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -596,12 +695,15 @@ func (m *Git) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Git) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Git.Merge(m, src)
 }
+
 func (m *Git) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Git) XXX_DiscardUnknown() {
 	xxx_messageInfo_Git.DiscardUnknown(m)
 }
@@ -613,9 +715,11 @@ func (*Group) ProtoMessage() {}
 func (*Group) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{20}
 }
+
 func (m *Group) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Group) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -624,12 +728,15 @@ func (m *Group) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Group) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Group.Merge(m, src)
 }
+
 func (m *Group) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Group) XXX_DiscardUnknown() {
 	xxx_messageInfo_Group.DiscardUnknown(m)
 }
@@ -641,9 +748,11 @@ func (*HTTP) ProtoMessage() {}
 func (*HTTP) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{21}
 }
+
 func (m *HTTP) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *HTTP) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -652,12 +761,15 @@ func (m *HTTP) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *HTTP) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_HTTP.Merge(m, src)
 }
+
 func (m *HTTP) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *HTTP) XXX_DiscardUnknown() {
 	xxx_messageInfo_HTTP.DiscardUnknown(m)
 }
@@ -669,9 +781,11 @@ func (*HTTPHeader) ProtoMessage() {}
 func (*HTTPHeader) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{22}
 }
+
 func (m *HTTPHeader) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *HTTPHeader) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -680,12 +794,15 @@ func (m *HTTPHeader) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *HTTPHeader) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_HTTPHeader.Merge(m, src)
 }
+
 func (m *HTTPHeader) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *HTTPHeader) XXX_DiscardUnknown() {
 	xxx_messageInfo_HTTPHeader.DiscardUnknown(m)
 }
@@ -697,9 +814,11 @@ func (*HTTPHeaderSource) ProtoMessage() {}
 func (*HTTPHeaderSource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{23}
 }
+
 func (m *HTTPHeaderSource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *HTTPHeaderSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -708,12 +827,15 @@ func (m *HTTPHeaderSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 	}
 	return b[:n], nil
 }
+
 func (m *HTTPHeaderSource) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_HTTPHeaderSource.Merge(m, src)
 }
+
 func (m *HTTPHeaderSource) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *HTTPHeaderSource) XXX_DiscardUnknown() {
 	xxx_messageInfo_HTTPHeaderSource.DiscardUnknown(m)
 }
@@ -725,9 +847,11 @@ func (*HTTPSink) ProtoMessage() {}
 func (*HTTPSink) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{24}
 }
+
 func (m *HTTPSink) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *HTTPSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -736,12 +860,15 @@ func (m *HTTPSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *HTTPSink) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_HTTPSink.Merge(m, src)
 }
+
 func (m *HTTPSink) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *HTTPSink) XXX_DiscardUnknown() {
 	xxx_messageInfo_HTTPSink.DiscardUnknown(m)
 }
@@ -753,9 +880,11 @@ func (*HTTPSource) ProtoMessage() {}
 func (*HTTPSource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{25}
 }
+
 func (m *HTTPSource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *HTTPSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -764,12 +893,15 @@ func (m *HTTPSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *HTTPSource) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_HTTPSource.Merge(m, src)
 }
+
 func (m *HTTPSource) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *HTTPSource) XXX_DiscardUnknown() {
 	xxx_messageInfo_HTTPSource.DiscardUnknown(m)
 }
@@ -781,9 +913,11 @@ func (*Interface) ProtoMessage() {}
 func (*Interface) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{26}
 }
+
 func (m *Interface) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Interface) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -792,12 +926,15 @@ func (m *Interface) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Interface) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Interface.Merge(m, src)
 }
+
 func (m *Interface) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Interface) XXX_DiscardUnknown() {
 	xxx_messageInfo_Interface.DiscardUnknown(m)
 }
@@ -809,9 +946,11 @@ func (*JetStream) ProtoMessage() {}
 func (*JetStream) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{27}
 }
+
 func (m *JetStream) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *JetStream) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -820,12 +959,15 @@ func (m *JetStream) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *JetStream) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_JetStream.Merge(m, src)
 }
+
 func (m *JetStream) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *JetStream) XXX_DiscardUnknown() {
 	xxx_messageInfo_JetStream.DiscardUnknown(m)
 }
@@ -837,9 +979,11 @@ func (*JetStreamSink) ProtoMessage() {}
 func (*JetStreamSink) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{28}
 }
+
 func (m *JetStreamSink) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *JetStreamSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -848,12 +992,15 @@ func (m *JetStreamSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 	}
 	return b[:n], nil
 }
+
 func (m *JetStreamSink) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_JetStreamSink.Merge(m, src)
 }
+
 func (m *JetStreamSink) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *JetStreamSink) XXX_DiscardUnknown() {
 	xxx_messageInfo_JetStreamSink.DiscardUnknown(m)
 }
@@ -865,9 +1012,11 @@ func (*JetStreamSource) ProtoMessage() {}
 func (*JetStreamSource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{29}
 }
+
 func (m *JetStreamSource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *JetStreamSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -876,12 +1025,15 @@ func (m *JetStreamSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 	}
 	return b[:n], nil
 }
+
 func (m *JetStreamSource) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_JetStreamSource.Merge(m, src)
 }
+
 func (m *JetStreamSource) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *JetStreamSource) XXX_DiscardUnknown() {
 	xxx_messageInfo_JetStreamSource.DiscardUnknown(m)
 }
@@ -893,9 +1045,11 @@ func (*Kafka) ProtoMessage() {}
 func (*Kafka) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{30}
 }
+
 func (m *Kafka) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Kafka) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -904,12 +1058,15 @@ func (m *Kafka) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Kafka) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Kafka.Merge(m, src)
 }
+
 func (m *Kafka) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Kafka) XXX_DiscardUnknown() {
 	xxx_messageInfo_Kafka.DiscardUnknown(m)
 }
@@ -921,9 +1078,11 @@ func (*KafkaConfig) ProtoMessage() {}
 func (*KafkaConfig) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{31}
 }
+
 func (m *KafkaConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *KafkaConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -932,12 +1091,15 @@ func (m *KafkaConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 	}
 	return b[:n], nil
 }
+
 func (m *KafkaConfig) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_KafkaConfig.Merge(m, src)
 }
+
 func (m *KafkaConfig) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *KafkaConfig) XXX_DiscardUnknown() {
 	xxx_messageInfo_KafkaConfig.DiscardUnknown(m)
 }
@@ -949,9 +1111,11 @@ func (*KafkaNET) ProtoMessage() {}
 func (*KafkaNET) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{32}
 }
+
 func (m *KafkaNET) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *KafkaNET) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -960,12 +1124,15 @@ func (m *KafkaNET) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *KafkaNET) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_KafkaNET.Merge(m, src)
 }
+
 func (m *KafkaNET) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *KafkaNET) XXX_DiscardUnknown() {
 	xxx_messageInfo_KafkaNET.DiscardUnknown(m)
 }
@@ -977,9 +1144,11 @@ func (*KafkaSink) ProtoMessage() {}
 func (*KafkaSink) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{33}
 }
+
 func (m *KafkaSink) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *KafkaSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -988,12 +1157,15 @@ func (m *KafkaSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *KafkaSink) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_KafkaSink.Merge(m, src)
 }
+
 func (m *KafkaSink) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *KafkaSink) XXX_DiscardUnknown() {
 	xxx_messageInfo_KafkaSink.DiscardUnknown(m)
 }
@@ -1005,9 +1177,11 @@ func (*KafkaSource) ProtoMessage() {}
 func (*KafkaSource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{34}
 }
+
 func (m *KafkaSource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *KafkaSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1016,12 +1190,15 @@ func (m *KafkaSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 	}
 	return b[:n], nil
 }
+
 func (m *KafkaSource) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_KafkaSource.Merge(m, src)
 }
+
 func (m *KafkaSource) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *KafkaSource) XXX_DiscardUnknown() {
 	xxx_messageInfo_KafkaSource.DiscardUnknown(m)
 }
@@ -1033,9 +1210,11 @@ func (*Log) ProtoMessage() {}
 func (*Log) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{35}
 }
+
 func (m *Log) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Log) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1044,12 +1223,15 @@ func (m *Log) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Log) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Log.Merge(m, src)
 }
+
 func (m *Log) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Log) XXX_DiscardUnknown() {
 	xxx_messageInfo_Log.DiscardUnknown(m)
 }
@@ -1061,9 +1243,11 @@ func (*Map) ProtoMessage() {}
 func (*Map) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{36}
 }
+
 func (m *Map) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Map) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1072,12 +1256,15 @@ func (m *Map) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Map) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Map.Merge(m, src)
 }
+
 func (m *Map) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Map) XXX_DiscardUnknown() {
 	xxx_messageInfo_Map.DiscardUnknown(m)
 }
@@ -1089,9 +1276,11 @@ func (*Meta) ProtoMessage() {}
 func (*Meta) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{37}
 }
+
 func (m *Meta) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Meta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1100,12 +1289,15 @@ func (m *Meta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Meta) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Meta.Merge(m, src)
 }
+
 func (m *Meta) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Meta) XXX_DiscardUnknown() {
 	xxx_messageInfo_Meta.DiscardUnknown(m)
 }
@@ -1117,9 +1309,11 @@ func (*Metadata) ProtoMessage() {}
 func (*Metadata) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{38}
 }
+
 func (m *Metadata) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Metadata) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1128,12 +1322,15 @@ func (m *Metadata) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Metadata) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Metadata.Merge(m, src)
 }
+
 func (m *Metadata) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Metadata) XXX_DiscardUnknown() {
 	xxx_messageInfo_Metadata.DiscardUnknown(m)
 }
@@ -1145,9 +1342,11 @@ func (*NATSAuth) ProtoMessage() {}
 func (*NATSAuth) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{39}
 }
+
 func (m *NATSAuth) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *NATSAuth) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1156,12 +1355,15 @@ func (m *NATSAuth) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *NATSAuth) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_NATSAuth.Merge(m, src)
 }
+
 func (m *NATSAuth) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *NATSAuth) XXX_DiscardUnknown() {
 	xxx_messageInfo_NATSAuth.DiscardUnknown(m)
 }
@@ -1173,9 +1375,11 @@ func (*Pipeline) ProtoMessage() {}
 func (*Pipeline) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{40}
 }
+
 func (m *Pipeline) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Pipeline) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1184,12 +1388,15 @@ func (m *Pipeline) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Pipeline) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Pipeline.Merge(m, src)
 }
+
 func (m *Pipeline) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Pipeline) XXX_DiscardUnknown() {
 	xxx_messageInfo_Pipeline.DiscardUnknown(m)
 }
@@ -1201,9 +1408,11 @@ func (*PipelineList) ProtoMessage() {}
 func (*PipelineList) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{41}
 }
+
 func (m *PipelineList) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *PipelineList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1212,12 +1421,15 @@ func (m *PipelineList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 	}
 	return b[:n], nil
 }
+
 func (m *PipelineList) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_PipelineList.Merge(m, src)
 }
+
 func (m *PipelineList) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *PipelineList) XXX_DiscardUnknown() {
 	xxx_messageInfo_PipelineList.DiscardUnknown(m)
 }
@@ -1229,9 +1441,11 @@ func (*PipelineSpec) ProtoMessage() {}
 func (*PipelineSpec) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{42}
 }
+
 func (m *PipelineSpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *PipelineSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1240,12 +1454,15 @@ func (m *PipelineSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 	}
 	return b[:n], nil
 }
+
 func (m *PipelineSpec) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_PipelineSpec.Merge(m, src)
 }
+
 func (m *PipelineSpec) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *PipelineSpec) XXX_DiscardUnknown() {
 	xxx_messageInfo_PipelineSpec.DiscardUnknown(m)
 }
@@ -1257,9 +1474,11 @@ func (*PipelineStatus) ProtoMessage() {}
 func (*PipelineStatus) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{43}
 }
+
 func (m *PipelineStatus) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *PipelineStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1268,12 +1487,15 @@ func (m *PipelineStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 	}
 	return b[:n], nil
 }
+
 func (m *PipelineStatus) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_PipelineStatus.Merge(m, src)
 }
+
 func (m *PipelineStatus) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *PipelineStatus) XXX_DiscardUnknown() {
 	xxx_messageInfo_PipelineStatus.DiscardUnknown(m)
 }
@@ -1285,9 +1507,11 @@ func (*S3) ProtoMessage() {}
 func (*S3) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{44}
 }
+
 func (m *S3) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *S3) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1296,12 +1520,15 @@ func (m *S3) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *S3) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_S3.Merge(m, src)
 }
+
 func (m *S3) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *S3) XXX_DiscardUnknown() {
 	xxx_messageInfo_S3.DiscardUnknown(m)
 }
@@ -1313,9 +1540,11 @@ func (*S3Sink) ProtoMessage() {}
 func (*S3Sink) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{45}
 }
+
 func (m *S3Sink) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *S3Sink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1324,12 +1553,15 @@ func (m *S3Sink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *S3Sink) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_S3Sink.Merge(m, src)
 }
+
 func (m *S3Sink) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *S3Sink) XXX_DiscardUnknown() {
 	xxx_messageInfo_S3Sink.DiscardUnknown(m)
 }
@@ -1341,9 +1573,11 @@ func (*S3Source) ProtoMessage() {}
 func (*S3Source) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{46}
 }
+
 func (m *S3Source) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *S3Source) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1352,12 +1586,15 @@ func (m *S3Source) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *S3Source) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_S3Source.Merge(m, src)
 }
+
 func (m *S3Source) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *S3Source) XXX_DiscardUnknown() {
 	xxx_messageInfo_S3Source.DiscardUnknown(m)
 }
@@ -1369,9 +1606,11 @@ func (*SASL) ProtoMessage() {}
 func (*SASL) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{47}
 }
+
 func (m *SASL) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *SASL) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1380,12 +1619,15 @@ func (m *SASL) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *SASL) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_SASL.Merge(m, src)
 }
+
 func (m *SASL) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *SASL) XXX_DiscardUnknown() {
 	xxx_messageInfo_SASL.DiscardUnknown(m)
 }
@@ -1397,9 +1639,11 @@ func (*SQLAction) ProtoMessage() {}
 func (*SQLAction) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{48}
 }
+
 func (m *SQLAction) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *SQLAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1408,12 +1652,15 @@ func (m *SQLAction) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *SQLAction) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_SQLAction.Merge(m, src)
 }
+
 func (m *SQLAction) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *SQLAction) XXX_DiscardUnknown() {
 	xxx_messageInfo_SQLAction.DiscardUnknown(m)
 }
@@ -1425,9 +1672,11 @@ func (*SQLStatement) ProtoMessage() {}
 func (*SQLStatement) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{49}
 }
+
 func (m *SQLStatement) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *SQLStatement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1436,12 +1685,15 @@ func (m *SQLStatement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 	}
 	return b[:n], nil
 }
+
 func (m *SQLStatement) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_SQLStatement.Merge(m, src)
 }
+
 func (m *SQLStatement) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *SQLStatement) XXX_DiscardUnknown() {
 	xxx_messageInfo_SQLStatement.DiscardUnknown(m)
 }
@@ -1453,9 +1705,11 @@ func (*STAN) ProtoMessage() {}
 func (*STAN) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{50}
 }
+
 func (m *STAN) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *STAN) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1464,12 +1718,15 @@ func (m *STAN) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *STAN) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_STAN.Merge(m, src)
 }
+
 func (m *STAN) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *STAN) XXX_DiscardUnknown() {
 	xxx_messageInfo_STAN.DiscardUnknown(m)
 }
@@ -1481,9 +1738,11 @@ func (*Scale) ProtoMessage() {}
 func (*Scale) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{51}
 }
+
 func (m *Scale) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Scale) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1492,12 +1751,15 @@ func (m *Scale) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Scale) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Scale.Merge(m, src)
 }
+
 func (m *Scale) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Scale) XXX_DiscardUnknown() {
 	xxx_messageInfo_Scale.DiscardUnknown(m)
 }
@@ -1509,9 +1771,11 @@ func (*Sidecar) ProtoMessage() {}
 func (*Sidecar) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{52}
 }
+
 func (m *Sidecar) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Sidecar) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1520,12 +1784,15 @@ func (m *Sidecar) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Sidecar) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Sidecar.Merge(m, src)
 }
+
 func (m *Sidecar) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Sidecar) XXX_DiscardUnknown() {
 	xxx_messageInfo_Sidecar.DiscardUnknown(m)
 }
@@ -1537,9 +1804,11 @@ func (*Sink) ProtoMessage() {}
 func (*Sink) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{53}
 }
+
 func (m *Sink) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Sink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1548,12 +1817,15 @@ func (m *Sink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Sink) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Sink.Merge(m, src)
 }
+
 func (m *Sink) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Sink) XXX_DiscardUnknown() {
 	xxx_messageInfo_Sink.DiscardUnknown(m)
 }
@@ -1565,9 +1837,11 @@ func (*Source) ProtoMessage() {}
 func (*Source) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{54}
 }
+
 func (m *Source) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Source) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1576,12 +1850,15 @@ func (m *Source) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Source) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Source.Merge(m, src)
 }
+
 func (m *Source) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Source) XXX_DiscardUnknown() {
 	xxx_messageInfo_Source.DiscardUnknown(m)
 }
@@ -1593,9 +1870,11 @@ func (*Step) ProtoMessage() {}
 func (*Step) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{55}
 }
+
 func (m *Step) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Step) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1604,12 +1883,15 @@ func (m *Step) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Step) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Step.Merge(m, src)
 }
+
 func (m *Step) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Step) XXX_DiscardUnknown() {
 	xxx_messageInfo_Step.DiscardUnknown(m)
 }
@@ -1621,9 +1903,11 @@ func (*StepList) ProtoMessage() {}
 func (*StepList) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{56}
 }
+
 func (m *StepList) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *StepList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1632,12 +1916,15 @@ func (m *StepList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *StepList) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_StepList.Merge(m, src)
 }
+
 func (m *StepList) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *StepList) XXX_DiscardUnknown() {
 	xxx_messageInfo_StepList.DiscardUnknown(m)
 }
@@ -1649,9 +1936,11 @@ func (*StepSpec) ProtoMessage() {}
 func (*StepSpec) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{57}
 }
+
 func (m *StepSpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *StepSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1660,12 +1949,15 @@ func (m *StepSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *StepSpec) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_StepSpec.Merge(m, src)
 }
+
 func (m *StepSpec) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *StepSpec) XXX_DiscardUnknown() {
 	xxx_messageInfo_StepSpec.DiscardUnknown(m)
 }
@@ -1677,9 +1969,11 @@ func (*StepStatus) ProtoMessage() {}
 func (*StepStatus) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{58}
 }
+
 func (m *StepStatus) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *StepStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1688,12 +1982,15 @@ func (m *StepStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *StepStatus) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_StepStatus.Merge(m, src)
 }
+
 func (m *StepStatus) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *StepStatus) XXX_DiscardUnknown() {
 	xxx_messageInfo_StepStatus.DiscardUnknown(m)
 }
@@ -1705,9 +2002,11 @@ func (*Storage) ProtoMessage() {}
 func (*Storage) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{59}
 }
+
 func (m *Storage) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *Storage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1716,12 +2015,15 @@ func (m *Storage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *Storage) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Storage.Merge(m, src)
 }
+
 func (m *Storage) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *Storage) XXX_DiscardUnknown() {
 	xxx_messageInfo_Storage.DiscardUnknown(m)
 }
@@ -1733,9 +2035,11 @@ func (*TLS) ProtoMessage() {}
 func (*TLS) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{60}
 }
+
 func (m *TLS) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *TLS) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1744,12 +2048,15 @@ func (m *TLS) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *TLS) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_TLS.Merge(m, src)
 }
+
 func (m *TLS) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *TLS) XXX_DiscardUnknown() {
 	xxx_messageInfo_TLS.DiscardUnknown(m)
 }
@@ -1761,9 +2068,11 @@ func (*VolumeSink) ProtoMessage() {}
 func (*VolumeSink) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{61}
 }
+
 func (m *VolumeSink) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *VolumeSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1772,12 +2081,15 @@ func (m *VolumeSink) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	}
 	return b[:n], nil
 }
+
 func (m *VolumeSink) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_VolumeSink.Merge(m, src)
 }
+
 func (m *VolumeSink) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *VolumeSink) XXX_DiscardUnknown() {
 	xxx_messageInfo_VolumeSink.DiscardUnknown(m)
 }
@@ -1789,9 +2101,11 @@ func (*VolumeSource) ProtoMessage() {}
 func (*VolumeSource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7a4218a80d7ff35f, []int{62}
 }
+
 func (m *VolumeSource) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *VolumeSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	b = b[:cap(b)]
 	n, err := m.MarshalToSizedBuffer(b)
@@ -1800,12 +2114,15 @@ func (m *VolumeSource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 	}
 	return b[:n], nil
 }
+
 func (m *VolumeSource) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_VolumeSource.Merge(m, src)
 }
+
 func (m *VolumeSource) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *VolumeSource) XXX_DiscardUnknown() {
 	xxx_messageInfo_VolumeSource.DiscardUnknown(m)
 }
@@ -6015,6 +6332,7 @@ func encodeVarintGenerated(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+
 func (m *AWSCredentials) Size() (n int) {
 	if m == nil {
 		return 0
@@ -7338,14 +7656,17 @@ func (m *VolumeSource) Size() (n int) {
 func sovGenerated(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
+
 func sozGenerated(x uint64) (n int) {
 	return sovGenerated(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+
 func (this *AWSCredentials) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&AWSCredentials{`,
+	s := strings.Join([]string{
+		`&AWSCredentials{`,
 		`AccessKeyID:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.AccessKeyID), "SecretKeySelector", "v1.SecretKeySelector", 1), `&`, ``, 1) + `,`,
 		`SecretAccessKey:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.SecretAccessKey), "SecretKeySelector", "v1.SecretKeySelector", 1), `&`, ``, 1) + `,`,
 		`SessionToken:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.SessionToken), "SecretKeySelector", "v1.SecretKeySelector", 1), `&`, ``, 1) + `,`,
@@ -7353,31 +7674,37 @@ func (this *AWSCredentials) String() string {
 	}, "")
 	return s
 }
+
 func (this *AWSEndpoint) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&AWSEndpoint{`,
+	s := strings.Join([]string{
+		`&AWSEndpoint{`,
 		`URL:` + fmt.Sprintf("%v", this.URL) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *AbstractStep) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&AbstractStep{`,
+	s := strings.Join([]string{
+		`&AbstractStep{`,
 		`Resources:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.Resources), "ResourceRequirements", "v1.ResourceRequirements", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *AbstractVolumeSource) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&AbstractVolumeSource{`,
+	s := strings.Join([]string{
+		`&AbstractVolumeSource{`,
 		`HostPath:` + strings.Replace(fmt.Sprintf("%v", this.HostPath), "HostPathVolumeSource", "v1.HostPathVolumeSource", 1) + `,`,
 		`EmptyDir:` + strings.Replace(fmt.Sprintf("%v", this.EmptyDir), "EmptyDirVolumeSource", "v1.EmptyDirVolumeSource", 1) + `,`,
 		`GCEPersistentDisk:` + strings.Replace(fmt.Sprintf("%v", this.GCEPersistentDisk), "GCEPersistentDiskVolumeSource", "v1.GCEPersistentDiskVolumeSource", 1) + `,`,
@@ -7411,11 +7738,13 @@ func (this *AbstractVolumeSource) String() string {
 	}, "")
 	return s
 }
+
 func (this *Backoff) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Backoff{`,
+	s := strings.Join([]string{
+		`&Backoff{`,
 		`Steps:` + fmt.Sprintf("%v", this.Steps) + `,`,
 		`Cap:` + strings.Replace(fmt.Sprintf("%v", this.Cap), "Duration", "v11.Duration", 1) + `,`,
 		`JitterPercentage:` + fmt.Sprintf("%v", this.JitterPercentage) + `,`,
@@ -7425,27 +7754,32 @@ func (this *Backoff) String() string {
 	}, "")
 	return s
 }
+
 func (this *Cat) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Cat{`,
+	s := strings.Join([]string{
+		`&Cat{`,
 		`AbstractStep:` + strings.Replace(strings.Replace(this.AbstractStep.String(), "AbstractStep", "AbstractStep", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Code) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Code{`,
+	s := strings.Join([]string{
+		`&Code{`,
 		`Source:` + fmt.Sprintf("%v", this.Source) + `,`,
 		`Runtime:` + fmt.Sprintf("%v", this.Runtime) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Container) String() string {
 	if this == nil {
 		return "nil"
@@ -7460,7 +7794,8 @@ func (this *Container) String() string {
 		repeatedStringForEnv += fmt.Sprintf("%v", f) + ","
 	}
 	repeatedStringForEnv += "}"
-	s := strings.Join([]string{`&Container{`,
+	s := strings.Join([]string{
+		`&Container{`,
 		`Image:` + fmt.Sprintf("%v", this.Image) + `,`,
 		`In:` + strings.Replace(this.In.String(), "Interface", "Interface", 1) + `,`,
 		`VolumeMounts:` + repeatedStringForVolumeMounts + `,`,
@@ -7472,38 +7807,45 @@ func (this *Container) String() string {
 	}, "")
 	return s
 }
+
 func (this *Cron) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Cron{`,
+	s := strings.Join([]string{
+		`&Cron{`,
 		`Schedule:` + fmt.Sprintf("%v", this.Schedule) + `,`,
 		`Layout:` + fmt.Sprintf("%v", this.Layout) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *DBDataSource) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&DBDataSource{`,
+	s := strings.Join([]string{
+		`&DBDataSource{`,
 		`Value:` + fmt.Sprintf("%v", this.Value) + `,`,
 		`ValueFrom:` + strings.Replace(this.ValueFrom.String(), "DBDataSourceFrom", "DBDataSourceFrom", 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *DBDataSourceFrom) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&DBDataSourceFrom{`,
+	s := strings.Join([]string{
+		`&DBDataSourceFrom{`,
 		`SecretKeyRef:` + strings.Replace(fmt.Sprintf("%v", this.SecretKeyRef), "SecretKeySelector", "v1.SecretKeySelector", 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *DBSink) String() string {
 	if this == nil {
 		return "nil"
@@ -7513,18 +7855,21 @@ func (this *DBSink) String() string {
 		repeatedStringForActions += strings.Replace(strings.Replace(f.String(), "SQLAction", "SQLAction", 1), `&`, ``, 1) + ","
 	}
 	repeatedStringForActions += "}"
-	s := strings.Join([]string{`&DBSink{`,
+	s := strings.Join([]string{
+		`&DBSink{`,
 		`Database:` + strings.Replace(strings.Replace(this.Database.String(), "Database", "Database", 1), `&`, ``, 1) + `,`,
 		`Actions:` + repeatedStringForActions + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *DBSource) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&DBSource{`,
+	s := strings.Join([]string{
+		`&DBSource{`,
 		`Database:` + strings.Replace(strings.Replace(this.Database.String(), "Database", "Database", 1), `&`, ``, 1) + `,`,
 		`Query:` + fmt.Sprintf("%v", this.Query) + `,`,
 		`OffsetColumn:` + fmt.Sprintf("%v", this.OffsetColumn) + `,`,
@@ -7535,22 +7880,26 @@ func (this *DBSource) String() string {
 	}, "")
 	return s
 }
+
 func (this *Database) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Database{`,
+	s := strings.Join([]string{
+		`&Database{`,
 		`Driver:` + fmt.Sprintf("%v", this.Driver) + `,`,
 		`DataSource:` + strings.Replace(this.DataSource.String(), "DBDataSource", "DBDataSource", 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Dedupe) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Dedupe{`,
+	s := strings.Join([]string{
+		`&Dedupe{`,
 		`AbstractStep:` + strings.Replace(strings.Replace(this.AbstractStep.String(), "AbstractStep", "AbstractStep", 1), `&`, ``, 1) + `,`,
 		`UID:` + fmt.Sprintf("%v", this.UID) + `,`,
 		`MaxSize:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.MaxSize), "Quantity", "resource.Quantity", 1), `&`, ``, 1) + `,`,
@@ -7558,37 +7907,44 @@ func (this *Dedupe) String() string {
 	}, "")
 	return s
 }
+
 func (this *Expand) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Expand{`,
+	s := strings.Join([]string{
+		`&Expand{`,
 		`AbstractStep:` + strings.Replace(strings.Replace(this.AbstractStep.String(), "AbstractStep", "AbstractStep", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Filter) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Filter{`,
+	s := strings.Join([]string{
+		`&Filter{`,
 		`AbstractStep:` + strings.Replace(strings.Replace(this.AbstractStep.String(), "AbstractStep", "AbstractStep", 1), `&`, ``, 1) + `,`,
 		`Expression:` + fmt.Sprintf("%v", this.Expression) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Flatten) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Flatten{`,
+	s := strings.Join([]string{
+		`&Flatten{`,
 		`AbstractStep:` + strings.Replace(strings.Replace(this.AbstractStep.String(), "AbstractStep", "AbstractStep", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *GetPodSpecReq) String() string {
 	if this == nil {
 		return "nil"
@@ -7598,7 +7954,8 @@ func (this *GetPodSpecReq) String() string {
 		repeatedStringForImagePullSecrets += fmt.Sprintf("%v", f) + ","
 	}
 	repeatedStringForImagePullSecrets += "}"
-	s := strings.Join([]string{`&GetPodSpecReq{`,
+	s := strings.Join([]string{
+		`&GetPodSpecReq{`,
 		`Cluster:` + fmt.Sprintf("%v", this.Cluster) + `,`,
 		`PipelineName:` + fmt.Sprintf("%v", this.PipelineName) + `,`,
 		`Replica:` + fmt.Sprintf("%v", this.Replica) + `,`,
@@ -7615,6 +7972,7 @@ func (this *GetPodSpecReq) String() string {
 	}, "")
 	return s
 }
+
 func (this *Git) String() string {
 	if this == nil {
 		return "nil"
@@ -7624,7 +7982,8 @@ func (this *Git) String() string {
 		repeatedStringForEnv += fmt.Sprintf("%v", f) + ","
 	}
 	repeatedStringForEnv += "}"
-	s := strings.Join([]string{`&Git{`,
+	s := strings.Join([]string{
+		`&Git{`,
 		`Image:` + fmt.Sprintf("%v", this.Image) + `,`,
 		`URL:` + fmt.Sprintf("%v", this.URL) + `,`,
 		`Path:` + fmt.Sprintf("%v", this.Path) + `,`,
@@ -7638,11 +7997,13 @@ func (this *Git) String() string {
 	}, "")
 	return s
 }
+
 func (this *Group) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Group{`,
+	s := strings.Join([]string{
+		`&Group{`,
 		`Key:` + fmt.Sprintf("%v", this.Key) + `,`,
 		`EndOfGroup:` + fmt.Sprintf("%v", this.EndOfGroup) + `,`,
 		`Format:` + fmt.Sprintf("%v", this.Format) + `,`,
@@ -7651,20 +8012,24 @@ func (this *Group) String() string {
 	}, "")
 	return s
 }
+
 func (this *HTTP) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&HTTP{`,
+	s := strings.Join([]string{
+		`&HTTP{`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *HTTPHeader) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&HTTPHeader{`,
+	s := strings.Join([]string{
+		`&HTTPHeader{`,
 		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
 		`Value:` + fmt.Sprintf("%v", this.Value) + `,`,
 		`ValueFrom:` + strings.Replace(this.ValueFrom.String(), "HTTPHeaderSource", "HTTPHeaderSource", 1) + `,`,
@@ -7672,16 +8037,19 @@ func (this *HTTPHeader) String() string {
 	}, "")
 	return s
 }
+
 func (this *HTTPHeaderSource) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&HTTPHeaderSource{`,
+	s := strings.Join([]string{
+		`&HTTPHeaderSource{`,
 		`SecretKeyRef:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.SecretKeyRef), "SecretKeySelector", "v1.SecretKeySelector", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *HTTPSink) String() string {
 	if this == nil {
 		return "nil"
@@ -7691,7 +8059,8 @@ func (this *HTTPSink) String() string {
 		repeatedStringForHeaders += strings.Replace(strings.Replace(f.String(), "HTTPHeader", "HTTPHeader", 1), `&`, ``, 1) + ","
 	}
 	repeatedStringForHeaders += "}"
-	s := strings.Join([]string{`&HTTPSink{`,
+	s := strings.Join([]string{
+		`&HTTPSink{`,
 		`URL:` + fmt.Sprintf("%v", this.URL) + `,`,
 		`Headers:` + repeatedStringForHeaders + `,`,
 		`InsecureSkipVerify:` + fmt.Sprintf("%v", this.InsecureSkipVerify) + `,`,
@@ -7699,32 +8068,38 @@ func (this *HTTPSink) String() string {
 	}, "")
 	return s
 }
+
 func (this *HTTPSource) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&HTTPSource{`,
+	s := strings.Join([]string{
+		`&HTTPSource{`,
 		`ServiceName:` + fmt.Sprintf("%v", this.ServiceName) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Interface) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Interface{`,
+	s := strings.Join([]string{
+		`&Interface{`,
 		`FIFO:` + fmt.Sprintf("%v", this.FIFO) + `,`,
 		`HTTP:` + strings.Replace(this.HTTP.String(), "HTTP", "HTTP", 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *JetStream) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&JetStream{`,
+	s := strings.Join([]string{
+		`&JetStream{`,
 		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
 		`NATSURL:` + fmt.Sprintf("%v", this.NATSURL) + `,`,
 		`Subject:` + fmt.Sprintf("%v", this.Subject) + `,`,
@@ -7733,31 +8108,37 @@ func (this *JetStream) String() string {
 	}, "")
 	return s
 }
+
 func (this *JetStreamSink) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&JetStreamSink{`,
+	s := strings.Join([]string{
+		`&JetStreamSink{`,
 		`JetStream:` + strings.Replace(strings.Replace(this.JetStream.String(), "JetStream", "JetStream", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *JetStreamSource) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&JetStreamSource{`,
+	s := strings.Join([]string{
+		`&JetStreamSource{`,
 		`JetStream:` + strings.Replace(strings.Replace(this.JetStream.String(), "JetStream", "JetStream", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Kafka) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Kafka{`,
+	s := strings.Join([]string{
+		`&Kafka{`,
 		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
 		`Topic:` + fmt.Sprintf("%v", this.Topic) + `,`,
 		`KafkaConfig:` + strings.Replace(strings.Replace(this.KafkaConfig.String(), "KafkaConfig", "KafkaConfig", 1), `&`, ``, 1) + `,`,
@@ -7765,11 +8146,13 @@ func (this *Kafka) String() string {
 	}, "")
 	return s
 }
+
 func (this *KafkaConfig) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&KafkaConfig{`,
+	s := strings.Join([]string{
+		`&KafkaConfig{`,
 		`Brokers:` + fmt.Sprintf("%v", this.Brokers) + `,`,
 		`NET:` + strings.Replace(this.NET.String(), "KafkaNET", "KafkaNET", 1) + `,`,
 		`MaxMessageBytes:` + fmt.Sprintf("%v", this.MaxMessageBytes) + `,`,
@@ -7777,22 +8160,26 @@ func (this *KafkaConfig) String() string {
 	}, "")
 	return s
 }
+
 func (this *KafkaNET) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&KafkaNET{`,
+	s := strings.Join([]string{
+		`&KafkaNET{`,
 		`TLS:` + strings.Replace(this.TLS.String(), "TLS", "TLS", 1) + `,`,
 		`SASL:` + strings.Replace(this.SASL.String(), "SASL", "SASL", 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *KafkaSink) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&KafkaSink{`,
+	s := strings.Join([]string{
+		`&KafkaSink{`,
 		`Kafka:` + strings.Replace(strings.Replace(this.Kafka.String(), "Kafka", "Kafka", 1), `&`, ``, 1) + `,`,
 		`Async:` + fmt.Sprintf("%v", this.Async) + `,`,
 		`BatchSize:` + strings.Replace(fmt.Sprintf("%v", this.BatchSize), "Quantity", "resource.Quantity", 1) + `,`,
@@ -7803,11 +8190,13 @@ func (this *KafkaSink) String() string {
 	}, "")
 	return s
 }
+
 func (this *KafkaSource) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&KafkaSource{`,
+	s := strings.Join([]string{
+		`&KafkaSource{`,
 		`Kafka:` + strings.Replace(strings.Replace(this.Kafka.String(), "Kafka", "Kafka", 1), `&`, ``, 1) + `,`,
 		`StartOffset:` + fmt.Sprintf("%v", this.StartOffset) + `,`,
 		`FetchMin:` + strings.Replace(fmt.Sprintf("%v", this.FetchMin), "Quantity", "resource.Quantity", 1) + `,`,
@@ -7816,32 +8205,38 @@ func (this *KafkaSource) String() string {
 	}, "")
 	return s
 }
+
 func (this *Log) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Log{`,
+	s := strings.Join([]string{
+		`&Log{`,
 		`Truncate:` + valueToStringGenerated(this.Truncate) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Map) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Map{`,
+	s := strings.Join([]string{
+		`&Map{`,
 		`AbstractStep:` + strings.Replace(strings.Replace(this.AbstractStep.String(), "AbstractStep", "AbstractStep", 1), `&`, ``, 1) + `,`,
 		`Expression:` + fmt.Sprintf("%v", this.Expression) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Meta) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Meta{`,
+	s := strings.Join([]string{
+		`&Meta{`,
 		`Source:` + fmt.Sprintf("%v", this.Source) + `,`,
 		`ID:` + fmt.Sprintf("%v", this.ID) + `,`,
 		`Time:` + fmt.Sprintf("%v", this.Time) + `,`,
@@ -7849,6 +8244,7 @@ func (this *Meta) String() string {
 	}, "")
 	return s
 }
+
 func (this *Metadata) String() string {
 	if this == nil {
 		return "nil"
@@ -7873,28 +8269,33 @@ func (this *Metadata) String() string {
 		mapStringForLabels += fmt.Sprintf("%v: %v,", k, this.Labels[k])
 	}
 	mapStringForLabels += "}"
-	s := strings.Join([]string{`&Metadata{`,
+	s := strings.Join([]string{
+		`&Metadata{`,
 		`Annotations:` + mapStringForAnnotations + `,`,
 		`Labels:` + mapStringForLabels + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *NATSAuth) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&NATSAuth{`,
+	s := strings.Join([]string{
+		`&NATSAuth{`,
 		`Token:` + strings.Replace(fmt.Sprintf("%v", this.Token), "SecretKeySelector", "v1.SecretKeySelector", 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Pipeline) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Pipeline{`,
+	s := strings.Join([]string{
+		`&Pipeline{`,
 		`ObjectMeta:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.ObjectMeta), "ObjectMeta", "v11.ObjectMeta", 1), `&`, ``, 1) + `,`,
 		`Spec:` + strings.Replace(strings.Replace(this.Spec.String(), "PipelineSpec", "PipelineSpec", 1), `&`, ``, 1) + `,`,
 		`Status:` + strings.Replace(strings.Replace(this.Status.String(), "PipelineStatus", "PipelineStatus", 1), `&`, ``, 1) + `,`,
@@ -7902,6 +8303,7 @@ func (this *Pipeline) String() string {
 	}, "")
 	return s
 }
+
 func (this *PipelineList) String() string {
 	if this == nil {
 		return "nil"
@@ -7911,13 +8313,15 @@ func (this *PipelineList) String() string {
 		repeatedStringForItems += strings.Replace(strings.Replace(f.String(), "Pipeline", "Pipeline", 1), `&`, ``, 1) + ","
 	}
 	repeatedStringForItems += "}"
-	s := strings.Join([]string{`&PipelineList{`,
+	s := strings.Join([]string{
+		`&PipelineList{`,
 		`ListMeta:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.ListMeta), "ListMeta", "v11.ListMeta", 1), `&`, ``, 1) + `,`,
 		`Items:` + repeatedStringForItems + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *PipelineSpec) String() string {
 	if this == nil {
 		return "nil"
@@ -7927,13 +8331,15 @@ func (this *PipelineSpec) String() string {
 		repeatedStringForSteps += strings.Replace(strings.Replace(f.String(), "StepSpec", "StepSpec", 1), `&`, ``, 1) + ","
 	}
 	repeatedStringForSteps += "}"
-	s := strings.Join([]string{`&PipelineSpec{`,
+	s := strings.Join([]string{
+		`&PipelineSpec{`,
 		`Steps:` + repeatedStringForSteps + `,`,
 		`DeletionDelay:` + strings.Replace(fmt.Sprintf("%v", this.DeletionDelay), "Duration", "v11.Duration", 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *PipelineStatus) String() string {
 	if this == nil {
 		return "nil"
@@ -7943,7 +8349,8 @@ func (this *PipelineStatus) String() string {
 		repeatedStringForConditions += fmt.Sprintf("%v", f) + ","
 	}
 	repeatedStringForConditions += "}"
-	s := strings.Join([]string{`&PipelineStatus{`,
+	s := strings.Join([]string{
+		`&PipelineStatus{`,
 		`Phase:` + fmt.Sprintf("%v", this.Phase) + `,`,
 		`Message:` + fmt.Sprintf("%v", this.Message) + `,`,
 		`Conditions:` + repeatedStringForConditions + `,`,
@@ -7952,11 +8359,13 @@ func (this *PipelineStatus) String() string {
 	}, "")
 	return s
 }
+
 func (this *S3) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&S3{`,
+	s := strings.Join([]string{
+		`&S3{`,
 		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
 		`Bucket:` + fmt.Sprintf("%v", this.Bucket) + `,`,
 		`Region:` + fmt.Sprintf("%v", this.Region) + `,`,
@@ -7966,21 +8375,25 @@ func (this *S3) String() string {
 	}, "")
 	return s
 }
+
 func (this *S3Sink) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&S3Sink{`,
+	s := strings.Join([]string{
+		`&S3Sink{`,
 		`S3:` + strings.Replace(strings.Replace(this.S3.String(), "S3", "S3", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *S3Source) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&S3Source{`,
+	s := strings.Join([]string{
+		`&S3Source{`,
 		`PollPeriod:` + strings.Replace(fmt.Sprintf("%v", this.PollPeriod), "Duration", "v11.Duration", 1) + `,`,
 		`S3:` + strings.Replace(strings.Replace(this.S3.String(), "S3", "S3", 1), `&`, ``, 1) + `,`,
 		`Concurrency:` + fmt.Sprintf("%v", this.Concurrency) + `,`,
@@ -7988,11 +8401,13 @@ func (this *S3Source) String() string {
 	}, "")
 	return s
 }
+
 func (this *SASL) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&SASL{`,
+	s := strings.Join([]string{
+		`&SASL{`,
 		`Mechanism:` + fmt.Sprintf("%v", this.Mechanism) + `,`,
 		`UserSecret:` + strings.Replace(fmt.Sprintf("%v", this.UserSecret), "SecretKeySelector", "v1.SecretKeySelector", 1) + `,`,
 		`PasswordSecret:` + strings.Replace(fmt.Sprintf("%v", this.PasswordSecret), "SecretKeySelector", "v1.SecretKeySelector", 1) + `,`,
@@ -8000,11 +8415,13 @@ func (this *SASL) String() string {
 	}, "")
 	return s
 }
+
 func (this *SQLAction) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&SQLAction{`,
+	s := strings.Join([]string{
+		`&SQLAction{`,
 		`SQLStatement:` + strings.Replace(strings.Replace(this.SQLStatement.String(), "SQLStatement", "SQLStatement", 1), `&`, ``, 1) + `,`,
 		`OnRecordNotFound:` + strings.Replace(this.OnRecordNotFound.String(), "SQLStatement", "SQLStatement", 1) + `,`,
 		`OnError:` + strings.Replace(this.OnError.String(), "SQLStatement", "SQLStatement", 1) + `,`,
@@ -8012,22 +8429,26 @@ func (this *SQLAction) String() string {
 	}, "")
 	return s
 }
+
 func (this *SQLStatement) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&SQLStatement{`,
+	s := strings.Join([]string{
+		`&SQLStatement{`,
 		`SQL:` + fmt.Sprintf("%v", this.SQL) + `,`,
 		`Args:` + fmt.Sprintf("%v", this.Args) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *STAN) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&STAN{`,
+	s := strings.Join([]string{
+		`&STAN{`,
 		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
 		`Subject:` + fmt.Sprintf("%v", this.Subject) + `,`,
 		`NATSURL:` + fmt.Sprintf("%v", this.NATSURL) + `,`,
@@ -8040,11 +8461,13 @@ func (this *STAN) String() string {
 	}, "")
 	return s
 }
+
 func (this *Scale) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Scale{`,
+	s := strings.Join([]string{
+		`&Scale{`,
 		`DesiredReplicas:` + fmt.Sprintf("%v", this.DesiredReplicas) + `,`,
 		`PeekDelay:` + fmt.Sprintf("%v", this.PeekDelay) + `,`,
 		`ScalingDelay:` + fmt.Sprintf("%v", this.ScalingDelay) + `,`,
@@ -8052,21 +8475,25 @@ func (this *Scale) String() string {
 	}, "")
 	return s
 }
+
 func (this *Sidecar) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Sidecar{`,
+	s := strings.Join([]string{
+		`&Sidecar{`,
 		`Resources:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.Resources), "ResourceRequirements", "v1.ResourceRequirements", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *Sink) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Sink{`,
+	s := strings.Join([]string{
+		`&Sink{`,
 		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
 		`STAN:` + strings.Replace(this.STAN.String(), "STAN", "STAN", 1) + `,`,
 		`Kafka:` + strings.Replace(this.Kafka.String(), "KafkaSink", "KafkaSink", 1) + `,`,
@@ -8080,11 +8507,13 @@ func (this *Sink) String() string {
 	}, "")
 	return s
 }
+
 func (this *Source) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Source{`,
+	s := strings.Join([]string{
+		`&Source{`,
 		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
 		`Cron:` + strings.Replace(this.Cron.String(), "Cron", "Cron", 1) + `,`,
 		`STAN:` + strings.Replace(this.STAN.String(), "STAN", "STAN", 1) + `,`,
@@ -8099,11 +8528,13 @@ func (this *Source) String() string {
 	}, "")
 	return s
 }
+
 func (this *Step) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Step{`,
+	s := strings.Join([]string{
+		`&Step{`,
 		`ObjectMeta:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.ObjectMeta), "ObjectMeta", "v11.ObjectMeta", 1), `&`, ``, 1) + `,`,
 		`Spec:` + strings.Replace(strings.Replace(this.Spec.String(), "StepSpec", "StepSpec", 1), `&`, ``, 1) + `,`,
 		`Status:` + strings.Replace(strings.Replace(this.Status.String(), "StepStatus", "StepStatus", 1), `&`, ``, 1) + `,`,
@@ -8111,6 +8542,7 @@ func (this *Step) String() string {
 	}, "")
 	return s
 }
+
 func (this *StepList) String() string {
 	if this == nil {
 		return "nil"
@@ -8120,13 +8552,15 @@ func (this *StepList) String() string {
 		repeatedStringForItems += strings.Replace(strings.Replace(f.String(), "Step", "Step", 1), `&`, ``, 1) + ","
 	}
 	repeatedStringForItems += "}"
-	s := strings.Join([]string{`&StepList{`,
+	s := strings.Join([]string{
+		`&StepList{`,
 		`ListMeta:` + strings.Replace(strings.Replace(fmt.Sprintf("%v", this.ListMeta), "ListMeta", "v11.ListMeta", 1), `&`, ``, 1) + `,`,
 		`Items:` + repeatedStringForItems + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *StepSpec) String() string {
 	if this == nil {
 		return "nil"
@@ -8166,7 +8600,8 @@ func (this *StepSpec) String() string {
 		mapStringForNodeSelector += fmt.Sprintf("%v: %v,", k, this.NodeSelector[k])
 	}
 	mapStringForNodeSelector += "}"
-	s := strings.Join([]string{`&StepSpec{`,
+	s := strings.Join([]string{
+		`&StepSpec{`,
 		`Container:` + strings.Replace(this.Container.String(), "Container", "Container", 1) + `,`,
 		`Sources:` + repeatedStringForSources + `,`,
 		`Sinks:` + repeatedStringForSinks + `,`,
@@ -8196,11 +8631,13 @@ func (this *StepSpec) String() string {
 	}, "")
 	return s
 }
+
 func (this *StepStatus) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&StepStatus{`,
+	s := strings.Join([]string{
+		`&StepStatus{`,
 		`Phase:` + fmt.Sprintf("%v", this.Phase) + `,`,
 		`Message:` + fmt.Sprintf("%v", this.Message) + `,`,
 		`Replicas:` + fmt.Sprintf("%v", this.Replicas) + `,`,
@@ -8211,22 +8648,26 @@ func (this *StepStatus) String() string {
 	}, "")
 	return s
 }
+
 func (this *Storage) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&Storage{`,
+	s := strings.Join([]string{
+		`&Storage{`,
 		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
 		`SubPath:` + fmt.Sprintf("%v", this.SubPath) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *TLS) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&TLS{`,
+	s := strings.Join([]string{
+		`&TLS{`,
 		`CACertSecret:` + strings.Replace(fmt.Sprintf("%v", this.CACertSecret), "SecretKeySelector", "v1.SecretKeySelector", 1) + `,`,
 		`CertSecret:` + strings.Replace(fmt.Sprintf("%v", this.CertSecret), "SecretKeySelector", "v1.SecretKeySelector", 1) + `,`,
 		`KeySecret:` + strings.Replace(fmt.Sprintf("%v", this.KeySecret), "SecretKeySelector", "v1.SecretKeySelector", 1) + `,`,
@@ -8234,21 +8675,25 @@ func (this *TLS) String() string {
 	}, "")
 	return s
 }
+
 func (this *VolumeSink) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&VolumeSink{`,
+	s := strings.Join([]string{
+		`&VolumeSink{`,
 		`AbstractVolumeSource:` + strings.Replace(strings.Replace(this.AbstractVolumeSource.String(), "AbstractVolumeSource", "AbstractVolumeSource", 1), `&`, ``, 1) + `,`,
 		`}`,
 	}, "")
 	return s
 }
+
 func (this *VolumeSource) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&VolumeSource{`,
+	s := strings.Join([]string{
+		`&VolumeSource{`,
 		`PollPeriod:` + strings.Replace(fmt.Sprintf("%v", this.PollPeriod), "Duration", "v11.Duration", 1) + `,`,
 		`Concurrency:` + fmt.Sprintf("%v", this.Concurrency) + `,`,
 		`AbstractVolumeSource:` + strings.Replace(strings.Replace(this.AbstractVolumeSource.String(), "AbstractVolumeSource", "AbstractVolumeSource", 1), `&`, ``, 1) + `,`,
@@ -8257,6 +8702,7 @@ func (this *VolumeSource) String() string {
 	}, "")
 	return s
 }
+
 func valueToStringGenerated(v interface{}) string {
 	rv := reflect.ValueOf(v)
 	if rv.IsNil() {
@@ -8265,6 +8711,7 @@ func valueToStringGenerated(v interface{}) string {
 	pv := reflect.Indirect(rv).Interface()
 	return fmt.Sprintf("*%v", pv)
 }
+
 func (m *AWSCredentials) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -8414,6 +8861,7 @@ func (m *AWSCredentials) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *AWSEndpoint) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -8496,6 +8944,7 @@ func (m *AWSEndpoint) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *AbstractStep) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -8579,6 +9028,7 @@ func (m *AbstractStep) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *AbstractVolumeSource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -9673,6 +10123,7 @@ func (m *AbstractVolumeSource) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Backoff) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -9852,6 +10303,7 @@ func (m *Backoff) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Cat) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -9935,6 +10387,7 @@ func (m *Cat) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Code) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -10049,6 +10502,7 @@ func (m *Code) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Container) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -10332,6 +10786,7 @@ func (m *Container) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Cron) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -10446,6 +10901,7 @@ func (m *Cron) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *DBDataSource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -10564,6 +11020,7 @@ func (m *DBDataSource) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *DBDataSourceFrom) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -10650,6 +11107,7 @@ func (m *DBDataSourceFrom) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *DBSink) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -10767,6 +11225,7 @@ func (m *DBSink) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *DBSource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -11000,6 +11459,7 @@ func (m *DBSource) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Database) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -11118,6 +11578,7 @@ func (m *Database) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Dedupe) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -11266,6 +11727,7 @@ func (m *Dedupe) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Expand) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -11349,6 +11811,7 @@ func (m *Expand) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Filter) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -11464,6 +11927,7 @@ func (m *Filter) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Flatten) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -11547,6 +12011,7 @@ func (m *Flatten) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *GetPodSpecReq) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -11959,6 +12424,7 @@ func (m *GetPodSpecReq) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Git) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -12311,6 +12777,7 @@ func (m *Git) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Group) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -12493,6 +12960,7 @@ func (m *Group) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *HTTP) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -12543,6 +13011,7 @@ func (m *HTTP) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *HTTPHeader) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -12693,6 +13162,7 @@ func (m *HTTPHeader) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *HTTPHeaderSource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -12776,6 +13246,7 @@ func (m *HTTPHeaderSource) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *HTTPSink) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -12912,6 +13383,7 @@ func (m *HTTPSink) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *HTTPSource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -12994,6 +13466,7 @@ func (m *HTTPSource) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Interface) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -13100,6 +13573,7 @@ func (m *Interface) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *JetStream) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -13282,6 +13756,7 @@ func (m *JetStream) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *JetStreamSink) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -13365,6 +13840,7 @@ func (m *JetStreamSink) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *JetStreamSource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -13448,6 +13924,7 @@ func (m *JetStreamSource) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Kafka) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -13595,6 +14072,7 @@ func (m *Kafka) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *KafkaConfig) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -13732,6 +14210,7 @@ func (m *KafkaConfig) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *KafkaNET) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -13854,6 +14333,7 @@ func (m *KafkaNET) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *KafkaSink) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -14097,6 +14577,7 @@ func (m *KafkaSink) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *KafkaSource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -14284,6 +14765,7 @@ func (m *KafkaSource) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Log) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -14354,6 +14836,7 @@ func (m *Log) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Map) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -14469,6 +14952,7 @@ func (m *Map) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Meta) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -14602,6 +15086,7 @@ func (m *Meta) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Metadata) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -14906,6 +15391,7 @@ func (m *Metadata) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *NATSAuth) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -14992,6 +15478,7 @@ func (m *NATSAuth) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Pipeline) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -15141,6 +15628,7 @@ func (m *Pipeline) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *PipelineList) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -15258,6 +15746,7 @@ func (m *PipelineList) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *PipelineSpec) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -15378,6 +15867,7 @@ func (m *PipelineSpec) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *PipelineStatus) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -15559,6 +16049,7 @@ func (m *PipelineStatus) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *S3) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -15777,6 +16268,7 @@ func (m *S3) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *S3Sink) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -15860,6 +16352,7 @@ func (m *S3Sink) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *S3Source) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -15998,6 +16491,7 @@ func (m *S3Source) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *SASL) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -16152,6 +16646,7 @@ func (m *SASL) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *SQLAction) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -16307,6 +16802,7 @@ func (m *SQLAction) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *SQLStatement) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -16421,6 +16917,7 @@ func (m *SQLStatement) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *STAN) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -16718,6 +17215,7 @@ func (m *STAN) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Scale) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -16864,6 +17362,7 @@ func (m *Scale) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Sidecar) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -16947,6 +17446,7 @@ func (m *Sidecar) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Sink) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -17317,6 +17817,7 @@ func (m *Sink) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Source) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -17720,6 +18221,7 @@ func (m *Source) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Step) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -17869,6 +18371,7 @@ func (m *Step) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *StepList) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -17986,6 +18489,7 @@ func (m *StepList) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *StepSpec) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -18966,6 +19470,7 @@ func (m *StepSpec) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *StepStatus) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -19196,6 +19701,7 @@ func (m *StepStatus) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *Storage) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -19310,6 +19816,7 @@ func (m *Storage) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *TLS) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -19468,6 +19975,7 @@ func (m *TLS) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *VolumeSink) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -19551,6 +20059,7 @@ func (m *VolumeSink) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *VolumeSource) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -19709,6 +20218,7 @@ func (m *VolumeSource) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func skipGenerated(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0

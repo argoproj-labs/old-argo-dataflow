@@ -471,7 +471,6 @@ message KafkaSink {
   // +kubebuilder:default="100Ki"
   optional k8s.io.apimachinery.pkg.api.resource.Quantity batchSize = 3;
 
-  // +kubebuilder:default="0ms"
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration linger = 4;
 
   // +kubebuilder:default="lz4"

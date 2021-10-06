@@ -1649,7 +1649,6 @@ spec:
                                 default: lz4
                                 type: string
                               linger:
-                                default: 0ms
                                 type: string
                               maxMessageBytes:
                                 format: int32
