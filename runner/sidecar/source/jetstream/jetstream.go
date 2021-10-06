@@ -38,7 +38,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 			logger.Error(err, "failed to get message metadata")
 		} else {
 			if err := process(
-				dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: sourceURN, ID: fmt.Sprint(metadata.Sequence.Stream), Time: metadata.Timestamp.Unix()}),
+				dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: sourceURN, ID: fmt.Sprintf("%v-%v", metadata.Sequence.Consumer, metadata.Sequence.Stream), Time: metadata.Timestamp.Unix()}),
 				msg.Data,
 			); err != nil {
 				logger.Error(err, "failed to process message")

@@ -59,5 +59,5 @@ func TestJetStreamSourceStress(t *testing.T) {
 	defer StartTPSReporter(t, "main", prefix, n)()
 
 	go PumpJetStreamSubject(subject, n, prefix, Params.MessageSize)
-	WaitForTotalSunkMessages(n)
+	WaitForTotalSunkMessages(n, Params.Timeout)
 }

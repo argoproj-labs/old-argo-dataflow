@@ -28,6 +28,12 @@ Consumes messages from a NATS streaming subject.
 
 [Example](../examples/301-stan-pipeline.py)
 
+## NATS JetStream
+
+Consumers message from a NATS JetStream subject
+
+[Example](../examples/301-jetstream-pipeline.py)
+
 ## Volume
 
 Periodically queries a volume for files to process.

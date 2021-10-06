@@ -7,6 +7,7 @@ Messages are handled in memory by Argo Dataflow, so are limited by the amount of
 * HTTP messages must be < 4GB.
 * Kafka messages are typically < 1MB. 
 * NATS streaming messages are < 1MB.
+* NATS JetStream messags are < 1MB.
 
 This create a practical limitation of message size to 1MB.
 

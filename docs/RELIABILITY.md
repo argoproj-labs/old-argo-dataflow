@@ -12,3 +12,11 @@ The following disruptions are tolerated:
 * Pipeline deletion (metrics will be lost, but no messages).
 
 Under disruption, no messages should be lost and up to 20 messages maybe duplicated.
+
+## NATS Jet Stream
+
+No message lost or duplicated is seen under following disruption:
+
+* Loss of network connection to source or sink.
+* Pod deletion.
+* Pipeline deletion.

@@ -85,7 +85,7 @@ func TestJetStreamFMEA_PipelineDeletionDisruption(t *testing.T) {
 	WaitForPipeline()
 	WaitForPod()
 
-	n := 500 * 15
+	n := 1000 * 15
 	go PumpJetStreamSubject(subject, n)
 
 	stopPortForward := StartPortForward("jetstream-main-0")

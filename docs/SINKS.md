@@ -31,6 +31,12 @@ Writes messages to a NATS streaming subject.
 
 [Example](../examples/301-stan-pipeline.py)
 
+## NATS JetStream
+
+Writes messages to a NATS JetStream subject.
+
+[Example](../examples/301-jetstream-pipeline.py)
+
 ## S3
 
 Writes files to a S3 bucket.
