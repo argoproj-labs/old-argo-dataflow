@@ -37,6 +37,8 @@ alpha/beta/stable.
 | Log sink | |  v0.0.59 |  |
 | Map step | v0.0.59 | v0.0.70 | |
 | Meta-data | v0.0.102 | | |
+| NATS JetStream sink | v0.0.125 | | |
+| NATS JetStream source | v0.0.125 | | |
 | NATS Streaming sink | v0.0.59 | | |
 | NATS Streaming source | v0.0.59 | | |
 | NodeJS SDK | v0.0.78 | | |
@@ -55,8 +57,6 @@ alpha/beta/stable.
 | User interface | | v0.0.59 | |
 | Volume sink | v0.0.91 | | |
 | Volume source | v0.0.91 | | |
-| NATS JetStream source | v0.0.125 | | |
-| NATS JetStream sink | v0.0.125 | | |
 
 Common gating criteria to get from alpha to beta:
 
