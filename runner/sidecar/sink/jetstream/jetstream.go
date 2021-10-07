@@ -49,8 +49,8 @@ func (j jsSink) Sink(ctx context.Context, msg []byte) error {
 }
 
 func (j jsSink) Close() error {
-	logger.Info("closing jetstream source connection")
-	if j.conn.IsClosed() {
+	logger.Info("closing jetstream sink connection")
+	if !j.conn.IsClosed() {
 		j.conn.Close()
 	}
 	return nil
