@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.127 (2021-10-07)
+
+ * [31e721d](https://github.com/argoproj-labs/argo-dataflow/commit/31e721d392b0220bccf5a3e42598e006e8672211) feat: add `enable.idempotence=true` for Kafka sink
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.126 (2021-10-06)
 
  * [0b2455f](https://github.com/argoproj-labs/argo-dataflow/commit/0b2455f7bcea2c3e08b5960d6280946e2e53b169) fix: try to fix memory leak in Kafka sink
