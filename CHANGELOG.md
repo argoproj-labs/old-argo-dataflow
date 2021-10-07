@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.126 (2021-10-06)
+
+ * [0b2455f](https://github.com/argoproj-labs/argo-dataflow/commit/0b2455f7bcea2c3e08b5960d6280946e2e53b169) fix: try to fix memory leak in Kafka sink
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.125 (2021-10-06)
 
  * [6423c9e](https://github.com/argoproj-labs/argo-dataflow/commit/6423c9e339897b929bcb6b2d23239847c2bd73b3) fix: sensible linger Kafka defaults (#432)
