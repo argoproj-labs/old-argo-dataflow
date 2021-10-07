@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.125 (2021-10-06)
+
+ * [6423c9e](https://github.com/argoproj-labs/argo-dataflow/commit/6423c9e339897b929bcb6b2d23239847c2bd73b3) fix: sensible linger Kafka defaults (#432)
+ * [11251f5](https://github.com/argoproj-labs/argo-dataflow/commit/11251f5806ed8bfbd9e6b5017259c19b006118ca) feat: jetstream source and sink (#400)
+ * [6b36b07](https://github.com/argoproj-labs/argo-dataflow/commit/6b36b07f65c06b6d53c1fd044792d6cf6cd769fe) feat: log Kafka structured. Fixes #431
+ * [695e117](https://github.com/argoproj-labs/argo-dataflow/commit/695e117b8945fdd18c93621ebf401b2eedfb13b9) feat: enable Kafka debug with ARGO_DATAFLOW_DEBUG=kafka.generic
+ * [7d601a4](https://github.com/argoproj-labs/argo-dataflow/commit/7d601a45e1a78f1b7d0e855457563422a0649618) feat!: remove unused Redis/monitor code (#429)
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.124 (2021-10-05)
 
  * [29b4deb](https://github.com/argoproj-labs/argo-dataflow/commit/29b4debf4bc38592b97dbb5e8128bee1bfdbd1ed) feat: export Prom metrics for logs. Fixes #418
