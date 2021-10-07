@@ -478,6 +478,9 @@ message KafkaSink {
 
   // +kubebuilder:default="all"
   optional k8s.io.apimachinery.pkg.util.intstr.IntOrString acks = 6;
+
+  // +kubebuilder:default=true
+  optional bool enableIdempotence = 7;
 }
 
 message KafkaSource {
