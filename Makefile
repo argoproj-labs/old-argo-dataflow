@@ -7,9 +7,12 @@ VERSION ?= v0.0.0-latest-0
 CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
-K3D ?= $(shell [ "`command -v kubectl`" != '' ] && [ "`kubectl config current-context`" = k3d-k3s-default ] && echo true || echo false)
+K3D = $(shell [ "`command -v kubectl`" != '' ] && [ "`kubectl config current-context`" = k3d-k3s-default ] && echo true || echo false)
 UI ?= false
 JAEGER_DISABLED ?= true
+
+# Are we in a container??
+CTR = $(shell [ -e /proc/self/cgroup ] && echo 1 || echo 0)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -77,7 +80,7 @@ pprof:
 	go tool pprof -web http://127.0.0.1:3569/debug/pprof/profile?seconds=10
 	curl -s http://127.0.0.1:3569/debug/pprof/trace\?seconds\=10 | go tool trace /dev/stdin
 
-pre-commit: codegen proto test install runner testapi lint start
+pre-commit: codegen proto lint
 
 codegen: generate manifests examples tests $(GOBIN)/mockery
 	go generate ./...
@@ -149,9 +152,15 @@ proto: api/v1alpha1/generated.pb.go
 
 $(GOBIN)/go-to-protobuf:
 	go install k8s.io/code-generator/cmd/go-to-protobuf@v0.20.4
+$(GOPATH)/src/github.com/gogo/protobuf:
+	[ -e $(GOPATH)/src/github.com/gogo/protobuf ] || git clone --depth 1 https://github.com/gogo/protobuf.git -b v1.3.2 $(GOPATH)/src/github.com/gogo/protobuf
+$(GOBIN)/protoc-gen-gogo:
+	go install github.com/gogo/protobuf/protoc-gen-gogo@v1.3.2
+$(GOBIN)/goimports:
+	go install golang.org/x/tools/cmd/goimports@v0.1.7
 
 api/v1alpha1/generated.pb.go:
-api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -name '*generated*' -not -name groupversion_info.go) $(GOBIN)/go-to-protobuf
+api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -name '*generated*' -not -name groupversion_info.go) $(GOBIN)/go-to-protobuf $(GOPATH)/src/github.com/gogo/protobuf $(GOBIN)/protoc-gen-gogo $(GOBIN)/goimports
 	[ ! -e api/v1alpha1/groupversion_info.go ] || mv api/v1alpha1/groupversion_info.go api/v1alpha1/groupversion_info.go.0
 	go-to-protobuf \
 		--go-header-file=./hack/boilerplate.go.txt \
@@ -160,19 +169,21 @@ api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -n
 	mv api/v1alpha1/groupversion_info.go.0 api/v1alpha1/groupversion_info.go
 	go mod tidy
 
-$(GOPATH)/bin/gofumpt:
+$(GOBIN)/gofumpt:
 	go install mvdan.cc/gofumpt@v0.1.1
+
+$(GOBIN)/golangci-lint:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.42.1
 
 /usr/local/bin/autopep8:
 	pip3 install autopep8
 
-lint: $(GOPATH)/bin/gofumpt /usr/local/bin/autopep8
+lint: $(GOBIN)/gofumpt $(GOBIN)/golangci-lint /usr/local/bin/autopep8
 	go mod tidy
 	# run gofumpt outside of golangci-lint because it seems to be unreliable inside it
 	gofumpt -l -w .
 	golangci-lint run --fix
 	autopep8 --in-place $(shell find . -type f -name '*.py')
-	kubectl apply --dry-run=client -f examples
 
 .PHONY: controller
 controller: controller-image
@@ -226,7 +237,7 @@ tests: test/examples/examples_test.go
 
 .PHONY: install-dsls
 install-dsls:
-	pip3 install --use-feature=in-tree-build dsls/python
+	pip3 install dsls/python
 
 examples/%-pipeline.yaml: examples/%-pipeline.py dsls/python/*.py install-dsls
 	cd examples && python3 $*-pipeline.py

@@ -13,6 +13,28 @@ RUN go mod download
 # achive this important support
 RUN wget -O /tmp/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64
 
+FROM golang:1.16 AS make
+# python
+RUN apt update
+RUN apt install -y software-properties-common
+RUN apt install -y python3
+RUN apt install -y python3-pip
+# python lint
+RUN pip3 install autopep8
+# kubectl: apt's version does not support --load_restrictor
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+RUN cp kubectl /usr/local/bin
+RUN chmod +x /usr/local/bin/kubectl
+# squash warnings
+RUN kubectl config set-context none
+RUN kubectl config use-context none
+# protoc
+RUN apt install -y protobuf-compiler
+# `make pre-commit` will install remaining tools
+ADD . /root/go/src/github.com/argoproj-labs/argo-dataflow
+WORKDIR /root/go/src/github.com/argoproj-labs/argo-dataflow
+RUN make pre-commit
+
 FROM builder AS controller-builder
 ARG VERSION=unset
 COPY api/ api/

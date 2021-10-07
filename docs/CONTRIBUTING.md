@@ -1,6 +1,11 @@
 # Contributing
 
-Install Golang v1.16 and have a Kubernetes cluster ready (e.g. Docker for Desktop).
+Install :
+
+* Golang v1.16
+* Docker
+* Kubernetes cluster ready (e.g. Docker for Desktop).
+* Python 3 and Pip 3 (optional)
 
 Start:
 
@@ -8,35 +13,36 @@ Start:
 make start
 ```
 
-Start example using k3d Kubernetes cluster:
+To start the user interface, you must have checked out Argo Workflows in `../../argoproj/argo-workflows`. The UI will
+appear on port 8080, then run `make start UI=true`.
+
+Before committing, of if you need to re-create codegen, then you need to run the pre-commit checks.
+
+**Pre-commit in Docker (recommended)** 
+
+One time set-up:
 
 ```bash
-k3d cluster create
-kubectl config set-context k3d-k3s-default
-make start
+make make-image
 ```
 
-To access the user interface, you must have checked out Argo Workflows in `../../argoproj/argo-workflows`. The UI will
-appear on port 8080.
+Then:
 
-Before committing:
-
-```
-make pre-commit
+```bash
+./hack/make-in-docker.sh pre-commit -B
 ```
 
-Required dependencies:
+**Pre-commit locally**
 
-```
-GO111MODULE=off go get k8s.io/apimachinery           
-GO111MODULE=off go get k8s.io/client-go
-GO111MODULE=off go get k8s.io/api
-GO111MODULE=off go get k8s.io/utils
-GO111MODULE=off go get sigs.k8s.io/controller-runtime
-GO111MODULE=off go get github.com/gogo/protobuf
-```
+One time set-up:
 
-Also required [protobuf-compiler](https://grpc.io/docs/protoc-installation/), python3 & pip3.
+Install [protobuf-compiler](https://grpc.io/docs/protoc-installation/).
+
+Then:
+
+```bash
+make pre-commit -B
+```
 
 ## Docker for Desktop and K3D Known Limitations
 
