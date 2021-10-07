@@ -62,7 +62,7 @@ var KeyKillCmd = func(x string) string {
 // the standard resources used by the `init`, `sidecar` and built-in step containers.
 var standardResources = corev1.ResourceRequirements{
 	Limits: corev1.ResourceList{
-		"cpu":    resource.MustParse("500m"),
+		"cpu":    resource.MustParse("200m"),
 		"memory": resource.MustParse("256Mi"),
 	},
 	Requests: corev1.ResourceList{
