@@ -4,8 +4,11 @@ import (
 	"container/list"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,13 +17,14 @@ import (
 	pmodel "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (
 	httpClient   *http.Client
 	metricsCache *lru.Cache
+
+	errMetricsEndpointUnavailable = errors.New("metrics endpoint not available")
 )
 
 func init() {
@@ -67,24 +71,16 @@ func (m *MetricsCacheHandler) Length() int {
 	return m.stepList.Len()
 }
 
-func (m *MetricsCacheHandler) StartWatchingStep(step *dfv1.Step) error {
-	key, err := cache.MetaNamespaceKeyFunc(step)
-	if err != nil {
-		return err
-	}
+func (m *MetricsCacheHandler) StartWatching(key string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	if _, ok := m.stepMap[key]; !ok {
-		m.stepMap[key] = m.stepList.PushBack(step)
+		m.stepMap[key] = m.stepList.PushBack(key)
 	}
 	return nil
 }
 
-func (m *MetricsCacheHandler) StopWatchingStep(step *dfv1.Step) error {
-	key, err := cache.MetaNamespaceKeyFunc(step)
-	if err != nil {
-		return err
-	}
+func (m *MetricsCacheHandler) StopWatching(key string) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	if e, ok := m.stepMap[key]; ok {
@@ -95,11 +91,11 @@ func (m *MetricsCacheHandler) StopWatchingStep(step *dfv1.Step) error {
 }
 
 func (m *MetricsCacheHandler) Start(ctx context.Context) {
-	stepCh := make(chan *dfv1.Step)
+	keyCh := make(chan string)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	for i := 1; i <= m.workers; i++ {
-		go m.pullMetrics(ctx, i, stepCh)
+		go m.pullMetrics(ctx, i, keyCh)
 	}
 
 	assign := func() {
@@ -109,9 +105,9 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) {
 			return
 		}
 		e := m.stepList.Front()
-		if step, ok := e.Value.(*dfv1.Step); ok {
+		if key, ok := e.Value.(string); ok {
 			m.stepList.MoveToBack(e)
-			stepCh <- step
+			keyCh <- key
 		}
 	}
 
@@ -137,7 +133,7 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) {
 	}
 }
 
-func (m *MetricsCacheHandler) pullMetrics(ctx context.Context, id int, stepCh <-chan *dfv1.Step) {
+func (m *MetricsCacheHandler) pullMetrics(ctx context.Context, id int, keyCh <-chan string) {
 	defer runtime.HandleCrash()
 	logger.Info(fmt.Sprintf("started metrics cache worker %v", id))
 	for {
@@ -145,12 +141,16 @@ func (m *MetricsCacheHandler) pullMetrics(ctx context.Context, id int, stepCh <-
 		case <-ctx.Done():
 			logger.Info(fmt.Sprintf("stopped metrics cache worker %v", id))
 			return
-		case step := <-stepCh:
-			if pending, err := getPendingMetric(*step); err != nil {
-				logger.Error(err, "failed to get pending message", "namespace", step.Namespace, "step", step.Name)
+		case key := <-keyCh:
+			if pending, err := getPendingMetric(key); err != nil {
+				if errors.Is(err, errMetricsEndpointUnavailable) {
+					logger.Info("metrics endpoint unavailable, might have been scaled to 0", "key", key)
+				} else {
+					logger.Error(err, "failed to get pending messages", "key", key)
+				}
 			} else {
-				pendingKey := step.Namespace + "|" + step.Name + "|pending"
-				lastPendingKey := step.Namespace + "|" + step.Name + "|last-pending"
+				pendingKey := key + "/pending"
+				lastPendingKey := key + "/last-pending"
 				if d, ok := metricsCache.Peek(pendingKey); ok {
 					_ = metricsCache.Add(lastPendingKey, d)
 				}
@@ -160,8 +160,14 @@ func (m *MetricsCacheHandler) pullMetrics(ctx context.Context, id int, stepCh <-
 	}
 }
 
-func getMetrics(step dfv1.Step, replica int) (map[string]*pmodel.MetricFamily, error) {
-	endpoint := fmt.Sprintf("https://%s.%s.%s.svc.cluster.local:3570/metrics", fmt.Sprintf("%s-%v", step.Name, replica), step.GetHeadlessServiceName(), step.Namespace)
+func getMetrics(key string, replica int) (map[string]*pmodel.MetricFamily, error) {
+	// namespace/name/headless-svc-name
+	s := strings.Split(key, "/")
+	dns := fmt.Sprintf("%s.%s.%s.svc.cluster.local", fmt.Sprintf("%s-%v", s[1], replica), s[2], s[0])
+	if _, err := net.LookupIP(dns); err != nil {
+		return nil, errMetricsEndpointUnavailable
+	}
+	endpoint := fmt.Sprintf("https://%s:3570/metrics", dns)
 	resp, err := httpClient.Get(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed to access %s, error: %w", endpoint, err)
@@ -178,8 +184,8 @@ func getMetrics(step dfv1.Step, replica int) (map[string]*pmodel.MetricFamily, e
 	return mf, nil
 }
 
-func getPendingMetric(step dfv1.Step) (int64, error) {
-	metrics, err := getMetrics(step, 0)
+func getPendingMetric(key string) (int64, error) {
+	metrics, err := getMetrics(key, 0)
 	if err != nil {
 		return 0, err
 	}
@@ -195,7 +201,7 @@ func getPendingMetric(step dfv1.Step) (int64, error) {
 }
 
 func GetPending(step dfv1.Step) (int64, bool) {
-	if d, ok := metricsCache.Get(step.Namespace + "|" + step.Name + "|pending"); !ok {
+	if d, ok := metricsCache.Get(fmt.Sprintf("%s/%s/%s/pending", step.Namespace, step.Name, step.GetHeadlessServiceName())); !ok {
 		return 0, false
 	} else {
 		p, yes := d.(int64)
@@ -204,7 +210,7 @@ func GetPending(step dfv1.Step) (int64, bool) {
 }
 
 func GetLastPending(step dfv1.Step) (int64, bool) {
-	if d, ok := metricsCache.Get(step.Namespace + "|" + step.Name + "|last-pending"); !ok {
+	if d, ok := metricsCache.Get(fmt.Sprintf("%s/%s/%s/last-pending", step.Namespace, step.Name, step.GetHeadlessServiceName())); !ok {
 		return 0, false
 	} else {
 		p, yes := d.(int64)
