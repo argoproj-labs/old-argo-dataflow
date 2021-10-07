@@ -16,6 +16,13 @@ spec:
   steps:
   - cat: {}
     name: main
+    scale:
+      desiredReplicas: limit(currentReplicas + pendingDelta / (60 * 250) + pending
+        / (10 * 60 * 250), 0, 4, 2)
+      peekDelay: |-
+        "20m"
+      scalingDelay: |-
+        "1m"
     sinks:
     - kafka:
         topic: output-topic
