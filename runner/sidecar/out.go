@@ -42,12 +42,17 @@ func connectOutHTTP(sink func(context.Context, []byte) error) {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
+		id := r.Header.Get(dfv1.MetaID)
+		if id == "" {
+			id = uuid.New().String()
+		}
+
 		if err := sink(
 			dfv1.ContextWithMeta(
 				ctx,
 				dfv1.Meta{
 					Source: fmt.Sprintf("urn:dataflow:pod:%s.pod.%s.%s:messages", pod, namespace, cluster),
-					ID:     uuid.New().String(),
+					ID:     id,
 					Time:   time.Now().Unix(),
 				},
 			),

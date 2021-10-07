@@ -8,7 +8,6 @@ import (
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/google/uuid"
 	"github.com/opentracing/opentracing-go"
 	"github.com/robfig/cron/v3"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -34,14 +33,15 @@ func New(ctx context.Context, sourceName, sourceURN string, x dfv1.Cron, process
 	_, err := crn.AddFunc(x.Schedule, func() {
 		span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("cron-source-%s", sourceName))
 		defer span.Finish()
-		msg := []byte(time.Now().Format(x.Layout))
+		now := time.Now()
+		msg := []byte(now.Format(x.Layout))
 		if err := process(
 			dfv1.ContextWithMeta(
 				ctx,
 				dfv1.Meta{
 					Source: sourceURN,
-					ID:     uuid.New().String(),
-					Time:   time.Now().Unix(),
+					ID:     fmt.Sprint(now.Unix()),
+					Time:   now.Unix(),
 				},
 			),
 			msg,
