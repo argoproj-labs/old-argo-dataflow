@@ -7,12 +7,9 @@ VERSION ?= v0.0.0-latest-0
 CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
-K3D = $(shell [ "`command -v kubectl`" != '' ] && [ "`kubectl config current-context`" = k3d-k3s-default ] && echo true || echo false)
+K3D ?= $(shell [ "`command -v kubectl`" != '' ] && [ "`kubectl config current-context`" = k3d-k3s-default ] && echo true || echo false)
 UI ?= false
 JAEGER_DISABLED ?= true
-
-# Are we in a container??
-CTR = $(shell [ -e /proc/self/cgroup ] && echo 1 || echo 0)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
