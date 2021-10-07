@@ -195,6 +195,7 @@ class STANSink(Sink):
         x['stan'] = {'subject': self._topic}
         return x
 
+
 class JetStreamSink(Sink):
     def __init__(self, subject, name=None):
         super().__init__(name=name)
@@ -204,6 +205,7 @@ class JetStreamSink(Sink):
         x = super().dump()
         x['jetstream'] = {'subject': self._subject}
         return x
+
 
 class Step:
     def __init__(self, name, sources=None, sinks=None, volumes=None, terminator=False, sidecarResource=None):
@@ -626,6 +628,7 @@ class STANSource(Source):
         x['stan'] = y
         return x
 
+
 class JetStreamSource(Source):
     def __init__(self, subject, name=None, retry=None):
         super().__init__(name=name, retry=retry)
@@ -637,6 +640,7 @@ class JetStreamSource(Source):
         y = {'subject': self._subject}
         x['jetstream'] = y
         return x
+
 
 def cron(schedule=None, layout=None, name=None, retry=None):
     return CronSource(schedule, layout=layout, name=name, retry=retry)
@@ -652,6 +656,7 @@ def kafka(topic=None, name=None, retry=None, startOffset=None, fetchMin=None, fe
 
 def stan(subject=None, name=None, retry=None):
     return STANSource(subject, name=name, retry=retry)
+
 
 def jetstream(subject=None, name=None, retry=None):
     return JetStreamSource(subject, name, retry=retry)

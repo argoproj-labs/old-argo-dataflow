@@ -17,8 +17,18 @@ func TestKafkaSink_GetBatchSize(t *testing.T) {
 }
 
 func TestKafkaSink_GetLingerMs(t *testing.T) {
-	s := KafkaSink{Linger: &metav1.Duration{Duration: time.Second}}
-	assert.Equal(t, 1000, s.GetLingerMs())
+	t.Run("Sync", func(t *testing.T) {
+		s := KafkaSink{}
+		assert.Equal(t, 0, s.GetLingerMs())
+	})
+	t.Run("ASync", func(t *testing.T) {
+		s := KafkaSink{Async: true}
+		assert.Equal(t, 5, s.GetLingerMs())
+	})
+	t.Run("Specified", func(t *testing.T) {
+		s := KafkaSink{Linger: &metav1.Duration{Duration: time.Second}}
+		assert.Equal(t, 1000, s.GetLingerMs())
+	})
 }
 
 func TestKafkaSink_GetAcks(t *testing.T) {
