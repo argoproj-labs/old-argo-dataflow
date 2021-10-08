@@ -5,44 +5,33 @@ Install :
 * Golang v1.16
 * Docker
 * Kubernetes cluster ready (e.g. Docker for Desktop).
-* Python 3 and Pip 3 (optional)
+* Python 3 and Pip 3
+* [protoc](https://grpc.io/docs/protoc-installation/).
 
 Start:
 
-```
-make start
-```
+    make start
 
 To start the user interface, you must have checked out Argo Workflows in `../../argoproj/argo-workflows`. The UI will
 appear on port 8080, then run `make start UI=true`.
 
-Before committing, of if you need to re-create codegen, then you need to run the pre-commit checks.
+If need to run code generation:
 
-**Pre-commit in Docker (recommended)** 
+    make codegen
 
-One time set-up:
+Before you commit, run:
 
-```bash
-make make-image
-```
+    make pre-commit -B
 
 Then:
 
-```bash
-./hack/make-in-docker.sh pre-commit -B
-```
+* Sign-off your commits.
+* Use [Conventional Commit messages](https://www.conventionalcommits.org/en/v1.0.0/).
+* Suffix the issue number.
 
-**Pre-commit locally**
+Example:
 
-One time set-up:
-
-Install [protobuf-compiler](https://grpc.io/docs/protoc-installation/).
-
-Then:
-
-```bash
-make pre-commit -B
-```
+    git commit --signoff -m 'fix: Fixed broken thing. Fixes #1234'
 
 ## Docker for Desktop and K3D Known Limitations
 
