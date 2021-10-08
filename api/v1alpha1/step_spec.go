@@ -50,6 +50,9 @@ type StepSpec struct {
 	// +patchStrategy=merge
 	// +patchMergeKey=name
 	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,20,opt,name=imagePullSecrets"`
+	// +patchStrategy=merge
+	// +patchMergeKey=name
+	DLQ []DeadLetterQueue `json:"dlq,omitempty" protobuf:"bytes,21,rep,name=dlq"`
 }
 
 func (in StepSpec) GetIn() *Interface {

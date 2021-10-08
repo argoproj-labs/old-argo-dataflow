@@ -190,12 +190,16 @@ func Exec(ctx context.Context) error {
 		logger.Info("HTTPS server shutdown")
 	}()
 
+	dlq, err := connectOutDLQ(ctx)
+	if err != nil {
+		return err
+	}
 	process, err := connectIn(ctx, sink)
 	if err != nil {
 		return err
 	}
 
-	if err := connectSources(ctx, process); err != nil {
+	if err := connectSources(ctx, process, dlq); err != nil {
 		return err
 	}
 

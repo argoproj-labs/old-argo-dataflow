@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func connectSources(ctx context.Context, process func(context.Context, []byte) error) error {
+func connectSources(ctx context.Context, process func(context.Context, []byte) error, dlq func(context.Context, []byte, error) error) error {
 	var pendingGauge *prometheus.GaugeVec
 	if leadReplica() {
 		pendingGauge = promauto.NewGaugeVec(prometheus.GaugeOpts{
@@ -122,6 +122,10 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					giveUp := backoff.Steps <= 0
 					logger.Error(err, "failed to send process message", "source", sourceName, "backoffSteps", backoff.Steps, "giveUp", giveUp)
 					if giveUp {
+						dlqErr := dlq(ctx, msg, err)
+						if dlqErr != nil {
+							logger.Error(dlqErr, "failed to send failed message to DLQ")
+						}
 						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 						return err
 					}
