@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.0 (2021-10-08)
+
+
+### Contributors
+
+
 ## v0.0.128 (2021-10-08)
 
  * [b5114d6](https://github.com/argoproj-labs/argo-dataflow/commit/b5114d61f2e5632d72590d69d7d601ce5e38d114) fix: close jetstream connection (#441)
