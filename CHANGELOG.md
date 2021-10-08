@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.128 (2021-10-08)
+
+ * [b5114d6](https://github.com/argoproj-labs/argo-dataflow/commit/b5114d61f2e5632d72590d69d7d601ce5e38d114) fix: close jetstream connection (#441)
+ * [049ec21](https://github.com/argoproj-labs/argo-dataflow/commit/049ec21fd159f586babd0c7595a648212cbd5924) feat: fix ID for cron and HTTP sources
+ * [3c45487](https://github.com/argoproj-labs/argo-dataflow/commit/3c4548723760d7ab34d835e16d1dccf96057a533) feat: tune CPU resources
+ * [d5259ea](https://github.com/argoproj-labs/argo-dataflow/commit/d5259ea3017e683140313af65b510ca285d9f760) fix: log `giveUp=false` at `level=info`
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
 ## v0.0.127 (2021-10-07)
 
  * [31e721d](https://github.com/argoproj-labs/argo-dataflow/commit/31e721d392b0220bccf5a3e42598e006e8672211) feat: add `enable.idempotence=true` for Kafka sink
