@@ -1,5 +1,5 @@
 # Processing Big Payload >1MB
-Default Argo Dataflow configuration can process the upto 1MB payload. If you want to process bigger payload,
+Default Dataflow configuration can process the upto 1MB payload. If you want to process bigger payload,
 you need to configure the resource for `step` and `sidecar`. We have tested below large payloads on HTTP, Kafka and Stan source.
 
 #### Resource Configuration:
