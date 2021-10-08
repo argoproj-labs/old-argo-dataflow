@@ -58,7 +58,7 @@ class TestProcessHandler:
 
     async def test_default_step_handler(self):
         """
-        Confirm that Sdk is able to run an Argo Dataflow Step handler fixture.
+        Confirm that Sdk is able to run an Dataflow Step handler fixture.
         """
         await self.start_fixture('default_step_handler')
         async with ClientSession() as session:
@@ -73,7 +73,7 @@ class TestProcessHandler:
 
     async def test_default_step_error_handler(self):
         """
-        Confirm that Sdk is able to run an Argo Dataflow Step handler fixture that raises and error.
+        Confirm that Sdk is able to run an Dataflow Step handler fixture that raises and error.
         """
         await self.start_fixture('default_step_error_handler')
         async with ClientSession() as session:
@@ -87,7 +87,7 @@ class TestProcessHandler:
 
     async def test_default_step_async_handler(self):
         """
-        Confirm that Sdk is able to run an Argo Dataflow Step asyncio handler fixture.
+        Confirm that Sdk is able to run an Dataflow Step asyncio handler fixture.
         """
         await self.start_fixture('default_step_async_handler')
         async with ClientSession() as session:
@@ -101,7 +101,7 @@ class TestProcessHandler:
 
     async def test_default_step_async_error_handler(self):
         """
-        Confirm that Sdk is able to run an Argo Dataflow Step asyncio handler fixture that raises an error.
+        Confirm that Sdk is able to run an Dataflow Step asyncio handler fixture that raises an error.
         """
         await self.start_fixture('default_step_async_error_handler')
         async with ClientSession() as session:
@@ -144,7 +144,7 @@ class TestProcessHandler:
 
     async def test_generator_step_handler(self, tmp_path: pathlib.Path):
         """
-        Confirm that Sdk is able to run an Argo Dataflow Generator Step.
+        Confirm that Sdk is able to run an Dataflow Generator Step.
 
         1. Create HTTP Test Server that listens on POST: http://0.0.0.0:3569/messages
         2. Pass inside an assert function accepting a request
@@ -204,7 +204,7 @@ class TestProcessHandler:
 
     async def test_generator_step_error_handler(self, tmp_path):
         """
-        Confirm that Sdk is able to run an Argo Dataflow Generator Step that raises an error.
+        Confirm that Sdk is able to run an Dataflow Generator Step that raises an error.
         This case should stop the whole Sdk server and kill the process with exit code 1.
         """
         auth_token = "someauthtoken"
@@ -248,7 +248,7 @@ class TestProcessHandler:
 
     async def test_generator_step_async_handler(self, tmp_path):
         """
-        Confirm that Sdk is able to run an Argo Dataflow Generator Step asyncio handler.
+        Confirm that Sdk is able to run an Dataflow Generator Step asyncio handler.
 
         1. Create HTTP Test Server that listens on POST: http://0.0.0.0:3569/messages
         2. Pass inside an assert function accepting a request
@@ -308,7 +308,7 @@ class TestProcessHandler:
 
     async def test_generator_step_async_error_handler(self, tmp_path):
         """
-        Confirm that Sdk is able to run an Argo Dataflow Generator Step asyncio handler that raises an error.
+        Confirm that Sdk is able to run an Dataflow Generator Step asyncio handler that raises an error.
         This case should stop the whole Sdk server and kill the process with exit code 1.
         """
         auth_token = "someauthtoken"
