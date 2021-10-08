@@ -1,5 +1,4 @@
 namespace: argo-dataflow-system
 resources:
   - kafka-minimal.yaml
-  - input-pod.yaml
   - ../../../examples/dataflow-kafka-default-secret.yaml
