@@ -154,7 +154,7 @@ $(GOPATH)/src/github.com/gogo/protobuf:
 $(GOBIN)/protoc-gen-gogo:
 	go install github.com/gogo/protobuf/protoc-gen-gogo@v1.3.2
 $(GOBIN)/goimports:
-	go install golang.org/x/tools/cmd/goimports@v0.1.7
+	go install golang.org/x/tools/cmd/goimports@v0.1.6
 
 api/v1alpha1/generated.pb.go:
 api/v1alpha1/generated.%: $(shell find api/v1alpha1 -type f -name '*.go' -not -name '*generated*' -not -name groupversion_info.go) $(GOBIN)/go-to-protobuf $(GOPATH)/src/github.com/gogo/protobuf $(GOBIN)/protoc-gen-gogo $(GOBIN)/goimports
