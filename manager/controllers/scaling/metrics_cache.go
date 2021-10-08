@@ -128,7 +128,10 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) {
 					if err := m.client.Get(cctx, client.ObjectKey{Namespace: s[0], Name: s[1]}, &dfv1.Step{}); err != nil {
 						if apierrors.IsNotFound(err) {
 							logger.Info("no corresponding step is found", "key", key)
-							m.StopWatching(key)
+							if err := m.StopWatching(key); err != nil {
+								logger.Error(err, "failed to stop watching", "key", key)
+								return true
+							}
 							m.deadKeys.Delete(k)
 						} else {
 							logger.Error(err, "failed to query step object", "key", key)
