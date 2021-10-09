@@ -164,45 +164,12 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 		},
 		ImagePullSecrets: req.ImagePullSecrets,
 		Containers: []corev1.Container{
-			{
-				Name:            CtrSidecar,
-				Image:           req.RunnerImage,
-				ImagePullPolicy: req.PullPolicy,
-				Args:            []string{"sidecar"},
-				Env:             envVars,
-				VolumeMounts:    volumeMounts,
-				Resources:       req.Sidecar.Resources,
-				Ports: []corev1.ContainerPort{
-					{ContainerPort: 3570},
-				},
-				ReadinessProbe: &corev1.Probe{
-					Handler: corev1.Handler{
-						HTTPGet: &corev1.HTTPGetAction{Scheme: "HTTPS", Path: "/ready", Port: intstr.FromInt(3570)},
-					},
-				},
-				Lifecycle: &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path:   "/pre-stop?source=kubernetes",
-							Port:   intstr.FromInt(3570),
-							Scheme: "HTTPS",
-						},
-					},
-				},
-				SecurityContext: dropAll,
-			},
 			in.Spec.getType().getContainer(getContainerReq{
 				imageFormat:     req.ImageFormat,
 				imagePullPolicy: req.PullPolicy,
-				lifecycle: &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
-						Exec: &corev1.ExecAction{
-							Command: []string{PathPreStop},
-						},
-					},
-				},
 				runnerImage:     req.RunnerImage,
 				securityContext: dropAll,
+				env:             envVars,
 				volumeMounts:    volumeMounts,
 			}),
 		},

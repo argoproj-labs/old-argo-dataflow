@@ -9,7 +9,6 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	. "github.com/argoproj-labs/argo-dataflow/test/stress"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -38,11 +37,6 @@ func TestJetStreamSourceStress(t *testing.T) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{JetStream: &JetStreamSource{JetStream: JetStream{Subject: subject}}}},
 				Sinks:    []Sink{{JetStream: &JetStreamSink{JetStream: JetStream{Subject: sinkSubject}}}, DefaultLogSink},
-				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
-					Requests: v1.ResourceList{
-						v1.ResourceMemory: Params.ResourceMemory,
-					},
-				}},
 			}},
 		},
 	})

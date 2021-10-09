@@ -8,7 +8,6 @@ import (
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
 	. "github.com/argoproj-labs/argo-dataflow/test/stress"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -31,11 +30,6 @@ func TestStanSourceStress(t *testing.T) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
 				Sinks:    []Sink{DefaultLogSink},
-				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
-					Requests: v1.ResourceList{
-						v1.ResourceMemory: Params.ResourceMemory,
-					},
-				}},
 			}},
 		},
 	})
@@ -70,11 +64,6 @@ func TestStanSinkStress(t *testing.T) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{STAN: &STAN{Subject: subject}}},
 				Sinks:    []Sink{{STAN: &STAN{Subject: sinkSubject}}, DefaultLogSink},
-				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
-					Requests: v1.ResourceList{
-						v1.ResourceMemory: Params.ResourceMemory,
-					},
-				}},
 			}},
 		},
 	})

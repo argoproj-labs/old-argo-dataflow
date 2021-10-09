@@ -7,8 +7,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -47,7 +49,7 @@ func becomeUnreadyHook(context.Context) error {
 	return nil
 }
 
-func Exec(ctx context.Context) error {
+func Exec(ctx context.Context, command string, args []string) error {
 	restConfig := ctrl.GetConfigOrDie()
 	kubernetesInterface = kubernetes.NewForConfigOrDie(restConfig)
 	secretInterface = kubernetesInterface.CoreV1().Secrets(namespace)
@@ -190,6 +192,17 @@ func Exec(ctx context.Context) error {
 		logger.Info("HTTPS server shutdown")
 	}()
 
+	logger.Info("sub-process", "command", command, "args", args)
+
+	cmd := exec.Command(command, args...)
+	cmd.Env = os.Environ()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	logger.Info("sub-process", "pid", cmd.Process.Pid)
+
 	process, err := connectIn(ctx, sink)
 	if err != nil {
 		return err
@@ -201,8 +214,17 @@ func Exec(ctx context.Context) error {
 
 	ready = true
 	logger.Info("ready")
-	<-ctx.Done()
-	return nil
+	waitOver := make(chan error)
+	go func() { waitOver <- cmd.Wait() }()
+	select {
+	case err := <-waitOver:
+		return err
+	case <-ctx.Done():
+		if err := cmd.Process.Signal(syscall.SIGTERM); err != nil {
+			return err
+		}
+		return <-waitOver
+	}
 }
 
 func logMetrics(ctx context.Context) error {

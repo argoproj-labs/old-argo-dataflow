@@ -21,7 +21,7 @@ func ExpectLogLine(step string, opts ...interface{}) {
 	var (
 		ctx           = context.Background()
 		timeout       = time.Minute
-		containerName = "sidecar"
+		containerName = "main"
 		matcher       func([]byte) bool
 	)
 	for _, opt := range opts {
@@ -56,7 +56,7 @@ func podsLogMatches(ctx context.Context, podList *corev1.PodList, containerName 
 	resultChan := make(chan bool)
 	for _, p := range podList.Items {
 		for _, s := range p.Status.ContainerStatuses {
-			if s.Name == "sidecar" && s.State.Running != nil {
+			if s.Name == containerName && s.State.Running != nil {
 				go func(podName string) {
 					contains, err := podLogContains(ctx, podName, containerName, match)
 					if err != nil {

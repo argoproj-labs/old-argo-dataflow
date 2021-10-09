@@ -36,12 +36,6 @@ func TestHTTPSourceStress(t *testing.T) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{DefaultLogSink},
-				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
-					Requests: v1.ResourceList{
-						v1.ResourceCPU:    Params.ResourceCPU,
-						v1.ResourceMemory: Params.ResourceMemory,
-					},
-				}},
 			}},
 		},
 	})
@@ -79,12 +73,6 @@ func TestHTTPSinkStress(t *testing.T) {
 				Replicas: Params.Replicas,
 				Sources:  []Source{{HTTP: &HTTPSource{}}},
 				Sinks:    []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}, DefaultLogSink},
-				Sidecar: Sidecar{Resources: v1.ResourceRequirements{
-					Requests: v1.ResourceList{
-						v1.ResourceCPU:    Params.ResourceCPU,
-						v1.ResourceMemory: Params.ResourceMemory,
-					},
-				}},
 			}},
 		},
 	})

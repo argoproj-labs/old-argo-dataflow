@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"fmt"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -13,9 +11,8 @@ const (
 	ConditionRunning     = "Running"     // added if any step is currently running
 	ConditionTerminating = "Terminating" // added if any terminator step terminated
 	// container names.
-	CtrInit    = "init"
-	CtrMain    = "main"
-	CtrSidecar = "sidecar"
+	CtrInit = "init"
+	CtrMain = "main"
 	// env vars.
 	EnvCluster          = "ARGO_DATAFLOW_CLUSTER"
 	EnvDebug            = "ARGO_DATAFLOW_DEBUG"              // enable debug flags, maybe "true" or CSV, e.g. "pprof,kafka.generic"
@@ -48,16 +45,12 @@ const (
 	PathGroups        = "/var/run/argo-dataflow/groups"
 	PathHandlerFile   = "/var/run/argo-dataflow/handler"
 	PathKill          = "/var/run/argo-dataflow/kill"
-	PathPreStop       = "/var/run/argo-dataflow/prestop"
 	PathWorkingDir    = "/var/run/argo-dataflow/wd"
 	PathVarRun        = "/var/run/argo-dataflow"
+	PathRunner        = "/var/run/argo-dataflow/runner"
 	// other const.
 	CommitN = 20 // how many messages between commits, therefore potential duplicates during disruption
 )
-
-var KeyKillCmd = func(x string) string {
-	return fmt.Sprintf("dataflow.argoproj.io/kill-cmd.%s", x)
-}
 
 // the standard resources used by the `init`, `sidecar` and built-in step containers.
 var standardResources = corev1.ResourceRequirements{

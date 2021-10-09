@@ -27,12 +27,12 @@ var logger = sharedutil.NewLogger()
 // due to main container crashing, the init container may be started many times, so each operation we perform should be
 // idempontent, i.e. if we copy a file to shared volume, and it already exists, we should ignore that error.
 func Exec(ctx context.Context) error {
-	for _, name := range []string{dfv1.PathKill, dfv1.PathPreStop} {
+	for _, name := range []string{dfv1.PathKill, dfv1.PathRunner} {
 		logger.Info("copying binary", "name", name)
-		a := filepath.Join("/bin", filepath.Base(name))
-		src, err := os.Open(a)
+		f := filepath.Join("/bin", filepath.Base(name))
+		src, err := os.Open(f)
 		if err != nil {
-			return fmt.Errorf("failed to open %s: %w", a, err)
+			return fmt.Errorf("failed to open %s: %w", f, err)
 		}
 		dst, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0o500)
 		if sharedutil.IgnorePermission(sharedutil.IgnoreExist(err)) != nil {

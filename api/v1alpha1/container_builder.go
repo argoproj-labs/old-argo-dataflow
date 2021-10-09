@@ -1,6 +1,9 @@
 package v1alpha1
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+)
 
 type containerBuilder corev1.Container
 
@@ -10,9 +13,18 @@ func (b containerBuilder) init(req getContainerReq) containerBuilder {
 	b.ImagePullPolicy = req.imagePullPolicy
 	b.Lifecycle = req.lifecycle
 	b.Name = CtrMain
+	b.Command = []string{PathRunner, "sidecar", "/bin/runner"}
 	b.Resources = standardResources
 	b.SecurityContext = req.securityContext
 	b.VolumeMounts = req.volumeMounts
+	b.Ports = []corev1.ContainerPort{
+		{ContainerPort: 3570},
+	}
+	b.ReadinessProbe = &corev1.Probe{
+		Handler: corev1.Handler{
+			HTTPGet: &corev1.HTTPGetAction{Scheme: "HTTPS", Path: "/ready", Port: intstr.FromInt(3570)},
+		},
+	}
 	return b
 }
 
@@ -27,7 +39,7 @@ func (b containerBuilder) image(x string) containerBuilder {
 }
 
 func (b containerBuilder) command(x ...string) containerBuilder {
-	b.Command = x
+	b.Command = append([]string{PathRunner, "sidecar"}, x...)
 	return b
 }
 

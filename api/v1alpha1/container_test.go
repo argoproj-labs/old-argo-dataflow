@@ -24,7 +24,7 @@ func TestContainer_getContainer(t *testing.T) {
 	c := x.getContainer(getContainerReq{})
 	assert.Equal(t, x.Image, c.Image)
 	assert.Contains(t, c.VolumeMounts, c.VolumeMounts[0])
-	assert.Equal(t, x.Command, c.Command)
+	assert.Equal(t, append([]string{"/var/run/argo-dataflow/runner", "sidecar"}, x.Command...), c.Command)
 	assert.Equal(t, x.Args, c.Args)
 	assert.Equal(t, x.Env, c.Env)
 	assert.Equal(t, corev1.ResourceRequirements{Requests: map[corev1.ResourceName]resource.Quantity{"cpu": resource.MustParse("2")}}, c.Resources)

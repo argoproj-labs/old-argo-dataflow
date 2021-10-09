@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 
@@ -95,13 +96,15 @@ func main() {
 			}
 			return start(p)
 		case "sidecar":
-			return sidecar.Exec(ctx)
+			return sidecar.Exec(ctx, os.Args[2], os.Args[3:])
 		default:
-			return fmt.Errorf("unknown comand")
+			return fmt.Errorf("unknown sub-comand %s", os.Args[1])
 		}
 	}()
 	if errors.Is(err, context.Canceled) {
 		logger.Info("ignoring context cancelled error, expected")
+	} else if eerr, ok := err.(*exec.ExitError); ok {
+		os.Exit(eerr.ExitCode())
 	} else if err != nil {
 		if err := ioutil.WriteFile("/dev/termination-log", []byte(err.Error()), 0o600); err != nil {
 			logger.Info(fmt.Sprintf("failed to write termination-log: %v", err))

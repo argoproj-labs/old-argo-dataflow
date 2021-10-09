@@ -157,8 +157,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		annotations[dfv1.KeyReplica] = strconv.Itoa(replica)
 		annotations[dfv1.KeyHash] = hash
 		annotations[dfv1.KeyDefaultContainer] = dfv1.CtrMain
-		annotations[dfv1.KeyKillCmd(dfv1.CtrMain)] = util.MustJSON([]string{dfv1.PathKill, "1"})
-		annotations[dfv1.KeyKillCmd(dfv1.CtrSidecar)] = util.MustJSON([]string{dfv1.PathKill, "1"})
 
 		var reqImagePullSecrets []corev1.LocalObjectReference
 
@@ -190,7 +188,6 @@ func (r *StepReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						PullPolicy:       pullPolicy,
 						UpdateInterval:   updateInterval,
 						StepStatus:       step.Status,
-						Sidecar:          step.Spec.Sidecar,
 						ImagePullSecrets: reqImagePullSecrets,
 						Hostname:         podName,
 						Subdomain:        headlessSvcName,

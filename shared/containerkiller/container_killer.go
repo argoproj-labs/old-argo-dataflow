@@ -1,9 +1,7 @@
 package containerkiller
 
 import (
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/shared/podexec"
-	"github.com/argoproj-labs/argo-dataflow/shared/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -27,9 +25,5 @@ func (k *containerKiller) KillContainer(pod corev1.Pod, container string) error 
 			return nil
 		}
 	}
-	commands := []string{"/bin/sh", "-c", "kill 1"}
-	if text, ok := pod.Annotations[dfv1.KeyKillCmd(container)]; ok {
-		util.MustUnJSON(text, &commands)
-	}
-	return k.Exec(pod.Namespace, pod.Name, container, commands)
+	return k.Exec(pod.Namespace, pod.Name, container, []string{})
 }

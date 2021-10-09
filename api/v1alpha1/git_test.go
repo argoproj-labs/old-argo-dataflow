@@ -16,7 +16,7 @@ func TestGit_getContainer(t *testing.T) {
 	c := x.getContainer(getContainerReq{})
 
 	assert.Equal(t, x.Image, c.Image)
-	assert.Equal(t, x.Command, c.Command)
+	assert.Equal(t, append([]string{"/var/run/argo-dataflow/runner", "sidecar"}, x.Command...), c.Command)
 	assert.Equal(t, x.Env, c.Env)
 	assert.Equal(t, PathWorkingDir, c.WorkingDir)
 }
