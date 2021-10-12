@@ -114,7 +114,7 @@ func Exec(ctx context.Context) error {
 	defer stop()
 	defer preStop("defer")
 
-	sink, err := connectSinks(ctx)
+	sink, dlq, err := connectSinks(ctx)
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,6 @@ func Exec(ctx context.Context) error {
 		logger.Info("HTTPS server shutdown")
 	}()
 
-	dlq, err := connectOutDLQ(ctx)
 	if err != nil {
 		return err
 	}
