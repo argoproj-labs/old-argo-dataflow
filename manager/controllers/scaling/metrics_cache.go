@@ -110,6 +110,7 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) {
 	}
 
 	go func(cctx context.Context) {
+		defer runtime.HandleCrash()
 		ticker := time.NewTicker(180 * time.Second)
 		defer ticker.Stop()
 		for {
