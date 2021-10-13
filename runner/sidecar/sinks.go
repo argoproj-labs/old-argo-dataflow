@@ -26,16 +26,15 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 		Subsystem: "sinks",
 		Name:      "total",
 		Help:      "Total number of messages, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_total",
-	}, []string{"sinkName", "replica"})
+	}, []string{"sinkName", "replica", "dlq"})
 	errorsCounter := promauto.NewCounterVec(prometheus.CounterOpts{
 		Subsystem: "sinks",
 		Name:      "errors",
 		Help:      "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_errors",
-	}, []string{"sinkName", "replica"})
+	}, []string{"sinkName", "replica", "dlq"})
 	for _, s := range step.Spec.Sinks {
 		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
 		sinkName := s.Name
-		dlqflag := s.DeadLetterQueue
 		var err error
 		var sink sink.Interface
 		if _, exists := sinks[sinkName]; exists {
@@ -74,7 +73,9 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 		} else {
 			return nil, nil, fmt.Errorf("sink misconfigured")
 		}
-		if dlqflag {
+
+		if s.DeadLetterQueue {
+			logger.Info("adding DLQ sink", "sink", sinkName)
 			dlqSlink[sinkName] = sink
 		} else {
 			sinks[sinkName] = sink
@@ -90,18 +91,17 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 
 	return func(ctx context.Context, msg []byte) error {
 			for sinkName, f := range sinks {
-					totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
+					totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "false").Inc()
 					if err := f.Sink(ctx, msg); err != nil {
-						errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
+						errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "false").Inc()
 						return err
 					}
 			}
 			return nil
 		}, func(ctx context.Context, msg []byte) error {
 			for sinkName, f := range dlqSlink {
-				totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica)).Inc()
-				if err := f.Sink(ctx, msg); err != nil {
-					errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "dlq").Inc()
+				totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "true").Inc()
+				if err := f.Sink(ctx, msg); err != nil {errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "true").Inc()
 					return err
 				}
 			}

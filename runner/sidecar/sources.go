@@ -115,18 +115,18 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						15*time.Second,
 					)
 					err = process(ctx, msg)
-					cancel()
 					if err == nil {
+						cancel()
 						return nil
 					}
 					giveUp := backoff.Steps <= 0
 					logger.Error(err, "failed to send process message", "source", sourceName, "backoffSteps", backoff.Steps, "giveUp", giveUp)
 					if giveUp {
 						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-						dlqErr := dlq(ctx, msg)
-						if dlqErr != nil {
+						if dlqErr := dlq(ctx, msg); dlqErr != nil {
 							logger.Error(err, "failed to send failed message to DLQ", "error", err)
 						}
+						cancel()
 						return err
 					}
 					time.Sleep(backoff.Step())

@@ -11,5 +11,5 @@ type Sink struct {
 	DB              *DBSink        `json:"db,omitempty" protobuf:"bytes,7,opt,name=db"`
 	Volume          *VolumeSink    `json:"volume,omitempty" protobuf:"bytes,8,opt,name=volume"`
 	JetStream       *JetStreamSink `json:"jetstream,omitempty" protobuf:"bytes,9,opt,name=jetstream"`
-	DeadLetterQueue bool          `json:"deadLetterQueue,omitempty" protobuf:"bytes,10,opt,name=jetstream"`
+	DeadLetterQueue bool           `json:"deadLetterQueue,omitempty" protobuf:"varint,10,opt,name=deadLetterQueue"`
 }
