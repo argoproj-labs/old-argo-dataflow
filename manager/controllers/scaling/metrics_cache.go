@@ -23,7 +23,7 @@ import (
 
 const (
 	// check if the Step is deleted after reaching a number of failed times.
-	deadKeyCheckThreashold = 100
+	deadKeyCheckThreashold = 50
 )
 
 var (
@@ -207,8 +207,6 @@ func (m *MetricsCacheHandler) pullMetrics(ctx context.Context, id int, keyCh <-c
 					_ = metricsCache.Add(lastPendingKey, d)
 				}
 				_ = metricsCache.Add(pendingKey, pending)
-				// Remove it from dead keys if existing
-				m.deadKeys.Delete(key)
 			}
 		}
 	}
