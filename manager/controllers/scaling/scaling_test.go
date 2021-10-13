@@ -90,7 +90,7 @@ func TestRequeueAfter(t *testing.T) {
 			},
 		})
 		assert.NoError(t, err)
-		assert.True(t, requeueAfter.Seconds() > 191)
-		assert.True(t, requeueAfter.Seconds() < 289)
+		assert.True(t, requeueAfter.Seconds() >= 4*time.Minute.Seconds()*0.8)
+		assert.True(t, requeueAfter.Seconds() <= 4*time.Minute.Seconds()*1.2)
 	})
 }
