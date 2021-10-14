@@ -91,17 +91,18 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 
 	return func(ctx context.Context, msg []byte) error {
 			for sinkName, f := range sinks {
-					totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "false").Inc()
-					if err := f.Sink(ctx, msg); err != nil {
-						errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "false").Inc()
-						return err
-					}
+				totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "false").Inc()
+				if err := f.Sink(ctx, msg); err != nil {
+					errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "false").Inc()
+					return err
+				}
 			}
 			return nil
 		}, func(ctx context.Context, msg []byte) error {
 			for sinkName, f := range dlqSlink {
 				totalCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "true").Inc()
-				if err := f.Sink(ctx, msg); err != nil {errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "true").Inc()
+				if err := f.Sink(ctx, msg); err != nil {
+					errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "true").Inc()
 					return err
 				}
 			}

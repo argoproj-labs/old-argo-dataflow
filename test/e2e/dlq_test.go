@@ -3,11 +3,11 @@
 package e2e
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 
 	. "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	. "github.com/argoproj-labs/argo-dataflow/test"
+	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -22,8 +22,10 @@ func TestDLQ(t *testing.T) {
 					Name:    "main",
 					Cat:     &Cat{},
 					Sources: []Source{{Retry: Backoff{Steps: 2}, HTTP: &HTTPSource{ServiceName: "in"}}},
-					Sinks: []Sink{{Name: "HTTP", HTTP: &HTTPSink{URL: "http://testapi/count/notfound"}},
-						{Name: "DLQ", DeadLetterQueue: true, HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
+					Sinks: []Sink{
+						{Name: "HTTP", HTTP: &HTTPSink{URL: "http://testapi/count/notfound"}},
+						{Name: "DLQ", DeadLetterQueue: true, HTTP: &HTTPSink{URL: "http://testapi/count/incr"}},
+					},
 				},
 			},
 		},
@@ -34,7 +36,7 @@ func TestDLQ(t *testing.T) {
 
 	defer StartPortForward("http-main-0")()
 
-	assert.Panics(t,func(){SendMessageViaHTTP("my-msg")})
+	assert.Panics(t, func() { SendMessageViaHTTP("my-msg") })
 
 	WaitForSunkMessages()
 	WaitForCounter(1, 1)

@@ -107,16 +107,17 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					if err != nil {
 						return err
 					}
-					ctx, cancel := context.WithTimeout(
+					newCtx, cancel := context.WithTimeout(
 						dfv1.ContextWithMeta(
 							opentracing.ContextWithSpan(context.Background(), span),
 							m,
 						),
 						15*time.Second,
 					)
-					err = process(ctx, msg)
+
+					err = process(newCtx, msg)
+					cancel()
 					if err == nil {
-						cancel()
 						return nil
 					}
 					giveUp := backoff.Steps <= 0
@@ -126,7 +127,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						if dlqErr := dlq(ctx, msg); dlqErr != nil {
 							logger.Error(err, "failed to send failed message to DLQ", "error", err)
 						}
-						cancel()
+
 						return err
 					}
 					time.Sleep(backoff.Step())
