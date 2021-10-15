@@ -16,8 +16,14 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	pmodel "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	// check if the Step is deleted after reaching a number of failed times.
+	deadKeyCheckThreashold = 50
 )
 
 var (
@@ -45,6 +51,9 @@ type MetricsCacheHandler struct {
 	stepList *list.List
 	lock     sync.RWMutex
 	workers  int
+
+	// counters for unavailable keys
+	deadKeys *sync.Map
 }
 
 func NewMetricsCacheHandler(client client.Client, workers int) *MetricsCacheHandler {
@@ -55,6 +64,8 @@ func NewMetricsCacheHandler(client client.Client, workers int) *MetricsCacheHand
 		stepMap:  make(map[string]*list.Element),
 		stepList: list.New(),
 		lock:     sync.RWMutex{},
+
+		deadKeys: new(sync.Map),
 	}
 }
 
@@ -97,6 +108,44 @@ func (m *MetricsCacheHandler) Start(ctx context.Context) {
 	for i := 1; i <= m.workers; i++ {
 		go m.pullMetrics(ctx, i, keyCh)
 	}
+
+	go func(cctx context.Context) {
+		defer runtime.HandleCrash()
+		ticker := time.NewTicker(180 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-cctx.Done():
+				return
+			case <-ticker.C:
+				m.deadKeys.Range(func(k, v interface{}) bool {
+					times := v.(int)
+					if times < deadKeyCheckThreashold {
+						return true
+					}
+					// namespace/name/headless-svc-name
+					key := fmt.Sprint(k)
+					s := strings.Split(key, "/")
+					if err := m.client.Get(cctx, client.ObjectKey{Namespace: s[0], Name: s[1]}, &dfv1.Step{}); err != nil {
+						if apierrors.IsNotFound(err) {
+							logger.Info("no corresponding step is found", "key", key)
+							if err := m.StopWatching(key); err != nil {
+								logger.Error(err, "failed to stop watching", "key", key)
+								return true
+							}
+							m.deadKeys.Delete(k)
+						} else {
+							logger.Error(err, "failed to query step object", "key", key)
+						}
+						return true
+					}
+					// Step is existing, remove it from dead keys
+					m.deadKeys.Delete(k)
+					return true
+				})
+			}
+		}
+	}(ctx)
 
 	assign := func() {
 		m.lock.Lock()
@@ -145,6 +194,9 @@ func (m *MetricsCacheHandler) pullMetrics(ctx context.Context, id int, keyCh <-c
 			if pending, err := getPendingMetric(key); err != nil {
 				if errors.Is(err, errMetricsEndpointUnavailable) {
 					logger.Info("metrics endpoint unavailable, might have been scaled to 0", "key", key)
+					if v, existing := m.deadKeys.LoadOrStore(key, 1); existing {
+						m.deadKeys.Store(key, v.(int)+1)
+					}
 				} else {
 					logger.Error(err, "failed to get pending messages", "key", key)
 				}
