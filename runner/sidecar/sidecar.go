@@ -190,9 +190,6 @@ func Exec(ctx context.Context) error {
 		logger.Info("HTTPS server shutdown")
 	}()
 
-	if err != nil {
-		return err
-	}
 	process, err := connectIn(ctx, sink)
 	if err != nil {
 		return err
