@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.0 (2021-10-15)
+
+ * [f81b33d](https://github.com/argoproj-labs/argo-dataflow/commit/f81b33dfc44683525d9c31ca0f94cbd07fd45a08) feat: do not use finalizer to stop metrics cache loop (#450)
+
+### Contributors
+
+ * Derek Wang
+
 ## v0.1.0 (2021-10-08)
 
 
