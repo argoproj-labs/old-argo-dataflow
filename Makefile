@@ -6,7 +6,7 @@ TAG ?= latest
 VERSION ?= v0.0.0-latest-0
 CONFIG ?= dev
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+CRD_OPTIONS ?= "crd:trivialVersions=true,maxDescLen=262143"
 K3D ?= $(shell [ "`command -v kubectl`" != '' ] && [ "`kubectl config current-context`" = k3d-k3s-default ] && echo true || echo false)
 UI ?= false
 JAEGER_DISABLED ?= true
