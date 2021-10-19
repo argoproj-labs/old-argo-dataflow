@@ -114,7 +114,7 @@ func Exec(ctx context.Context) error {
 	defer stop()
 	defer preStop("defer")
 
-	sink, err := connectSinks(ctx)
+	sink, dlq, err := connectSinks(ctx)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func Exec(ctx context.Context) error {
 		return err
 	}
 
-	if err := connectSources(ctx, process); err != nil {
+	if err := connectSources(ctx, process, dlq); err != nil {
 		return err
 	}
 

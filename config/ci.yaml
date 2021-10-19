@@ -1546,6 +1546,8 @@ spec:
                                 default: default
                                 type: string
                             type: object
+                          deadLetterQueue:
+                            type: boolean
                           http:
                             properties:
                               headers:
@@ -8706,6 +8708,8 @@ spec:
                           default: default
                           type: string
                       type: object
+                    deadLetterQueue:
+                      type: boolean
                     http:
                       properties:
                         headers:
