@@ -16,6 +16,8 @@ type KafkaSink struct {
 	CompressionType string `json:"compressionType,omitempty" protobuf:"bytes,5,opt,name=compressionType"`
 	// +kubebuilder:default="all"
 	Acks *intstr.IntOrString `json:"acks,omitempty" protobuf:"bytes,6,opt,name=acks"`
+	// +kubebuilder:default=true
+	EnableIdempotence bool `json:"enableIdempotence,omitempty" protobuf:"varint,7,opt,name=enableIdempotence"`
 }
 
 func (m *KafkaSink) GetBatchSize() int {

@@ -1,5 +1,47 @@
 # Changelog
 
+## v0.2.0 (2021-10-15)
+
+ * [f81b33d](https://github.com/argoproj-labs/argo-dataflow/commit/f81b33dfc44683525d9c31ca0f94cbd07fd45a08) feat: do not use finalizer to stop metrics cache loop (#450)
+
+### Contributors
+
+ * Derek Wang
+
+## v0.1.0 (2021-10-08)
+
+
+### Contributors
+
+
+## v0.0.128 (2021-10-08)
+
+ * [b5114d6](https://github.com/argoproj-labs/argo-dataflow/commit/b5114d61f2e5632d72590d69d7d601ce5e38d114) fix: close jetstream connection (#441)
+ * [049ec21](https://github.com/argoproj-labs/argo-dataflow/commit/049ec21fd159f586babd0c7595a648212cbd5924) feat: fix ID for cron and HTTP sources
+ * [3c45487](https://github.com/argoproj-labs/argo-dataflow/commit/3c4548723760d7ab34d835e16d1dccf96057a533) feat: tune CPU resources
+ * [d5259ea](https://github.com/argoproj-labs/argo-dataflow/commit/d5259ea3017e683140313af65b510ca285d9f760) fix: log `giveUp=false` at `level=info`
+
+### Contributors
+
+ * Alex Collins
+ * Derek Wang
+
+## v0.0.127 (2021-10-07)
+
+ * [31e721d](https://github.com/argoproj-labs/argo-dataflow/commit/31e721d392b0220bccf5a3e42598e006e8672211) feat: add `enable.idempotence=true` for Kafka sink
+
+### Contributors
+
+ * Alex Collins
+
+## v0.0.126 (2021-10-06)
+
+ * [0b2455f](https://github.com/argoproj-labs/argo-dataflow/commit/0b2455f7bcea2c3e08b5960d6280946e2e53b169) fix: try to fix memory leak in Kafka sink
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.0.125 (2021-10-06)
 
  * [6423c9e](https://github.com/argoproj-labs/argo-dataflow/commit/6423c9e339897b929bcb6b2d23239847c2bd73b3) fix: sensible linger Kafka defaults (#432)

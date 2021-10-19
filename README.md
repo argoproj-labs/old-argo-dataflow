@@ -1,11 +1,11 @@
-# Argo Dataflow
+# Dataflow
 
 [![Build](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/build.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/argoproj-labs/argo-dataflow/branch/main/graph/badge.svg?token=yKtOCXJu1Q)](https://codecov.io/gh/argoproj-labs/argo-dataflow)
 
 ## Summary
 
-Argo Dataflow is a Kubernetes-native platform for executing large parallel data-processing pipelines.
+Dataflow is a Kubernetes-native platform for executing large parallel data-processing pipelines.
 
 Each pipeline is specified as a Kubernetes custom resource which consists of one or more steps which source and sink
 messages from data sources such Kafka, NATS Streaming, or HTTP services.

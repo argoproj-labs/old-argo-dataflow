@@ -56,12 +56,17 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			return
 		}
 
+		id := r.Header.Get(dfv1.MetaID)
+		if id == "" {
+			id = uuid.New().String()
+		}
+
 		if err := process(
 			dfv1.ContextWithMeta(
 				ctx,
 				dfv1.Meta{
 					Source: sourceURN,
-					ID:     uuid.New().String(),
+					ID:     id,
 					Time:   time.Now().Unix(),
 				},
 			),

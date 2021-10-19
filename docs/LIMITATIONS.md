@@ -2,7 +2,7 @@
 
 ## Message Size
 
-Messages are handled in memory by Argo Dataflow, so are limited by the amount of memory available x the number of messages cached in memory. 
+Messages are handled in memory by Dataflow, so are limited by the amount of memory available x the number of messages cached in memory. 
 
 * HTTP messages must be < 4GB.
 * Kafka messages are typically < 1MB. 

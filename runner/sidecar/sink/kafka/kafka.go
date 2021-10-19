@@ -41,6 +41,7 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	config["linger.ms"] = x.GetLingerMs()
 	config["compression.type"] = x.CompressionType
 	config["acks"] = x.GetAcks()
+	config["enable.idempotence"] = x.EnableIdempotence
 
 	logger.Info("kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 
@@ -57,35 +58,33 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 		}
 	}, 3*time.Second, 1.2, true)
 
-	if x.Async {
-		// track async success and errors
-		kafkaMessagesProducedSuccess := promauto.NewCounterVec(prometheus.CounterOpts{
-			Subsystem: "sinks",
-			Name:      "kafka_produced_successes",
-			Help:      "Number of messages successfully produced to Kafka",
-		}, []string{"sinkName"})
-		kafkaMessagesProducedErr := promauto.NewCounterVec(prometheus.CounterOpts{
-			Subsystem: "sinks",
-			Name:      "kafka_produce_errors",
-			Help:      "Number of errors while producing messages to Kafka",
-		}, []string{"sinkName"})
+	// track async success and errors
+	kafkaMessagesProducedSuccess := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "kafka_produced_successes",
+		Help:      "Number of messages successfully produced to Kafka",
+	}, []string{"sinkName"})
+	kafkaMessagesProducedErr := promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "kafka_produce_errors",
+		Help:      "Number of errors while producing messages to Kafka",
+	}, []string{"sinkName"})
 
-		// read from Success Channel
-		go wait.JitterUntilWithContext(ctx, func(context.Context) {
-			logger.Info("starting producer event consuming loop")
-			for e := range producer.Events() {
-				switch ev := e.(type) {
-				case *kafka.Message:
-					if err := ev.TopicPartition.Error; err != nil {
-						logger.Error(err, "Async to Kafka failed", "topic", x.Topic)
-						kafkaMessagesProducedErr.WithLabelValues(sinkName).Inc()
-					} else {
-						kafkaMessagesProducedSuccess.WithLabelValues(sinkName).Inc()
-					}
+	go wait.JitterUntilWithContext(ctx, func(context.Context) {
+		logger.Info("starting producer event consuming loop")
+		for e := range producer.Events() {
+			switch ev := e.(type) {
+			case *kafka.Message:
+				if err := ev.TopicPartition.Error; err != nil {
+					logger.Error(err, "Async to Kafka failed", "topic", x.Topic)
+					kafkaMessagesProducedErr.WithLabelValues(sinkName).Inc()
+				} else {
+					kafkaMessagesProducedSuccess.WithLabelValues(sinkName).Inc()
 				}
 			}
-		}, time.Second, 1.2, true)
-	}
+		}
+	}, time.Second, 1.2, true)
+
 	return &kafkaSink{sinkName, producer, x.Topic, x.Async}, nil
 }
 
@@ -96,21 +95,22 @@ func (h *kafkaSink) Sink(ctx context.Context, msg []byte) error {
 	if err != nil {
 		return err
 	}
-	message := kafka.Message{
+	var deliveryChan chan kafka.Event
+	if !h.async {
+		deliveryChan = make(chan kafka.Event)
+		defer close(deliveryChan)
+	}
+	if err := h.producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &h.topic, Partition: kafka.PartitionAny},
 		Headers: []kafka.Header{
 			{Key: "source", Value: []byte(m.Source)},
 			{Key: "id", Value: []byte(m.ID)},
 		},
 		Value: msg,
+	}, deliveryChan); err != nil {
+		return err
 	}
-	if h.async {
-		return h.producer.Produce(&message, nil)
-	} else {
-		deliveryChan := make(chan kafka.Event, 1)
-		if err := h.producer.Produce(&message, deliveryChan); err != nil {
-			return err
-		}
+	if deliveryChan != nil {
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("failed to get delivery: %w", ctx.Err())
@@ -123,11 +123,15 @@ func (h *kafkaSink) Sink(ctx context.Context, msg []byte) error {
 			}
 		}
 	}
+	return nil
 }
 
 func (h *kafkaSink) Close() error {
 	logger.Info("flushing producer")
-	_ = h.producer.Flush(15 * 1000)
+	unflushedMessages := h.producer.Flush(15 * 1000)
+	if unflushedMessages > 0 {
+		logger.Error(fmt.Errorf("unflushed messagesd %d", unflushedMessages), "failed to flush producer", "sinkName", h.sinkName)
+	}
 	logger.Info("closing producer")
 	h.producer.Close()
 	logger.Info("producer closed")

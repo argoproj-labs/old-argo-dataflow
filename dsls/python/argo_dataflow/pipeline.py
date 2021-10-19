@@ -159,7 +159,8 @@ class HTTPSink(Sink):
 
 
 class KafkaSink(Sink):
-    def __init__(self, subject, name=None, a_sync=False, batchSize=None, linger=None, compressionType=None, acks=None):
+    def __init__(self, subject, name=None, a_sync=False, batchSize=None, linger=None, compressionType=None, acks=None,
+                 enableIdempotence=None):
         super().__init__(name)
         self._subject = subject
         self._a_sync = a_sync
@@ -167,6 +168,7 @@ class KafkaSink(Sink):
         self._linger = linger
         self._compressionType = compressionType
         self._acks = acks
+        self._enableIdempotence = enableIdempotence
 
     def dump(self):
         x = super().dump()
@@ -181,6 +183,8 @@ class KafkaSink(Sink):
             y['compressionType'] = self._compressionType
         if self._acks:
             y['acks'] = self._acks
+        if self._enableIdempotence:
+            y['enableIdempotence'] = self._enableIdempotence
         x['kafka'] = y
         return x
 
@@ -227,9 +231,10 @@ class Step:
             url, name=name, insecureSkipVerify=insecureSkipVerify, headers=headers))
         return self
 
-    def kafka(self, subject, name=None, a_sync=False, batchSize=None, linger=None, compressionType=None, acks=None):
+    def kafka(self, subject, name=None, a_sync=False, batchSize=None, linger=None, compressionType=None, acks=None,
+              enableIdempotence=None):
         self._sinks.append(KafkaSink(subject, name=name, a_sync=a_sync, batchSize=batchSize, linger=linger,
-                                     compressionType=compressionType, acks=acks))
+                                     compressionType=compressionType, acks=acks, enableIdempotence=enableIdempotence))
         return self
 
     def scale(self, desiredReplicas, scalingDelay=None, peekDelay=None):
@@ -651,7 +656,8 @@ def http(name=None, retry=None, serviceName=None):
 
 
 def kafka(topic=None, name=None, retry=None, startOffset=None, fetchMin=None, fetchWaitMax=None):
-    return KafkaSource(topic, name=name, retry=retry, startOffset=startOffset, fetchMin=fetchMin, fetchWaitMax=fetchWaitMax)
+    return KafkaSource(topic, name=name, retry=retry, startOffset=startOffset, fetchMin=fetchMin,
+                       fetchWaitMax=fetchWaitMax)
 
 
 def stan(subject=None, name=None, retry=None):

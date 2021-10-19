@@ -25,8 +25,8 @@ var Params = struct {
 	Timeout:        sharedutil.GetEnvDuration("TIMEOUT", 3*time.Minute),
 	MessageSize:    sharedutil.GetEnvInt("MESSAGE_SIZE", 0),
 	Workers:        uint32(sharedutil.GetEnvInt("WORKERS", 2)),
-	ResourceMemory: resource.MustParse(getEnvString("REQUEST_MEM", "256Mi")),
-	ResourceCPU:    resource.MustParse(getEnvString("REQUEST_CPU", "100m")),
+	ResourceMemory: resource.MustParse(getEnvString("REQUEST_MEM", "512Mi")),
+	ResourceCPU:    resource.MustParse(getEnvString("REQUEST_CPU", "500m")),
 }
 
 func getEnvString(key, def string) string {

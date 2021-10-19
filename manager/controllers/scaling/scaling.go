@@ -2,6 +2,7 @@ package scaling
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/antonmedv/expr"
@@ -100,6 +101,9 @@ func RequeueAfter(step dfv1.Step) (time.Duration, error) {
 	}); err != nil {
 		return 0, fmt.Errorf("failed to evaluate %q: %w", scale.ScalingDelay, err)
 	} else {
-		return scalingDelay, nil
+		s := rand.NewSource(time.Now().UnixNano())
+		r := rand.New(s)
+		ns := int(scalingDelay.Nanoseconds()) * (120 - r.Intn(40)) / 100
+		return time.Duration(ns), nil
 	}
 }

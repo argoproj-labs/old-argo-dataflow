@@ -1655,6 +1655,9 @@ spec:
                               compressionType:
                                 default: lz4
                                 type: string
+                              enableIdempotence:
+                                default: true
+                                type: boolean
                               linger:
                                 type: string
                               maxMessageBytes:
@@ -8811,6 +8814,9 @@ spec:
                         compressionType:
                           default: lz4
                           type: string
+                        enableIdempotence:
+                          default: true
+                          type: boolean
                         linger:
                           type: string
                         maxMessageBytes:

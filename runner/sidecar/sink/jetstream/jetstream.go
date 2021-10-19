@@ -42,15 +42,19 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 func (j jsSink) Sink(ctx context.Context, msg []byte) error {
 	span, _ := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("jetstream-sink-%s", j.sinkName))
 	defer span.Finish()
-	if _, err := j.js.Publish(j.subject, msg); err != nil {
+	m, err := dfv1.MetaFromContext(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := j.js.Publish(j.subject, msg, nats.MsgId(m.ID)); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (j jsSink) Close() error {
-	logger.Info("closing jetstream source connection")
-	if j.conn.IsClosed() {
+	logger.Info("closing jetstream sink connection")
+	if !j.conn.IsClosed() {
 		j.conn.Close()
 	}
 	return nil

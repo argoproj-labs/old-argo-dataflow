@@ -3,23 +3,7 @@
 Deploy into the `argo-dataflow-system` namespace:
 
 ```bash
-kubectl create ns argo-dataflow-system
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/argo-server.yaml
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/quick-start.yaml
-```
-
-If you want to experiment with Kafka:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/kafka.yaml
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml 
-```
-
-If you want to experiment with NATS Streaming (aka STAN):
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/stan.yaml 
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-stan-default-secret.yaml
 ```
 
 Change to the installation namespace:
@@ -34,18 +18,36 @@ Wait for the deployments to be ready:
 kubectl get deploy -w
 ```
 
-Access the user interface:
+If you want to experiment with Kafka:
 
 ```bash
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/kafka.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml 
+```
+
+Wait for the statefulsets to be ready:
+
+```bash
+kubectl get statefulset -w
+```
+
+You can port forward to the Kafka broker:
+
+```bash
+kubectl port-forward svc/kafka-broker 9092:9092
+```
+
+You can use Kafka's console producer to send messages to the broker,
+see [Kafka quickstart](https://kafka.apache.org/quickstart).
+
+If you want the user interface:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/argo-server.yaml
+kubectl get deploy -w
 kubectl port-forward svc/argo-server 2746:2746
 ```
 
 Open [http://localhost:2746/pipelines/argo-dataflow-system](http://localhost:2746/pipelines/argo-dataflow-system).
 
 Run [one of the examples](EXAMPLES.md).
-
-Clean up:
-
-```bash
-kubectl delete ns argo-dataflow-system
-```

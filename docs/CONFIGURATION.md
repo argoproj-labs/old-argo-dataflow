@@ -1,6 +1,6 @@
 # Configuration
 
-How to configure Argo Dataflow.
+How to configure Dataflow.
 
 ## Sources and Sinks
 

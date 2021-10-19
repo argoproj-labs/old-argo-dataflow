@@ -1,6 +1,6 @@
 # `kubctl`
 
-Argo Dataflow is designed to work well with `kubectl`, rather than needing its own CLI (though maybe we'll add one
+Dataflow is designed to work well with `kubectl`, rather than needing its own CLI (though maybe we'll add one
 someday 😀).
 
 Task you can do with `kubectl`:

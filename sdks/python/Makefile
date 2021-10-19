@@ -1,5 +1,5 @@
 install: env
-	./venv/bin/pip3 install --use-feature=in-tree-build .
+	./venv/bin/pip3 install .
 	./venv/bin/pip3 install -r ./requirements.txt
 
 env:
