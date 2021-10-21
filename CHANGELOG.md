@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.0 (2021-10-21)
+
+ * [9014b30](https://github.com/argoproj-labs/argo-dataflow/commit/9014b30b889daf684c145ab22a542459d5845d31) feat: Enable DLQ (#444)
+ * [42034f8](https://github.com/argoproj-labs/argo-dataflow/commit/42034f8c63425299c203cea7865f5fa22472b1f3) fix: CRD metadata.annotations size (#457)
+
+### Contributors
+
+ * Saravanan Balasubramanian
+
 ## v0.2.0 (2021-10-15)
 
  * [f81b33d](https://github.com/argoproj-labs/argo-dataflow/commit/f81b33dfc44683525d9c31ca0f94cbd07fd45a08) feat: do not use finalizer to stop metrics cache loop (#450)
