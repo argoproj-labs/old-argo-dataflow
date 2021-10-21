@@ -20,4 +20,5 @@ spec:
         topic: output-topic
     sources:
     - kafka:
+        groupId: my-group
         topic: input-topic

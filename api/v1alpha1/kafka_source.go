@@ -28,3 +28,10 @@ func (m *KafkaSource) GetFetchMinBytes() int {
 func (m *KafkaSource) GetFetchWaitMaxMs() int {
 	return int(m.FetchWaitMax.Milliseconds())
 }
+
+func (m *KafkaSource) GetGroupID(defaultGroupID string) string {
+	if m.GroupID != "" {
+		return m.GroupID
+	}
+	return defaultGroupID
+}

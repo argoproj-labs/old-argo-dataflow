@@ -44,10 +44,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 		return nil, err
 	}
 	config["go.logs.channel.enable"] = true
-	consumerGroupID := x.GroupID
-	if consumerGroupID == "" {
-		consumerGroupID = sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
-	}
+	consumerGroupID := x.GetGroupID(sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName))
 	config["group.id"] = consumerGroupID
 	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
 	config["heartbeat.interval.ms"] = 3 * seconds
