@@ -101,7 +101,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 					clientID := genClientID()
 					conn, err = sharedstan.ConnectSTAN(ctx, secretInterface, x, clientID)
 					if err != nil {
-						logger.Info(fmt.Sprintf("failed to reconnect, will try again soon: %s", err.Error()), "source", sourceName, "clientID", clientID)
+						logger.Info("failed to reconnect, will try again soon", "source", sourceName, "clientID", clientID, "error", err)
 						continue
 					}
 					logger.Info("reconnected to stan server.", "source", sourceName, "clientID", clientID)
