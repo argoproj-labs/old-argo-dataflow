@@ -64,7 +64,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 				logger.Error(err, "failed to process message")
 			} else if err := msg.Ack(); err != nil {
 				if errors.Is(err, stan.ErrBadSubscription) {
-					logger.Info("failed to ack a message, stan subscription might have been closed", "source", sourceName)
+					logger.Info("failed to ack a message, stan subscription might have been closed", "source", sourceName, "error", err)
 				} else {
 					logger.Error(err, "failed to ack a message", "source", sourceName)
 				}
