@@ -3,6 +3,7 @@ package stan
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -62,7 +63,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 			); err != nil {
 				logger.Error(err, "failed to process message")
 			} else if err := msg.Ack(); err != nil {
-				logger.Error(err, "failed to ack message", "source", sourceName)
+				if errors.Is(err, stan.ErrBadSubscription) {
+					logger.Info("failed to ack a message, stan subscription might have been closed", "source", sourceName, "error", err)
+				} else {
+					logger.Error(err, "failed to ack a message", "source", sourceName)
+				}
 			}
 		}, stan.DurableName(queueName),
 			stan.SetManualAckMode(),
@@ -96,7 +101,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 					clientID := genClientID()
 					conn, err = sharedstan.ConnectSTAN(ctx, secretInterface, x, clientID)
 					if err != nil {
-						logger.Error(err, "failed to reconnect", "source", sourceName, "clientID", clientID)
+						logger.Info("failed to reconnect, will try again soon", "source", sourceName, "clientID", clientID, "error", err)
 						continue
 					}
 					logger.Info("reconnected to stan server.", "source", sourceName, "clientID", clientID)
