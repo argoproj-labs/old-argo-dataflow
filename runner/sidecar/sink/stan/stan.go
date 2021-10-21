@@ -56,7 +56,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, namespace,
 					clientID := genClientID()
 					conn, err = stan.ConnectSTAN(ctx, secretInterface, x, clientID)
 					if err != nil {
-						logger.Error(err, "failed to reconnect", "sink", sinkName, "clientID", clientID)
+						logger.Info(fmt.Sprintf("failed to reconnect, will try again soon: %s", err.Error()), "sink", sinkName, "clientID", clientID)
 						continue
 					}
 					logger.Info("reconnected to stan server.", "sink", sinkName, "clientID", clientID)

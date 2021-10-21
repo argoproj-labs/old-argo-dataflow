@@ -2,6 +2,7 @@ package js
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -43,7 +44,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 			); err != nil {
 				logger.Error(err, "failed to process message")
 			} else if err := msg.Ack(); err != nil {
-				logger.Error(err, "failed to ack message", "source", sourceName)
+				if errors.Is(err, nats.ErrBadSubscription) {
+					logger.Info("Jet Stream subscription might have been closed", "source", sourceName)
+				} else {
+					logger.Error(err, "failed to ack message", "source", sourceName)
+				}
 			}
 		}
 	}, nats.ManualAck(), nats.Durable(durableName), nats.DeliverNew())
