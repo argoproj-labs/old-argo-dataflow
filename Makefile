@@ -18,6 +18,10 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+# Get the OS and architecture information
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
+
 build:
 	go build ./...
 
@@ -215,16 +219,14 @@ $(GOBIN)/controller-gen:
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
 
 version:=2.3.2
-name:=darwin
-arch:=amd64
 
 kubebuilder:
 	# download the release
-	curl -L -O "https://github.com/kubernetes-sigs/kubebuilder/releases/download/v$(version)/kubebuilder_$(version)_$(name)_$(arch).tar.gz"
+	curl -L -O "https://github.com/kubernetes-sigs/kubebuilder/releases/download/v$(version)/kubebuilder_$(version)_$(GOOS)_$(GOARCH).tar.gz"
 
 	# extract the archive
-	tar -zxvf kubebuilder_$(version)_$(name)_$(arch).tar.gz
-	mv kubebuilder_$(version)_$(name)_$(arch) kubebuilder && sudo mv kubebuilder /usr/local/
+	tar -zxvf kubebuilder_$(version)_$(GOOS)_$(GOARCH).tar.gz
+	mv kubebuilder_$(version)_$(GOOS)_$(GOARCH) kubebuilder && sudo mv kubebuilder /usr/local/
 
 .PHONY: examples
 examples: $(shell find examples -name '*-pipeline.yaml' | sort) docs/EXAMPLES.md test/examples/examples_test.go
