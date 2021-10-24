@@ -1,3 +1,4 @@
+//go:build test
 // +build test
 
 package e2e
@@ -21,7 +22,7 @@ func TestGitStep(t *testing.T) {
 				{
 					Name: "main",
 					Git: &Git{
-						Image:   "quay.io/argoprojlabs/dataflow-golang1-16",
+						Image:   "quay.io/argoprojlabs/dataflow-golang1-17",
 						URL:     "https://github.com/argoproj-labs/argo-dataflow",
 						Command: []string{"go", "run", "."},
 						Path:    "examples/git",

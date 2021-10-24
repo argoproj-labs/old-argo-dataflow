@@ -3,15 +3,15 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |-
-      This example of Go 1.16 handler.
+      This example of Go 1.17 handler.
 
       [Learn about handlers](../docs/HANDLERS.md)
     dataflow.argoproj.io/owner: argoproj-labs
-  name: 104-golang1-16
+  name: 104-golang1-17
 spec:
   steps:
   - code:
-      runtime: golang1-16
+      runtime: golang1-17
       source: |-
         package main
 

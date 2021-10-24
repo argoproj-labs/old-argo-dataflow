@@ -9,13 +9,13 @@ if __name__ == '__main__':
      .step(
         (container('main',
                    args=['sh', '-c', 'cat'],
-                   image='golang:1.16'
+                   image='golang:1.17'
                    )
          ))
      .step(
         (container('terminator',
                    args=['sh', '-c', 'exit 0'],
-                   image='golang:1.16',
+                   image='golang:1.17',
                    terminator=True
                    )
          ))

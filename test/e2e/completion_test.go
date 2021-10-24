@@ -1,3 +1,4 @@
+//go:build test
 // +build test
 
 package e2e
@@ -19,7 +20,7 @@ func TestCompletion(t *testing.T) {
 			Steps: []StepSpec{{
 				Name: "main",
 				Container: &Container{
-					Image:   "golang:1.16",
+					Image:   "golang:1.17",
 					Command: []string{"sh"},
 					Args:    []string{"-c", "exit 0"},
 				},

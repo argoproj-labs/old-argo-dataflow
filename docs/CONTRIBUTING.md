@@ -2,7 +2,7 @@
 
 Install :
 
-* Golang v1.16
+* Golang v1.17
 * Docker
 * Kubernetes cluster ready (e.g. Docker for Desktop).
 * Python 3 and Pip 3
