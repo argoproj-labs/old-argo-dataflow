@@ -600,13 +600,14 @@ class HTTPSource(Source):
 
 
 class KafkaSource(Source):
-    def __init__(self, topic, name=None, retry=None, startOffset=None, fetchMin=None, fetchWaitMax=None):
+    def __init__(self, topic, name=None, retry=None, startOffset=None, fetchMin=None, fetchWaitMax=None, groupId=None):
         super().__init__(name=name, retry=retry)
         assert topic
         self._topic = topic
         self._startOffset = startOffset
         self._fetchMin = fetchMin
         self._fetchWaitMax = fetchWaitMax
+        self._groupId = groupId
 
     def dump(self):
         x = super().dump()
@@ -617,6 +618,8 @@ class KafkaSource(Source):
             y["fetchMin"] = self._fetchMin
         if self._fetchWaitMax:
             y["fetchWaitMax"] = self._fetchWaitMax
+        if self._groupId:
+            y["groupId"] = self._groupId
         x['kafka'] = y
         return x
 
@@ -655,9 +658,9 @@ def http(name=None, retry=None, serviceName=None):
     return HTTPSource(name=name, serviceName=serviceName, retry=retry)
 
 
-def kafka(topic=None, name=None, retry=None, startOffset=None, fetchMin=None, fetchWaitMax=None):
+def kafka(topic=None, name=None, retry=None, startOffset=None, fetchMin=None, fetchWaitMax=None, groupId=None):
     return KafkaSource(topic, name=name, retry=retry, startOffset=startOffset, fetchMin=fetchMin,
-                       fetchWaitMax=fetchWaitMax)
+                       fetchWaitMax=fetchWaitMax, groupId=groupId)
 
 
 def stan(subject=None, name=None, retry=None):

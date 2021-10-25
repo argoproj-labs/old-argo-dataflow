@@ -494,6 +494,9 @@ message KafkaSource {
 
   // +kubebuilder:default="500ms"
   optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration fetchWaitMax = 4;
+
+  // GroupID is the consumer group ID. If not specified, a unique deterministic group ID is generated.
+  optional string groupId = 5;
 }
 
 message Log {

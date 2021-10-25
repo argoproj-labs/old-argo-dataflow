@@ -3641,6 +3641,11 @@ spec:
                               fetchWaitMax:
                                 default: 500ms
                                 type: string
+                              groupId:
+                                description: GroupID is the consumer group ID. If
+                                  not specified, a unique deterministic group ID is
+                                  generated.
+                                type: string
                               maxMessageBytes:
                                 format: int32
                                 type: integer
