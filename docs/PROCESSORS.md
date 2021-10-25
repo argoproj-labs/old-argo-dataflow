@@ -1,8 +1,8 @@
-# Steps
+# Processors
 
-A step is the execution unit of a Dataflow pipeline.
+A processor is the execution unit of a Dataflow pipeline.
 
-## Built-in Steps
+## Built-in 
 
 There are a number of built in steps. These are tested for reliability and performance and so should be you first
 choice:
