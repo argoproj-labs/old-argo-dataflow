@@ -20,6 +20,20 @@ Wait for the deployments to be available (ctrl+c when available):
 kubectl get deploy -w
 ```
 
+If you want the user interface:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/argo-server.yaml
+kubectl get deploy -w ;# (ctrl+c when available)
+kubectl port-forward svc/argo-server 2746:2746
+```
+
+Open [http://localhost:2746/pipelines/argo-dataflow-system](http://localhost:2746/pipelines/argo-dataflow-system).
+
+Run [one of the examples](EXAMPLES.md).
+
+## Kafka
+
 If you want to experiment with Kafka:
 
 ```bash
@@ -41,15 +55,3 @@ kubectl port-forward svc/kafka-broker 9092:9092
 
 You can use Kafka's console producer to send messages to the broker,
 see [Kafka quickstart](https://kafka.apache.org/quickstart).
-
-If you want the user interface:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/argo-server.yaml
-kubectl get deploy -w ;# (ctrl+c when available)
-kubectl port-forward svc/argo-server 2746:2746
-```
-
-Open [http://localhost:2746/pipelines/argo-dataflow-system](http://localhost:2746/pipelines/argo-dataflow-system).
-
-Run [one of the examples](EXAMPLES.md).
