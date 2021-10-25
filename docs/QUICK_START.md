@@ -1,5 +1,7 @@
 # Quick Start
 
+You'll need a Kubernetes cluster to try it out, e.g. Docker for Desktop.
+
 Deploy into the `argo-dataflow-system` namespace:
 
 ```bash
@@ -12,7 +14,7 @@ Change to the installation namespace:
 kubectl config set-context --current --namespace=argo-dataflow-system
 ```
 
-Wait for the deployments to be ready:
+Wait for the deployments to be available (ctrl+c when available):
 
 ```bash
 kubectl get deploy -w
@@ -25,7 +27,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/dataflow-kafka-default-secret.yaml 
 ```
 
-Wait for the statefulsets to be ready:
+Wait for the statefulsets to be available (ctrl+c when available):
 
 ```bash
 kubectl get statefulset -w
@@ -44,7 +46,7 @@ If you want the user interface:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/config/apps/argo-server.yaml
-kubectl get deploy -w
+kubectl get deploy -w ;# (ctrl+c when available)
 kubectl port-forward svc/argo-server 2746:2746
 ```
 
