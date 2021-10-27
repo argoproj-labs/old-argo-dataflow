@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/argoproj-labs/argo-dataflow/shared/util/retry"
 	"net"
 	"net/http"
 	"os"
@@ -234,10 +235,10 @@ func logMetrics(ctx context.Context) error {
 }
 
 func enrichSpec(ctx context.Context) error {
-	if err := enrichSources(ctx); err != nil {
+	if err := retry.WithDefaultRetry(func() error { return enrichSources(ctx) }); err != nil {
 		return err
 	}
-	return enrichSinks(ctx)
+	return retry.WithDefaultRetry(func() error { return enrichSinks(ctx) })
 }
 
 func enrichSources(ctx context.Context) error {
