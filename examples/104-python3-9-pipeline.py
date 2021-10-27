@@ -1,8 +1,12 @@
 from argo_dataflow import pipeline, kafka
 
 
-def handler(msg, context):
+def a(msg, context):
     return ("hi! " + msg.decode("UTF-8")).encode("UTF-8")
+
+
+def b(msg, context):
+    return ("bye! " + msg.decode("UTF-8")).encode("UTF-8")
 
 
 if __name__ == '__main__':
@@ -13,7 +17,12 @@ if __name__ == '__main__':
 [Learn about handlers](../docs/HANDLERS.md)""")
      .step(
         (kafka('input-topic')
-         .code(source=handler)
-         .kafka('output-topic')
-         ))
-     .save())
+         .code('a', source=a)
+         .kafka('middle-topic'))
+    )
+        .step(
+        (kafka('middle-topic')
+         .code('b', source=b)
+         .kafka('output-topic'))
+    )
+        .save())

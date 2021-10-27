@@ -449,7 +449,8 @@ class CodeStep(Step):
     def __init__(self, name=None, source=None, code=None, runtime=None, sources=None, sinks=None, terminator=False):
         super().__init__(name, sources=sources, sinks=sinks, terminator=terminator)
         if source:
-            self._source = inspect.getsource(source)
+            self._source = inspect.getsource(source).replace('def ' + source.__name__ + str(inspect.signature(source)),
+                                                             'def handler' + str(inspect.signature(source)))
         else:
             self._source = code
         if runtime:

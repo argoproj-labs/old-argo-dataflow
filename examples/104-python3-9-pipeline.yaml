@@ -15,10 +15,22 @@ spec:
       source: |
         def handler(msg, context):
             return ("hi! " + msg.decode("UTF-8")).encode("UTF-8")
-    name: main
+    name: a
+    sinks:
+    - kafka:
+        topic: middle-topic
+    sources:
+    - kafka:
+        topic: input-topic
+  - code:
+      runtime: python3-9
+      source: |
+        def handler(msg, context):
+            return ("bye! " + msg.decode("UTF-8")).encode("UTF-8")
+    name: b
     sinks:
     - kafka:
         topic: output-topic
     sources:
     - kafka:
-        topic: input-topic
+        topic: middle-topic
