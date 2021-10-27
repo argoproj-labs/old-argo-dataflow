@@ -24,5 +24,18 @@ If you want to connect to from you desktop, e.g. as a consumer or producer, you 
 kubectl port-forward svc/kafka-broker 9092:9092
 ```
 
+To send messages from your host, you'll need to update `/etc/hosts`:
+
+```
+sudo vi /etc/hosts
+```
+
+Add these lines:
+
+```
+127.0.0.1 kafka-0.broker
+127.0.0.1 kafka-broker
+```
+
 You can use Kafka's console producer to send messages to the broker,
 see [Kafka quickstart](https://kafka.apache.org/quickstart).
