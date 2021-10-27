@@ -3,7 +3,7 @@ from argo_dataflow import kafka, pipeline, stan
 if __name__ == '__main__':
     (pipeline("101-two-node")
      .owner('argoproj-labs')
-     .describe("""This example shows a example of having two nodes in a pipeline.
+     .describe("""This example shows an example of having two nodes in a pipeline.
 
 While they read from Kafka, they are connected by a NATS Streaming subject.""")
      .step(

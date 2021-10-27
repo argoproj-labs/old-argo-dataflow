@@ -12,7 +12,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 ### [101-two-node](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-two-node-pipeline.yaml)
 
-This example shows a example of having two nodes in a pipeline.
+This example shows an example of having two nodes in a pipeline.
 
 While they read from Kafka, they are connected by a NATS Streaming subject.
 
