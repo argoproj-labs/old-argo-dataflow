@@ -246,7 +246,7 @@ spec:
         - nats:8222
         command:
         - curl
-        image: golang:1.16
+        image: golang:1.17
         imagePullPolicy: IfNotPresent
         name: wait
       volumes:

@@ -6,9 +6,9 @@ def handler(msg):
 
 
 if __name__ == '__main__':
-    (pipeline("104-golang1-16")
+    (pipeline("104-golang1-17")
      .owner('argoproj-labs')
-     .describe("""This example of Go 1.16 handler.
+     .describe("""This example of Go 1.17 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)""")
      .step(
@@ -19,7 +19,7 @@ import "context"
 
 func Handler(ctx context.Context, m []byte) ([]byte, error) {
   return []byte("hi " + string(m)), nil
-}""", runtime='golang1-16')
+}""", runtime='golang1-17')
          .log()
          ))
      .save())

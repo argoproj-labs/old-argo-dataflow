@@ -1,3 +1,4 @@
+//go:build test
 // +build test
 
 package s3_e2e
@@ -29,7 +30,7 @@ func TestS3Sink(t *testing.T) {
 				{
 					Name: "main",
 					Code: &Code{
-						Runtime: "golang1-16",
+						Runtime: "golang1-17",
 						Source: `package main
 
 import "context"

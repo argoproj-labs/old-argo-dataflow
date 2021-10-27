@@ -196,9 +196,9 @@ runner: runner-image
 testapi: testapi-image
 
 .PHONY: runtimes
-runtimes: golang1-16 java16 python3-9 node16
+runtimes: golang1-17 java16 python3-9 node16
 
-golang1-16: golang1-16-image
+golang1-17: golang1-17-image
 java16: java16-image
 python3-9: python3-9-image
 node16: node16-image
@@ -209,7 +209,7 @@ ifeq ($(K3D),true)
 	k3d image import quay.io/argoprojlabs/dataflow-$*:$(TAG)
 endif
 
-scan: scan-controller scan-runner scan-testapi scan-golang1-16 scan-java16 scan-python3-9
+scan: scan-controller scan-runner scan-testapi scan-golang1-17 scan-java16 scan-python3-9
 	snyk test --severity-threshold=high
 
 scan-%:

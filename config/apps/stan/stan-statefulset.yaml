@@ -8,7 +8,7 @@ spec:
       # stan depends on nats, and will go into CrashloopBackoff if that is not ready
       initContainers:
         - name: wait
-          image: golang:1.16
+          image: golang:1.17
           imagePullPolicy: IfNotPresent
           command:
             - curl

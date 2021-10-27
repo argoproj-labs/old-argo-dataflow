@@ -17,7 +17,7 @@ You MUST escape new lines.""")
                     args=['sh', '-c', """cat /var/run/argo-dataflow/in | while read line ; do
   echo "hi $line"
 done > /var/run/argo-dataflow/out"""],
-                    image='golang:1.16',
+                    image='golang:1.17',
                     fifo=True
                     )
          .kafka('output-topic')

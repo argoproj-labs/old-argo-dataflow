@@ -680,6 +680,8 @@ message Sink {
   optional VolumeSink volume = 8;
 
   optional JetStreamSink jetstream = 9;
+
+  optional bool deadLetterQueue = 10;
 }
 
 message Source {

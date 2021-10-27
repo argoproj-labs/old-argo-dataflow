@@ -1,6 +1,6 @@
 #syntax=docker/dockerfile:1.2
 # Build the manager binary
-FROM golang:1.16 as builder
+FROM golang:1.17 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -59,13 +59,13 @@ COPY --from=testapi-builder /workspace/bin/testapi .
 USER 9653:9653
 ENTRYPOINT ["/testapi"]
 
-FROM golang:1.16-alpine AS golang1-16
+FROM golang:1.17-alpine AS golang1-17
 COPY --from=builder /tmp/dumb-init /dumb-init
 RUN chmod +x /dumb-init
 RUN mkdir /.cache
 ENV GO111MODULE=off
 ADD sdks/golang /go/src/github.com/argoproj-labs/argo-dataflow/sdks/golang
-ADD runtimes/golang1-16 /workspace
+ADD runtimes/golang1-17 /workspace
 RUN chown -R 9653 /.cache /workspace
 WORKDIR /workspace
 USER 9653:9653
