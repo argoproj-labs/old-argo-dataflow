@@ -13,6 +13,8 @@ type KafkaSource struct {
 	FetchMin *resource.Quantity `json:"fetchMin,omitempty" protobuf:"bytes,3,opt,name=fetchMin"`
 	// +kubebuilder:default="500ms"
 	FetchWaitMax *metav1.Duration `json:"fetchWaitMax,omitempty" protobuf:"bytes,4,opt,name=fetchWaitMax"`
+	// GroupID is the consumer group ID. If not specified, a unique deterministic group ID is generated.
+	GroupID string `json:"groupId,omitempty" protobuf:"bytes,5,opt,name=groupId"`
 }
 
 func (m *KafkaSource) GetAutoOffsetReset() string {
@@ -25,4 +27,11 @@ func (m *KafkaSource) GetFetchMinBytes() int {
 
 func (m *KafkaSource) GetFetchWaitMaxMs() int {
 	return int(m.FetchWaitMax.Milliseconds())
+}
+
+func (m *KafkaSource) GetGroupID(defaultGroupID string) string {
+	if m.GroupID != "" {
+		return m.GroupID
+	}
+	return defaultGroupID
 }

@@ -56,29 +56,31 @@ Read in order:
 Beginner:
 
 * [Quick start](docs/QUICK_START.md)
+* [Concepts](docs/CONCEPTS.md)
+* [Sources](docs/SOURCES.md)
+* [Processors](docs/PROCESSORS.md)
+* [Sinks](docs/SINKS.md)
 * [Examples](docs/EXAMPLES.md)
-* [Steps](docs/STEPS.md)
-* [Sources](docs/SOURCES.md) and [Sinks](docs/SINKS.md)
-* [Garbage collection](docs/GC.md)
 
 Intermediate:
 
 * [Handlers](docs/CODE.md)
 * [Git usage](docs/GIT.md)
-* [Reliability](docs/RELIABILITY.md)
+* [Expression syntax](docs/EXPRESSIONS.md)
+* [Garbage collection](docs/GC.md)
 * [Scaling](docs/SCALING.md)
 * [Command line](docs/CLI.md)
-* [Expression syntax](docs/EXPRESSIONS.md)
-* [Meta-data](docs/META.md)
-* [Workflow interop](docs/WORKFLOW_INTEROP.md)
-* [Events interop](docs/EVENTS_INTEROP.md)
 * [Kubectl](docs/KUBECTL.md)
+* [Events interop](docs/EVENTS_INTEROP.md)
+* [Workflow interop](docs/WORKFLOW_INTEROP.md)
+* [Meta-data](docs/META.md)
 
 Advanced
 
 * [Configuration](docs/CONFIGURATION.md)
 * [Features](docs/FEATURES.md)
 * [Limitations](docs/LIMITATIONS.md)
+* [Reliability](docs/RELIABILITY.md)
 * [Metrics](docs/METRICS.md)
 * [Image contract](docs/IMAGE_CONTRACT.md)
 * [Jaeger tracing](docs/JAEGER.md)

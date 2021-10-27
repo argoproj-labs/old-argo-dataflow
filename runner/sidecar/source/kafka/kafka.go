@@ -37,13 +37,14 @@ const (
 	pendingUnavailable = math.MinInt32
 )
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, consumerGroupID, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
 		return nil, err
 	}
 	config["go.logs.channel.enable"] = true
+	consumerGroupID := x.GetGroupID(sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName))
 	config["group.id"] = consumerGroupID
 	config["group.instance.id"] = fmt.Sprintf("%s/%d", consumerGroupID, replica)
 	config["heartbeat.interval.ms"] = 3 * seconds
@@ -153,7 +154,7 @@ func (s *kafkaSource) startPollLoop(ctx context.Context) {
 					s.totalLag = stats.totalLag(s.topic)
 				}
 			case kafka.Error:
-				s.logger.Error(fmt.Errorf("%v", e), "poll error")
+				s.logger.Info("poll error", "error", fmt.Errorf("%v", e))
 			case nil:
 				// noop
 			default:
@@ -203,7 +204,7 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	commitLastUncommitted := func() {
 		if lastUncommitted != nil {
 			if _, err := s.consumer.CommitMessage(lastUncommitted); err != nil {
-				logger.Error(err, "failed to commit message", "offset", lastUncommitted.TopicPartition.Offset)
+				logger.Info("failed to commit message", "offset", lastUncommitted.TopicPartition.Offset, "error", err)
 			}
 			lastUncommitted = nil
 		}

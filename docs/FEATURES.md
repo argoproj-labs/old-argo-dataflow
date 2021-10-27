@@ -21,7 +21,7 @@ alpha/beta/stable.
 | Expression based scaling | v0.0.90 | v0.0.128 | |
 | Filter step | v0.0.59 | v0.0.70 | |
 | FMEA tests | | v0.0.59 | |
-| [Generator step](STEPS.md#Generator-step) | v0.0.59 | | |
+| [Generator step](PROCESSORS.md#Generator-step) | v0.0.59 | | |
 | Graceful step termination | v0.0.59 | v0.0.128 | |
 | Group step | v0.0.59 | | |
 | [Git step](GIT.md) | v0.0.59 | v0.0.70 | |
