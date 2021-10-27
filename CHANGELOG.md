@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4.0 (2021-10-25)
+
+ * [5ec67f6](https://github.com/argoproj-labs/argo-dataflow/commit/5ec67f66010481a91e8743b9ef841c51de813fe2) feat: Make Kafka group.id configurable. Fixes #89 (#464)
+ * [5572212](https://github.com/argoproj-labs/argo-dataflow/commit/557221254f9cd8c74032dd3302955b339685ece4) fix: demote Kafka error messages to info. Fixes #466 (#469)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.3.0 (2021-10-21)
 
  * [9014b30](https://github.com/argoproj-labs/argo-dataflow/commit/9014b30b889daf684c145ab22a542459d5845d31) feat: Enable DLQ (#444)
