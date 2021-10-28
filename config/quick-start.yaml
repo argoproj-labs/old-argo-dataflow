@@ -14260,6 +14260,18 @@ spec:
   selector:
     control-plane: controller-manager
 ---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-limit-range
+  namespace: argo-dataflow-system
+spec:
+  limits:
+  - defaultRequest:
+      cpu: 100m
+      memory: 126Mi
+    type: Container
+---
 apiVersion: scheduling.k8s.io/v1
 description: This priority class is used to ensure that lead replicas are prioritized
   over other replicas.
