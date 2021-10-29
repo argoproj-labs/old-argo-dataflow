@@ -36,7 +36,7 @@ func main() {
 			}
 		}
 	case "tests":
-		_, _ = fmt.Printf("//go:build test\n\n")
+		_, _ = fmt.Printf("// +build test\n\n")
 		_, _ = fmt.Printf("package examples\n\n")
 		_, _ = fmt.Printf("import (\n")
 		_, _ = fmt.Printf("\t\"testing\"\n")

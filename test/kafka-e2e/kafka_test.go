@@ -1,4 +1,5 @@
 //go:build test
+// +build test
 
 package kafka_e2e
 

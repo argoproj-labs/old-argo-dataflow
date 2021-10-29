@@ -1,4 +1,5 @@
 //go:build test
+// +build test
 
 package s3_e2e
 
