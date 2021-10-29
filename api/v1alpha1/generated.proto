@@ -235,6 +235,9 @@ message Cat {
 message Code {
   optional string runtime = 4;
 
+  // Image is used in preference to Runtime.
+  optional string image = 5;
+
   optional string source = 3;
 }
 

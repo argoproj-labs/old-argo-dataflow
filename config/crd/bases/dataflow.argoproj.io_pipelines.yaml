@@ -715,6 +715,9 @@ spec:
                       type: object
                     code:
                       properties:
+                        image:
+                          description: Image is used in preference to Runtime.
+                          type: string
                         runtime:
                           enum:
                           - golang1-16
@@ -726,7 +729,6 @@ spec:
                         source:
                           type: string
                       required:
-                      - runtime
                       - source
                       type: object
                     container:
