@@ -26,6 +26,22 @@ type kafkaSink struct {
 	async    bool
 }
 
+var kafkaMessagesProducedSuccess, kafkaMessagesProducedErr *prometheus.CounterVec
+
+func init() {
+	// track async success and errors
+	kafkaMessagesProducedSuccess = promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "kafka_produced_successes",
+		Help:      "Number of messages successfully produced to Kafka",
+	}, []string{"sinkName"})
+	kafkaMessagesProducedErr = promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "kafka_produce_errors",
+		Help:      "Number of errors while producing messages to Kafka",
+	}, []string{"sinkName"})
+}
+
 func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
 	logger := logger.WithValues("sink", sinkName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
@@ -50,25 +66,12 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	if err != nil {
 		return nil, err
 	}
-
 	go wait.JitterUntilWithContext(ctx, func(context.Context) {
 		logger.Info("consuming Kafka logs")
 		for e := range producer.Logs() {
 			logger.WithValues("name", e.Name, "tag", e.Tag).Info(e.Message)
 		}
 	}, 3*time.Second, 1.2, true)
-
-	// track async success and errors
-	kafkaMessagesProducedSuccess := promauto.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "sinks",
-		Name:      "kafka_produced_successes",
-		Help:      "Number of messages successfully produced to Kafka",
-	}, []string{"sinkName"})
-	kafkaMessagesProducedErr := promauto.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "sinks",
-		Name:      "kafka_produce_errors",
-		Help:      "Number of errors while producing messages to Kafka",
-	}, []string{"sinkName"})
 
 	go wait.JitterUntilWithContext(ctx, func(context.Context) {
 		logger.Info("starting producer event consuming loop")
