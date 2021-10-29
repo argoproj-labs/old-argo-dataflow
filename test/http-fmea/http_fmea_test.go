@@ -89,3 +89,38 @@ func TestHTTPFMEA_PodDeletedDisruption_TwoReplicas(t *testing.T) {
 	WaitForCounter(2*n, 2*n)
 	WaitForNoErrors()
 }
+
+func TestHTTPFMEA_PodDeletedDisruption_OneReplica(t *testing.T) {
+	defer Setup(t)()
+
+	CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{Name: "http"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{{
+				Name:    "main",
+				Cat:     &Cat{},
+				Sources: []Source{{HTTP: &HTTPSource{}}},
+				Sinks:   []Sink{{HTTP: &HTTPSink{URL: "http://testapi/count/incr"}}},
+			}},
+		},
+	})
+
+	WaitForPipeline()
+
+	n := 15
+
+	// with a single replica, if you loose a replica, you loose service
+	go PumpHTTPTolerantly(n)
+
+	WaitForPod("http-main-0")
+	stopPortForward := StartPortForward("http-main-0")
+	WaitForSunkMessages()
+	stopPortForward()
+
+	DeletePod("http-main-0") // delete the pod to see that we recover and continue to process messages
+	WaitForPod("http-main-0")
+
+	WaitForCounter(n, n)
+	defer StartPortForward("http-main-0")()
+	WaitForNoErrors()
+}
