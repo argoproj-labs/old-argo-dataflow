@@ -98,7 +98,7 @@ func TestKafkaMultipleSink(t *testing.T) {
 				Cat:     &Cat{},
 				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
 				Sinks: []Sink{{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}, Async: true}},
-					{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic1}, Async: true}}},
+					{Name: "sink2", Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic1}, Async: true}}},
 			}},
 		},
 	})

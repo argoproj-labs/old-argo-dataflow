@@ -12,6 +12,7 @@ import (
 	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"k8s.io/apimachinery/pkg/util/wait"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -25,7 +26,23 @@ type kafkaSink struct {
 	async    bool
 }
 
-func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink, kafkaMessagesProducedSuccess *prometheus.CounterVec, kafkaMessagesProducedErr *prometheus.CounterVec,  ) (sink.Interface, error) {
+var kafkaMessagesProducedSuccess, kafkaMessagesProducedErr *prometheus.CounterVec
+
+func init() {
+	// track async success and errors
+	kafkaMessagesProducedSuccess = promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "kafka_produced_successes",
+		Help:      "Number of messages successfully produced to Kafka",
+	}, []string{"sinkName"})
+	kafkaMessagesProducedErr = promauto.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "sinks",
+		Name:      "kafka_produce_errors",
+		Help:      "Number of errors while producing messages to Kafka",
+	}, []string{"sinkName"})
+}
+
+func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
 	logger := logger.WithValues("sink", sinkName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
@@ -49,14 +66,12 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	if err != nil {
 		return nil, err
 	}
-
 	go wait.JitterUntilWithContext(ctx, func(context.Context) {
 		logger.Info("consuming Kafka logs")
 		for e := range producer.Logs() {
 			logger.WithValues("name", e.Name, "tag", e.Tag).Info(e.Message)
 		}
 	}, 3*time.Second, 1.2, true)
-
 
 	go wait.JitterUntilWithContext(ctx, func(context.Context) {
 		logger.Info("starting producer event consuming loop")

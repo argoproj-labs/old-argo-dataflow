@@ -32,18 +32,6 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 		Name:      "errors",
 		Help:      "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_errors",
 	}, []string{"sinkName", "replica", "dlq"})
-	// track async success and errors
-	kafkaMessagesProducedSuccess := promauto.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "sinks",
-		Name:      "kafka_produced_successes",
-		Help:      "Number of messages successfully produced to Kafka",
-	}, []string{"sinkName"})
-
-	kafkaMessagesProducedErr := promauto.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "sinks",
-		Name:      "kafka_produce_errors",
-		Help:      "Number of errors while producing messages to Kafka",
-	}, []string{"sinkName"})
 
 	for _, s := range step.Spec.Sinks {
 		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
@@ -58,7 +46,7 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 				return nil, nil, err
 			}
 		} else if x := s.Kafka; x != nil {
-			if sink, err = kafka.New(ctx, sinkName, secretInterface, *x, kafkaMessagesProducedSuccess, kafkaMessagesProducedErr); err != nil {
+			if sink, err = kafka.New(ctx, sinkName, secretInterface, *x); err != nil {
 				return nil, nil, err
 			}
 		} else if x := s.Log; x != nil {
