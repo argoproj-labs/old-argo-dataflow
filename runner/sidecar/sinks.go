@@ -32,6 +32,7 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 		Name:      "errors",
 		Help:      "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_errors",
 	}, []string{"sinkName", "replica", "dlq"})
+
 	for _, s := range step.Spec.Sinks {
 		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
 		sinkName := s.Name
