@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
@@ -41,6 +42,9 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	config["compression.type"] = x.CompressionType
 	config["acks"] = x.GetAcks()
 	config["enable.idempotence"] = x.EnableIdempotence
+	if x.Async { // this is meant to be set by `enable.idempotence` automatically, but I'm not sure it is
+		config["retries"] = math.MaxInt32
+	}
 
 	logger.Info("kafka config", "config", sharedutil.MustJSON(sharedkafka.RedactConfigMap(config)))
 
