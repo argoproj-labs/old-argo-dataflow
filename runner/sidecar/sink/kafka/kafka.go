@@ -12,7 +12,6 @@ import (
 	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"k8s.io/apimachinery/pkg/util/wait"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -26,23 +25,7 @@ type kafkaSink struct {
 	async    bool
 }
 
-var kafkaMessagesProducedSuccess, kafkaMessagesProducedErr *prometheus.CounterVec
-
-func init() {
-	// track async success and errors
-	kafkaMessagesProducedSuccess = promauto.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "sinks",
-		Name:      "kafka_produced_successes",
-		Help:      "Number of messages successfully produced to Kafka",
-	}, []string{"sinkName"})
-	kafkaMessagesProducedErr = promauto.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "sinks",
-		Name:      "kafka_produce_errors",
-		Help:      "Number of errors while producing messages to Kafka",
-	}, []string{"sinkName"})
-}
-
-func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink) (sink.Interface, error) {
+func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink, errorsCounter prometheus.Counter) (sink.Interface, error) {
 	logger := logger.WithValues("sink", sinkName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
@@ -80,9 +63,7 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 			case *kafka.Message:
 				if err := ev.TopicPartition.Error; err != nil {
 					logger.Error(err, "Async to Kafka failed", "topic", x.Topic)
-					kafkaMessagesProducedErr.WithLabelValues(sinkName).Inc()
-				} else {
-					kafkaMessagesProducedSuccess.WithLabelValues(sinkName).Inc()
+					errorsCounter.Inc()
 				}
 			}
 		}
