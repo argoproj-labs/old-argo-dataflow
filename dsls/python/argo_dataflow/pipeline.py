@@ -446,7 +446,7 @@ class FlattenStep(Step):
 
 
 class CodeStep(Step):
-    def __init__(self, name=None, source=None, code=None, runtime=None, sources=None, sinks=None, terminator=False):
+    def __init__(self, name=None, source=None, code=None, runtime=None, image=None, sources=None, sinks=None, terminator=False):
         super().__init__(name, sources=sources, sinks=sinks, terminator=terminator)
         if source:
             self._source = inspect.getsource(source).replace('def ' + source.__name__ + str(inspect.signature(source)),
@@ -457,13 +457,18 @@ class CodeStep(Step):
             self._runtime = runtime
         else:
             self._runtime = DEFAULT_RUNTIME
+        self._image = image
 
     def dump(self):
         x = super().dump()
-        x['code'] = {
-            'runtime': self._runtime,
+        y = {
             'source': self._source,
         }
+        if self._runtime:
+            y['runtime'] = self._runtime
+        if self._image:
+            y['image'] = self._image
+        x['code'] = y
         return x
 
 
@@ -521,8 +526,8 @@ class Source:
     def flatten(self, name=None):
         return FlattenStep(name, sources=[self])
 
-    def code(self, name=None, source=None, code=None, runtime=None):
-        return CodeStep(name, source=source, code=code, runtime=runtime, sources=[self])
+    def code(self, name=None, source=None, code=None, runtime=None, image=None):
+        return CodeStep(name, source=source, code=code, runtime=runtime, image=image, sources=[self])
 
     def map(self, name=None, expression=None):
         return MapStep(name, expression, sources=[self])
