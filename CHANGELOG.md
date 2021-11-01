@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.5.0 (2021-11-01)
+
+ * [0c5a5e8](https://github.com/argoproj-labs/argo-dataflow/commit/0c5a5e822eda1ce15f8f2e799aa46c183727cd7c) feat: Allow users to specify image for code processor. Fixes #482 (#491)
+ * [37fccf4](https://github.com/argoproj-labs/argo-dataflow/commit/37fccf4a3691f8d99a94beb57ca23fbb3630c3d1) fix: Panic on two kafka sink (#489)
+ * [3b7d09a](https://github.com/argoproj-labs/argo-dataflow/commit/3b7d09a5aac48ea6c30696d5caf43e3543d5ae75) fix: Sidecar fails to fetch secrets for Sources and Sinks. Fixes #385 (#480)
+ * [f73c782](https://github.com/argoproj-labs/argo-dataflow/commit/f73c78279d1fa177235cfd0ad3c2a1da081a99f8) fix: support different Python func names (#483)
+ * [2f14a02](https://github.com/argoproj-labs/argo-dataflow/commit/2f14a02025b23780b0c433d7d23a791654c4b62c) feat: Upgrade to Golang 1.17. Fixes #458 (#472)
+
+### Contributors
+
+ * Alex Collins
+ * Saravanan Balasubramanian
+
 ## v0.4.0 (2021-10-25)
 
  * [5ec67f6](https://github.com/argoproj-labs/argo-dataflow/commit/5ec67f66010481a91e8743b9ef841c51de813fe2) feat: Make Kafka group.id configurable. Fixes #89 (#464)
