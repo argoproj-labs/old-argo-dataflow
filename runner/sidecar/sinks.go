@@ -46,7 +46,7 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 				return nil, nil, err
 			}
 		} else if x := s.Kafka; x != nil {
-			if sink, err = kafka.New(ctx, sinkName, secretInterface, *x, errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), "false")); err != nil {
+			if sink, err = kafka.New(ctx, sinkName, secretInterface, *x, errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), fmt.Sprint(s.DeadLetterQueue))); err != nil {
 				return nil, nil, err
 			}
 		} else if x := s.Log; x != nil {
