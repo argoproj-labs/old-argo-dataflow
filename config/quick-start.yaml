@@ -14268,8 +14268,8 @@ metadata:
 spec:
   limits:
   - defaultRequest:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 100m
+      memory: 128Mi
     type: Container
 ---
 apiVersion: scheduling.k8s.io/v1
