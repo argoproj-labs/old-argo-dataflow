@@ -123,6 +123,10 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 10
           periodSeconds: 20
+        resources:
+          requests:
+            cpu: 100m
+            memory: 20Mi
         securityContext:
           capabilities:
             drop:
