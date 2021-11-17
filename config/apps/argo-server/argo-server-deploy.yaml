@@ -13,6 +13,10 @@ spec:
           image: quay.io/argoproj/argocli:latest
           imagePullPolicy: Always
           args: [ server, --namespaced=true, --auth-mode=server, --secure=false ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 20Mi
           readinessProbe:
             httpGet:
               scheme: HTTP
