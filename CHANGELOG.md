@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.7.0 (2021-11-19)
+
+ * [b15c3bc](https://github.com/argoproj-labs/argo-dataflow/commit/b15c3bcad519d413aac295e7fa698f79c4a5a056) feat: add support for InsecureIgnoreHostKey (#503)
+
+### Contributors
+
+ * Udit Chaudhary
+
 ## v0.6.0 (2021-11-17)
 
  * [85b9d28](https://github.com/argoproj-labs/argo-dataflow/commit/85b9d28ee17e563db584188f20b77c2f0da4e2b8) fix!: correctly report async Kafka sink errors, retry always. Fixes #494 (#495)
