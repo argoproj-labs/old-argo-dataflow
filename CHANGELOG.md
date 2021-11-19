@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.0 (2021-11-17)
+
+ * [85b9d28](https://github.com/argoproj-labs/argo-dataflow/commit/85b9d28ee17e563db584188f20b77c2f0da4e2b8) fix!: correctly report async Kafka sink errors, retry always. Fixes #494 (#495)
+
+### Contributors
+
+ * Alex Collins
+
 ## v0.5.0 (2021-11-01)
 
  * [0c5a5e8](https://github.com/argoproj-labs/argo-dataflow/commit/0c5a5e822eda1ce15f8f2e799aa46c183727cd7c) feat: Allow users to specify image for code processor. Fixes #482 (#491)
