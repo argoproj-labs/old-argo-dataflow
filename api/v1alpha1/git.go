@@ -15,6 +15,9 @@ type Git struct {
 	// PasswordSecret is the secret selector to the repository password
 	PasswordSecret *corev1.SecretKeySelector `json:"passwordSecret,omitempty" protobuf:"bytes,8,opt,name=passwordSecret"`
 
+	// InsecureIgnoreHostKey is the bool value for ignoring check for host key
+	InsecureIgnoreHostKey bool `json:"insecureIgnoreHostKey,omitempty" protobuf:"bytes,10,opt,name=insecureIgnoreHostKey"`
+
 	// SSHPrivateKeySecret is the secret selector to the repository ssh private key
 	SSHPrivateKeySecret *corev1.SecretKeySelector `json:"sshPrivateKeySecret,omitempty" protobuf:"bytes,9,opt,name=sshPrivateKeySecret"`
 	// +kubebuilder:default=.

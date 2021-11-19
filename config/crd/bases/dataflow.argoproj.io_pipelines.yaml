@@ -1226,6 +1226,10 @@ spec:
                           type: array
                         image:
                           type: string
+                        insecureIgnoreHostKey:
+                          description: InsecureIgnoreHostKey is the bool value for
+                            ignoring check for host key
+                          type: boolean
                         passwordSecret:
                           description: PasswordSecret is the secret selector to the
                             repository password
