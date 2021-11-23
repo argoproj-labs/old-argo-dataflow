@@ -8,7 +8,7 @@ When a steps starts, the code is checked out from Git, and then run:
 git:
   branch: main
   path: examples/git
-  image: golang:1.16
+  image: golang:1.17
   url: https://github.com/argoproj-labs/argo-dataflow
   command:
     - sh
@@ -39,7 +39,7 @@ spec:
     - name: main
       git:
         url: git@github.com:alexec/private-repo.git
-        image: golang:1.16
+        image: golang:1.17
         path: .
         branch: main
         sshPrivateKeySecret:
@@ -91,7 +91,7 @@ spec:
     - name: main
       git:
         url: git@github.com:alexec/private-repo.git
-        image: golang:1.16
+        image: golang:1.17
         path: .
         branch: main
         usernameSecret:

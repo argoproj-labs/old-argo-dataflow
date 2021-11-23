@@ -3,7 +3,7 @@ kind: Pipeline
 metadata:
   annotations:
     dataflow.argoproj.io/description: |-
-      This example shows a example of having two nodes in a pipeline.
+      This example shows an example of having two nodes in a pipeline.
 
       While they read from Kafka, they are connected by a NATS Streaming subject.
     dataflow.argoproj.io/owner: argoproj-labs

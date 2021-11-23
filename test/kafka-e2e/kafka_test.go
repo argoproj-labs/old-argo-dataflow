@@ -1,3 +1,4 @@
+//go:build test
 // +build test
 
 package kafka_e2e
@@ -76,7 +77,42 @@ func TestKafkaAsync(t *testing.T) {
 	WaitForTotalSourceMessages(17)
 	WaitForTotalSunkMessages(17)
 
-	ExpectMetric("sinks_kafka_produced_successes", Eq(17))
+	DeletePipelines()
+	WaitForPodsToBeDeleted()
+}
+
+func TestKafkaMultipleSink(t *testing.T) {
+	defer Setup(t)()
+
+	topic := CreateKafkaTopic()
+	sinkTopic := CreateKafkaTopic()
+	sinkTopic1 := CreateKafkaTopic()
+
+	CreatePipeline(Pipeline{
+		ObjectMeta: metav1.ObjectMeta{GenerateName: "kafka-"},
+		Spec: PipelineSpec{
+			Steps: []StepSpec{{
+				Name:    "main",
+				Cat:     &Cat{},
+				Sources: []Source{{Kafka: &KafkaSource{Kafka: Kafka{Topic: topic}}}},
+				Sinks: []Sink{
+					{Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic}, Async: true}},
+					{Name: "sink2", Kafka: &KafkaSink{Kafka: Kafka{Topic: sinkTopic1}, Async: true}},
+				},
+			}},
+		},
+	})
+	WaitForPipeline()
+	WaitForPod()
+
+	defer StartPortForward()()
+
+	PumpKafkaTopic(topic, 17)
+
+	WaitForSunkMessages()
+
+	WaitForTotalSourceMessages(17)
+	WaitForTotalSunkMessages(17)
 
 	DeletePipelines()
 	WaitForPodsToBeDeleted()

@@ -32,6 +32,7 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 		Name:      "errors",
 		Help:      "Total number of errors, see https://github.com/argoproj-labs/argo-dataflow/blob/main/docs/METRICS.md#sinks_errors",
 	}, []string{"sinkName", "replica", "dlq"})
+
 	for _, s := range step.Spec.Sinks {
 		logger.Info("connecting sink", "sink", sharedutil.MustJSON(s))
 		sinkName := s.Name
@@ -45,7 +46,7 @@ func connectSinks(ctx context.Context) (func(context.Context, []byte) error, fun
 				return nil, nil, err
 			}
 		} else if x := s.Kafka; x != nil {
-			if sink, err = kafka.New(ctx, sinkName, secretInterface, *x); err != nil {
+			if sink, err = kafka.New(ctx, sinkName, secretInterface, *x, errorsCounter.WithLabelValues(sinkName, fmt.Sprint(replica), fmt.Sprint(s.DeadLetterQueue))); err != nil {
 				return nil, nil, err
 			}
 		} else if x := s.Log; x != nil {

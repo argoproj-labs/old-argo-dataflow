@@ -12,7 +12,7 @@ kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/m
 
 ### [101-two-node](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/101-two-node-pipeline.yaml)
 
-This example shows a example of having two nodes in a pipeline.
+This example shows an example of having two nodes in a pipeline.
 
 While they read from Kafka, they are connected by a NATS Streaming subject.
 
@@ -106,14 +106,14 @@ kubectl scale step/scaling-main --replicas 3
 kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/103-scaling-pipeline.yaml
 ```
 
-### [104-golang1-16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-golang1-16-pipeline.yaml)
+### [104-golang1-17](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-golang1-17-pipeline.yaml)
 
-This example of Go 1.16 handler.
+This example of Go 1.17 handler.
 
 [Learn about handlers](../docs/HANDLERS.md)
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-golang1-16-pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-golang1-17-pipeline.yaml
 ```
 
 ### [104-java16](https://raw.githubusercontent.com/argoproj-labs/argo-dataflow/main/examples/104-java16-pipeline.yaml)

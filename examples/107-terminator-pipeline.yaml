@@ -15,13 +15,13 @@ spec:
       - sh
       - -c
       - cat
-      image: golang:1.16
+      image: golang:1.17
     name: main
   - container:
       args:
       - sh
       - -c
       - exit 0
-      image: golang:1.16
+      image: golang:1.17
     name: terminator
     terminator: true

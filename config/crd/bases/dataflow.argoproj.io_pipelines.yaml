@@ -715,9 +715,13 @@ spec:
                       type: object
                     code:
                       properties:
+                        image:
+                          description: Image is used in preference to Runtime.
+                          type: string
                         runtime:
                           enum:
                           - golang1-16
+                          - golang1-17
                           - java16
                           - python3-9
                           - node16
@@ -725,7 +729,6 @@ spec:
                         source:
                           type: string
                       required:
-                      - runtime
                       - source
                       type: object
                     container:
@@ -1223,6 +1226,10 @@ spec:
                           type: array
                         image:
                           type: string
+                        insecureIgnoreHostKey:
+                          description: InsecureIgnoreHostKey is the bool value for
+                            ignoring check for host key
+                          type: boolean
                         passwordSecret:
                           description: PasswordSecret is the secret selector to the
                             repository password

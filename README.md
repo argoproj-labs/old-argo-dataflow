@@ -74,6 +74,7 @@ Intermediate:
 * [Events interop](docs/EVENTS_INTEROP.md)
 * [Workflow interop](docs/WORKFLOW_INTEROP.md)
 * [Meta-data](docs/META.md)
+* [Idempotence](docs/IDEMPOTENCE.md)
 
 Advanced
 

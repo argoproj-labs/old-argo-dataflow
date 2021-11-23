@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [ controller, runner, golang1-16, java16, python3-9, node16, testapi ]
+        target: [ controller, runner, golang1-17, java16, python3-9, node16, testapi ]
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-qemu-action@v1
@@ -50,7 +50,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.17
       - run: make manifests TAG=${GITHUB_REF##*/}
       - name: Publish release
         uses: softprops/action-gh-release@v1

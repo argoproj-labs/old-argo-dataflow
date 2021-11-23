@@ -1,3 +1,4 @@
+//go:build test
 // +build test
 
 package examples
@@ -108,10 +109,10 @@ func Test_103_scaling_pipeline(t *testing.T) {
 	WaitForPodsToBeDeleted()
 }
 
-func Test_104_golang1_16_pipeline(t *testing.T) {
+func Test_104_golang1_17_pipeline(t *testing.T) {
 	defer Setup(t)()
 
-	CreatePipelineFromFile("../../examples/104-golang1-16-pipeline.yaml")
+	CreatePipelineFromFile("../../examples/104-golang1-17-pipeline.yaml")
 
 	WaitForPipeline()
 	WaitForPipeline(UntilRunning, 90*time.Second)

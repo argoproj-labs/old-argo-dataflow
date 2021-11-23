@@ -16,6 +16,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	ssh2 "golang.org/x/crypto/ssh"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/utils/strings"
@@ -93,6 +94,9 @@ func Exec(ctx context.Context) error {
 				if v, err := ssh.NewPublicKeys("git", sshPrivateKey.Data[k.Key], ""); err != nil {
 					return fmt.Errorf("failed to get create public keys: %w", err)
 				} else {
+					if k := g.InsecureIgnoreHostKey; k {
+						v.HostKeyCallback = ssh2.InsecureIgnoreHostKey()
+					}
 					auth = v
 				}
 			}
