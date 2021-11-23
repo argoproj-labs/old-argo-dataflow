@@ -1,12 +1,5 @@
 namespace: argo-dataflow-system
 bases:
-  - ../crd
-  - ../cluster-rbac
-  - ../manager
-resources:
-  - ../base-patch/ssh-configmap.yaml
-  - ../base-patch/lead-replica-priorityclass.yaml
-
+  - ../default-cluster
 patchesStrategicMerge:
-  - ../base-patch/manager_auth_proxy_patch.yaml
   - controller-manager-deploy.yaml
