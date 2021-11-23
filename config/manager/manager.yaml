@@ -32,11 +32,6 @@ spec:
             - --enable-leader-election
           image: quay.io/argoprojlabs/dataflow-controller:latest
           name: manager
-          env:
-            - name: ARGO_DATAFLOW_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
           ports:
             - containerPort: 9090
           resources:
