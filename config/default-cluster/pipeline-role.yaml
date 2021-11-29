@@ -1,0 +1,63 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pipeline
+  namespace: default
+rules:
+  - apiGroups:
+      - dataflow.argoproj.io
+    resources:
+      - steps
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - dataflow.argoproj.io
+    resources:
+      - pipelines/status
+    verbs:
+      - update
+  - apiGroups:
+      - dataflow.argoproj.io
+    resources:
+      - steps/status
+    verbs:
+      - update
+  - apiGroups:
+      - dataflow.argoproj.io
+    resources:
+      - steps/scale
+    verbs:
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/exec
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - create
+      - get
+
+
+    

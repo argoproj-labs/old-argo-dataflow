@@ -1,0 +1,4 @@
+bases:
+  - ../default-cluster
+patchesStrategicMerge:
+  - controller-manager-deploy.yaml
