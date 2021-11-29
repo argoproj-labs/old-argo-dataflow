@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: manager-role
+  name: dataflow-manager
 rules:
   # read-only permissions by default, pipelines are owned by users and the controller has no place to be changing them
   - apiGroups:
