@@ -15,7 +15,7 @@ A source is somewhere to get messages from, e.g.:
 * Kafka - a Kafka topic
 * Jetstream - a Jetstream subject
 
-[Learn more](SINKS.md)
+[Learn more](SOURCES.md)
 
 ## Processors
 
@@ -44,4 +44,4 @@ A sink is somewhere a message can be sent to, e.g.:
 * HTTP - make a HTTP request where the message is the body
 * Kafka - write to a Kafka topic
 
-[Learn more](SOURCES.md)
+[Learn more](SINKS.md)
