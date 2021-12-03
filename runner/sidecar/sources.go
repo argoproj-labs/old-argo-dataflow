@@ -78,18 +78,13 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 			return fmt.Errorf("duplicate source named %q", sourceName)
 		}
 
-		processWithRetry := func(ctx context.Context, msg []byte) error {
+		processWithRetry := func(ctx context.Context, msg *source.Msg) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, "processWithRetry")
 			defer span.Finish()
 			totalCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg)))
+			totalBytesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Add(float64(len(msg.Data)))
 
-			meta, err := dfv1.MetaFromContext(ctx)
-			if err != nil {
-				return fmt.Errorf("could not send message: %w", err)
-			}
-
-			sourceMsgTime := time.Unix(meta.Time, 0).UTC()
+			sourceMsgTime := time.Unix(msg.Meta.Time, 0).UTC()
 			processLatencyHistoGram.WithLabelValues(sourceName, fmt.Sprint(replica)).Observe(time.Now().UTC().Sub(sourceMsgTime).Seconds())
 			backoff := newBackoff(s.Retry)
 			for {
@@ -103,29 +98,25 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 						retriesCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
 					}
 					// we need to copy anything except the timeout from the parent context
-					m, err := dfv1.MetaFromContext(ctx)
-					if err != nil {
-						return err
-					}
 					newCtx, cancel := context.WithTimeout(
 						dfv1.ContextWithMeta(
 							opentracing.ContextWithSpan(context.Background(), span),
-							m,
+							msg.Meta,
 						),
 						15*time.Second,
 					)
 
-					err = process(newCtx, msg)
+					err := process(newCtx, msg.Data)
 					cancel()
 					if err == nil {
-						return nil
+						return msg.Ack()
 					}
 					giveUp := backoff.Steps <= 0
 					logger := logger.WithValues("source", sourceName, "backoffSteps", backoff.Steps, "giveUp", giveUp)
 					if giveUp {
 						logger.Error(err, "failed to send process message")
 						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
-						if dlqErr := dlq(ctx, msg); dlqErr != nil {
+						if dlqErr := dlq(ctx, msg.Data); dlqErr != nil {
 							logger.Error(err, "failed to send failed message to DLQ", "error", err)
 						}
 
@@ -142,7 +133,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 			for msg := range buffer {
 				log := logger.WithValues("source", msg.Source, "id", msg.ID)
-				if err := processWithRetry(ctx, msg.Data); err != nil {
+				if err := processWithRetry(ctx, msg); err != nil {
 					log.Error(err, "failed to process message")
 				} else if err := msg.Ack(); err != nil {
 					log.Error(err, "failed to ack message")
