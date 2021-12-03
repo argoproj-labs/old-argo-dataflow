@@ -20,7 +20,7 @@ type httpSource struct {
 	ready bool
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceURN, sourceName string, process source.Process) (string, source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceURN, sourceName string, process source.Buffer) (string, source.Interface, error) {
 	// we don't want to share this secret
 	secret, err := secretInterface.Get(ctx, pipelineName+"-"+stepName, metav1.GetOptions{})
 	if err != nil {
@@ -38,7 +38,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			span = opentracing.StartSpan(operationName, ext.RPCServerOption(wireContext))
 		}
 		defer span.Finish()
-		ctx := opentracing.ContextWithSpan(r.Context(), span)
 		if r.Header.Get("Authorization") != authorization {
 			w.WriteHeader(403)
 			return
@@ -48,7 +47,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			_, _ = w.Write([]byte("not ready"))
 			return
 		}
-		msg, err := ioutil.ReadAll(r.Body)
+		data, err := ioutil.ReadAll(r.Body)
 		_ = r.Body.Close()
 		if err != nil {
 			w.WriteHeader(400)
@@ -60,22 +59,26 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		if id == "" {
 			id = uuid.New().String()
 		}
-
-		if err := process(
-			dfv1.ContextWithMeta(
-				ctx,
-				dfv1.Meta{
-					Source: sourceURN,
-					ID:     id,
-					Time:   time.Now().Unix(),
-				},
-			),
-			msg,
-		); err != nil {
-			w.WriteHeader(500)
-			_, _ = w.Write([]byte(err.Error()))
-		} else {
+		done := make(chan struct{}, 1)
+		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
+		process <- &source.Msg{
+			Meta: dfv1.Meta{
+				Source: sourceURN,
+				ID:     id,
+				Time:   time.Now().Unix(),
+			},
+			Data: data,
+			Ack: func() error {
+				done <- struct{}{}
+				return nil
+			},
+		}
+		select {
+		case <-done:
 			w.WriteHeader(204)
+		case <-ctx.Done():
+			w.WriteHeader(500)
 		}
 	})
 	return authorization, h, nil

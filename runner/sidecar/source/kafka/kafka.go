@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"sync"
@@ -15,7 +14,6 @@ import (
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/go-logr/logr"
-	"github.com/opentracing/opentracing-go"
 	"k8s.io/apimachinery/pkg/util/wait"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -28,7 +26,7 @@ type kafkaSource struct {
 	topic      string
 	wg         *sync.WaitGroup
 	channels   map[int32]chan *kafka.Message
-	process    source.Process
+	process    source.Buffer
 	totalLag   int64
 }
 
@@ -37,7 +35,7 @@ const (
 	pendingUnavailable = math.MinInt32
 )
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Buffer) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
@@ -93,22 +91,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	go wait.JitterUntilWithContext(ctx, s.startPollLoop, 3*time.Second, 1.2, true)
 
 	return s, nil
-}
-
-func (s *kafkaSource) processMessage(ctx context.Context, msg *kafka.Message) error {
-	span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("kafka-source-%s", s.sourceName))
-	defer span.Finish()
-	return s.process(
-		dfv1.ContextWithMeta(
-			ctx,
-			dfv1.Meta{
-				Source: s.sourceURN,
-				ID:     fmt.Sprintf("%d-%d", msg.TopicPartition.Partition, msg.TopicPartition.Offset),
-				Time:   msg.Timestamp.Unix(),
-			},
-		),
-		msg.Value,
-	)
 }
 
 func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
@@ -225,16 +207,17 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 			if !ok {
 				return
 			}
-			offset := int64(msg.TopicPartition.Offset)
-			logger := logger.WithValues("offset", offset)
-			if err := s.processMessage(ctx, msg); err != nil {
-				if errors.Is(err, context.Canceled) {
-					logger.Info("failed to process message", "err", err.Error())
-				} else {
-					logger.Error(err, "failed to process message")
-				}
-			} else {
-				lastUncommitted = msg
+			s.process <- &source.Msg{
+				Meta: dfv1.Meta{
+					Source: s.sourceURN,
+					ID:     fmt.Sprintf("%d-%d", msg.TopicPartition.Partition, msg.TopicPartition.Offset),
+					Time:   msg.Timestamp.Unix(),
+				},
+				Data: msg.Value,
+				Ack: func() error {
+					lastUncommitted = msg
+					return nil
+				},
 			}
 		}
 	}

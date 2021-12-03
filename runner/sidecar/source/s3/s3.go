@@ -26,7 +26,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.S3Source, process source.Process, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.S3Source, process source.Buffer, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", x.Name, "bucket", x.Bucket)
 	var accessKeyID string
 	{
@@ -101,7 +101,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 			if err := syscall.Mkfifo(path, 0o600); sharedutil.IgnoreExist(err) != nil {
 				return fmt.Errorf("failed to create fifo %q: %w", path, err)
 			}
-			defer os.Remove(path)
 			go func() {
 				defer runtime.HandleCrash()
 				logger.Info("opening file", "key", key)
@@ -114,17 +113,20 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
 			}()
-			return process(
-				dfv1.ContextWithMeta(
-					ctx,
-					dfv1.Meta{
-						Source: sourceURN,
-						ID:     key,
-						Time:   output.LastModified.Unix(),
-					},
-				),
-				[]byte(sharedutil.MustJSON(message{Key: key, Path: path})),
-			)
+			process <- &source.Msg{
+				Meta: dfv1.Meta{
+					Source: sourceURN,
+					ID:     key,
+					Time:   output.LastModified.Unix(),
+				},
+				Data: []byte(sharedutil.MustJSON(message{Key: key, Path: path})),
+				Ack: func() error {
+					_ = os.Remove(path)
+					_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: &x.Bucket, Key: &key})
+					return err
+				},
+			}
+			return nil
 		},
 		ListItems: func() ([]interface{}, error) {
 			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: aws.String(x.Bucket)})
@@ -136,11 +138,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 				keys[i] = *obj.Key
 			}
 			return keys, nil
-		},
-		RemoveItem: func(item interface{}) error {
-			key := item.(string)
-			_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: &x.Bucket, Key: &key})
-			return err
 		},
 	})
 }

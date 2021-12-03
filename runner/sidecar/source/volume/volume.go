@@ -2,7 +2,6 @@ package volume
 
 import (
 	"context"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -13,7 +12,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source/loadbalanced"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
-	"github.com/opentracing/opentracing-go"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -21,7 +19,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.VolumeSource, process source.Process, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.VolumeSource, process source.Buffer, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
 	return loadbalanced.New(ctx, secretInterface, loadbalanced.NewReq{
@@ -34,21 +32,24 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
 		Process: func(ctx context.Context, msg []byte) error {
-			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("volume-source-%s", sourceName))
-			defer span.Finish()
 			key := string(msg)
 			path := filepath.Join(dir, key)
-			return process(
-				dfv1.ContextWithMeta(
-					ctx,
-					dfv1.Meta{
-						Source: sourceURN,
-						ID:     key,
-						Time:   time.Now().Unix(),
-					},
-				),
-				[]byte(sharedutil.MustJSON(message{Path: path})),
-			)
+			process <- &source.Msg{
+				Meta: dfv1.Meta{
+					Source: sourceURN,
+					ID:     key,
+					Time:   time.Now().Unix(),
+				},
+				Data: []byte(sharedutil.MustJSON(message{Path: path})),
+				Ack: func() error {
+					if !x.ReadOnly {
+						path := filepath.Join(dir, key)
+						return os.Remove(path)
+					}
+					return nil
+				},
+			}
+			return nil
 		},
 		ListItems: func() ([]interface{}, error) {
 			var keys []interface{}
@@ -61,13 +62,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 				return nil
 			})
 			return keys, err
-		},
-		RemoveItem: func(item interface{}) error {
-			if !x.ReadOnly {
-				path := filepath.Join(dir, item.(string))
-				return os.Remove(path)
-			}
-			return nil
 		},
 	})
 }

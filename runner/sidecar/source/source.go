@@ -3,6 +3,7 @@ package source
 import (
 	"context"
 	"errors"
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"io"
 )
 
@@ -10,7 +11,13 @@ type Interface interface {
 	io.Closer
 }
 
-type Process func(ctx context.Context, msg []byte) error
+type Msg struct {
+	dfv1.Meta
+	Data []byte
+	Ack  func() error
+}
+
+type Buffer chan<- *Msg
 
 var ErrPendingUnavailable = errors.New("pending not available")
 

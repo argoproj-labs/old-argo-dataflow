@@ -16,7 +16,6 @@ import (
 	"github.com/nats-io/nats-streaming-server/server"
 	"github.com/nats-io/stan.go"
 	"github.com/nats-io/stan.go/pb"
-	"github.com/opentracing/opentracing-go"
 	runtimeutil "k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -31,7 +30,7 @@ type stanSource struct {
 	queueName         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.STAN, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.STAN, process source.Buffer) (source.Interface, error) {
 	genClientID := func() string {
 		// In a particular situation, the stan connection status is inconsistent between stan server and client,
 		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
@@ -55,19 +54,17 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("stan-source-%s", sourceName))
-			defer span.Finish()
-			if err := process(
-				dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: sourceURN, ID: fmt.Sprint(msg.Sequence), Time: msg.Timestamp}),
-				msg.Data,
-			); err != nil {
-				logger.Error(err, "failed to process message")
-			} else if err := msg.Ack(); err != nil {
-				if errors.Is(err, stan.ErrBadSubscription) {
-					logger.Info("failed to ack a message, stan subscription might have been closed", "source", sourceName, "error", err)
-				} else {
-					logger.Error(err, "failed to ack a message", "source", sourceName)
-				}
+			process <- &source.Msg{
+				Meta: dfv1.Meta{Source: sourceURN, ID: fmt.Sprint(msg.Sequence), Time: msg.Timestamp},
+				Data: msg.Data,
+				Ack: func() error {
+					err := msg.Ack()
+					if errors.Is(err, stan.ErrBadSubscription) {
+						logger.Info("failed to ack a message, stan subscription might have been closed", "source", sourceName, "error", err)
+						return nil
+					}
+					return err
+				},
 			}
 		}, stan.DurableName(queueName),
 			stan.SetManualAckMode(),

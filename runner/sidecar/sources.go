@@ -137,50 +137,63 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 				}
 			}
 		}
+		buffer := make(chan *source.Msg)
+
+		go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
+			for msg := range buffer {
+				err := processWithRetry(ctx, msg.Data)
+				if err != nil {
+					logger.Error(err, "failed to process message", "source", msg.Source, "id", msg.ID)
+				} else {
+					msg.Ack()
+				}
+			}
+		}, 3*time.Second, 1.2, true)
+
 		if x := s.Cron; x != nil {
-			if y, err := cron.New(ctx, sourceName, sourceURN, *x, processWithRetry); err != nil {
+			if y, err := cron.New(ctx, sourceName, sourceURN, *x, buffer); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, processWithRetry); err != nil {
+			if y, err := stan.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, buffer); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			if y, err := kafkasource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, replica, *x, processWithRetry); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, replica, *x, buffer); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.HTTP; x != nil {
-			if _, y, err := httpsource.New(ctx, secretInterface, pipelineName, stepName, sourceURN, sourceName, processWithRetry); err != nil {
+			if _, y, err := httpsource.New(ctx, secretInterface, pipelineName, stepName, sourceURN, sourceName, buffer); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.S3; x != nil {
-			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
+			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, buffer, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.DB; x != nil {
-			if y, err := dbsource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry); err != nil {
+			if y, err := dbsource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, *x, buffer); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Volume; x != nil {
-			if y, err := volumeSource.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, processWithRetry, leadReplica()); err != nil {
+			if y, err := volumeSource.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, buffer, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.JetStream; x != nil {
-			if y, err := jssource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, processWithRetry); err != nil {
+			if y, err := jssource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, buffer); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

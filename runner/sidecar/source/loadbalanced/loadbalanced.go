@@ -37,8 +37,8 @@ type NewReq struct {
 	LeadReplica  bool
 	Concurrency  int
 	PollPeriod   time.Duration
-	Process      source.Process
-	RemoveItem   func(item interface{}) error
+	Buffer       source.Buffer
+	Process      func(ctx context.Context, msg []byte) error
 	ListItems    func() ([]interface{}, error)
 }
 
@@ -47,7 +47,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) 
 	// (a) in the future we could use a named queue to expose metrics
 	// (b) it would be good to limit the size of this work queue and have the `Add
 	jobs := workqueue.New()
-	authorization, httpSource, err := httpsource.New(ctx, secretInterface, r.PipelineName, r.StepName, r.SourceURN, r.SourceName, r.Process)
+	authorization, httpSource, err := httpsource.New(ctx, secretInterface, r.PipelineName, r.StepName, r.SourceURN, r.SourceName, r.Buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -86,11 +86,6 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) 
 								if resp.StatusCode >= 300 {
 									err := fmt.Errorf("%q: %q", resp.Status, body)
 									logger.Error(err, "failed to process item", "item", item)
-								} else {
-									logger.Info("deleting item", "item", item)
-									if err := r.RemoveItem(item); err != nil {
-										logger.Error(err, "failed to delete item", "item", item)
-									}
 								}
 							}
 						}

@@ -10,7 +10,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	"github.com/nats-io/nats.go"
-	"github.com/opentracing/opentracing-go"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -21,7 +20,7 @@ type jsSource struct {
 	sub  *nats.Subscription
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.JetStreamSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.JetStreamSource, process source.Buffer) (source.Interface, error) {
 	conn, err := sharednats.ConnectNATS(ctx, secretInterface, x.NATSURL, x.Auth)
 	if err != nil {
 		return nil, err
@@ -33,22 +32,24 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	queueName := sharedutil.GetSourceUID(cluster, namespace, pipelineName, stepName, sourceName)
 	durableName := fmt.Sprintf("%s-%s", queueName, sharedutil.MustHash(x.Subject))
 	sub, err := js.QueueSubscribe(x.Subject, queueName, func(msg *nats.Msg) {
-		span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("jetstream-source-%s", sourceName))
-		defer span.Finish()
 		if metadata, err := msg.Metadata(); err != nil {
 			logger.Error(err, "failed to get message metadata")
 		} else {
-			if err := process(
-				dfv1.ContextWithMeta(ctx, dfv1.Meta{Source: sourceURN, ID: fmt.Sprintf("%v-%v", metadata.Sequence.Consumer, metadata.Sequence.Stream), Time: metadata.Timestamp.Unix()}),
-				msg.Data,
-			); err != nil {
-				logger.Error(err, "failed to process message")
-			} else if err := msg.Ack(); err != nil {
-				if errors.Is(err, nats.ErrBadSubscription) {
-					logger.Info("Jet Stream subscription might have been closed", "source", sourceName, "error", err)
-				} else {
-					logger.Error(err, "failed to ack message", "source", sourceName)
-				}
+			process <- &source.Msg{
+				Meta: dfv1.Meta{
+					Source: sourceURN,
+					ID:     fmt.Sprintf("%v-%v", metadata.Sequence.Consumer, metadata.Sequence.Stream),
+					Time:   metadata.Timestamp.Unix(),
+				},
+				Data: msg.Data,
+				Ack: func() error {
+					err := msg.Ack()
+					if errors.Is(err, nats.ErrBadSubscription) {
+						logger.Info("Jet Stream subscription might have been closed", "source", sourceName, "error", err)
+						return nil
+					}
+					return err
+				},
 			}
 		}
 	}, nats.ManualAck(), nats.Durable(durableName), nats.DeliverNew())

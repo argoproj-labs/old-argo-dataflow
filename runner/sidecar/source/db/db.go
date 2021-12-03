@@ -11,7 +11,6 @@ import (
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
 	sharedutil "github.com/argoproj-labs/argo-dataflow/shared/util"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/opentracing/opentracing-go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -32,7 +31,7 @@ type dbSource struct {
 	db *sql.DB
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, x dfv1.DBSource, process source.Process) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, x dfv1.DBSource, process source.Buffer) (source.Interface, error) {
 	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
@@ -72,17 +71,24 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 			case <-ctx.Done():
 				return
 			default:
-				if err = queryData(ctx, db, sourceURN, x.Query, x.OffsetColumn, offset, func(ctx context.Context, d rowData) error {
-					span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("db-source-%s", sourceName))
-					defer span.Finish()
+				if err = queryData(ctx, db, sourceURN, x.Query, x.OffsetColumn, offset, func(d rowData) error {
 					jsonData, err := json.Marshal(d)
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)
 					}
-					if err := process(ctx, jsonData); err != nil {
-						return fmt.Errorf("failed to process data: %w", err)
+					id := fmt.Sprint(d[x.OffsetColumn])
+					process <- &source.Msg{
+						Meta: dfv1.Meta{
+							Source: sourceURN,
+							ID:     id,
+							Time:   time.Now().Unix(),
+						},
+						Data: jsonData,
+						Ack: func() error {
+							offset = id
+							return nil
+						},
 					}
-					offset = fmt.Sprintf("%v", d[x.OffsetColumn])
 					return nil
 				}); err != nil {
 					logger.Error(err, "failed to process data query")
@@ -157,7 +163,7 @@ func insertOffset(ctx context.Context, db *sql.DB, uid, remark, offset string) (
 	}
 }
 
-func queryData(ctx context.Context, db *sql.DB, sourceURN, query, offsetColumn, offset string, f func(context.Context, rowData) error) error {
+func queryData(ctx context.Context, db *sql.DB, sourceURN, query, offsetColumn, offset string, f func(rowData) error) error {
 	sql := fmt.Sprintf("select * from (%s) as dataflow_query_table order by %s", query, offsetColumn)
 	params := []interface{}{}
 	if offset != "" {
@@ -202,15 +208,7 @@ func queryData(ctx context.Context, db *sql.DB, sourceURN, query, offsetColumn, 
 				entry[col] = val
 			}
 		}
-		id := fmt.Sprint(entry[offsetColumn])
-		if err = f(
-			dfv1.ContextWithMeta(ctx, dfv1.Meta{
-				Source: sourceURN,
-				ID:     id,
-				Time:   time.Now().Unix(),
-			}),
-			entry,
-		); err != nil {
+		if err = f(entry); err != nil {
 			logger.Error(err, "failed to process message")
 		}
 	}
