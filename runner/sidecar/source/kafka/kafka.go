@@ -98,8 +98,8 @@ func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
 	if _, ok := s.channels[partition]; !ok {
 		logger.Info("assigned partition")
 		s.channels[partition] = make(chan *kafka.Message, 256)
-		go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
-			s.consumePartition(ctx, partition)
+		go wait.JitterUntilWithContext(ctx, func(context.Context) {
+			s.consumePartition(partition)
 		}, 3*time.Second, 1.2, true)
 	}
 }
@@ -178,7 +178,7 @@ func (s *kafkaSource) rebalanced(ctx context.Context, event kafka.Event) error {
 	return nil
 }
 
-func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
+func (s *kafkaSource) consumePartition(partition int32) {
 	logger := s.logger.WithValues("partition", partition)
 	logger.Info("consuming partition")
 	s.wg.Add(1)

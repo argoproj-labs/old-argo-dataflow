@@ -71,7 +71,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 			case <-ctx.Done():
 				return
 			default:
-				if err = queryData(ctx, db, sourceURN, x.Query, x.OffsetColumn, offset, func(d rowData) error {
+				if err = queryData(ctx, db, x.Query, x.OffsetColumn, offset, func(d rowData) error {
 					jsonData, err := json.Marshal(d)
 					if err != nil {
 						return fmt.Errorf("failed to marshal to json: %w", err)
@@ -163,7 +163,7 @@ func insertOffset(ctx context.Context, db *sql.DB, uid, remark, offset string) (
 	}
 }
 
-func queryData(ctx context.Context, db *sql.DB, sourceURN, query, offsetColumn, offset string, f func(rowData) error) error {
+func queryData(ctx context.Context, db *sql.DB, query, offsetColumn, offset string, f func(rowData) error) error {
 	sql := fmt.Sprintf("select * from (%s) as dataflow_query_table order by %s", query, offsetColumn)
 	params := []interface{}{}
 	if offset != "" {

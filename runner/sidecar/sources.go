@@ -141,11 +141,11 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 
 		go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
 			for msg := range buffer {
-				err := processWithRetry(ctx, msg.Data)
-				if err != nil {
-					logger.Error(err, "failed to process message", "source", msg.Source, "id", msg.ID)
-				} else {
-					msg.Ack()
+				log := logger.WithValues("source", msg.Source, "id", msg.ID)
+				if err := processWithRetry(ctx, msg.Data); err != nil {
+					log.Error(err, "failed to process message")
+				} else if err := msg.Ack(); err != nil {
+					log.Error(err, "failed to ack message")
 				}
 			}
 		}, 3*time.Second, 1.2, true)

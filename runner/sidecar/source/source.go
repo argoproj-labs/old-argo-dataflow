@@ -3,8 +3,9 @@ package source
 import (
 	"context"
 	"errors"
-	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"io"
+
+	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 )
 
 type Interface interface {
