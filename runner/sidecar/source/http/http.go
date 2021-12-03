@@ -20,7 +20,7 @@ type httpSource struct {
 	ready bool
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceURN, sourceName string, process source.Buffer) (string, source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceURN, sourceName string, buffer source.Buffer) (string, source.Interface, error) {
 	// we don't want to share this secret
 	secret, err := secretInterface.Get(ctx, pipelineName+"-"+stepName, metav1.GetOptions{})
 	if err != nil {
@@ -62,7 +62,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		done := make(chan struct{}, 1)
 		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		defer cancel()
-		process <- &source.Msg{
+		buffer <- &source.Msg{
 			Meta: dfv1.Meta{
 				Source: sourceURN,
 				ID:     id,

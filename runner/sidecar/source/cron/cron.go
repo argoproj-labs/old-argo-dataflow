@@ -1,7 +1,6 @@
 package cron
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -18,7 +17,7 @@ type cronSource struct {
 	crn *cron.Cron
 }
 
-func New(ctx context.Context, sourceName, sourceURN string, x dfv1.Cron, process source.Buffer) (source.Interface, error) {
+func New(sourceURN string, x dfv1.Cron, buffer source.Buffer) (source.Interface, error) {
 	crn := cron.New(
 		cron.WithParser(cron.NewParser(cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
 		cron.WithChain(cron.Recover(logger)),
@@ -32,7 +31,7 @@ func New(ctx context.Context, sourceName, sourceURN string, x dfv1.Cron, process
 	_, err := crn.AddFunc(x.Schedule, func() {
 		now := time.Now()
 		msg := []byte(now.Format(x.Layout))
-		process <- &source.Msg{
+		buffer <- &source.Msg{
 			Meta: dfv1.Meta{
 				Source: sourceURN,
 				ID:     fmt.Sprint(now.Unix()),

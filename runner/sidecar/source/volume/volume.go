@@ -19,7 +19,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.VolumeSource, process source.Buffer, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.VolumeSource, buffer source.Buffer, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	dir := filepath.Join(dfv1.PathVarRun, "sources", sourceName)
 	return loadbalanced.New(ctx, secretInterface, loadbalanced.NewReq{
@@ -34,7 +34,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		Process: func(ctx context.Context, msg []byte) error {
 			key := string(msg)
 			path := filepath.Join(dir, key)
-			process <- &source.Msg{
+			buffer <- &source.Msg{
 				Meta: dfv1.Meta{
 					Source: sourceURN,
 					ID:     key,

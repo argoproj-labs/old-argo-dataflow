@@ -26,7 +26,7 @@ type kafkaSource struct {
 	topic      string
 	wg         *sync.WaitGroup
 	channels   map[int32]chan *kafka.Message
-	process    source.Buffer
+	buffer     source.Buffer
 	totalLag   int64
 }
 
@@ -35,7 +35,7 @@ const (
 	pendingUnavailable = math.MinInt32
 )
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, process source.Buffer) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, replica int, x dfv1.KafkaSource, buffer source.Buffer) (source.Interface, error) {
 	logger := sharedutil.NewLogger().WithValues("source", sourceName)
 	config, err := sharedkafka.GetConfig(ctx, secretInterface, x.KafkaConfig)
 	if err != nil {
@@ -78,7 +78,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 		topic:      x.Topic,
 		channels:   map[int32]chan *kafka.Message{}, // partition -> messages
 		wg:         &sync.WaitGroup{},
-		process:    process,
+		buffer:     buffer,
 		totalLag:   pendingUnavailable,
 	}
 
@@ -207,7 +207,7 @@ func (s *kafkaSource) consumePartition(partition int32) {
 			if !ok {
 				return
 			}
-			s.process <- &source.Msg{
+			s.buffer <- &source.Msg{
 				Meta: dfv1.Meta{
 					Source: s.sourceURN,
 					ID:     fmt.Sprintf("%d-%d", msg.TopicPartition.Partition, msg.TopicPartition.Offset),

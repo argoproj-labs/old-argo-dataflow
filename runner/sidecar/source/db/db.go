@@ -31,7 +31,7 @@ type dbSource struct {
 	db *sql.DB
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, x dfv1.DBSource, process source.Buffer) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN string, x dfv1.DBSource, buffer source.Buffer) (source.Interface, error) {
 	dataSource, err := getDataSource(ctx, secretInterface, x)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find data source: %w", err)
@@ -77,7 +77,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 						return fmt.Errorf("failed to marshal to json: %w", err)
 					}
 					id := fmt.Sprint(d[x.OffsetColumn])
-					process <- &source.Msg{
+					buffer <- &source.Msg{
 						Meta: dfv1.Meta{
 							Source: sourceURN,
 							ID:     id,
@@ -91,7 +91,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 					}
 					return nil
 				}); err != nil {
-					logger.Error(err, "failed to process data query")
+					logger.Error(err, "failed to source data query")
 				}
 			}
 		}

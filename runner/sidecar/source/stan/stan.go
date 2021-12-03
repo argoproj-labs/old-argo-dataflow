@@ -30,7 +30,7 @@ type stanSource struct {
 	queueName         string
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.STAN, process source.Buffer) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.STAN, buffer source.Buffer) (source.Interface, error) {
 	genClientID := func() string {
 		// In a particular situation, the stan connection status is inconsistent between stan server and client,
 		// the connection is lost from client side, but the server still thinks it's alive. In this case, use
@@ -54,7 +54,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 	subFunc := func() (stan.Subscription, error) {
 		logger.Info("subscribing to STAN queue", "source", sourceName, "queueName", queueName)
 		sub, err := conn.QueueSubscribe(x.Subject, queueName, func(msg *stan.Msg) {
-			process <- &source.Msg{
+			buffer <- &source.Msg{
 				Meta: dfv1.Meta{Source: sourceURN, ID: fmt.Sprint(msg.Sequence), Time: msg.Timestamp},
 				Data: msg.Data,
 				Ack: func() error {

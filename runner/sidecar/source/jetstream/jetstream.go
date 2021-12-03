@@ -20,7 +20,7 @@ type jsSource struct {
 	sub  *nats.Subscription
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.JetStreamSource, process source.Buffer) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.JetStreamSource, buffer source.Buffer) (source.Interface, error) {
 	conn, err := sharednats.ConnectNATS(ctx, secretInterface, x.NATSURL, x.Auth)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 		if metadata, err := msg.Metadata(); err != nil {
 			logger.Error(err, "failed to get message metadata")
 		} else {
-			process <- &source.Msg{
+			buffer <- &source.Msg{
 				Meta: dfv1.Meta{
 					Source: sourceURN,
 					ID:     fmt.Sprintf("%v-%v", metadata.Sequence.Consumer, metadata.Sequence.Stream),

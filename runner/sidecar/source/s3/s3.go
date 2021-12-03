@@ -26,7 +26,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.S3Source, process source.Buffer, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.S3Source, buffer source.Buffer, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", x.Name, "bucket", x.Bucket)
 	var accessKeyID string
 	{
@@ -113,7 +113,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 					logger.Error(err, "failed to copy object to FIFO", "path", path)
 				}
 			}()
-			process <- &source.Msg{
+			buffer <- &source.Msg{
 				Meta: dfv1.Meta{
 					Source: sourceURN,
 					ID:     key,

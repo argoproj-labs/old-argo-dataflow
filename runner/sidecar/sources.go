@@ -142,7 +142,7 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 		}, 3*time.Second, 1.2, true)
 
 		if x := s.Cron; x != nil {
-			if y, err := cron.New(ctx, sourceName, sourceURN, *x, buffer); err != nil {
+			if y, err := cron.New(sourceURN, *x, buffer); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
