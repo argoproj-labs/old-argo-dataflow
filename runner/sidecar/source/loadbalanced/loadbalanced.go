@@ -37,9 +37,9 @@ type NewReq struct {
 	LeadReplica  bool
 	Concurrency  int
 	PollPeriod   time.Duration
-	Buffer       source.Buffer
-	Process      func(ctx context.Context, msg []byte) error
-	ListItems    func() ([]interface{}, error)
+	Inbox        source.Inbox
+	PreProcess   func(ctx context.Context, data []byte) error
+	ListItems    func() ([]*source.Msg, error)
 }
 
 func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) (source.HasPending, error) {
@@ -47,7 +47,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) 
 	// (a) in the future we could use a named queue to expose metrics
 	// (b) it would be good to limit the size of this work queue and have the `Add
 	jobs := workqueue.New()
-	authorization, httpSource, err := httpsource.New(ctx, secretInterface, r.PipelineName, r.StepName, r.SourceURN, r.SourceName, r.Buffer)
+	authorization, httpSource, err := httpsource.New(ctx, secretInterface, r.PipelineName, r.StepName, r.SourceURN, r.SourceName, r.PreProcess, r.Inbox)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) 
 					}
 					func() {
 						defer jobs.Done(item)
-						itemS := item.(string)
-						req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBufferString(itemS))
+						msg := item.(*source.Msg)
+						req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(msg.Data))
 						if err != nil {
 							logger.Error(err, "failed to create request", "item", item)
 						} else {
@@ -86,6 +86,11 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) 
 								if resp.StatusCode >= 300 {
 									err := fmt.Errorf("%q: %q", resp.Status, body)
 									logger.Error(err, "failed to process item", "item", item)
+								} else {
+									logger.Info("acking item", "item", item)
+									if err := msg.Ack(ctx); err != nil {
+										logger.Error(err, "failed to delete item", "item", item)
+									}
 								}
 							}
 						}
@@ -127,7 +132,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) 
 			logger.Info("executing initial poll")
 			poll()
 			if r.PollPeriod > 0 {
-				logger.Info("starting polling loop", "pollPeriod", r.PollPeriod)
+				logger.Info("starting polling loop", "pollPeriod", r.PollPeriod.String())
 				ticker := time.NewTicker(r.PollPeriod)
 				defer ticker.Stop()
 				for {
@@ -139,7 +144,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, r NewReq) 
 					}
 				}
 			} else {
-				logger.Info("polling loop disabled", "pollPeriod", r.PollPeriod)
+				logger.Info("polling loop disabled", "pollPeriod", r.PollPeriod.String())
 			}
 		}()
 	}

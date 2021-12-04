@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"syscall"
 
 	dfv1 "github.com/argoproj-labs/argo-dataflow/api/v1alpha1"
 	"github.com/argoproj-labs/argo-dataflow/runner/sidecar/source"
@@ -17,7 +16,6 @@ import (
 	"github.com/opentracing/opentracing-go"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/runtime"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
@@ -26,7 +24,7 @@ type message struct {
 	Path string `json:"path"`
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.S3Source, buffer source.Buffer, leadReplica bool) (source.HasPending, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceName, sourceURN string, x dfv1.S3Source, inbox source.Inbox, leadReplica bool) (source.HasPending, error) {
 	logger := sharedutil.NewLogger().WithValues("source", x.Name, "bucket", x.Bucket)
 	var accessKeyID string
 	{
@@ -87,57 +85,52 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		LeadReplica:  leadReplica,
 		Concurrency:  int(x.Concurrency),
 		PollPeriod:   x.PollPeriod.Duration,
-
-		Process: func(ctx context.Context, msg []byte) error {
+		Inbox:        inbox,
+		PreProcess: func(ctx context.Context, data []byte) error {
 			span, ctx := opentracing.StartSpanFromContext(ctx, fmt.Sprintf("s3-source-%s", sourceName))
 			defer span.Finish()
-			key := string(msg)
-			path := filepath.Join(dir, key)
+			m := &message{}
+			sharedutil.MustUnJSON(data, m)
+			key := m.Key
+			path := m.Path
 			output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: &x.Bucket, Key: &key})
 			if err != nil {
 				return fmt.Errorf("failed to get object %q %q: %w", x.Bucket, key, err)
 			}
 			defer output.Body.Close()
-			if err := syscall.Mkfifo(path, 0o600); sharedutil.IgnoreExist(err) != nil {
+			f, err := os.Create(path)
+			if err != nil {
 				return fmt.Errorf("failed to create fifo %q: %w", path, err)
 			}
-			go func() {
-				defer runtime.HandleCrash()
-				logger.Info("opening file", "key", key)
-				file, err := os.OpenFile(path, os.O_WRONLY, os.ModeNamedPipe)
-				if err != nil {
-					logger.Error(err, "failed to open file", "path", path)
-				}
-				defer file.Close()
-				if _, err := io.Copy(file, output.Body); err != nil {
-					logger.Error(err, "failed to copy object to FIFO", "path", path)
-				}
-			}()
-			buffer <- &source.Msg{
-				Meta: dfv1.Meta{
-					Source: sourceURN,
-					ID:     key,
-					Time:   output.LastModified.Unix(),
-				},
-				Data: []byte(sharedutil.MustJSON(message{Key: key, Path: path})),
-				Ack: func() error {
-					_ = os.Remove(path)
-					_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: &x.Bucket, Key: &key})
-					return err
-				},
-			}
-			return nil
+			defer f.Close()
+			_, err = io.Copy(f, output.Body)
+			return err
 		},
-		ListItems: func() ([]interface{}, error) {
+		ListItems: func() ([]*source.Msg, error) {
 			list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{Bucket: aws.String(x.Bucket)})
 			if err != nil {
 				return nil, err
 			}
-			keys := make([]interface{}, len(list.Contents))
+			msgs := make([]*source.Msg, len(list.Contents))
 			for i, obj := range list.Contents {
-				keys[i] = *obj.Key
+				key := *obj.Key
+				path := filepath.Join(dir, key)
+				msgs[i] = &source.Msg{
+					Meta: dfv1.Meta{
+						Source: sourceURN,
+						ID:     key,
+						Time:   obj.LastModified.Unix(),
+					},
+					Data: []byte(sharedutil.MustJSON(message{Key: key, Path: path})),
+					Ack: func(ctx context.Context) error {
+						_ = os.Remove(path)
+						_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: &x.Bucket, Key: &key})
+						return err
+					},
+					Nack: source.NoopNack,
+				}
 			}
-			return keys, nil
+			return msgs, nil
 		},
 	})
 }

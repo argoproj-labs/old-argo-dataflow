@@ -20,7 +20,9 @@ type httpSource struct {
 	ready bool
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceURN, sourceName string, buffer source.Buffer) (string, source.Interface, error) {
+var Noop = func(context.Context, []byte) error { return nil }
+
+func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineName, stepName, sourceURN, sourceName string, preProcess func(ctx context.Context, data []byte) error, inbox source.Inbox) (string, source.Interface, error) {
 	// we don't want to share this secret
 	secret, err := secretInterface.Get(ctx, pipelineName+"-"+stepName, metav1.GetOptions{})
 	if err != nil {
@@ -29,6 +31,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 	authorization := string(secret.Data[fmt.Sprintf("sources.%s.http.authorization", sourceName)])
 	h := &httpSource{true}
 	http.HandleFunc("/sources/"+sourceName, func(w http.ResponseWriter, r *http.Request) {
+		println("ALEX", 0)
 		wireContext, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
 		operationName := fmt.Sprintf("http-source-%s", sourceName)
 		var span opentracing.Span
@@ -59,26 +62,38 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, pipelineNa
 		if id == "" {
 			id = uuid.New().String()
 		}
-		done := make(chan struct{}, 1)
-		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-		defer cancel()
-		buffer <- &source.Msg{
+		if err := preProcess(ctx, data); err != nil {
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		result := make(chan error, 1)
+		inbox <- &source.Msg{
 			Meta: dfv1.Meta{
 				Source: sourceURN,
 				ID:     id,
 				Time:   time.Now().Unix(),
 			},
 			Data: data,
-			Ack: func() error {
-				done <- struct{}{}
+			Ack: func(context.Context) error {
+				result <- nil
 				return nil
+			},
+			Nack: func(ctx context.Context, err error) {
+				result <- err
 			},
 		}
 		select {
-		case <-done:
-			w.WriteHeader(204)
+		case err := <-result:
+			if err != nil {
+				w.WriteHeader(500)
+				_, _ = w.Write([]byte(err.Error()))
+			} else {
+				w.WriteHeader(204)
+			}
 		case <-ctx.Done():
 			w.WriteHeader(500)
+			_, _ = w.Write([]byte(ctx.Err().Error()))
 		}
 	})
 	return authorization, h, nil

@@ -20,7 +20,7 @@ type jsSource struct {
 	sub  *nats.Subscription
 }
 
-func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN string, replica int, sourceName string, x dfv1.JetStreamSource, buffer source.Buffer) (source.Interface, error) {
+func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, namespace, pipelineName, stepName, sourceURN, sourceName string, x dfv1.JetStreamSource, inbox source.Inbox) (source.Interface, error) {
 	conn, err := sharednats.ConnectNATS(ctx, secretInterface, x.NATSURL, x.Auth)
 	if err != nil {
 		return nil, err
@@ -35,14 +35,14 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 		if metadata, err := msg.Metadata(); err != nil {
 			logger.Error(err, "failed to get message metadata")
 		} else {
-			buffer <- &source.Msg{
+			inbox <- &source.Msg{
 				Meta: dfv1.Meta{
 					Source: sourceURN,
 					ID:     fmt.Sprintf("%v-%v", metadata.Sequence.Consumer, metadata.Sequence.Stream),
 					Time:   metadata.Timestamp.Unix(),
 				},
 				Data: msg.Data,
-				Ack: func() error {
+				Ack: func(context.Context) error {
 					err := msg.Ack()
 					if errors.Is(err, nats.ErrBadSubscription) {
 						logger.Info("Jet Stream subscription might have been closed", "source", sourceName, "error", err)
@@ -50,6 +50,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 					}
 					return err
 				},
+				Nack: source.NoopNack,
 			}
 		}
 	}, nats.ManualAck(), nats.Durable(durableName), nats.DeliverNew())

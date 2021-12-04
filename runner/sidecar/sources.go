@@ -109,82 +109,84 @@ func connectSources(ctx context.Context, process func(context.Context, []byte) e
 					err := process(newCtx, msg.Data)
 					cancel()
 					if err == nil {
-						return msg.Ack()
+						return msg.Ack(ctx)
 					}
 					giveUp := backoff.Steps <= 0
 					logger := logger.WithValues("source", sourceName, "backoffSteps", backoff.Steps, "giveUp", giveUp)
 					if giveUp {
-						logger.Error(err, "failed to send process message")
+						logger.Error(err, "failed to process message")
 						errorsCounter.WithLabelValues(sourceName, fmt.Sprint(replica)).Inc()
+
+						ctx := dfv1.ContextWithMeta(ctx, msg.Meta)
 						if dlqErr := dlq(ctx, msg.Data); dlqErr != nil {
 							logger.Error(err, "failed to send failed message to DLQ", "error", err)
 						}
-
 						return err
 					} else {
-						logger.Info("failed to send process message", "err", err.Error())
+						logger.Info("failed to process message", "err", err.Error())
 					}
 					time.Sleep(backoff.Step())
 				}
 			}
 		}
-		buffer := make(chan *source.Msg)
+		inbox := make(chan *source.Msg, 1024)
 
 		go wait.JitterUntilWithContext(ctx, func(ctx context.Context) {
-			for msg := range buffer {
+			for msg := range inbox {
 				log := logger.WithValues("source", msg.Source, "id", msg.ID)
 				if err := processWithRetry(ctx, msg); err != nil {
 					log.Error(err, "failed to process message")
-				} else if err := msg.Ack(); err != nil {
+					msg.Nack(ctx, err)
+				} else if err := msg.Ack(ctx); err != nil {
 					log.Error(err, "failed to ack message")
 				}
 			}
 		}, 3*time.Second, 1.2, true)
 
 		if x := s.Cron; x != nil {
-			if y, err := cron.New(sourceURN, *x, buffer); err != nil {
+			if y, err := cron.New(sourceURN, *x, inbox); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.STAN; x != nil {
-			if y, err := stan.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, buffer); err != nil {
+			if y, err := stan.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, inbox); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Kafka; x != nil {
-			if y, err := kafkasource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, replica, *x, buffer); err != nil {
+			if y, err := kafkasource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, replica, *x, inbox); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.HTTP; x != nil {
-			if _, y, err := httpsource.New(ctx, secretInterface, pipelineName, stepName, sourceURN, sourceName, buffer); err != nil {
+			if _, y, err := httpsource.New(ctx, secretInterface, pipelineName, stepName, sourceURN, sourceName, httpsource.Noop, inbox); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.S3; x != nil {
-			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, buffer, leadReplica()); err != nil {
+			if y, err := s3source.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, inbox, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.DB; x != nil {
-			if y, err := dbsource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, *x, buffer); err != nil {
+			if y, err := dbsource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceName, sourceURN, *x, inbox); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.Volume; x != nil {
-			if y, err := volumeSource.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, buffer, leadReplica()); err != nil {
+			if y, err := volumeSource.New(ctx, secretInterface, pipelineName, stepName, sourceName, sourceURN, *x, inbox, leadReplica()); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y
 			}
 		} else if x := s.JetStream; x != nil {
-			if y, err := jssource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, replica, sourceName, *x, buffer); err != nil {
+			if y, err := jssource.New(ctx, secretInterface, cluster, namespace, pipelineName, stepName, sourceURN, sourceName, *x, inbox); err != nil {
 				return err
 			} else {
 				sources[sourceName] = y

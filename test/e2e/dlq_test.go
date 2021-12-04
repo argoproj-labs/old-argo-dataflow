@@ -22,7 +22,7 @@ func TestDLQ(t *testing.T) {
 				{
 					Name:    "main",
 					Cat:     &Cat{},
-					Sources: []Source{{Retry: Backoff{Steps: 2}, HTTP: &HTTPSource{ServiceName: "in"}}},
+					Sources: []Source{{Retry: Backoff{Steps: 1}, HTTP: &HTTPSource{ServiceName: "in"}}},
 					Sinks: []Sink{
 						{Name: "HTTP", HTTP: &HTTPSink{URL: "http://testapi/count/notfound"}},
 						{Name: "DLQ", DeadLetterQueue: true, HTTP: &HTTPSink{URL: "http://testapi/count/incr"}},

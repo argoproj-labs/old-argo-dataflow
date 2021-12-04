@@ -15,10 +15,16 @@ type Interface interface {
 type Msg struct {
 	dfv1.Meta
 	Data []byte
-	Ack  func() error
+	Ack  func(context.Context) error
+	Nack func(context.Context, error)
 }
 
-type Buffer chan<- *Msg
+var (
+	NoopAck  = func(context.Context) error { return nil }
+	NoopNack = func(context.Context, error) {}
+)
+
+type Inbox chan<- *Msg
 
 var ErrPendingUnavailable = errors.New("pending not available")
 

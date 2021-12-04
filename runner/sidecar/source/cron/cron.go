@@ -17,7 +17,7 @@ type cronSource struct {
 	crn *cron.Cron
 }
 
-func New(sourceURN string, x dfv1.Cron, buffer source.Buffer) (source.Interface, error) {
+func New(sourceURN string, x dfv1.Cron, inbox source.Inbox) (source.Interface, error) {
 	crn := cron.New(
 		cron.WithParser(cron.NewParser(cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
 		cron.WithChain(cron.Recover(logger)),
@@ -31,13 +31,15 @@ func New(sourceURN string, x dfv1.Cron, buffer source.Buffer) (source.Interface,
 	_, err := crn.AddFunc(x.Schedule, func() {
 		now := time.Now()
 		msg := []byte(now.Format(x.Layout))
-		buffer <- &source.Msg{
+		inbox <- &source.Msg{
 			Meta: dfv1.Meta{
 				Source: sourceURN,
 				ID:     fmt.Sprint(now.Unix()),
 				Time:   now.Unix(),
 			},
 			Data: msg,
+			Ack:  source.NoopAck,
+			Nack: source.NoopNack,
 		}
 	})
 	if err != nil {
