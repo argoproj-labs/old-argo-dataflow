@@ -113,6 +113,7 @@ func (h *kafkaSink) Sink(ctx context.Context, msg []byte) error {
 		return err
 	}
 	if deliveryChan != nil {
+		defer h.inflight.Release(1)
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("failed to get delivery: %w", ctx.Err())
