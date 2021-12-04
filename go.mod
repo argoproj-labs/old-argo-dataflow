@@ -37,6 +37,7 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/weaveworks/promrus v1.2.0
 	golang.org/x/crypto v0.0.0-20210915214749-c084706c2272
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	k8s.io/api v0.20.4
 	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v0.20.4

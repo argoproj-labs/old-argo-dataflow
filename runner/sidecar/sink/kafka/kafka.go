@@ -13,6 +13,7 @@ import (
 	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
+	"golang.org/x/sync/semaphore"
 	"k8s.io/apimachinery/pkg/util/wait"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -24,6 +25,7 @@ type kafkaSink struct {
 	producer *kafka.Producer
 	topic    string
 	async    bool
+	inflight *semaphore.Weighted
 }
 
 func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInterface, x dfv1.KafkaSink, errorsCounter prometheus.Counter) (sink.Interface, error) {
@@ -60,11 +62,14 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 		}
 	}, 3*time.Second, 1.2, true)
 
+	inflight := semaphore.NewWeighted(int64(x.GetMessageInflight()))
+
 	go wait.JitterUntilWithContext(ctx, func(context.Context) {
 		logger.Info("starting producer event consuming loop")
 		for e := range producer.Events() {
 			switch ev := e.(type) {
 			case *kafka.Message:
+				inflight.Release(1)
 				if err := ev.TopicPartition.Error; err != nil {
 					logger.Error(err, "Async to Kafka failed", "topic", x.Topic)
 					errorsCounter.Inc()
@@ -73,7 +78,13 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 		}
 	}, time.Second, 1.2, true)
 
-	return &kafkaSink{sinkName, producer, x.Topic, x.Async}, nil
+	return &kafkaSink{
+		sinkName,
+		producer,
+		x.Topic,
+		x.Async,
+		inflight,
+	}, nil
 }
 
 func (h *kafkaSink) Sink(ctx context.Context, msg []byte) error {
@@ -87,6 +98,9 @@ func (h *kafkaSink) Sink(ctx context.Context, msg []byte) error {
 	if !h.async {
 		deliveryChan = make(chan kafka.Event)
 		defer close(deliveryChan)
+	}
+	if err := h.inflight.Acquire(ctx, 1); err != nil {
+		return err
 	}
 	if err := h.producer.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &h.topic, Partition: kafka.PartitionAny},

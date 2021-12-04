@@ -1662,6 +1662,12 @@ spec:
                                 type: boolean
                               linger:
                                 type: string
+                              maxInflight:
+                                default: 20
+                                description: The maximum number of messages to be
+                                  in-flight when async.
+                                format: int32
+                                type: integer
                               maxMessageBytes:
                                 format: int32
                                 type: integer
