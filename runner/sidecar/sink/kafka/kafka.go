@@ -39,6 +39,7 @@ func New(ctx context.Context, sinkName string, secretInterface corev1.SecretInte
 	// https://docs.confluent.io/cloud/current/client-apps/optimizing/throughput.html
 	config["batch.size"] = x.GetBatchSize()
 	config["linger.ms"] = x.GetLingerMs()
+	config["message.timeout.ms"] = x.GetMessageTimeoutMs()
 	config["compression.type"] = x.CompressionType
 	config["acks"] = x.GetAcks()
 	config["enable.idempotence"] = x.EnableIdempotence

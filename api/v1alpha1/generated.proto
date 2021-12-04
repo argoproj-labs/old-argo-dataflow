@@ -369,6 +369,9 @@ message Git {
   // PasswordSecret is the secret selector to the repository password
   optional k8s.io.api.core.v1.SecretKeySelector passwordSecret = 8;
 
+  // InsecureIgnoreHostKey is the bool value for ignoring check for host key
+  optional bool insecureIgnoreHostKey = 10;
+
   // SSHPrivateKeySecret is the secret selector to the repository ssh private key
   optional k8s.io.api.core.v1.SecretKeySelector sshPrivateKeySecret = 9;
 
@@ -484,6 +487,9 @@ message KafkaSink {
 
   // +kubebuilder:default=true
   optional bool enableIdempotence = 7;
+
+  // +kubebuilder:default="30s"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration messageTimeout = 8;
 }
 
 message KafkaSource {

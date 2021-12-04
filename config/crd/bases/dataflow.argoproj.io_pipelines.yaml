@@ -1665,6 +1665,9 @@ spec:
                               maxMessageBytes:
                                 format: int32
                                 type: integer
+                              messageTimeout:
+                                default: 30s
+                                type: string
                               name:
                                 default: default
                                 type: string
