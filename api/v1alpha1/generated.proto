@@ -487,6 +487,9 @@ message KafkaSink {
 
   // +kubebuilder:default=true
   optional bool enableIdempotence = 7;
+
+  // +kubebuilder:default="30s"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration messageTimeout = 8;
 }
 
 message KafkaSource {
