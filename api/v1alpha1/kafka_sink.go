@@ -18,9 +18,11 @@ type KafkaSink struct {
 	Acks *intstr.IntOrString `json:"acks,omitempty" protobuf:"bytes,6,opt,name=acks"`
 	// +kubebuilder:default=true
 	EnableIdempotence bool `json:"enableIdempotence,omitempty" protobuf:"varint,7,opt,name=enableIdempotence"`
+	// +kubebuilder:default="30s"
+	MessageTimeout *metav1.Duration `json:"messageTimeout,omitempty" protobuf:"bytes,8,opt,name=messageTimeout"`
 	// The maximum number of messages to be in-flight when async.
 	// +kubebuilder:default=20
-	MaxInflight uint32 `json:"maxInflight,omitempty" protobuf:"varint,8,opt,name=maxInflight"`
+	MaxInflight uint32 `json:"maxInflight,omitempty" protobuf:"varint,9,opt,name=maxInflight"`
 }
 
 func (m *KafkaSink) GetBatchSize() int {
@@ -36,6 +38,10 @@ func (m *KafkaSink) GetLingerMs() int {
 		}
 	}
 	return int(m.Linger.Milliseconds())
+}
+
+func (m *KafkaSink) GetMessageTimeoutMs() int {
+	return int(m.MessageTimeout.Milliseconds())
 }
 
 func (m *KafkaSink) GetAcks() interface{} {

@@ -488,9 +488,12 @@ message KafkaSink {
   // +kubebuilder:default=true
   optional bool enableIdempotence = 7;
 
+  // +kubebuilder:default="30s"
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Duration messageTimeout = 8;
+
   // The maximum number of messages to be in-flight when async.
   // +kubebuilder:default=20
-  optional uint32 maxInflight = 8;
+  optional uint32 maxInflight = 9;
 }
 
 message KafkaSource {

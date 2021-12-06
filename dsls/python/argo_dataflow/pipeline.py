@@ -160,7 +160,7 @@ class HTTPSink(Sink):
 
 class KafkaSink(Sink):
     def __init__(self, subject, name=None, a_sync=False, batchSize=None, linger=None, compressionType=None, acks=None,
-                 enableIdempotence=None):
+                 enableIdempotence=None, messageTimeout=None):
         super().__init__(name)
         self._subject = subject
         self._a_sync = a_sync
@@ -169,6 +169,7 @@ class KafkaSink(Sink):
         self._compressionType = compressionType
         self._acks = acks
         self._enableIdempotence = enableIdempotence
+        self._messageTimeout = messageTimeout
 
     def dump(self):
         x = super().dump()
@@ -185,6 +186,8 @@ class KafkaSink(Sink):
             y['acks'] = self._acks
         if self._enableIdempotence:
             y['enableIdempotence'] = self._enableIdempotence
+        if self._messageTimeout:
+            y['messageTimeout'] = self._messageTimeout
         x['kafka'] = y
         return x
 
@@ -232,9 +235,9 @@ class Step:
         return self
 
     def kafka(self, subject, name=None, a_sync=False, batchSize=None, linger=None, compressionType=None, acks=None,
-              enableIdempotence=None):
+              enableIdempotence=None, messageTimeout=None):
         self._sinks.append(KafkaSink(subject, name=name, a_sync=a_sync, batchSize=batchSize, linger=linger,
-                                     compressionType=compressionType, acks=acks, enableIdempotence=enableIdempotence))
+                                     compressionType=compressionType, acks=acks, enableIdempotence=enableIdempotence, messageTimeout=messageTimeout))
         return self
 
     def scale(self, desiredReplicas, scalingDelay=None, peekDelay=None):
