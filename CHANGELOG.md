@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.8.0 (2021-12-06)
+
+ * [2179640](https://github.com/argoproj-labs/argo-dataflow/commit/2179640104454e473310df458a78e979a0348f4e) feat: Limit Kafka sink async message in-flight (#513)
+ * [de6a76e](https://github.com/argoproj-labs/argo-dataflow/commit/de6a76ef68008e9fc4464195079e7cae4daf024e) feat: add Kafka sink messageTimeout (#512)
+ * [a386208](https://github.com/argoproj-labs/argo-dataflow/commit/a386208251db306923e44b630fa1b34fd1b732fe) Update CONCEPTS.md (#510)
+ * [8f22671](https://github.com/argoproj-labs/argo-dataflow/commit/8f226716e587c15f02c9c2a56d73bd28c382452f) feat: Added cluster scope manifests. Fixes #498 (#508)
+
+### Contributors
+
+ * Alex Collins
+ * Saravanan Balasubramanian
+ * zewelor
+
 ## v0.7.0 (2021-11-19)
 
  * [b15c3bc](https://github.com/argoproj-labs/argo-dataflow/commit/b15c3bcad519d413aac295e7fa698f79c4a5a056) feat: add support for InsecureIgnoreHostKey (#503)
