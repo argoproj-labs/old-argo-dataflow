@@ -11,7 +11,7 @@ FROM <image_name>
 USER root
 
 # install dumb-init
-RUN wget -O ./dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64
+RUN wget -O /dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64
 RUN chmod +x /dumb-init
 
 # create directories
