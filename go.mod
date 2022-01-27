@@ -14,7 +14,7 @@ require (
 	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/doublerebel/bellows v0.0.0-20160303004610-f177d92a03d3
 	github.com/evanphx/json-patch v4.9.0+incompatible
-	github.com/go-git/go-git/v5 v5.3.0
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v0.4.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
@@ -57,6 +57,8 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Microsoft/go-winio v0.4.16 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
+	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.5.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.2.2 // indirect
@@ -75,7 +77,7 @@ require (
 	github.com/form3tech-oss/jwt-go v3.2.2+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
-	github.com/go-git/go-billy/v5 v5.1.0 // indirect
+	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-logr/zapr v0.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
