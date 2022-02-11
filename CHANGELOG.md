@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.9.0 (2022-01-31)
+
+ * [ca813ef](https://github.com/argoproj-labs/argo-dataflow/commit/ca813ef95c07698b350a741cc86f5c4e0ee4d14a) build(deps): bump github.com/prometheus/common from 0.10.0 to 0.32.1 (#527)
+ * [ae48d2c](https://github.com/argoproj-labs/argo-dataflow/commit/ae48d2ceedc98d3e745b00d2017eaeca6797d9dc) build(deps): bump actions/stale from 3 to 4.1.0 (#523)
+ * [7fe4585](https://github.com/argoproj-labs/argo-dataflow/commit/7fe4585ae01a900c36114848dce932b5863263ab) Update CUSTOM_IMAGE.md (#516)
+ * [4a4453c](https://github.com/argoproj-labs/argo-dataflow/commit/4a4453cf58015881c7de267b70e5df647d417f0c) fix: Add Kafka sink `maxInflight` to Python DSL
+
+### Contributors
+
+ * Alex Collins
+ * dependabot[bot]
+ * zewelor
+
 ## v0.8.0 (2021-12-06)
 
  * [2179640](https://github.com/argoproj-labs/argo-dataflow/commit/2179640104454e473310df458a78e979a0348f4e) feat: Limit Kafka sink async message in-flight (#513)
