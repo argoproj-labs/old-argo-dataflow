@@ -13,7 +13,7 @@ require (
 	github.com/bombsimon/logrusr v1.1.0
 	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/doublerebel/bellows v0.0.0-20160303004610-f177d92a03d3
-	github.com/evanphx/json-patch v4.9.0+incompatible
+	github.com/evanphx/json-patch v5.6.0+incompatible
 	github.com/go-git/go-git/v5 v5.3.0
 	github.com/go-logr/logr v0.4.0
 	github.com/go-sql-driver/mysql v1.6.0
@@ -33,7 +33,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/uber/jaeger-client-go v2.29.1+incompatible
+	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/weaveworks/promrus v1.2.0
 	golang.org/x/crypto v0.0.0-20210915214749-c084706c2272
