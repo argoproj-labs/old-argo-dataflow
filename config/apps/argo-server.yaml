@@ -110,6 +110,7 @@ spec:
         - --namespaced=true
         - --auth-mode=server
         - --secure=false
+        env: []
         image: quay.io/argoproj/argocli:latest
         imagePullPolicy: Always
         name: argo-server
