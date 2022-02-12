@@ -24,7 +24,7 @@ require (
 	github.com/nats-io/nats-streaming-server v0.21.1
 	github.com/nats-io/nats.go v1.12.1
 	github.com/nats-io/stan.go v0.8.3
-	github.com/onsi/ginkgo v1.16.4
+	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.15.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.11.0
