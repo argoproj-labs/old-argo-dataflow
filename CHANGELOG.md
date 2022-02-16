@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.10.0 (2022-02-16)
+
+ * [5857b0f](https://github.com/argoproj-labs/argo-dataflow/commit/5857b0f1c3c7b906242b6c1514e833824cacd2ca) build(deps): bump github.com/robfig/cron/v3 from 3.0.0 to 3.0.1 (#541)
+ * [3663c8e](https://github.com/argoproj-labs/argo-dataflow/commit/3663c8e861caa8556bb12a944c691ecb722ffaa0) build(deps): bump github.com/antonmedv/expr from 1.8.9 to 1.9.0 (#540)
+ * [7ea8d9b](https://github.com/argoproj-labs/argo-dataflow/commit/7ea8d9b9397c930996d6407cfefb823fc1a4f331) build(deps): bump github.com/nats-io/nats-streaming-server (#536)
+ * [2a8a6e5](https://github.com/argoproj-labs/argo-dataflow/commit/2a8a6e591eaae81fdf436dbb13fe6a18b3f1e5a4) build(deps): bump github.com/evanphx/json-patch (#537)
+ * [6a373b5](https://github.com/argoproj-labs/argo-dataflow/commit/6a373b5036b6267098e422719a29222054b88b4f) build(deps): bump github.com/prometheus/client_golang (#530)
+ * [3ff400c](https://github.com/argoproj-labs/argo-dataflow/commit/3ff400cccdfa54532775151059146df04603a8b3) build(deps): bump github.com/confluentinc/confluent-kafka-go (#533)
+ * [bc65bfa](https://github.com/argoproj-labs/argo-dataflow/commit/bc65bfa0492ad322c8750c0df916d4d4e0372edf) build(deps): bump github.com/onsi/ginkgo from 1.16.4 to 1.16.5 (#532)
+ * [2029ead](https://github.com/argoproj-labs/argo-dataflow/commit/2029ead7421155a1d3e097f7739dc93e055a6a1f) build(deps): bump github.com/uber/jaeger-client-go (#531)
+
+### Contributors
+
+ * dependabot[bot]
+
 ## v0.9.0 (2022-01-31)
 
  * [ca813ef](https://github.com/argoproj-labs/argo-dataflow/commit/ca813ef95c07698b350a741cc86f5c4e0ee4d14a) build(deps): bump github.com/prometheus/common from 0.10.0 to 0.32.1 (#527)
