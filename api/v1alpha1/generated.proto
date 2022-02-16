@@ -180,7 +180,7 @@ message AbstractVolumeSource {
   // +optional
   optional k8s.io.api.core.v1.CSIVolumeSource csi = 28;
 
-  // Ephemeral represents a volume that is handled by a cluster storage driver (Alpha feature).
+  // Ephemeral represents a volume that is handled by a cluster storage driver.
   // The volume's lifecycle is tied to the pod that defines it - it will be created before the pod starts,
   // and deleted when the pod is removed.
   //
