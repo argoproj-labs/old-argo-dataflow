@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"os"
 
-	"github.com/bombsimon/logrusr"
+	logrusr "github.com/bombsimon/logrusr/v2"
 	"github.com/go-logr/logr"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/promrus"
@@ -25,7 +25,7 @@ func newLogger() logr.Logger {
 	l := log.New()
 	l.SetOutput(splitter(0))
 	l.AddHook(promrus.MustNewPrometheusHook())
-	return logrusr.NewLogger(l)
+	return logrusr.New(l)
 }
 
 func NewLogger() logr.Logger {

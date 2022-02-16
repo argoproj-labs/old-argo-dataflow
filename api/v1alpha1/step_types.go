@@ -176,12 +176,12 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 					{ContainerPort: 3570},
 				},
 				ReadinessProbe: &corev1.Probe{
-					Handler: corev1.Handler{
+					ProbeHandler: corev1.ProbeHandler{
 						HTTPGet: &corev1.HTTPGetAction{Scheme: "HTTPS", Path: "/ready", Port: intstr.FromInt(3570)},
 					},
 				},
 				Lifecycle: &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
+					PreStop: &corev1.LifecycleHandler{
 						HTTPGet: &corev1.HTTPGetAction{
 							Path:   "/pre-stop?source=kubernetes",
 							Port:   intstr.FromInt(3570),
@@ -195,7 +195,7 @@ func (in Step) GetPodSpec(req GetPodSpecReq) corev1.PodSpec {
 				imageFormat:     req.ImageFormat,
 				imagePullPolicy: req.PullPolicy,
 				lifecycle: &corev1.Lifecycle{
-					PreStop: &corev1.Handler{
+					PreStop: &corev1.LifecycleHandler{
 						Exec: &corev1.ExecAction{
 							Command: []string{PathPreStop},
 						},

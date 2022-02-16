@@ -65,7 +65,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 								Image:           "my-runner",
 								ImagePullPolicy: corev1.PullAlways,
 								Name:            "sidecar",
-								Lifecycle: &corev1.Lifecycle{PreStop: &corev1.Handler{
+								Lifecycle: &corev1.Lifecycle{PreStop: &corev1.LifecycleHandler{
 									HTTPGet: &corev1.HTTPGetAction{
 										Path:   "/pre-stop?source=kubernetes",
 										Port:   intstr.FromInt(3570),
@@ -74,7 +74,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 								}},
 								Ports: []corev1.ContainerPort{{ContainerPort: 3570}},
 								ReadinessProbe: &corev1.Probe{
-									Handler: corev1.Handler{
+									ProbeHandler: corev1.ProbeHandler{
 										HTTPGet: &corev1.HTTPGetAction{Path: "/ready", Port: intstr.FromInt(3570), Scheme: "HTTPS"},
 									},
 								},
@@ -87,7 +87,7 @@ func TestStep_GetPodSpec(t *testing.T) {
 								Image:           "my-runner",
 								ImagePullPolicy: corev1.PullAlways,
 								Name:            "main",
-								Lifecycle: &corev1.Lifecycle{PreStop: &corev1.Handler{
+								Lifecycle: &corev1.Lifecycle{PreStop: &corev1.LifecycleHandler{
 									Exec: &corev1.ExecAction{Command: []string{"/var/run/argo-dataflow/prestop"}},
 								}},
 								Resources:       standardResources,
