@@ -25,7 +25,7 @@ require (
 	github.com/nats-io/nats.go v1.13.1-0.20220121202836-972a071d373d
 	github.com/nats-io/stan.go v0.10.2
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.17.0
+	github.com/onsi/gomega v1.18.1
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/client_model v0.2.0
