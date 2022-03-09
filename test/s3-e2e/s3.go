@@ -99,7 +99,7 @@ func getAWSCfg(ctx context.Context) aws.Config {
 		Value: aws.Credentials{AccessKeyID: "testing", SecretAccessKey: "testing", SessionToken: "testing"},
 	}))
 	opts = append(opts,
-		awscfg.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+		awscfg.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				URL: "http://localhost:5000", HostnameImmutable: true, SigningRegion: region,
 			}, nil
