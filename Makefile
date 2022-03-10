@@ -174,7 +174,7 @@ $(GOBIN)/gofumpt:
 	go install mvdan.cc/gofumpt@v0.1.1
 
 $(GOBIN)/golangci-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.42.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.44.2
 
 /usr/local/bin/autopep8:
 	pip3 install autopep8
