@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.10.1 (2022-03-26)
+
+ * [53670a6](https://github.com/argoproj-labs/argo-dataflow/commit/53670a604ad16284535ff4ee731dc4c22bd17154) fix: run codegen
+ * [b09fe46](https://github.com/argoproj-labs/argo-dataflow/commit/b09fe46641b5fc0f53ae2c48614df9b24c4ec300) build(deps): bump actions/cache from 2 to 3 (#564)
+ * [fb10ab4](https://github.com/argoproj-labs/argo-dataflow/commit/fb10ab4be4420934eb371c080e99de2936619726) build(deps): bump github.com/aws/aws-sdk-go-v2 from 1.16.0 to 1.16.1 (#572)
+ * [57a418e](https://github.com/argoproj-labs/argo-dataflow/commit/57a418ec2c128386c0f4ea54fbbe20bd111bab94) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#569)
+ * [602d6ed](https://github.com/argoproj-labs/argo-dataflow/commit/602d6ed9879ff169547f4d29be1b474b32524f02) build(deps): bump minimist from 1.2.5 to 1.2.6 in /sdks/nodejs (#571)
+ * [a83d689](https://github.com/argoproj-labs/argo-dataflow/commit/a83d68984f742e8ebb70b0861fe6cc3dbaa97484) build(deps): bump peter-evans/create-pull-request from 3 to 4 (#566)
+ * [f179a6e](https://github.com/argoproj-labs/argo-dataflow/commit/f179a6e031da42869849faab8f03f2879ac75cb1) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#567)
+ * [653ab44](https://github.com/argoproj-labs/argo-dataflow/commit/653ab447231207bbb64ab66b75702dfaeabbbadd) build(deps): bump github.com/aws/aws-sdk-go-v2 from 1.15.0 to 1.16.0 (#568)
+ * [cfebd32](https://github.com/argoproj-labs/argo-dataflow/commit/cfebd328e03ce267cc53971608ac9ccfeab6498c) build(deps): bump github.com/go-logr/logr from 1.2.2 to 1.2.3 (#563)
+ * [bbeebc4](https://github.com/argoproj-labs/argo-dataflow/commit/bbeebc49587805716dd0e8245815dfd2bcd71e37) build(deps): bump github.com/stretchr/testify from 1.7.0 to 1.7.1 (#562)
+ * [8a65056](https://github.com/argoproj-labs/argo-dataflow/commit/8a650561b92033215dda172a80916b76c417b69f) build(deps): bump github.com/nats-io/nats-streaming-server (#561)
+ * [d739981](https://github.com/argoproj-labs/argo-dataflow/commit/d739981b1618c1f11b821299d221157d51c76a7e) build(deps): upgrade ansi-regex (#560)
+ * [8fc6a18](https://github.com/argoproj-labs/argo-dataflow/commit/8fc6a18782a89e966808ff09756588b7573acdd4) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 from 1.14.0 to 1.26.0 (#559)
+ * [6a6dbae](https://github.com/argoproj-labs/argo-dataflow/commit/6a6dbae9882ad6fd93341a81d35be709ae6c7a9a) build(deps): bump actions/checkout from 2 to 3 (#555)
+ * [f637874](https://github.com/argoproj-labs/argo-dataflow/commit/f637874bf75d54755f58121ed5263842b9f94716) build(deps): bump actions/stale from 4.1.0 to 5 (#556)
+ * [c67d978](https://github.com/argoproj-labs/argo-dataflow/commit/c67d978eefaebe7971ab0e038533655c01f6ebc4) build(deps): bump actions/setup-python from 2 to 3 (#552)
+ * [5ab7422](https://github.com/argoproj-labs/argo-dataflow/commit/5ab742214ccd875f34de9f960aaa1d61551f0744) build(deps): bump github.com/nats-io/nats-streaming-server (#551)
+ * [fdf01c9](https://github.com/argoproj-labs/argo-dataflow/commit/fdf01c9bd66f701a13a8b92327da9f6781b815ab) build(deps): bump github.com/onsi/gomega from 1.17.0 to 1.18.1 (#544)
+
+### Contributors
+
+ * Alex Collins
+ * dependabot[bot]
+
 ## v0.10.0 (2022-02-16)
 
  * [5857b0f](https://github.com/argoproj-labs/argo-dataflow/commit/5857b0f1c3c7b906242b6c1514e833824cacd2ca) build(deps): bump github.com/robfig/cron/v3 from 3.0.0 to 3.0.1 (#541)
