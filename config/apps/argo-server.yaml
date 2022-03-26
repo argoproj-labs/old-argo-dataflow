@@ -129,9 +129,12 @@ spec:
             cpu: 100m
             memory: 20Mi
         securityContext:
+          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
         volumeMounts:
         - mountPath: /tmp
           name: tmp
