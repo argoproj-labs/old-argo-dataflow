@@ -1,0 +1,24 @@
+# https://github.com/DeFiCh/oss-governance-bot
+version: v1
+
+issue:
+  labels:
+    - prefix: area
+      list: [ "ui-ux", "semantics", "translation", "security" ]
+      multiple: true
+      needs:
+        comment: |
+          @$AUTHOR: There are no area labels on this issue. Adding an appropriate label will greatly expedite the process for us. You can add as many area as you see fit. **If you are unsure what to do you can ignore this!**
+
+          * `/area ui-ux`
+          * `/area semantics`
+          * `/area translation`
+          * `/area security`
+
+  chat_ops:
+    - cmd: /assign
+      type: assign
+      author_association:
+        collaborator: true
+        member: true
+        owner: true
