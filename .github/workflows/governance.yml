@@ -1,4 +1,6 @@
 # https://github.com/DeFiCh/oss-governance-bot
+name: Governance Bot
+
 on:
   issues:
     types: [ opened, labeled, unlabeled ]
