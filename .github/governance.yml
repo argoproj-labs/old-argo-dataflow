@@ -15,10 +15,3 @@ issue:
           * `/area translation`
           * `/area security`
 
-  chat_ops:
-    - cmd: /assign
-      type: assign
-      author_association:
-        collaborator: true
-        member: true
-        owner: true
