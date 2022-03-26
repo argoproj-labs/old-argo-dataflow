@@ -7,8 +7,8 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/antonmedv/expr v1.9.0
 	github.com/aws/aws-sdk-go-v2 v1.16.1
-	github.com/aws/aws-sdk-go-v2/config v1.15.1
-	github.com/aws/aws-sdk-go-v2/credentials v1.11.0
+	github.com/aws/aws-sdk-go-v2/config v1.15.2
+	github.com/aws/aws-sdk-go-v2/credentials v1.11.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.2
 	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/confluentinc/confluent-kafka-go v1.8.2
@@ -25,7 +25,7 @@ require (
 	github.com/nats-io/nats.go v1.13.1-0.20220308171302-2f2f6968e98d
 	github.com/nats-io/stan.go v0.10.2
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.18.1
+	github.com/onsi/gomega v1.19.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/client_model v0.2.0
@@ -59,16 +59,16 @@ require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/armon/go-metrics v0.0.0-20190430140413-ec5e00d3c878 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.1 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.1 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.2 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.8 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.8 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.11.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.16.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.11.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.16.2 // indirect
 	github.com/aws/smithy-go v1.11.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -121,7 +121,7 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.1 // indirect
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220307203707-22a9840ba4d7 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
