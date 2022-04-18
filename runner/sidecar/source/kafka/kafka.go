@@ -27,6 +27,7 @@ type kafkaSource struct {
 	consumer   *kafka.Consumer
 	topic      string
 	wg         *sync.WaitGroup
+	mutex      sync.RWMutex
 	channels   map[int32]chan *kafka.Message
 	process    source.Process
 	totalLag   int64
@@ -78,6 +79,7 @@ func New(ctx context.Context, secretInterface corev1.SecretInterface, cluster, n
 		sourceURN:  sourceURN,
 		consumer:   consumer,
 		topic:      x.Topic,
+		mutex:      sync.RWMutex{},
 		channels:   map[int32]chan *kafka.Message{}, // partition -> messages
 		wg:         &sync.WaitGroup{},
 		process:    process,
@@ -112,6 +114,8 @@ func (s *kafkaSource) processMessage(ctx context.Context, msg *kafka.Message) er
 }
 
 func (s *kafkaSource) assignedPartition(ctx context.Context, partition int32) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	logger := s.logger.WithValues("partition", partition)
 	if _, ok := s.channels[partition]; !ok {
 		logger.Info("assigned partition")
@@ -142,7 +146,9 @@ func (s *kafkaSource) startPollLoop(ctx context.Context) {
 							s.logger.Info("recovered from panic while queuing message", "recover", fmt.Sprint(r))
 						}
 					}()
+					s.mutex.Lock()
 					s.channels[e.TopicPartition.Partition] <- e
+					s.mutex.Unlock()
 				}()
 			case *kafka.Stats:
 				// https://github.com/edenhill/librdkafka/wiki/Consumer-lag-monitoring
@@ -166,9 +172,11 @@ func (s *kafkaSource) startPollLoop(ctx context.Context) {
 
 func (s *kafkaSource) Close() error {
 	s.logger.Info("closing partition channels")
+	s.mutex.RLock()
 	for _, ch := range s.channels {
 		close(ch)
 	}
+	s.mutex.RUnlock()
 	s.logger.Info("waiting for partition consumers to finish")
 	s.wg.Wait()
 	s.logger.Info("closing consumer")
@@ -218,6 +226,7 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for {
+		s.mutex.RLock()
 		select {
 		case <-ticker.C:
 			commitLastUncommitted()
@@ -237,5 +246,6 @@ func (s *kafkaSource) consumePartition(ctx context.Context, partition int32) {
 				lastUncommitted = msg
 			}
 		}
+		s.mutex.RUnlock()
 	}
 }
