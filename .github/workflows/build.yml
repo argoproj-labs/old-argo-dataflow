@@ -56,10 +56,18 @@ jobs:
     needs: [ test, codegen ]
     steps:
       - uses: actions/checkout@v3
-      - uses: golangci/golangci-lint-action@v2
+      - uses: actions/setup-go@v2
         with:
-          version: v1.44.2
-          args: --verbose
+          go-version: 1.17
+      - uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/go-build
+          key: GOCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - uses: actions/cache@v3
+        with:
+          path: /home/runner/go/pkg/mod
+          key: GOMODCACHE-v2-${{ hashFiles('**/go.mod') }}
+      - run: make lint
       - run: git diff --exit-code
 
   # it = integration test
