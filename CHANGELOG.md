@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.10.2 (2022-04-20)
+
+ * [99e0df6](https://github.com/argoproj-labs/argo-dataflow/commit/99e0df6d975df3a68e7851d1f76d5a1432027be8) fix: Add mutex. Fixes #588 (#589)
+ * [039d6b9](https://github.com/argoproj-labs/argo-dataflow/commit/039d6b9f4d6744fefcfe9dde56d0e19afd1c0425) build(deps): bump github.com/nats-io/nats-streaming-server (#590)
+ * [4ffa8be](https://github.com/argoproj-labs/argo-dataflow/commit/4ffa8be8f828ca19d5f7a2757f0d7844f022aa65) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#587)
+ * [1fe4e41](https://github.com/argoproj-labs/argo-dataflow/commit/1fe4e41166a60dd0a754cbb162419176a40dfc8c) build(deps): bump actions/setup-go from 2 to 3 (#586)
+ * [cc69d45](https://github.com/argoproj-labs/argo-dataflow/commit/cc69d450f7fd09601ee398b7ce86bc970922b7de) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#583)
+ * [46c2ce8](https://github.com/argoproj-labs/argo-dataflow/commit/46c2ce8c76fcb951c78dfee4241c2ba307964f8f) build(deps): bump sigs.k8s.io/controller-runtime from 0.11.1 to 0.11.2 (#584)
+ * [3fd8cdc](https://github.com/argoproj-labs/argo-dataflow/commit/3fd8cdc8d86a7dd7f5fb5211f45d3f328133c6a0) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#581)
+ * [17a806a](https://github.com/argoproj-labs/argo-dataflow/commit/17a806a8cace2558acc220ea419093bcb9c1ff07) build(deps): bump github.com/prometheus/common from 0.32.1 to 0.33.0 (#580)
+ * [4335caf](https://github.com/argoproj-labs/argo-dataflow/commit/4335cafa36d84edd11e97c621895906dea09f2ae) build(deps): bump dependabot/fetch-metadata from 1.1.1 to 1.3.0 (#579)
+ * [164e4cd](https://github.com/argoproj-labs/argo-dataflow/commit/164e4cd48aa8d52e2be8ca4a05dcedf25434b027) build(deps): bump github.com/onsi/gomega from 1.18.1 to 1.19.0 (#578)
+ * [dcbafa1](https://github.com/argoproj-labs/argo-dataflow/commit/dcbafa15087457f3db2450fe80104acd4fb1d2d6) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#574)
+ * [7d8299f](https://github.com/argoproj-labs/argo-dataflow/commit/7d8299ff20e23dd75186df4f6d77c4ea36ae8a5d) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#573)
+
+### Contributors
+
+ * Alex Collins
+ * dependabot[bot]
+
 ## v0.10.1 (2022-03-26)
 
  * [53670a6](https://github.com/argoproj-labs/argo-dataflow/commit/53670a604ad16284535ff4ee731dc4c22bd17154) fix: run codegen
