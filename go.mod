@@ -21,7 +21,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
-	github.com/nats-io/nats-streaming-server v0.24.4
+	github.com/nats-io/nats-streaming-server v0.24.5
 	github.com/nats-io/nats.go v1.14.0
 	github.com/nats-io/stan.go v0.10.2
 	github.com/onsi/ginkgo v1.16.5
@@ -108,7 +108,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nats-io/jwt/v2 v2.2.1-0.20220330180145-442af02fd36a // indirect
-	github.com/nats-io/nats-server/v2 v2.8.0 // indirect
+	github.com/nats-io/nats-server/v2 v2.8.1 // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
