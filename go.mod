@@ -21,7 +21,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
-	github.com/nats-io/nats-streaming-server v0.24.5
+	github.com/nats-io/nats-streaming-server v0.24.6
 	github.com/nats-io/nats.go v1.15.0
 	github.com/nats-io/stan.go v0.10.2
 	github.com/onsi/ginkgo v1.16.5
@@ -90,7 +90,7 @@ require (
 	github.com/hashicorp/go-immutable-radix v1.0.0 // indirect
 	github.com/hashicorp/go-msgpack v1.1.5 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
-	github.com/hashicorp/raft v1.3.7 // indirect
+	github.com/hashicorp/raft v1.3.9 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -108,7 +108,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nats-io/jwt/v2 v2.2.1-0.20220330180145-442af02fd36a // indirect
-	github.com/nats-io/nats-server/v2 v2.8.1 // indirect
+	github.com/nats-io/nats-server/v2 v2.8.2 // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
