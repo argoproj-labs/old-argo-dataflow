@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.16.3
 	github.com/aws/aws-sdk-go-v2/config v1.15.4
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.0
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.8
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.9
 	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/confluentinc/confluent-kafka-go v1.8.2
 	github.com/doublerebel/bellows v0.0.0-20160303004610-f177d92a03d3
