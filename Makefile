@@ -89,7 +89,7 @@ codegen: generate manifests examples tests $(GOBIN)/mockery
 $(GOBIN)/goreman:
 	go install github.com/mattn/goreman@v0.3.7
 $(GOBIN)/mockery:
-	go install github.com/vektra/mockery/v2@v2.9.4
+	go install github.com/vektra/mockery/v2@v2
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 start: deploy build runner $(GOBIN)/goreman wait
