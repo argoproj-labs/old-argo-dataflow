@@ -23,7 +23,7 @@ require (
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
 	github.com/nats-io/nats-streaming-server v0.24.6
 	github.com/nats-io/nats.go v1.16.0
-	github.com/nats-io/stan.go v0.10.2
+	github.com/nats-io/stan.go v0.10.3
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.1
 	github.com/opentracing/opentracing-go v1.2.0
@@ -36,7 +36,7 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	github.com/weaveworks/promrus v1.2.0
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	k8s.io/api v0.23.5
 	k8s.io/apimachinery v0.23.5
