@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/antonmedv/expr v1.9.0
 	github.com/aws/aws-sdk-go-v2 v1.16.12
-	github.com/aws/aws-sdk-go-v2/config v1.15.14
+	github.com/aws/aws-sdk-go-v2/config v1.17.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.15
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.6
 	github.com/bombsimon/logrusr/v2 v2.0.1
@@ -62,7 +62,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.13 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.19 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.13 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.15 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.20 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.6 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.14 // indirect
