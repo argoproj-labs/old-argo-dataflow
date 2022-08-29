@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.9
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.1
 	github.com/bombsimon/logrusr/v2 v2.0.1
-	github.com/confluentinc/confluent-kafka-go v1.9.1
+	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/doublerebel/bellows v0.0.0-20160303004610-f177d92a03d3
 	github.com/evanphx/json-patch v5.6.0+incompatible
 	github.com/go-git/go-git/v5 v5.3.0
