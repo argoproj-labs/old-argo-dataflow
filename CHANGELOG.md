@@ -1,5 +1,54 @@
 # Changelog
 
+## v0.10.3 (2022-07-25)
+
+ * [08831b2](https://github.com/argoproj-labs/argo-dataflow/commit/08831b24f3fa28af3c1a9bd3d940d8cd38a3e77d) Revert "chore: Un-pin github.com/vektra/mockery/v2"
+ * [c8eb9f7](https://github.com/argoproj-labs/argo-dataflow/commit/c8eb9f7e861780acf748ff258b6b8274a61365d2) fix: Resolved issue with kafka secret not returning SASL and TLS (#628)
+ * [0b07bb3](https://github.com/argoproj-labs/argo-dataflow/commit/0b07bb364104c50e12038720235e4dd26d2d8307) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#641)
+ * [a3d441d](https://github.com/argoproj-labs/argo-dataflow/commit/a3d441d72923d9132d501f07318a6da2bb894af3) build(deps): bump github.com/aws/aws-sdk-go-v2/credentials (#640)
+ * [9512804](https://github.com/argoproj-labs/argo-dataflow/commit/9512804e97b2021b80f475e219607e873bfcd1d1) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#637)
+ * [4419996](https://github.com/argoproj-labs/argo-dataflow/commit/4419996eefce26a5d8f789ab15dee92bb36efd33) build(deps): bump github.com/confluentinc/confluent-kafka-go (#636)
+ * [93ea9a2](https://github.com/argoproj-labs/argo-dataflow/commit/93ea9a2db81f36fffde2feb6acabccd154aaf0b1) build(deps): bump github.com/stretchr/testify from 1.7.2 to 1.8.0 (#635)
+ * [8c585ba](https://github.com/argoproj-labs/argo-dataflow/commit/8c585ba7ebd016c408b66194bc57d9cde98ed82d) build(deps): bump github.com/prometheus/common from 0.34.0 to 0.35.0 (#634)
+ * [879d8c2](https://github.com/argoproj-labs/argo-dataflow/commit/879d8c29863089a3e997f0da825ddcc0fb9003e0) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#633)
+ * [ad2327d](https://github.com/argoproj-labs/argo-dataflow/commit/ad2327d0c5d07c40d8350d67979b39db5d4aad94) build(deps): bump dependabot/fetch-metadata from 1.3.1 to 1.3.3 (#632)
+ * [5dfb4d7](https://github.com/argoproj-labs/argo-dataflow/commit/5dfb4d79bc7c06537b597db94d3d0971fcafba7a) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#629)
+ * [377455d](https://github.com/argoproj-labs/argo-dataflow/commit/377455d938246a3c67c163455f47bf53ec808b82) build(deps): bump github.com/aws/aws-sdk-go-v2/credentials (#623)
+ * [3f929e6](https://github.com/argoproj-labs/argo-dataflow/commit/3f929e6fb53306289dfac9ea250280ff03f2ef8c) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#621)
+ * [b9de92a](https://github.com/argoproj-labs/argo-dataflow/commit/b9de92aa80f22222d4e5d83522b76862e7fc05bd) build(deps): bump actions/setup-python from 3 to 4 (#622)
+ * [2be25bf](https://github.com/argoproj-labs/argo-dataflow/commit/2be25bff19e2d8fc8a11be63390b1d28e78b195f) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#620)
+ * [a2156f2](https://github.com/argoproj-labs/argo-dataflow/commit/a2156f2a358fe608d1e796c2725dcd680dc5ebe2) build(deps): bump github.com/stretchr/testify from 1.7.1 to 1.7.2 (#619)
+ * [b8bf2a9](https://github.com/argoproj-labs/argo-dataflow/commit/b8bf2a9bab638f8e1b2be019e55a278346aee560) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#618)
+ * [4107481](https://github.com/argoproj-labs/argo-dataflow/commit/410748168473023f046621dfa12c423461bf7bf4) build(deps): bump github.com/aws/aws-sdk-go-v2/credentials (#617)
+ * [56b22ee](https://github.com/argoproj-labs/argo-dataflow/commit/56b22eeb042ad8bfd723727ac763d690171c0945) build(deps): bump github.com/nats-io/nats.go from 1.15.0 to 1.16.0 (#616)
+ * [3c83214](https://github.com/argoproj-labs/argo-dataflow/commit/3c83214975144598818b18d4e125b4baec2956e8) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#615)
+ * [1334b39](https://github.com/argoproj-labs/argo-dataflow/commit/1334b39f2792dd7105ebb1b0959e0b0649b99729) build(deps): bump github.com/aws/aws-sdk-go-v2/credentials (#613)
+ * [c808479](https://github.com/argoproj-labs/argo-dataflow/commit/c808479008964b2e09d4b9832e3d6a83797c7a0a) build(deps): bump docker/login-action from 1 to 2 (#602)
+ * [93a0ccb](https://github.com/argoproj-labs/argo-dataflow/commit/93a0ccb4039ccd9ace623376d2c547d5fe5b3c8e) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#612)
+ * [4ddd6f6](https://github.com/argoproj-labs/argo-dataflow/commit/4ddd6f6b7fdc19d15360b603e18e9882f257043e) build(deps): bump github.com/aws/aws-sdk-go-v2 from 1.16.3 to 1.16.4 (#610)
+ * [c1d787b](https://github.com/argoproj-labs/argo-dataflow/commit/c1d787b3c9858a8790eac6dc35585b372c61e929) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#609)
+ * [c730c7b](https://github.com/argoproj-labs/argo-dataflow/commit/c730c7b19bc429f8bff4858de89672f092c853ef) build(deps): bump github.com/prometheus/client_golang (#608)
+ * [36d844a](https://github.com/argoproj-labs/argo-dataflow/commit/36d844a7f5b3eefd401393a9a47af667e033d7cb) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#606)
+ * [8fbb255](https://github.com/argoproj-labs/argo-dataflow/commit/8fbb255c01e744b6331faa269c96d8558b71e15a) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#605)
+ * [65ea324](https://github.com/argoproj-labs/argo-dataflow/commit/65ea3244b51c79282f432fce243af0e6c3a7950a) build(deps): bump docker/setup-qemu-action from 1 to 2 (#603)
+ * [65a1817](https://github.com/argoproj-labs/argo-dataflow/commit/65a1817b489c8181a0e5a2a67405702cb4909336) build(deps): bump docker/setup-buildx-action from 1 to 2 (#604)
+ * [e806be2](https://github.com/argoproj-labs/argo-dataflow/commit/e806be2b9c30fac536714041107da62a60f31614) build(deps): bump github.com/nats-io/nats-streaming-server (#600)
+ * [59d0260](https://github.com/argoproj-labs/argo-dataflow/commit/59d0260bf9a27be16036c15aa525833cf37df862) build(deps): bump github.com/nats-io/nats.go from 1.14.0 to 1.15.0 (#601)
+ * [c1ee266](https://github.com/argoproj-labs/argo-dataflow/commit/c1ee266b8a69c229ba8b69f3b90502d0ddb24082) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#599)
+ * [200e9d5](https://github.com/argoproj-labs/argo-dataflow/commit/200e9d5e48c0aee6b738c36ba24001da8fcd6d0f) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#598)
+ * [44bc938](https://github.com/argoproj-labs/argo-dataflow/commit/44bc9381f520328566eb2da45b3b9bfe186fb3a2) build(deps): bump github.com/aws/aws-sdk-go-v2/config (#597)
+ * [97c862f](https://github.com/argoproj-labs/argo-dataflow/commit/97c862f3d57a7eb7ab15fea183e398dc08e7848e) build(deps): bump github.com/aws/aws-sdk-go-v2/credentials (#595)
+ * [9eab67f](https://github.com/argoproj-labs/argo-dataflow/commit/9eab67f96ae654dd7bb1092d3541e239f8c18aa8) build(deps): bump github.com/aws/aws-sdk-go-v2/service/s3 (#596)
+ * [79ff221](https://github.com/argoproj-labs/argo-dataflow/commit/79ff22161d44860704e83ef57d7d9b9b286b7380) build(deps): bump github.com/nats-io/nats-streaming-server (#594)
+ * [b33e511](https://github.com/argoproj-labs/argo-dataflow/commit/b33e511ec454e0def1b89c7c8fe7c0944925d6d4) build(deps): bump github.com/prometheus/common from 0.33.0 to 0.34.0 (#593)
+ * [439de7d](https://github.com/argoproj-labs/argo-dataflow/commit/439de7d03e54202793cecb65f78648dd973d1107) build(deps): bump dependabot/fetch-metadata from 1.3.0 to 1.3.1 (#592)
+
+### Contributors
+
+ * Alex Collins
+ * Krise
+ * dependabot[bot]
+
 ## v0.10.2 (2022-04-20)
 
  * [99e0df6](https://github.com/argoproj-labs/argo-dataflow/commit/99e0df6d975df3a68e7851d1f76d5a1432027be8) fix: Add mutex. Fixes #588 (#589)
