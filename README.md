@@ -1,7 +1,7 @@
 # Dataflow
 
 ## NOTICE
-Argo Dataflow has been reimplemented in the scope of a broader project focussed on operational data analytics.
+Argo Dataflow has been reimplemented in the scope of a broader project focussed on real-time data processing and analytics.
 Please checkout the new [numaflow project](https://github.com/numaproj/numaflow).
 
 ## Summary
