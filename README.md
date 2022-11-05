@@ -1,7 +1,8 @@
 # Dataflow
 
-[![Build](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/build.yml/badge.svg)](https://github.com/argoproj-labs/argo-dataflow/actions/workflows/build.yml)
-[![codecov](https://codecov.io/gh/argoproj-labs/argo-dataflow/branch/main/graph/badge.svg?token=yKtOCXJu1Q)](https://codecov.io/gh/argoproj-labs/argo-dataflow)
+## NOTICE
+Argo Dataflow has been reimplemented in the scope of a broader project focussed on real-time data processing and analytics.
+Please checkout the new [numaflow project](https://github.com/numaproj/numaflow).
 
 ## Summary
 
