@@ -19,7 +19,6 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.3.0
-	github.com/hashicorp/golang-lru v0.5.4
 	github.com/juju/fslock v0.0.0-20160525022230-4d5c94c67b4b
 	github.com/nats-io/nats-streaming-server v0.24.6
 	github.com/nats-io/nats.go v1.16.0
