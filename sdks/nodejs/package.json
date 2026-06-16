@@ -21,6 +21,6 @@
   },
   "homepage": "https://github.com/argoproj-labs/argo-dataflow#readme",
   "devDependencies": {
-    "standard": "^16.0.3"
+    "standard": "^17.1.2"
   }
 }
